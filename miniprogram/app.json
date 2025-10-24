@@ -15,7 +15,14 @@
     "pages/order-list/index",
     "pages/category-manage/index",
     "pages/user-manage/index",
-    "pages/artist-detail/index"
+    "pages/artist-detail/index",
+    "pages/notice-manage/index",
+    "pages/banner-manage/index",
+    "pages/service-qr-manage/index",
+    "pages/staff-manage/index",
+    "pages/report/index",
+    "pages/media-library/index",
+    "pages/system-settings/index"
   ],
   "window": {
     "navigationBarTitleText": "画师商城",

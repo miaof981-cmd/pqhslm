@@ -1,0 +1,12 @@
+.container { min-height: 100vh; background: #F5F5F5; }
+.loading { display: flex; justify-content: center; align-items: center; height: 400rpx; color: #999; }
+.header-bar { background: white; padding: 30rpx; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20rpx; }
+.page-title { font-size: 32rpx; font-weight: 600; color: #333; }
+.add-btn { padding: 15rpx 30rpx; background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%); color: white; border-radius: 25rpx; font-size: 26rpx; border: none; }
+.list { padding: 0 20rpx; }
+.list-item { background: white; padding: 25rpx; margin-bottom: 20rpx; border-radius: 16rpx; display: flex; justify-content: space-between; align-items: center; }
+.item-title { font-size: 28rpx; color: #333; flex: 1; }
+.item-actions { display: flex; gap: 15rpx; }
+.action-btn { padding: 10rpx 20rpx; border-radius: 8rpx; font-size: 24rpx; border: none; }
+.action-btn.edit { background: #E3F2FD; color: #2196F3; }
+.action-btn.delete { background: #FFEBEE; color: #F44336; }

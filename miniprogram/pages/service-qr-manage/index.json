@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "客服管理",
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#F5F5F5",
+  "enablePullDownRefresh": true
+}
