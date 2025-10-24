@@ -100,9 +100,12 @@ Page({
 
   // 加载仪表盘数据
   async loadDashboard() {
-    // 模拟数据 - 实际应从后端API获取
-    this.setData({
-      dashboard: {
+    // 模拟数据 - 根据timeFilter显示不同数据
+    const { timeFilter } = this.data
+    
+    // 根据不同时间范围返回不同数据
+    const dashboardData = {
+      today: {
         orderCount: 28,
         orderTrend: '+3',
         buyerCount: 15,
@@ -116,9 +119,68 @@ Page({
         userCount: 89,
         newUsers: 12
       },
+      yesterday: {
+        orderCount: 25,
+        orderTrend: '+5',
+        buyerCount: 13,
+        buyerTrend: '+1',
+        revenue: '3,200',
+        revenueTrend: '+320',
+        refundCount: 3,
+        refundAmount: '420',
+        artistCount: 23,
+        activeArtists: 17,
+        userCount: 77,
+        newUsers: 8
+      },
+      week: {
+        orderCount: 156,
+        orderTrend: '+18',
+        buyerCount: 89,
+        buyerTrend: '+12',
+        revenue: '15,680',
+        revenueTrend: '+2,340',
+        refundCount: 12,
+        refundAmount: '1,580',
+        artistCount: 23,
+        activeArtists: 20,
+        userCount: 89,
+        newUsers: 23
+      },
+      month: {
+        orderCount: 567,
+        orderTrend: '+89',
+        buyerCount: 234,
+        buyerTrend: '+45',
+        revenue: '58,900',
+        revenueTrend: '+8,900',
+        refundCount: 28,
+        refundAmount: '3,680',
+        artistCount: 23,
+        activeArtists: 21,
+        userCount: 89,
+        newUsers: 56
+      }
+    }
+    
+    this.setData({
+      dashboard: dashboardData[timeFilter] || dashboardData.today,
       pendingOrders: 8,
       overdueOrders: 3,
       pendingApplications: 2
+    })
+    
+    // 显示切换提示
+    const filterText = {
+      today: '今日',
+      yesterday: '昨日',
+      week: '本周',
+      month: '本月'
+    }
+    wx.showToast({
+      title: `已切换到${filterText[timeFilter]}`,
+      icon: 'success',
+      duration: 1000
     })
   },
 
