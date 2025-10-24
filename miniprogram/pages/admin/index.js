@@ -1,42 +1,58 @@
 Page({
   data: {
-    currentTab: 'orders',
-    contentTab: 'notices',
-    orderFilter: 'all',
     loading: true,
+    currentTab: 'dashboard',
+    timeFilter: 'today',
+    chartType: '7days',
     
-    // 数据统计
-    stats: {
-      totalRevenue: '0',
-      revenueGrowth: '0',
-      totalOrders: 0,
-      orderGrowth: '0',
-      totalArtists: 0,
-      artistGrowth: '0',
-      totalUsers: 0,
-      userGrowth: '0'
+    // 子标签
+    artistTab: 'list',
+    productFilter: 'all',
+    orderFilter: 'all',
+    
+    // 仪表盘数据
+    dashboard: {
+      orderCount: 0,
+      yesterdayOrders: 0,
+      weekOrders: 0,
+      revenue: '0',
+      yesterdayRevenue: '0',
+      weekRevenue: '0',
+      paymentRate: '0',
+      successCount: 0,
+      totalCount: 0,
+      refundCount: 0,
+      refundAmount: '0',
+      activeUsers: 0,
+      newUsers: 0,
+      artistCount: 0,
+      activeArtists: 0
     },
     
     // 待处理数量
     pendingOrders: 0,
+    overdueOrders: 0,
     pendingApplications: 0,
     
     // 订单统计
     orderStats: {
       all: 0,
-      pending: 0,
+      unpaid: 0,
+      paid: 0,
       processing: 0,
       completed: 0,
+      refunding: 0,
       refunded: 0
     },
     
     // 数据列表
+    products: [],
+    allProducts: [],
     orders: [],
     allOrders: [],
+    artists: [],
     applications: [],
-    notices: [],
-    serviceQRs: [],
-    banners: []
+    artistPerformance: []
   },
 
   onLoad() {
@@ -72,12 +88,11 @@ Page({
     
     try {
       await Promise.all([
-        this.loadStats(),
+        this.loadDashboard(),
+        this.loadProducts(),
         this.loadOrders(),
-        this.loadApplications(),
-        this.loadNotices(),
-        this.loadServiceQRs(),
-        this.loadBanners()
+        this.loadArtists(),
+        this.loadApplications()
       ])
     } catch (error) {
       console.error('加载数据失败', error)
@@ -86,76 +101,150 @@ Page({
     }
   },
 
-  // 加载数据统计
-  async loadStats() {
-    // 模拟数据
+  // 加载仪表盘数据
+  async loadDashboard() {
+    // 模拟数据 - 实际应从后端API获取
     this.setData({
-      stats: {
-        totalRevenue: '15,680',
-        revenueGrowth: '12.5',
-        totalOrders: 156,
-        orderGrowth: '8.3',
-        totalArtists: 23,
-        artistGrowth: '15.0',
-        totalUsers: 489,
-        userGrowth: '20.1'
+      dashboard: {
+        orderCount: 28,
+        yesterdayOrders: 25,
+        weekOrders: 156,
+        revenue: '3,680',
+        yesterdayRevenue: '3,200',
+        weekRevenue: '15,680',
+        paymentRate: '95.5',
+        successCount: 267,
+        totalCount: 280,
+        refundCount: 5,
+        refundAmount: '580',
+        activeUsers: 89,
+        newUsers: 12,
+        artistCount: 23,
+        activeArtists: 18
       },
-      pendingOrders: 5,
-      pendingApplications: 3
+      pendingOrders: 8,
+      overdueOrders: 3,
+      pendingApplications: 2
+    })
+  },
+
+  // 加载商品列表
+  async loadProducts() {
+    const mockProducts = [
+      {
+        _id: '1',
+        name: '精美头像设计',
+        image: 'https://via.placeholder.com/200',
+        category: '头像设计',
+        price: '88.00',
+        status: 'online',
+        isHot: true,
+        isRecommend: true,
+        isSpecial: false
+      },
+      {
+        _id: '2',
+        name: '创意插画作品',
+        image: 'https://via.placeholder.com/200',
+        category: '插画',
+        price: '168.00',
+        status: 'online',
+        isHot: false,
+        isRecommend: true,
+        isSpecial: true
+      },
+      {
+        _id: '3',
+        name: '企业LOGO设计',
+        image: 'https://via.placeholder.com/200',
+        category: 'LOGO',
+        price: '299.00',
+        status: 'offline',
+        isHot: false,
+        isRecommend: false,
+        isSpecial: false
+      }
+    ]
+    
+    this.setData({
+      allProducts: mockProducts,
+      products: mockProducts
     })
   },
 
   // 加载订单列表
   async loadOrders() {
-    // 模拟数据
     const mockOrders = [
       {
         _id: '1',
         orderNo: 'ORD202401250001',
         productName: '精美头像设计',
         productImage: 'https://via.placeholder.com/100',
+        userName: '张三',
+        userPhone: '138****1234',
         artistName: '画师A',
-        userName: '用户001',
         amount: '88.00',
-        status: 'pending',
-        statusText: '待处理',
+        status: 'paid',
+        statusText: '已支付',
         createTime: '2024-01-25 10:30',
-        deadline: '2024-02-01 10:30'
+        deadline: '2024-02-01 10:30',
+        isOverdue: false
       },
       {
         _id: '2',
         orderNo: 'ORD202401250002',
         productName: '创意插画作品',
         productImage: 'https://via.placeholder.com/100',
+        userName: '李四',
+        userPhone: '139****5678',
         artistName: '画师B',
-        userName: '用户002',
         amount: '168.00',
         status: 'processing',
-        statusText: '进行中',
+        statusText: '制作中',
         createTime: '2024-01-24 15:20',
-        deadline: '2024-02-05 15:20'
+        deadline: '2024-02-05 15:20',
+        isOverdue: false
       },
       {
         _id: '3',
         orderNo: 'ORD202401240003',
         productName: '企业LOGO设计',
         productImage: 'https://via.placeholder.com/100',
+        userName: '王五',
+        userPhone: '137****9012',
         artistName: '画师C',
-        userName: '用户003',
         amount: '299.00',
+        status: 'processing',
+        statusText: '制作中',
+        createTime: '2024-01-20 09:15',
+        deadline: '2024-01-24 09:15',
+        isOverdue: true
+      },
+      {
+        _id: '4',
+        orderNo: 'ORD202401230004',
+        productName: '卡通形象设计',
+        productImage: 'https://via.placeholder.com/100',
+        userName: '赵六',
+        userPhone: '136****3456',
+        artistName: '画师D',
+        amount: '128.00',
         status: 'completed',
         statusText: '已完成',
-        createTime: '2024-01-23 09:15',
-        deadline: '2024-02-10 09:15'
+        createTime: '2024-01-23 14:00',
+        deadline: '2024-01-30 14:00',
+        isOverdue: false
       }
     ]
     
     // 计算订单统计
     const orderStats = {
       all: mockOrders.length,
-      pending: mockOrders.filter(o => o.status === 'pending').length,
+      unpaid: mockOrders.filter(o => o.status === 'unpaid').length,
+      paid: mockOrders.filter(o => o.status === 'paid').length,
       processing: mockOrders.filter(o => o.status === 'processing').length,
       completed: mockOrders.filter(o => o.status === 'completed').length,
+      refunding: mockOrders.filter(o => o.status === 'refunding').length,
       refunded: mockOrders.filter(o => o.status === 'refunded').length
     }
     
@@ -163,6 +252,58 @@ Page({
       allOrders: mockOrders,
       orders: mockOrders,
       orderStats: orderStats
+    })
+  },
+
+  // 加载画师列表
+  async loadArtists() {
+    const mockArtists = [
+      {
+        _id: '1',
+        name: '画师小A',
+        avatar: 'https://via.placeholder.com/100',
+        level: 'S',
+        joinTime: '2023-06-15',
+        productCount: 15,
+        orderCount: 89,
+        totalRevenue: '8,960',
+        status: 'active',
+        statusText: '正常'
+      },
+      {
+        _id: '2',
+        name: '画师小B',
+        avatar: 'https://via.placeholder.com/100',
+        level: 'A',
+        joinTime: '2023-08-20',
+        productCount: 12,
+        orderCount: 67,
+        totalRevenue: '6,720',
+        status: 'active',
+        statusText: '正常'
+      },
+      {
+        _id: '3',
+        name: '画师小C',
+        avatar: 'https://via.placeholder.com/100',
+        level: 'B',
+        joinTime: '2023-10-10',
+        productCount: 8,
+        orderCount: 45,
+        totalRevenue: '4,500',
+        status: 'active',
+        statusText: '正常'
+      }
+    ]
+    
+    // 业绩排行（按收入排序）
+    const performance = [...mockArtists].sort((a, b) => {
+      return parseFloat(b.totalRevenue.replace(',', '')) - parseFloat(a.totalRevenue.replace(',', ''))
+    })
+    
+    this.setData({
+      artists: mockArtists,
+      artistPerformance: performance
     })
   },
 
@@ -180,101 +321,82 @@ Page({
             'https://via.placeholder.com/200',
             'https://via.placeholder.com/200'
           ],
-          status: 'pending',
           createTime: '2024-01-25 14:30'
         },
         {
           _id: '2',
           name: '李四',
           phone: '139****5678',
-          specialty: 'LOGO设计',
+          specialty: 'LOGO设计、品牌设计',
           portfolio: [
             'https://via.placeholder.com/200',
             'https://via.placeholder.com/200'
           ],
-          status: 'pending',
           createTime: '2024-01-24 10:15'
         }
       ]
     })
   },
 
-  // 加载公告
-  async loadNotices() {
-    this.setData({
-      notices: [
-        {
-          _id: '1',
-          title: '新用户专享优惠，首单立减50元！',
-          content: '活动详情...',
-          status: 'active',
-          createTime: '2024-01-20 10:00'
-        },
-        {
-          _id: '2',
-          title: '画师认证通道开放',
-          content: '欢迎优秀画师加入...',
-          status: 'active',
-          createTime: '2024-01-18 15:30'
-        }
-      ]
-    })
-  },
-
-  // 加载客服二维码
-  async loadServiceQRs() {
-    this.setData({
-      serviceQRs: [
-        {
-          _id: '1',
-          title: '客服A',
-          imageUrl: 'https://via.placeholder.com/200',
-          assignedCount: 45,
-          isActive: true
-        },
-        {
-          _id: '2',
-          title: '客服B',
-          imageUrl: 'https://via.placeholder.com/200',
-          assignedCount: 38,
-          isActive: true
-        }
-      ]
-    })
-  },
-
-  // 加载轮播图
-  async loadBanners() {
-    this.setData({
-      banners: [
-        {
-          _id: '1',
-          title: '首页轮播图1',
-          imageUrl: 'https://via.placeholder.com/750x280',
-          sort: 1,
-          isActive: true
-        },
-        {
-          _id: '2',
-          title: '首页轮播图2',
-          imageUrl: 'https://via.placeholder.com/750x280',
-          sort: 2,
-          isActive: true
-        }
-      ]
-    })
-  },
-
   // 切换主标签
-  switchTab(e) {
+  switchMainTab(e) {
     const tab = e.currentTarget.dataset.tab
     this.setData({ currentTab: tab })
   },
 
-  // 切换内容标签
-  switchContentTab(e) {
+  // 切换时间筛选
+  switchTimeFilter(e) {
+    const filter = e.currentTarget.dataset.filter
+    this.setData({ timeFilter: filter })
+    this.loadDashboard()
+  },
+
+  // 自定义日期范围
+  customDateRange() {
+    wx.showToast({ title: '功能开发中', icon: 'none' })
+  },
+
+  // 切换图表类型
+  switchChartType(e) {
+    const type = e.currentTarget.dataset.type
+    this.setData({ chartType: type })
+  },
+
+  // 切换画师标签
+  switchArtistTab(e) {
     const tab = e.currentTarget.dataset.tab
-    this.setData({ contentTab: tab })
+    this.setData({ artistTab: tab })
+  },
+
+  // 筛选商品
+  filterProducts(e) {
+    const filter = e.currentTarget.dataset.filter
+    this.setData({ productFilter: filter })
+    
+    if (filter === 'all') {
+      this.setData({ products: this.data.allProducts })
+    } else if (filter === 'online') {
+      this.setData({ products: this.data.allProducts.filter(p => p.status === 'online') })
+    } else if (filter === 'offline') {
+      this.setData({ products: this.data.allProducts.filter(p => p.status === 'offline') })
+    } else if (filter === 'hot') {
+      this.setData({ products: this.data.allProducts.filter(p => p.isHot) })
+    }
+  },
+
+  // 搜索商品
+  searchProducts(e) {
+    const keyword = e.detail.value.toLowerCase()
+    if (!keyword) {
+      this.setData({ products: this.data.allProducts })
+      return
+    }
+    
+    const filtered = this.data.allProducts.filter(p => 
+      p.name.toLowerCase().includes(keyword) || 
+      p.category.toLowerCase().includes(keyword)
+    )
+    this.setData({ products: filtered })
   },
 
   // 筛选订单
@@ -285,38 +407,100 @@ Page({
     if (filter === 'all') {
       this.setData({ orders: this.data.allOrders })
     } else {
-      const filtered = this.data.allOrders.filter(order => order.status === filter)
+      const filtered = this.data.allOrders.filter(o => o.status === filter)
       this.setData({ orders: filtered })
     }
   },
 
-  // 快捷操作
+  // 搜索订单
+  searchOrders(e) {
+    const keyword = e.detail.value.toLowerCase()
+    if (!keyword) {
+      this.setData({ orders: this.data.allOrders })
+      return
+    }
+    
+    const filtered = this.data.allOrders.filter(o => 
+      o.orderNo.toLowerCase().includes(keyword) ||
+      o.userName.toLowerCase().includes(keyword) ||
+      o.productName.toLowerCase().includes(keyword)
+    )
+    this.setData({ orders: filtered })
+  },
+
+  // 导航方法
   goToOrders() {
-    this.setData({ currentTab: 'orders' })
+    this.setData({ currentTab: 'order' })
   },
 
-  goToArtists() {
-    this.setData({ currentTab: 'artists' })
+  goToRefunds() {
+    this.setData({ currentTab: 'order', orderFilter: 'refunded' })
+    this.filterOrders({ currentTarget: { dataset: { filter: 'refunded' } } })
   },
 
-  goToProducts() {
+  goToUsers() {
     wx.showToast({ title: '功能开发中', icon: 'none' })
   },
 
-  goToCategories() {
-    this.manageCategories()
+  goToArtists() {
+    this.setData({ currentTab: 'artist' })
+  },
+
+  goToPendingOrders() {
+    this.setData({ currentTab: 'order', orderFilter: 'paid' })
+    this.filterOrders({ currentTarget: { dataset: { filter: 'paid' } } })
+  },
+
+  goToOverdueOrders() {
+    this.setData({ currentTab: 'order' })
+    const overdueOrders = this.data.allOrders.filter(o => o.isOverdue)
+    this.setData({ orders: overdueOrders })
+  },
+
+  goToArtistApplications() {
+    this.setData({ currentTab: 'artist', artistTab: 'applications' })
+  },
+
+  // 商品操作
+  addProduct() {
+    wx.navigateTo({
+      url: '/pages/product-edit/index'
+    })
+  },
+
+  editProduct(e) {
+    const id = e.currentTarget.dataset.id
+    wx.navigateTo({
+      url: `/pages/product-edit/index?id=${id}`
+    })
+  },
+
+  toggleProductStatus(e) {
+    const { id, status } = e.currentTarget.dataset
+    const action = status === 'online' ? '下架' : '上架'
+    
+    wx.showModal({
+      title: `${action}商品`,
+      content: `确认${action}此商品？`,
+      success: (res) => {
+        if (res.confirm) {
+          wx.showToast({ title: `已${action}`, icon: 'success' })
+          this.loadProducts()
+        }
+      }
+    })
   },
 
   // 订单操作
   viewOrderDetail(e) {
-    const orderId = e.currentTarget.dataset.id
+    const id = e.currentTarget.dataset.id
     wx.navigateTo({
-      url: `/pages/order-detail/index?id=${orderId}`
+      url: `/pages/order-detail/index?id=${id}`
     })
   },
 
   confirmOrder(e) {
-    const orderId = e.currentTarget.dataset.id
+    const id = e.currentTarget.dataset.id
     wx.showModal({
       title: '确认订单',
       content: '确认接受此订单？',
@@ -330,7 +514,7 @@ Page({
   },
 
   completeOrder(e) {
-    const orderId = e.currentTarget.dataset.id
+    const id = e.currentTarget.dataset.id
     wx.showModal({
       title: '完成订单',
       content: '确认此订单已完成？',
@@ -343,49 +527,93 @@ Page({
     })
   },
 
-  // 审核画师申请
-  reviewApplication(e) {
-    const { id, action } = e.currentTarget.dataset
-    const actionText = action === 'approved' ? '通过' : '驳回'
-    
+  processRefund(e) {
+    const id = e.currentTarget.dataset.id
     wx.showModal({
-      title: `${actionText}申请`,
-      content: `确认${actionText}此画师申请？`,
+      title: '处理退款',
+      content: '确认退款给用户？',
       success: (res) => {
         if (res.confirm) {
-          wx.showToast({
-            title: `已${actionText}`,
-            icon: 'success'
-          })
+          wx.showToast({ title: '退款已处理', icon: 'success' })
+          this.loadOrders()
+        }
+      }
+    })
+  },
+
+  exportOrders() {
+    wx.showToast({ title: '导出功能开发中', icon: 'none' })
+  },
+
+  // 画师操作
+  viewArtistDetail(e) {
+    const id = e.currentTarget.dataset.id
+    wx.showToast({ title: '功能开发中', icon: 'none' })
+  },
+
+  editArtist(e) {
+    const id = e.currentTarget.dataset.id
+    wx.showToast({ title: '功能开发中', icon: 'none' })
+  },
+
+  approveArtist(e) {
+    const id = e.currentTarget.dataset.id
+    wx.showModal({
+      title: '通过申请',
+      content: '确认通过此画师申请？',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showToast({ title: '已通过', icon: 'success' })
           this.loadApplications()
         }
       }
     })
   },
 
-  // 内容管理操作
-  addNotice() {
+  rejectArtist(e) {
+    const id = e.currentTarget.dataset.id
+    wx.showModal({
+      title: '驳回申请',
+      content: '确认驳回此画师申请？',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showToast({ title: '已驳回', icon: 'success' })
+          this.loadApplications()
+        }
+      }
+    })
+  },
+
+  // 更多功能导航
+  goToCategories() {
     wx.showToast({ title: '功能开发中', icon: 'none' })
   },
 
-  addBanner() {
+  goToCustomerService() {
     wx.showToast({ title: '功能开发中', icon: 'none' })
   },
 
-  addServiceQR() {
+  goToStaff() {
     wx.showToast({ title: '功能开发中', icon: 'none' })
   },
 
-  // 系统设置操作
-  manageCategories() {
+  goToReports() {
     wx.showToast({ title: '功能开发中', icon: 'none' })
   },
 
-  manageMembership() {
+  goToMedia() {
     wx.showToast({ title: '功能开发中', icon: 'none' })
   },
 
-  viewStatistics() {
+  goToBanners() {
+    wx.showToast({ title: '功能开发中', icon: 'none' })
+  },
+
+  goToNotices() {
+    wx.showToast({ title: '功能开发中', icon: 'none' })
+  },
+
+  goToSettings() {
     wx.showToast({ title: '功能开发中', icon: 'none' })
   }
 })
