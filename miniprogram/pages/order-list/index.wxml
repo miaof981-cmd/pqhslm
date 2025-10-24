@@ -1,59 +1,98 @@
 <view class="container">
-  <!-- 标签栏 -->
-  <view class="tabs">
-    <view class="tab-item {{currentTab === 'all' ? 'active' : ''}}" 
-          data-tab="all" 
+  <!-- 顶部Tab栏 -->
+  <view class="tab-bar">
+    <view wx:for="{{tabs}}" wx:key="value"
+          class="tab-item {{currentTab === item.value ? 'active' : ''}}"
+          data-tab="{{item.value}}"
           bindtap="switchTab">
-      全部
-    </view>
-    <view class="tab-item {{currentTab === 'created' ? 'active' : ''}}" 
-          data-tab="created" 
-          bindtap="switchTab">
-      进行中
-    </view>
-    <view class="tab-item {{currentTab === 'completed' ? 'active' : ''}}" 
-          data-tab="completed" 
-          bindtap="switchTab">
-      已完成
+      <text class="tab-text">{{item.label}}</text>
+      <text wx:if="{{item.count > 0}}" class="tab-badge">{{item.count}}</text>
     </view>
   </view>
 
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
   <!-- 订单列表 -->
-  <view class="order-list">
-    <view wx:if="{{loading}}" class="loading">
-      <text>加载中...</text>
-    </view>
-
-    <view wx:elif="{{orders.length === 0}}" class="empty">
-      <text>暂无订单</text>
-    </view>
-
-    <view wx:else>
-      <view wx:for="{{orders}}" wx:key="_id" 
-            class="order-card" 
-            data-id="{{item._id}}"
-            bindtap="viewOrder">
-        <view class="order-header">
-          <text class="order-id">订单号：{{item._id}}</text>
-          <view class="order-status {{item.status}}">
-            {{item.status === 'created' ? '制作中' : '已完成'}}
-          </view>
+  <view wx:elif="{{orders.length > 0}}" class="order-list">
+    <view wx:for="{{orders}}" wx:key="_id" class="order-item">
+      <!-- 订单头部 -->
+      <view class="order-header">
+        <view class="order-info">
+          <text class="order-no">订单号：{{item.orderNo}}</text>
+          <text class="order-time">{{item.createTime}}</text>
         </view>
-
-        <view class="order-content">
-          <image class="product-image" src="{{item.productImage}}" mode="aspectFill" />
-          <view class="product-info">
-            <view class="product-name">{{item.productName}}</view>
-            <view class="product-price">¥{{item.price}}</view>
-            <view class="product-time">下单时间：{{item.createTime}}</view>
-            <view class="product-deadline">截稿时间：{{item.deadline}}</view>
-          </view>
-        </view>
-
-        <view class="order-footer">
-          <text class="view-detail">查看详情 ></text>
+        <view class="order-status status-{{item.status}}">
+          {{item.statusText}}
         </view>
       </view>
+
+      <!-- 商品信息 -->
+      <view class="order-content" bindtap="viewOrder" data-id="{{item._id}}">
+        <image class="product-image" src="{{item.productImage}}" mode="aspectFill" />
+        <view class="product-info">
+          <text class="product-name">{{item.productName}}</text>
+          <text class="product-artist">画师：{{item.artistName}}</text>
+          <view class="product-meta">
+            <text class="product-delivery">{{item.deliveryDays}}天出稿</text>
+            <text class="product-price">¥{{item.amount}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 订单进度 -->
+      <view wx:if="{{item.status === 'processing'}}" class="order-progress">
+        <view class="progress-info">
+          <text class="progress-label">制作进度</text>
+          <text class="progress-value">{{item.progress}}%</text>
+        </view>
+        <view class="progress-bar-wrapper">
+          <view class="progress-bar" style="width: {{item.progress}}%"></view>
+        </view>
+        <text class="deadline-text">预计{{item.deadline}}完成</text>
+      </view>
+
+      <!-- 订单操作 -->
+      <view class="order-actions">
+        <!-- 未支付 -->
+        <block wx:if="{{item.status === 'unpaid'}}">
+          <button class="action-btn default" bindtap="cancelOrder" data-id="{{item._id}}">取消订单</button>
+          <button class="action-btn primary" bindtap="payOrder" data-id="{{item._id}}">立即支付</button>
+        </block>
+
+        <!-- 已支付/制作中 -->
+        <block wx:elif="{{item.status === 'paid' || item.status === 'processing'}}">
+          <button class="action-btn default" bindtap="contactService" data-id="{{item._id}}">联系客服</button>
+          <button class="action-btn warning" bindtap="applyRefund" data-id="{{item._id}}">申请退款</button>
+        </block>
+
+        <!-- 已完成 -->
+        <block wx:elif="{{item.status === 'completed'}}">
+          <button class="action-btn default" bindtap="deleteOrder" data-id="{{item._id}}">删除订单</button>
+          <button wx:if="{{!item.reviewed}}" class="action-btn primary" bindtap="reviewOrder" data-id="{{item._id}}">评价</button>
+          <button wx:else class="action-btn default" bindtap="viewReview" data-id="{{item._id}}">查看评价</button>
+        </block>
+
+        <!-- 已取消/已退款 -->
+        <block wx:elif="{{item.status === 'cancelled' || item.status === 'refunded'}}">
+          <button class="action-btn default" bindtap="deleteOrder" data-id="{{item._id}}">删除订单</button>
+          <button wx:if="{{item.status === 'cancelled'}}" class="action-btn primary" bindtap="buyAgain" data-id="{{item.productId}}">再次购买</button>
+        </block>
+
+        <!-- 退款中 -->
+        <block wx:elif="{{item.status === 'refunding'}}">
+          <button class="action-btn default" bindtap="viewRefund" data-id="{{item._id}}">查看退款进度</button>
+        </block>
+      </view>
     </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:else class="empty-state">
+    <view class="empty-icon"></view>
+    <text class="empty-text">{{emptyText}}</text>
+    <button wx:if="{{currentTab === 'all'}}" class="go-shopping-btn" bindtap="goShopping">去逛逛</button>
   </view>
 </view>
