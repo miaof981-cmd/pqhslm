@@ -6,12 +6,12 @@ Page({
     formData: {
       name: '',
       summary: '',
+      summaryImages: [],
       price: '',
       stock: 0,
       deliveryDays: 3,
       category: '',
       images: [],
-      detailImages: [],
       specs: [],
       tags: [],
       detail: '',
@@ -246,7 +246,11 @@ Page({
   // 添加规格
   addSpec() {
     const specs = [...this.data.formData.specs]
-    specs.push({ name: '', values: [''] })
+    specs.push({ 
+      name: '', 
+      multiple: false,
+      values: [{ name: '', addPrice: '' }] 
+    })
     this.setData({
       'formData.specs': specs
     })
@@ -278,7 +282,7 @@ Page({
     const { index, vindex } = e.currentTarget.dataset
     const value = e.detail.value
     const specs = [...this.data.formData.specs]
-    specs[index].values[vindex] = value
+    specs[index].values[vindex].name = value
     this.setData({
       'formData.specs': specs
     })
@@ -288,7 +292,7 @@ Page({
   addSpecValue(e) {
     const index = e.currentTarget.dataset.index
     const specs = [...this.data.formData.specs]
-    specs[index].values.push('')
+    specs[index].values.push({ name: '', addPrice: '' })
     this.setData({
       'formData.specs': specs
     })
@@ -416,5 +420,50 @@ Page({
       console.error('提交失败', error)
       wx.showToast({ title: '提交失败', icon: 'none' })
     }
+  },
+
+  // 选择简介图片
+  chooseSummaryImages() {
+    const currentCount = this.data.formData.summaryImages.length
+    const maxCount = 3 - currentCount
+
+    wx.chooseImage({
+      count: maxCount,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const newImages = [...this.data.formData.summaryImages, ...res.tempFilePaths]
+        this.setData({
+          'formData.summaryImages': newImages
+        })
+      }
+    })
+  },
+
+  // 删除简介图片
+  deleteSummaryImage(e) {
+    const index = e.currentTarget.dataset.index
+    const images = this.data.formData.summaryImages.filter((_, i) => i !== index)
+    this.setData({
+      'formData.summaryImages': images
+    })
+  },
+
+  // 规格多选开关
+  onSpecMultipleChange(e) {
+    const index = e.currentTarget.dataset.index
+    const multiple = e.detail.value
+    this.setData({
+      [`formData.specs[${index}].multiple`]: multiple
+    })
+  },
+
+  // 规格加价输入
+  onSpecPriceInput(e) {
+    const { index, vindex } = e.currentTarget.dataset
+    const addPrice = e.detail.value
+    this.setData({
+      [`formData.specs[${index}].values[${vindex}].addPrice`]: addPrice
+    })
   }
 })

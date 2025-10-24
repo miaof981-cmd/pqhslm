@@ -181,6 +181,11 @@
   background: #FAFAFA;
 }
 
+.form-input.full-height {
+  min-height: 88rpx;
+  height: auto;
+}
+
 .form-input:focus {
   border-color: #A8E6CF;
   background: white;
@@ -212,6 +217,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  min-height: 88rpx;
+  box-sizing: border-box;
+}
+
+.picker-display.full-height {
+  min-height: 88rpx;
 }
 
 .arrow-icon {
@@ -325,6 +336,22 @@
 }
 
 /* 规格设置 */
+.spec-hint {
+  background: #E6FFEB;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.spec-hint text {
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.6;
+}
+
 .spec-list {
   display: flex;
   flex-direction: column;
@@ -336,17 +363,52 @@
   background: #FAFAFA;
   border-radius: 12rpx;
   border: 1rpx solid #E0E0E0;
+  position: relative;
+}
+
+.spec-level-tag {
+  position: absolute;
+  top: -12rpx;
+  left: 20rpx;
+  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
+  color: white;
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-weight: 600;
 }
 
 .spec-header {
   display: flex;
   gap: 15rpx;
   margin-bottom: 20rpx;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.spec-multi-check {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 16rpx;
+  background: white;
+  border-radius: 8rpx;
+  border: 1rpx solid #E0E0E0;
+}
+
+.check-label {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.mini-switch {
+  transform: scale(0.8);
 }
 
 .spec-name-input {
   flex: 1;
-  padding: 15rpx 20rpx;
+  min-width: 200rpx;
+  padding: 18rpx 20rpx;
   border: 1rpx solid #E0E0E0;
   border-radius: 8rpx;
   font-size: 26rpx;
@@ -558,4 +620,114 @@
   background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
   color: white;
   font-weight: 600;
+}
+
+/* 规格值样式优化 */
+.spec-value-tag {
+  display: flex;
+  gap: 10rpx;
+  align-items: center;
+  background: white;
+  padding: 12rpx;
+  border-radius: 8rpx;
+}
+
+.spec-value-input {
+  flex: 1;
+  min-width: 150rpx;
+  padding: 16rpx 20rpx;
+  border: 1rpx solid #E0E0E0;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  background: #FAFAFA;
+}
+
+.spec-price-input {
+  width: 120rpx;
+  padding: 16rpx 15rpx;
+  border: 1rpx solid #E0E0E0;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  background: #FAFAFA;
+  text-align: right;
+}
+
+.price-unit {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.delete-value-btn {
+  width: 50rpx;
+  height: 50rpx;
+  background: #FF6B6B;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 32rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* 简介图片 */
+.summary-images {
+  display: flex;
+  gap: 15rpx;
+  margin-top: 20rpx;
+  flex-wrap: wrap;
+}
+
+.summary-image-item {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+  position: relative;
+}
+
+.summary-image {
+  width: 100%;
+  height: 100%;
+}
+
+.delete-summary-img {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  width: 40rpx;
+  height: 40rpx;
+  background: rgba(0,0,0,0.6);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.add-summary-img {
+  width: 200rpx;
+  height: 200rpx;
+  border: 2rpx dashed #CCC;
+  border-radius: 12rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10rpx;
+  background: #FAFAFA;
+}
+
+.add-icon {
+  font-size: 50rpx;
+  color: #999;
+  line-height: 1;
+}
+
+.add-text {
+  font-size: 22rpx;
+  color: #999;
 }

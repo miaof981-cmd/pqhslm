@@ -50,7 +50,7 @@
           <text>商品名称</text>
           <text class="required">*</text>
         </view>
-        <input class="form-input" 
+        <input class="form-input full-height" 
                placeholder="请输入商品名称（2-50字）" 
                value="{{formData.name}}"
                bindinput="onNameInput" 
@@ -69,25 +69,11 @@
                 range-key="name"
                 value="{{categoryIndex}}"
                 bindchange="onCategoryChange">
-          <view class="picker-display">
+          <view class="picker-display full-height">
             <text class="{{categoryName === '请选择分类' ? 'placeholder' : ''}}">{{categoryName}}</text>
             <view class="arrow-icon"></view>
           </view>
         </picker>
-      </view>
-
-      <!-- 商品简介 -->
-      <view class="form-group">
-        <view class="form-label">
-          <text>商品简介</text>
-        </view>
-        <textarea class="form-textarea" 
-                  placeholder="请输入商品简介（选填，最多200字）" 
-                  value="{{formData.summary}}"
-                  bindinput="onSummaryInput"
-                  maxlength="200"
-                  auto-height />
-        <view class="char-count">{{formData.summary.length}}/200</view>
       </view>
     </view>
 
@@ -151,39 +137,67 @@
     <view class="form-card">
       <view class="card-header">
         <text class="card-title">商品规格</text>
-        <text class="card-subtitle">（选填）</text>
+        <text class="card-subtitle">（选填，最多2级）</text>
+      </view>
+      
+      <view class="form-hint spec-hint">
+        <text>• 一级规格：颜色、尺寸等主要规格</text>
+        <text>• 二级规格：在一级基础上的细分，如正方形、长方形等</text>
+        <text>• 可多选：用户可同时选择多个规格选项</text>
       </view>
       
       <view class="spec-list">
+        <!-- 一级规格 -->
         <view wx:for="{{formData.specs}}" wx:key="index" class="spec-item">
+          <view class="spec-level-tag">{{index === 0 ? '一级规格' : '二级规格'}}</view>
+          
           <view class="spec-header">
-            <input class="spec-name-input" 
-                   placeholder="规格名（如：尺寸）" 
+            <input class="spec-name-input full-height" 
+                   placeholder="{{index === 0 ? '如：颜色' : '如：构图'}}" 
                    value="{{item.name}}"
                    data-index="{{index}}"
                    bindinput="onSpecNameInput" />
+            <view class="spec-multi-check">
+              <text class="check-label">可多选</text>
+              <switch class="mini-switch" 
+                      checked="{{item.multiple}}" 
+                      data-index="{{index}}"
+                      bindchange="onSpecMultipleChange"
+                      color="#A8E6CF"/>
+            </view>
             <view class="delete-spec-btn" data-index="{{index}}" bindtap="deleteSpec">删除</view>
           </view>
+          
           <view class="spec-values">
-            <view wx:for="{{item.values}}" wx:for-item="value" wx:for-index="vIndex" wx:key="vIndex" class="spec-value-item">
+            <view wx:for="{{item.values}}" wx:for-item="value" wx:for-index="vIndex" wx:key="vIndex" class="spec-value-tag">
               <input class="spec-value-input" 
                      placeholder="规格值" 
-                     value="{{value}}"
+                     value="{{value.name}}"
                      data-index="{{index}}"
                      data-vindex="{{vIndex}}"
                      bindinput="onSpecValueInput" />
+              <input class="spec-price-input" 
+                     type="digit"
+                     placeholder="加价"
+                     value="{{value.addPrice}}"
+                     data-index="{{index}}"
+                     data-vindex="{{vIndex}}"
+                     bindinput="onSpecPriceInput" />
+              <text class="price-unit">元</text>
               <view class="delete-value-btn" 
                     data-index="{{index}}" 
                     data-vindex="{{vIndex}}" 
                     bindtap="deleteSpecValue">×</view>
             </view>
-            <button class="add-value-btn" data-index="{{index}}" bindtap="addSpecValue">+ 添加规格值</button>
+            <button class="add-value-btn" data-index="{{index}}" bindtap="addSpecValue">+ 添加选项</button>
           </view>
         </view>
       </view>
       
-      <button wx:if="{{formData.specs.length < 3}}" class="add-spec-btn" bindtap="addSpec">+ 添加规格</button>
-      <view wx:else class="form-hint">最多添加3个规格</view>
+      <button wx:if="{{formData.specs.length < 2}}" class="add-spec-btn" bindtap="addSpec">
+        + 添加{{formData.specs.length === 0 ? '一' : '二'}}级规格
+      </button>
+      <view wx:else class="form-hint">已添加全部规格</view>
     </view>
 
     <!-- 商品标签 -->
@@ -202,42 +216,34 @@
       </view>
     </view>
 
-    <!-- 商品详情 -->
+    <!-- 商品简介 -->
     <view class="form-card">
       <view class="card-header">
-        <text class="card-title">商品详情</text>
+        <text class="card-title">商品简介</text>
+        <text class="card-subtitle">（支持图文）</text>
       </view>
-      <textarea class="form-textarea detail-textarea" 
-                placeholder="请输入商品详情说明，包括作品风格、制作流程、注意事项等" 
-                value="{{formData.detail}}"
-                bindinput="onDetailInput"
-                maxlength="1000"
+      
+      <!-- 简介文字 -->
+      <textarea class="form-textarea" 
+                placeholder="专业画师手绘，风格多样，满意为止..." 
+                value="{{formData.summary}}"
+                bindinput="onSummaryInput"
+                maxlength="500"
                 auto-height />
-      <view class="char-count">{{formData.detail.length}}/1000</view>
-      <view class="form-hint">支持换行，详细描述有助于提升销量</view>
-    </view>
-
-    <!-- 详情图片 -->
-    <view class="form-card">
-      <view class="card-header">
-        <text class="card-title">详情图片</text>
-        <text class="card-subtitle">（选填）</text>
-      </view>
-      <view class="detail-image-upload">
-        <view class="detail-image-list">
-          <view wx:for="{{formData.detailImages}}" wx:key="*this" class="detail-image-item">
-            <image src="{{item}}" mode="widthFix" class="detail-image" />
-            <view class="delete-detail-btn" data-index="{{index}}" bindtap="deleteDetailImage">
-              <text>删除</text>
-            </view>
-          </view>
+      <view class="char-count">{{formData.summary.length}}/500</view>
+      
+      <!-- 简介图片 -->
+      <view class="summary-images">
+        <view wx:for="{{formData.summaryImages}}" wx:key="*this" class="summary-image-item">
+          <image src="{{item}}" mode="aspectFill" class="summary-image" />
+          <view class="delete-summary-img" data-index="{{index}}" bindtap="deleteSummaryImage">×</view>
         </view>
-        <button class="upload-detail-btn" bindtap="chooseDetailImages">
-          <text class="upload-icon">+</text>
-          <text>添加详情图片</text>
-        </button>
-        <view class="form-hint">详情图片会按顺序展示在商品详情页</view>
+        <view wx:if="{{formData.summaryImages.length < 3}}" class="add-summary-img" bindtap="chooseSummaryImages">
+          <text class="add-icon">+</text>
+          <text class="add-text">添加图片</text>
+        </view>
       </view>
+      <view class="form-hint">简介可以添加最多3张图片，直观展示作品效果</view>
     </view>
 
     <!-- 其他设置 -->
