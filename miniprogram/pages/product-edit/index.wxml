@@ -326,29 +326,29 @@
         <text class="title-desc">完善商品描述，准备发布</text>
       </view>
 
-      <!-- 商品简介 -->
+      <!-- 商品简介（富文本） -->
       <view class="form-group">
         <view class="group-label">商品简介</view>
+        <view class="group-hint">可输入文字说明，并插入图片（最多3张）</view>
+        
+        <!-- 文字输入 -->
         <textarea class="form-textarea" 
-                  placeholder="专业画师手绘，风格多样，满意为止..." 
+                  placeholder="专业画师手绘，风格多样，满意为止...&#10;&#10;可以在下方插入图片展示作品效果" 
                   value="{{formData.summary}}"
                   bindinput="onSummaryInput"
                   maxlength="500"
                   auto-height />
         <view class="char-count">{{formData.summary.length}}/500</view>
-      </view>
-
-      <!-- 简介图片 -->
-      <view class="form-group">
-        <view class="group-label">简介图片 <text class="label-hint">（最多3张）</text></view>
-        <view class="summary-images">
+        
+        <!-- 图片插入 -->
+        <view class="summary-images-inline">
           <view wx:for="{{formData.summaryImages}}" wx:key="*this" class="summary-image-item">
             <image src="{{item}}" mode="aspectFill" class="summary-image" />
             <view class="delete-summary-img" data-index="{{index}}" bindtap="deleteSummaryImage">×</view>
           </view>
           <view wx:if="{{formData.summaryImages.length < 3}}" class="add-summary-img" bindtap="chooseSummaryImages">
             <text class="add-icon">+</text>
-            <text class="add-text">添加图片</text>
+            <text class="add-text">插入图片</text>
           </view>
         </view>
       </view>
@@ -361,14 +361,6 @@
                   checked="{{formData.isOnSale}}" 
                   color="#A8E6CF"
                   bindchange="onSaleChange" />
-        </view>
-        <view class="setting-row">
-          <text class="setting-label">限购数量</text>
-          <input class="setting-input" 
-                 type="number"
-                 placeholder="0为不限购"
-                 value="{{formData.maxBuyCount}}"
-                 bindinput="onMaxBuyInput" />
         </view>
       </view>
 
