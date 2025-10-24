@@ -1,7 +1,8 @@
 <view class="container">
-  <!-- OpenID显示（开发用） -->
-  <view class="openid-display">
-    <text>OpenID: {{openid || '未获取'}}</text>
+  <!-- 用户信息显示（开发用） -->
+  <view class="user-info-display">
+    <text>用户ID: {{userId || '未登录'}} | 角色: {{roleText}} </text>
+    <text class="switch-role-btn" bindtap="switchRole">切换权限</text>
   </view>
 
   <!-- 轮播图 -->

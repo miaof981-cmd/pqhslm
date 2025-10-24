@@ -1,7 +1,8 @@
 App({
   globalData: {
     userInfo: null,
-    openid: '',
+    userId: 0,        // 自增用户ID
+    openid: '',       // 微信openid（内部使用）
     role: 'customer', // customer, artist, admin
     userProfile: null
   },

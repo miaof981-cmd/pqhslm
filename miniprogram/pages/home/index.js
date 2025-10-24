@@ -11,7 +11,9 @@ Page({
     currentCategoryName: '全部商品',
     showFilter: false,
     tempCategory: 'all',
-    openid: ''
+    userId: 0,
+    role: 'customer',
+    roleText: '普通用户'
   },
 
   onLoad() {
@@ -19,11 +21,60 @@ Page({
     this.getOpenId()
   },
 
-  // 获取OpenID
+  // 获取用户信息
   getOpenId() {
     const app = getApp()
+    // 模拟用户登录，实际应该从后端获取
+    // 这里默认分配一个自增ID
+    const userId = wx.getStorageSync('userId') || 10001
+    const role = wx.getStorageSync('userRole') || 'customer'
+    
+    // 保存到本地
+    wx.setStorageSync('userId', userId)
+    wx.setStorageSync('userRole', role)
+    
+    // 更新全局数据
+    app.globalData.userId = userId
+    app.globalData.role = role
+    
     this.setData({
-      openid: app.globalData.openid || '模拟openid_123456'
+      userId: userId,
+      role: role,
+      roleText: this.getRoleText(role)
+    })
+  },
+
+  // 获取角色文本
+  getRoleText(role) {
+    const roleMap = {
+      'customer': '普通用户',
+      'artist': '画师',
+      'admin': '管理员'
+    }
+    return roleMap[role] || '未知'
+  },
+
+  // 切换权限（测试用）
+  switchRole() {
+    const roles = ['customer', 'artist', 'admin']
+    const currentIndex = roles.indexOf(this.data.role)
+    const nextRole = roles[(currentIndex + 1) % roles.length]
+    
+    // 保存到本地
+    wx.setStorageSync('userRole', nextRole)
+    
+    // 更新全局数据
+    const app = getApp()
+    app.globalData.role = nextRole
+    
+    this.setData({
+      role: nextRole,
+      roleText: this.getRoleText(nextRole)
+    })
+    
+    wx.showToast({
+      title: `已切换为${this.getRoleText(nextRole)}`,
+      icon: 'success'
     })
   },
 

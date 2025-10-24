@@ -5,13 +5,25 @@
   padding-bottom: 120rpx;
 }
 
-/* OpenID显示 */
-.openid-display {
-  background-color: rgba(0, 0, 0, 0.7);
+/* 用户信息显示 */
+.user-info-display {
+  background: linear-gradient(90deg, #A8E6CF 0%, #D0F0C0 100%);
   color: white;
-  font-size: 20rpx;
-  padding: 8rpx 20rpx;
-  text-align: center;
+  font-size: 22rpx;
+  padding: 12rpx 20rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2rpx 8rpx rgba(168, 230, 207, 0.3);
+}
+
+.switch-role-btn {
+  background-color: white;
+  color: #A8E6CF;
+  padding: 6rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  font-weight: 600;
 }
 
 /* 轮播图 */
