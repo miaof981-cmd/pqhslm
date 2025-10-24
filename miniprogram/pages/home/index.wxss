@@ -8,7 +8,7 @@
 /* 轮播图 */
 .banner-swiper {
   height: 280rpx;
-  margin: 20rpx 20rpx 0;
+  margin: 0 20rpx;
   border-radius: 20rpx;
   overflow: hidden;
 }
@@ -20,12 +20,13 @@
 
 /* 公告滚动条 */
 .notice-ticker {
-  background-color: white;
-  margin: 15rpx 20rpx;
+  background: linear-gradient(90deg, rgba(168, 230, 207, 0.1) 0%, rgba(208, 240, 192, 0.1) 100%);
+  margin: 10rpx 20rpx;
   padding: 15rpx 20rpx;
   border-radius: 15rpx;
   display: flex;
   align-items: center;
+  border-left: 4rpx solid #A8E6CF;
 }
 
 .notice-icon {
@@ -75,8 +76,9 @@
 .search-filter-bar {
   display: flex;
   gap: 15rpx;
-  padding: 15rpx 20rpx;
+  padding: 10rpx 20rpx;
   align-items: center;
+  background: linear-gradient(180deg, rgba(168, 230, 207, 0.05) 0%, transparent 100%);
 }
 
 .search-input {
@@ -86,7 +88,8 @@
   padding: 20rpx 30rpx;
   display: flex;
   align-items: center;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.08);
+  box-shadow: 0 2rpx 8rpx rgba(168, 230, 207, 0.3);
+  border: 1rpx solid rgba(168, 230, 207, 0.2);
 }
 
 .search-icon {
@@ -128,13 +131,13 @@
 
 /* 筛选按钮 */
 .filter-btn {
-  background-color: white;
+  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
   border-radius: 50rpx;
   padding: 20rpx 30rpx;
   display: flex;
   align-items: center;
   gap: 8rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.08);
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.4);
   flex-shrink: 0;
 }
 
@@ -151,7 +154,7 @@
   left: 0;
   right: 0;
   height: 3rpx;
-  background-color: #A8E6CF;
+  background-color: white;
 }
 
 .filter-icon::before {
@@ -164,7 +167,7 @@
 
 .filter-text {
   font-size: 26rpx;
-  color: #333;
+  color: white;
   font-weight: 600;
 }
 
@@ -289,22 +292,31 @@
 
 /* 推荐区域 */
 .recommend-section {
-  margin: 0 20rpx 15rpx;
+  margin: 0 20rpx 10rpx;
+  padding: 20rpx;
+  background: linear-gradient(135deg, rgba(168, 230, 207, 0.08) 0%, rgba(208, 240, 192, 0.08) 100%);
+  border-radius: 20rpx;
+  border: 2rpx solid rgba(168, 230, 207, 0.2);
 }
 
 /* 商品区域 */
 .product-section {
   margin: 0 20rpx;
+  padding: 20rpx;
+  background: linear-gradient(135deg, rgba(168, 230, 207, 0.05) 0%, rgba(208, 240, 192, 0.05) 100%);
+  border-radius: 20rpx;
 }
 
 .section-title {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15rpx 0;
+  padding: 0 0 15rpx 0;
   font-size: 30rpx;
   font-weight: 700;
   color: #1a1a1a;
+  border-bottom: 3rpx solid #A8E6CF;
+  margin-bottom: 15rpx;
 }
 
 .clear-filter {
@@ -331,7 +343,14 @@
   background-color: white;
   border-radius: 12rpx;
   overflow: hidden;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.08);
+  box-shadow: 0 2rpx 8rpx rgba(168, 230, 207, 0.3);
+  border: 1rpx solid rgba(168, 230, 207, 0.15);
+  transition: all 0.3s ease;
+}
+
+.product-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.4);
 }
 
 .product-image {
