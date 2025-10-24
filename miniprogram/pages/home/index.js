@@ -4,10 +4,13 @@ Page({
     categories: [],
     products: [],
     allProducts: [], // 保存所有商品
+    recommendProducts: [], // 推荐商品
     notices: [],
     loading: true,
-    currentCategory: 'recommend',
-    currentCategoryName: '推荐商品'
+    currentCategory: 'all',
+    currentCategoryName: '全部商品',
+    showFilter: false, // 是否显示筛选面板
+    tempCategory: 'all' // 临时选中的分类
   },
 
   onLoad() {
@@ -55,14 +58,14 @@ Page({
   async loadCategories() {
     this.setData({
       categories: [
-        { id: 'recommend', name: '推荐', icon: '⭐', active: true },
-        { id: 'portrait', name: '头像', icon: '👤', active: false },
-        { id: 'illustration', name: '插画', icon: '🎨', active: false },
-        { id: 'logo', name: 'LOGO', icon: '🏷️', active: false },
-        { id: 'poster', name: '海报', icon: '📄', active: false },
-        { id: 'emoticon', name: '表情包', icon: '😊', active: false },
-        { id: 'ui', name: 'UI设计', icon: '📱', active: false },
-        { id: 'animation', name: '动画', icon: '🎬', active: false }
+        { id: 'all', name: '全部', active: true },
+        { id: 'portrait', name: '头像', active: false },
+        { id: 'illustration', name: '插画', active: false },
+        { id: 'logo', name: 'LOGO', active: false },
+        { id: 'poster', name: '海报', active: false },
+        { id: 'emoticon', name: '表情包', active: false },
+        { id: 'ui', name: 'UI设计', active: false },
+        { id: 'animation', name: '动画', active: false }
       ]
     })
   },
@@ -150,9 +153,13 @@ Page({
         }
       ]
     
+    // 前3个作为推荐商品
+    const recommendProducts = allProducts.slice(0, 3)
+    
     this.setData({
       allProducts: allProducts,
-      products: allProducts
+      products: allProducts,
+      recommendProducts: recommendProducts
     })
   },
 
@@ -176,24 +183,52 @@ Page({
     })
   },
 
-  // 切换分类
+  // 切换分类（在筛选面板中）
   switchCategory(e) {
     const categoryId = e.currentTarget.dataset.id
     
-    // 更新分类状态
+    // 更新临时分类状态
     const categories = this.data.categories.map(cat => ({
       ...cat,
       active: cat.id === categoryId
     }))
     
-    // 获取分类名称
-    const category = categories.find(cat => cat.id === categoryId)
-    const categoryName = categoryId === 'recommend' ? '推荐商品' : (category ? category.name + '作品' : '推荐商品')
+    this.setData({
+      categories: categories,
+      tempCategory: categoryId
+    })
+  },
+
+  // 切换筛选面板
+  toggleFilter() {
+    this.setData({
+      showFilter: !this.data.showFilter
+    })
+  },
+
+  // 重置筛选
+  resetFilter() {
+    const categories = this.data.categories.map(cat => ({
+      ...cat,
+      active: cat.id === 'all'
+    }))
     
     this.setData({
       categories: categories,
+      tempCategory: 'all'
+    })
+  },
+
+  // 确认筛选
+  confirmFilter() {
+    const categoryId = this.data.tempCategory
+    const category = this.data.categories.find(cat => cat.id === categoryId)
+    const categoryName = categoryId === 'all' ? '全部商品' : (category ? category.name : '全部商品')
+    
+    this.setData({
       currentCategory: categoryId,
-      currentCategoryName: categoryName
+      currentCategoryName: categoryName,
+      showFilter: false
     })
     
     // 根据分类筛选商品
@@ -204,7 +239,7 @@ Page({
   filterProductsByCategory(categoryId) {
     let filteredProducts = this.data.allProducts
     
-    if (categoryId !== 'recommend') {
+    if (categoryId !== 'all') {
       filteredProducts = this.data.allProducts.filter(product => product.category === categoryId)
     }
     

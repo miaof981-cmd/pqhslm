@@ -5,6 +5,10 @@
       <view class="search-icon"></view>
       <text class="search-placeholder">搜索你想要的画师作品</text>
     </view>
+    <view class="filter-btn" bindtap="toggleFilter">
+      <view class="filter-icon"></view>
+      <text>筛选</text>
+    </view>
   </view>
 
   <!-- 轮播图 -->
@@ -27,26 +31,56 @@
     </scroll-view>
   </view>
 
-  <!-- 商品分类 -->
-  <view class="category-section">
-    <scroll-view class="category-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}">
-      <view class="category-list">
+  <!-- 筛选面板 -->
+  <view class="filter-panel {{showFilter ? 'show' : ''}}">
+    <view class="filter-header">
+      <text class="filter-title">商品分类</text>
+      <view class="filter-close" bindtap="toggleFilter">×</view>
+    </view>
+    <view class="filter-content">
+      <view class="filter-group">
         <view wx:for="{{categories}}" wx:key="id" 
-              class="category-item {{item.active ? 'active' : ''}}" 
+              class="filter-item {{item.active ? 'active' : ''}}" 
               data-id="{{item.id}}" 
               bindtap="switchCategory">
-          <view class="category-icon icon-{{item.id}}"></view>
-          <text class="category-name">{{item.name}}</text>
+          <view class="filter-item-icon icon-{{item.id}}"></view>
+          <text class="filter-item-name">{{item.name}}</text>
         </view>
       </view>
-    </scroll-view>
+    </view>
+    <view class="filter-footer">
+      <button class="filter-reset" bindtap="resetFilter">重置</button>
+      <button class="filter-confirm" bindtap="confirmFilter">确定</button>
+    </view>
   </view>
 
-  <!-- 商品列表 -->
+  <!-- 推荐商品区域 -->
+  <view wx:if="{{recommendProducts.length > 0 && currentCategory === 'all'}}" class="recommend-section">
+    <view class="section-header">
+      <view class="section-title-icon"></view>
+      <text class="section-title">为你推荐</text>
+    </view>
+    <view class="product-waterfall">
+      <view wx:for="{{recommendProducts}}" wx:key="_id" 
+            class="product-card-mini" 
+            data-id="{{item._id}}" 
+            bindtap="onProductTap">
+        <image class="product-image-mini" src="{{item.images[0]}}" mode="aspectFill" />
+        <view class="product-info-mini">
+          <view class="product-name-mini">{{item.name}}</view>
+          <view class="product-bottom-mini">
+            <text class="product-price-mini">¥{{item.price}}</text>
+            <text class="product-sales-mini">{{item.sales}}人付款</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 全部商品区域 -->
   <view class="product-section">
     <view class="section-header">
       <text class="section-title">{{currentCategoryName}}</text>
-      <text class="section-subtitle">精选优质作品</text>
     </view>
     
     <view wx:if="{{loading}}" class="loading-state">
@@ -57,44 +91,32 @@
       <text>暂无商品</text>
     </view>
     
-    <view wx:else class="product-grid">
+    <view wx:else class="product-waterfall">
       <view wx:for="{{products}}" wx:key="_id" 
-            class="product-card" 
+            class="product-card-mini" 
             data-id="{{item._id}}" 
             bindtap="onProductTap">
         
         <!-- 商品图片 -->
-        <view class="product-image-container">
-          <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
-          <view wx:if="{{item.tags.length > 0}}" class="product-tags">
-            <text wx:for="{{item.tags}}" wx:key="*this" class="product-tag">{{item}}</text>
-          </view>
-        </view>
+        <image class="product-image-mini" src="{{item.images[0]}}" mode="aspectFill" />
         
         <!-- 商品信息 -->
-        <view class="product-info">
-          <view class="product-title">{{item.name}}</view>
+        <view class="product-info-mini">
+          <view class="product-name-mini">{{item.name}}</view>
+          
+          <!-- 价格和销量 -->
+          <view class="product-bottom-mini">
+            <view class="price-wrapper-mini">
+              <text class="product-price-mini">¥{{item.price}}</text>
+              <text wx:if="{{item.originalPrice}}" class="product-original-price-mini">¥{{item.originalPrice}}</text>
+            </view>
+            <text class="product-sales-mini">{{item.sales}}人付款</text>
+          </view>
           
           <!-- 画师信息 -->
-          <view class="artist-info">
-            <image class="artist-avatar" src="{{item.artist.avatar}}" mode="aspectFill" />
-            <text class="artist-name">{{item.artist.name}}</text>
-            <view class="rating">
-              <view class="rating-star"></view>
-              <text class="rating-score">{{item.rating}}</text>
-            </view>
-          </view>
-          
-          <!-- 价格信息 -->
-          <view class="price-info">
-            <text class="current-price">¥{{item.price}}</text>
-            <text wx:if="{{item.originalPrice}}" class="original-price">¥{{item.originalPrice}}</text>
-            <text class="delivery-time">{{item.deliveryDays}}天出稿</text>
-          </view>
-          
-          <!-- 销量信息 -->
-          <view class="sales-info">
-            <text class="sales-count">已售{{item.sales}}</text>
+          <view class="artist-mini">
+            <image class="artist-avatar-mini" src="{{item.artist.avatar}}" mode="aspectFill" />
+            <text class="artist-name-mini">{{item.artist.name}}</text>
           </view>
         </view>
       </view>
