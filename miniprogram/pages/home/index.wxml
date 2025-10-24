@@ -5,10 +5,6 @@
       <view class="search-icon"></view>
       <text class="search-placeholder">搜索你想要的画师作品</text>
     </view>
-    <view class="filter-btn" bindtap="toggleFilter">
-      <view class="filter-icon"></view>
-      <text>筛选</text>
-    </view>
   </view>
 
   <!-- 轮播图 -->
@@ -31,57 +27,45 @@
     </scroll-view>
   </view>
 
-  <!-- 筛选面板 -->
-  <view class="filter-panel {{showFilter ? 'show' : ''}}">
-    <view class="filter-header">
-      <text class="filter-title">商品分类</text>
-      <view class="filter-close" bindtap="toggleFilter">×</view>
+  <!-- 搜索筛选栏 -->
+  <view class="search-filter-bar">
+    <view class="search-btn" bindtap="onSearch">
+      <view class="search-icon-small"></view>
+      <text>搜索</text>
     </view>
-    <view class="filter-content">
-      <view class="filter-group">
-        <view wx:for="{{categories}}" wx:key="id" 
-              class="filter-item {{item.active ? 'active' : ''}}" 
-              data-id="{{item.id}}" 
-              bindtap="switchCategory">
-          <view class="filter-item-icon icon-{{item.id}}"></view>
-          <text class="filter-item-name">{{item.name}}</text>
-        </view>
-      </view>
-    </view>
-    <view class="filter-footer">
-      <button class="filter-reset" bindtap="resetFilter">重置</button>
-      <button class="filter-confirm" bindtap="confirmFilter">确定</button>
+    <view class="filter-btn" bindtap="toggleFilter">
+      <view class="filter-icon-small"></view>
+      <text>筛选</text>
     </view>
   </view>
 
-  <!-- 推荐商品区域 -->
-  <view wx:if="{{recommendProducts.length > 0 && currentCategory === 'all'}}" class="recommend-section">
-    <view class="section-header">
-      <view class="section-title-icon"></view>
-      <text class="section-title">为你推荐</text>
-    </view>
-    <view class="product-waterfall">
-      <view wx:for="{{recommendProducts}}" wx:key="_id" 
-            class="product-card-mini" 
-            data-id="{{item._id}}" 
-            bindtap="onProductTap">
-        <image class="product-image-mini" src="{{item.images[0]}}" mode="aspectFill" />
-        <view class="product-info-mini">
-          <view class="product-name-mini">{{item.name}}</view>
-          <view class="product-bottom-mini">
-            <text class="product-price-mini">¥{{item.price}}</text>
-            <text class="product-sales-mini">{{item.sales}}人付款</text>
+  <!-- 筛选面板 -->
+  <view class="filter-panel {{showFilter ? 'show' : ''}}">
+    <view class="filter-mask" bindtap="toggleFilter"></view>
+    <view class="filter-content">
+      <view class="filter-header">
+        <text class="filter-title">商品分类</text>
+        <view class="filter-close" bindtap="toggleFilter">×</view>
+      </view>
+      <view class="filter-body">
+        <view class="filter-group">
+          <view wx:for="{{categories}}" wx:key="id" 
+                class="filter-item {{item.active ? 'active' : ''}}" 
+                data-id="{{item.id}}" 
+                bindtap="switchCategory">
+            <text class="filter-item-name">{{item.name}}</text>
           </view>
         </view>
       </view>
+      <view class="filter-footer">
+        <button class="filter-reset" bindtap="resetFilter">重置</button>
+        <button class="filter-confirm" bindtap="confirmFilter">确定</button>
+      </view>
     </view>
   </view>
 
-  <!-- 全部商品区域 -->
+  <!-- 商品区域 -->
   <view class="product-section">
-    <view class="section-header">
-      <text class="section-title">{{currentCategoryName}}</text>
-    </view>
     
     <view wx:if="{{loading}}" class="loading-state">
       <text>加载中...</text>
@@ -93,31 +77,17 @@
     
     <view wx:else class="product-waterfall">
       <view wx:for="{{products}}" wx:key="_id" 
-            class="product-card-mini" 
+            class="product-card" 
             data-id="{{item._id}}" 
             bindtap="onProductTap">
         
         <!-- 商品图片 -->
-        <image class="product-image-mini" src="{{item.images[0]}}" mode="aspectFill" />
+        <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
         
         <!-- 商品信息 -->
-        <view class="product-info-mini">
-          <view class="product-name-mini">{{item.name}}</view>
-          
-          <!-- 价格和销量 -->
-          <view class="product-bottom-mini">
-            <view class="price-wrapper-mini">
-              <text class="product-price-mini">¥{{item.price}}</text>
-              <text wx:if="{{item.originalPrice}}" class="product-original-price-mini">¥{{item.originalPrice}}</text>
-            </view>
-            <text class="product-sales-mini">{{item.sales}}人付款</text>
-          </view>
-          
-          <!-- 画师信息 -->
-          <view class="artist-mini">
-            <image class="artist-avatar-mini" src="{{item.artist.avatar}}" mode="aspectFill" />
-            <text class="artist-name-mini">{{item.artist.name}}</text>
-          </view>
+        <view class="product-info">
+          <view class="product-name">{{item.name}}</view>
+          <view class="product-price">¥ {{item.price}}</view>
         </view>
       </view>
     </view>

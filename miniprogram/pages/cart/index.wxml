@@ -1,0 +1,7 @@
+<view class="container">
+  <view wx:if="{{cartItems.length === 0}}" class="empty-cart">
+    <view class="empty-icon">🛒</view>
+    <text class="empty-text">购物车空空如也</text>
+    <button class="go-shopping" bindtap="goHome">去逛逛</button>
+  </view>
+</view>

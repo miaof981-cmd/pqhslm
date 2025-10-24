@@ -1,12 +1,14 @@
 {
   "pages": [
     "pages/home/index",
-    "pages/product-detail/index",
     "pages/apply/index",
+    "pages/category/index",
+    "pages/cart/index",
+    "pages/user-center/index",
+    "pages/product-detail/index",
     "pages/artist-dashboard/index",
     "pages/admin/index",
     "pages/notice-detail/index",
-    "pages/user-center/index",
     "pages/product-edit/index",
     "pages/member-renew/index",
     "pages/order-detail/index",
@@ -27,6 +29,10 @@
       {
         "pagePath": "pages/home/index",
         "text": "首页"
+      },
+      {
+        "pagePath": "pages/cart/index",
+        "text": "购物车"
       },
       {
         "pagePath": "pages/user-center/index",

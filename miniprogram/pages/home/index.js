@@ -3,14 +3,12 @@ Page({
     banners: [],
     categories: [],
     products: [],
-    allProducts: [], // 保存所有商品
-    recommendProducts: [], // 推荐商品
-    notices: [],
+    allProducts: [],
     loading: true,
     currentCategory: 'all',
     currentCategoryName: '全部商品',
-    showFilter: false, // 是否显示筛选面板
-    tempCategory: 'all' // 临时选中的分类
+    showFilter: false,
+    tempCategory: 'all'
   },
 
   onLoad() {
@@ -153,13 +151,9 @@ Page({
         }
       ]
     
-    // 前3个作为推荐商品
-    const recommendProducts = allProducts.slice(0, 3)
-    
     this.setData({
       allProducts: allProducts,
-      products: allProducts,
-      recommendProducts: recommendProducts
+      products: allProducts
     })
   },
 

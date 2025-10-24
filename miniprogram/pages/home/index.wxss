@@ -1,4 +1,4 @@
-/* 首页样式 - 瀑布流布局 */
+/* 首页样式 - 3列布局 */
 .container {
   background-color: #f5f5f5;
   min-height: 100vh;
@@ -8,12 +8,9 @@
 .search-bar {
   background-color: #A8E6CF;
   padding: 20rpx 30rpx;
-  display: flex;
-  gap: 15rpx;
 }
 
 .search-input {
-  flex: 1;
   background-color: white;
   border-radius: 50rpx;
   padding: 20rpx 30rpx;
@@ -55,43 +52,6 @@
 .search-placeholder {
   font-size: 28rpx;
   color: #999;
-}
-
-/* 筛选按钮 */
-.filter-btn {
-  background-color: white;
-  border-radius: 50rpx;
-  padding: 20rpx 25rpx;
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
-  font-size: 26rpx;
-  color: #333;
-}
-
-.filter-icon {
-  width: 28rpx;
-  height: 28rpx;
-  position: relative;
-}
-
-.filter-icon::before,
-.filter-icon::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 3rpx;
-  background-color: #A8E6CF;
-}
-
-.filter-icon::before {
-  top: 6rpx;
-}
-
-.filter-icon::after {
-  bottom: 6rpx;
 }
 
 /* 轮播图 */
@@ -159,6 +119,77 @@
   color: #333;
 }
 
+/* 搜索筛选栏 */
+.search-filter-bar {
+  display: flex;
+  gap: 15rpx;
+  padding: 15rpx 20rpx;
+  background-color: white;
+  margin: 0 20rpx 15rpx;
+  border-radius: 15rpx;
+}
+
+.search-btn,
+.filter-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 20rpx;
+  background-color: #f8f9fa;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  color: #333;
+}
+
+.search-icon-small,
+.filter-icon-small {
+  width: 28rpx;
+  height: 28rpx;
+  position: relative;
+}
+
+.search-icon-small::before {
+  content: '';
+  position: absolute;
+  top: 4rpx;
+  left: 4rpx;
+  width: 14rpx;
+  height: 14rpx;
+  border: 2rpx solid #A8E6CF;
+  border-radius: 50%;
+}
+
+.search-icon-small::after {
+  content: '';
+  position: absolute;
+  bottom: 4rpx;
+  right: 4rpx;
+  width: 8rpx;
+  height: 2rpx;
+  background-color: #A8E6CF;
+  transform: rotate(45deg);
+}
+
+.filter-icon-small::before,
+.filter-icon-small::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2rpx;
+  background-color: #A8E6CF;
+}
+
+.filter-icon-small::before {
+  top: 8rpx;
+}
+
+.filter-icon-small::after {
+  bottom: 8rpx;
+}
+
 /* 筛选面板 */
 .filter-panel {
   position: fixed;
@@ -166,7 +197,6 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   display: none;
 }
@@ -175,8 +205,28 @@
   display: block;
 }
 
-.filter-header {
+.filter-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.filter-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background-color: white;
+  border-radius: 30rpx 30rpx 0 0;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-header {
   padding: 30rpx;
   display: flex;
   justify-content: space-between;
@@ -196,9 +246,8 @@
   line-height: 1;
 }
 
-.filter-content {
-  background-color: white;
-  max-height: 60vh;
+.filter-body {
+  flex: 1;
   overflow-y: auto;
   padding: 30rpx;
 }
@@ -210,13 +259,11 @@
 }
 
 .filter-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   padding: 25rpx 15rpx;
   border-radius: 15rpx;
   background-color: #f8f9fa;
   border: 2rpx solid transparent;
+  text-align: center;
   transition: all 0.3s ease;
 }
 
@@ -225,21 +272,8 @@
   border-color: #A8E6CF;
 }
 
-.filter-item-icon {
-  width: 48rpx;
-  height: 48rpx;
-  margin-bottom: 10rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
-  position: relative;
-}
-
-.filter-item.active .filter-item-icon {
-  background: white;
-}
-
 .filter-item-name {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #333;
   font-weight: 500;
 }
@@ -249,27 +283,7 @@
   font-weight: 600;
 }
 
-/* 分类图标样式（复用之前的） */
-.icon-all::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 24rpx;
-  height: 24rpx;
-  border: 3rpx solid white;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.filter-item.active .icon-all::before {
-  border-color: #A8E6CF;
-}
-
-/* 其他分类图标省略，使用之前定义的样式 */
-
 .filter-footer {
-  background-color: white;
   padding: 20rpx 30rpx;
   display: flex;
   gap: 20rpx;
@@ -295,31 +309,6 @@
   color: white;
 }
 
-/* 推荐商品区域 */
-.recommend-section {
-  padding: 0 20rpx 20rpx;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  padding: 20rpx 0;
-}
-
-.section-title-icon {
-  width: 6rpx;
-  height: 28rpx;
-  background: linear-gradient(135deg, #A8E6CF, #D0F0C0);
-  border-radius: 3rpx;
-  margin-right: 15rpx;
-}
-
-.section-title {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #333;
-}
-
 /* 商品区域 */
 .product-section {
   padding: 0 20rpx 120rpx;
@@ -339,79 +328,36 @@
   gap: 10rpx;
 }
 
-.product-card-mini {
+.product-card {
   background-color: white;
-  border-radius: 15rpx;
+  border-radius: 12rpx;
   overflow: hidden;
-  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.08);
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.08);
 }
 
-.product-image-mini {
+.product-image {
   width: 100%;
   aspect-ratio: 1;
 }
 
-.product-info-mini {
+.product-info {
   padding: 15rpx;
 }
 
-.product-name-mini {
+.product-name {
   font-size: 24rpx;
   color: #333;
-  line-height: 1.4;
+  line-height: 1.5;
+  margin-bottom: 10rpx;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  margin-bottom: 10rpx;
-  min-height: 68rpx;
+  min-height: 72rpx;
 }
 
-.product-bottom-mini {
-  margin-bottom: 10rpx;
-}
-
-.price-wrapper-mini {
-  display: flex;
-  align-items: baseline;
-  gap: 8rpx;
-  margin-bottom: 6rpx;
-}
-
-.product-price-mini {
+.product-price {
   font-size: 28rpx;
   color: #FF6B6B;
   font-weight: 700;
-}
-
-.product-original-price-mini {
-  font-size: 20rpx;
-  color: #999;
-  text-decoration: line-through;
-}
-
-.product-sales-mini {
-  font-size: 20rpx;
-  color: #999;
-}
-
-.artist-mini {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
-
-.artist-avatar-mini {
-  width: 30rpx;
-  height: 30rpx;
-  border-radius: 50%;
-}
-
-.artist-name-mini {
-  font-size: 20rpx;
-  color: #666;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }

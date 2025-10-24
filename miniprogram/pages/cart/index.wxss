@@ -1,0 +1,32 @@
+.container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-cart {
+  text-align: center;
+  padding: 100rpx 50rpx;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 30rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+  margin-bottom: 40rpx;
+  display: block;
+}
+
+.go-shopping {
+  background: linear-gradient(45deg, #A8E6CF, #D0F0C0);
+  color: white;
+  border-radius: 50rpx;
+  padding: 25rpx 60rpx;
+  font-size: 28rpx;
+}

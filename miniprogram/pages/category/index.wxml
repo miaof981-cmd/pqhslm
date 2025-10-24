@@ -1,0 +1,11 @@
+<view class="container">
+  <view class="category-list">
+    <view wx:for="{{categories}}" wx:key="id" 
+          class="category-item"
+          data-id="{{item.id}}"
+          bindtap="goToCategory">
+      <text class="category-name">{{item.name}}</text>
+      <text class="category-count">{{item.count}}件商品</text>
+    </view>
+  </view>
+</view>
