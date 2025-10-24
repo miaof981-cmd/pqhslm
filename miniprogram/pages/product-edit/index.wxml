@@ -146,34 +146,16 @@
         <view class="group-hint">留空或0表示不限库存</view>
       </view>
 
-      <!-- 规格设置引导 -->
+      <!-- 规格设置 -->
       <view class="spec-guide">
         <view class="guide-header">
           <text class="guide-title">💡 规格设置（选填）</text>
           <text class="guide-desc">为商品添加不同规格和价格组合</text>
         </view>
 
-        <!-- 一级规格选择 -->
-        <view wx:if="{{!spec1Selected}}" class="spec-selector">
-          <view class="selector-title">选择一级规格类型</view>
-          <view class="spec-type-grid">
-            <view class="spec-type-btn" bindtap="selectSpecType" data-type="size">
-              <text class="type-icon">📐</text>
-              <text class="type-name">尺寸规格</text>
-            </view>
-            <view class="spec-type-btn" bindtap="selectSpecType" data-type="composition">
-              <text class="type-icon">🎨</text>
-              <text class="type-name">构图类型</text>
-            </view>
-            <view class="spec-type-btn" bindtap="selectSpecType" data-type="style">
-              <text class="type-icon">✨</text>
-              <text class="type-name">风格类型</text>
-            </view>
-            <view class="spec-type-btn" bindtap="selectSpecType" data-type="custom">
-              <text class="type-icon">⚙️</text>
-              <text class="type-name">自定义</text>
-            </view>
-          </view>
+        <!-- 一级规格 -->
+        <view wx:if="{{!spec1Selected}}" class="add-spec-tip">
+          <button class="add-first-spec-btn" bindtap="addFirstSpec">+ 添加规格</button>
         </view>
 
         <!-- 规格配置 -->
@@ -192,20 +174,36 @@
             <view class="spec-values-section">
               <text class="section-label">规格选项：</text>
               <view class="spec-value-list">
-                <view wx:for="{{spec1Values}}" wx:key="index" class="spec-value-row">
-                  <input class="spec-value-name" 
-                         placeholder="选项名称" 
-                         value="{{item.name}}"
-                         data-index="{{index}}"
-                         bindinput="onSpec1ValueNameInput" />
-                  <text class="plus-symbol">+</text>
-                  <input class="spec-value-price" 
-                         type="digit"
-                         placeholder="0" 
-                         value="{{item.addPrice}}"
-                         data-index="{{index}}"
-                         bindinput="onSpec1ValuePriceInput" />
-                  <text class="price-unit">元</text>
+                <view wx:for="{{spec1Values}}" wx:key="index" class="spec-value-item">
+                  <!-- 规格图片 -->
+                  <view class="spec-image-upload" bindtap="chooseSpec1Image" data-index="{{index}}">
+                    <image wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" class="spec-image" />
+                    <view wx:else class="spec-image-placeholder">
+                      <text class="placeholder-icon">📷</text>
+                      <text class="placeholder-text">上传图片</text>
+                    </view>
+                  </view>
+                  
+                  <!-- 规格信息 -->
+                  <view class="spec-value-info">
+                    <input class="spec-value-name" 
+                           placeholder="选项名称（如：蓝色）" 
+                           value="{{item.name}}"
+                           data-index="{{index}}"
+                           bindinput="onSpec1ValueNameInput" />
+                    <view class="spec-price-row">
+                      <text class="plus-symbol">+</text>
+                      <input class="spec-value-price" 
+                             type="digit"
+                             placeholder="0" 
+                             value="{{item.addPrice}}"
+                             data-index="{{index}}"
+                             bindinput="onSpec1ValuePriceInput" />
+                      <text class="price-unit">元</text>
+                    </view>
+                  </view>
+                  
+                  <!-- 删除按钮 -->
                   <view class="delete-value-icon" 
                         data-index="{{index}}" 
                         bindtap="deleteSpec1Value">×</view>
@@ -235,20 +233,36 @@
             <view class="spec-values-section">
               <text class="section-label">规格选项：</text>
               <view class="spec-value-list">
-                <view wx:for="{{spec2Values}}" wx:key="index" class="spec-value-row">
-                  <input class="spec-value-name" 
-                         placeholder="选项名称" 
-                         value="{{item.name}}"
-                         data-index="{{index}}"
-                         bindinput="onSpec2ValueNameInput" />
-                  <text class="plus-symbol">+</text>
-                  <input class="spec-value-price" 
-                         type="digit"
-                         placeholder="0" 
-                         value="{{item.addPrice}}"
-                         data-index="{{index}}"
-                         bindinput="onSpec2ValuePriceInput" />
-                  <text class="price-unit">元</text>
+                <view wx:for="{{spec2Values}}" wx:key="index" class="spec-value-item">
+                  <!-- 规格图片 -->
+                  <view class="spec-image-upload" bindtap="chooseSpec2Image" data-index="{{index}}">
+                    <image wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" class="spec-image" />
+                    <view wx:else class="spec-image-placeholder">
+                      <text class="placeholder-icon">📷</text>
+                      <text class="placeholder-text">上传图片</text>
+                    </view>
+                  </view>
+                  
+                  <!-- 规格信息 -->
+                  <view class="spec-value-info">
+                    <input class="spec-value-name" 
+                           placeholder="选项名称（如：手机壁纸）" 
+                           value="{{item.name}}"
+                           data-index="{{index}}"
+                           bindinput="onSpec2ValueNameInput" />
+                    <view class="spec-price-row">
+                      <text class="plus-symbol">+</text>
+                      <input class="spec-value-price" 
+                             type="digit"
+                             placeholder="0" 
+                             value="{{item.addPrice}}"
+                             data-index="{{index}}"
+                             bindinput="onSpec2ValuePriceInput" />
+                      <text class="price-unit">元</text>
+                    </view>
+                  </view>
+                  
+                  <!-- 删除按钮 -->
                   <view class="delete-value-icon" 
                         data-index="{{index}}" 
                         bindtap="deleteSpec2Value">×</view>

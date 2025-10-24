@@ -374,50 +374,13 @@ Page({
     })
   },
 
-  // 选择规格类型
-  selectSpecType(e) {
-    const type = e.currentTarget.dataset.type
-    let specName = ''
-    let defaultValues = []
-    
-    switch (type) {
-      case 'size':
-        specName = '尺寸规格'
-        defaultValues = [
-          { name: '小尺寸', addPrice: '0' },
-          { name: '中尺寸', addPrice: '20' },
-          { name: '大尺寸', addPrice: '50' }
-        ]
-        break
-      case 'composition':
-        specName = '构图类型'
-        defaultValues = [
-          { name: '大头', addPrice: '0' },
-          { name: '半身', addPrice: '30' },
-          { name: '全身', addPrice: '60' }
-        ]
-        break
-      case 'style':
-        specName = '风格类型'
-        defaultValues = [
-          { name: '简约', addPrice: '0' },
-          { name: '卡通', addPrice: '10' },
-          { name: '写实', addPrice: '30' }
-        ]
-        break
-      case 'custom':
-        specName = ''
-        defaultValues = [{ name: '', addPrice: '0' }]
-        break
-    }
-    
+  // 添加一级规格
+  addFirstSpec() {
     this.setData({
       spec1Selected: true,
-      spec1Name: specName,
-      spec1Values: defaultValues
+      spec1Name: '',
+      spec1Values: [{ name: '', addPrice: '0', image: '' }]
     })
-    
-    this.updatePricePreview()
   },
 
   // 重置一级规格
@@ -470,8 +433,43 @@ Page({
   // 添加一级规格值
   addSpec1Value() {
     const spec1Values = [...this.data.spec1Values]
-    spec1Values.push({ name: '', addPrice: '0' })
+    spec1Values.push({ name: '', addPrice: '0', image: '' })
     this.setData({ spec1Values })
+  },
+
+  // 选择一级规格图片
+  async chooseSpec1Image(e) {
+    const index = e.currentTarget.dataset.index
+    try {
+      const res = await wx.chooseImage({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera']
+      })
+
+      wx.showLoading({ title: '上传中...' })
+      
+      // 模拟上传到云存储
+      // TODO: 后端需要实现图片上传接口，返回图片URL
+      // const uploadRes = await wx.cloud.uploadFile({
+      //   cloudPath: `spec-images/${Date.now()}-${Math.random()}.jpg`,
+      //   filePath: res.tempFilePaths[0]
+      // })
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      const spec1Values = [...this.data.spec1Values]
+      spec1Values[index].image = res.tempFilePaths[0] // TODO: 替换为上传后的URL
+      this.setData({ spec1Values })
+
+      wx.hideLoading()
+      wx.showToast({ title: '上传成功', icon: 'success' })
+
+    } catch (error) {
+      wx.hideLoading()
+      if (error.errMsg && !error.errMsg.includes('cancel')) {
+        wx.showToast({ title: '上传失败', icon: 'none' })
+      }
+    }
   },
 
   // 删除一级规格值
@@ -531,8 +529,39 @@ Page({
   // 添加二级规格值
   addSpec2Value() {
     const spec2Values = [...this.data.spec2Values]
-    spec2Values.push({ name: '', addPrice: '0' })
+    spec2Values.push({ name: '', addPrice: '0', image: '' })
     this.setData({ spec2Values })
+  },
+
+  // 选择二级规格图片
+  async chooseSpec2Image(e) {
+    const index = e.currentTarget.dataset.index
+    try {
+      const res = await wx.chooseImage({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera']
+      })
+
+      wx.showLoading({ title: '上传中...' })
+      
+      // 模拟上传到云存储
+      // TODO: 后端需要实现图片上传接口，返回图片URL
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      const spec2Values = [...this.data.spec2Values]
+      spec2Values[index].image = res.tempFilePaths[0] // TODO: 替换为上传后的URL
+      this.setData({ spec2Values })
+
+      wx.hideLoading()
+      wx.showToast({ title: '上传成功', icon: 'success' })
+
+    } catch (error) {
+      wx.hideLoading()
+      if (error.errMsg && !error.errMsg.includes('cancel')) {
+        wx.showToast({ title: '上传失败', icon: 'none' })
+      }
+    }
   },
 
   // 删除二级规格值

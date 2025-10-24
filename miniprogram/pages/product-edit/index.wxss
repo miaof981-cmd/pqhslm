@@ -399,47 +399,21 @@
   color: #999;
 }
 
-.spec-selector {
-  padding: 20rpx 0;
-}
-
-.selector-title {
-  font-size: 26rpx;
-  color: #666;
-  margin-bottom: 20rpx;
+.add-spec-tip {
   text-align: center;
+  padding: 40rpx 0;
 }
 
-.spec-type-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20rpx;
-}
-
-.spec-type-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12rpx;
-  padding: 30rpx 20rpx;
-  background: linear-gradient(135deg, #F8F8F8 0%, #FAFAFA 100%);
-  border-radius: 16rpx;
-  border: 2rpx solid transparent;
-  transition: all 0.3s;
-}
-
-.spec-type-btn:active {
-  background: linear-gradient(135deg, #E6FFEB 0%, #F0FFF4 100%);
-  border-color: #A8E6CF;
-}
-
-.type-icon {
-  font-size: 48rpx;
-}
-
-.type-name {
-  font-size: 26rpx;
-  color: #666;
+.add-first-spec-btn {
+  padding: 20rpx 60rpx;
+  background: linear-gradient(135deg, #A8E6CF 0%, #88D4AB 100%);
+  border: none;
+  color: white;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+  line-height: 1;
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.3);
 }
 
 /* ===== 规格配置 ===== */
@@ -512,20 +486,66 @@
 .spec-value-list {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: 20rpx;
 }
 
-.spec-value-row {
+.spec-value-item {
   display: flex;
-  align-items: center;
-  gap: 12rpx;
+  align-items: flex-start;
+  gap: 16rpx;
   background: white;
-  padding: 16rpx;
+  padding: 20rpx;
   border-radius: 12rpx;
+  border: 2rpx solid #F0F0F0;
+}
+
+/* 规格图片上传 */
+.spec-image-upload {
+  width: 120rpx;
+  height: 120rpx;
+  flex-shrink: 0;
+  border-radius: 8rpx;
+  overflow: hidden;
+  background: #F8F8F8;
+  border: 2rpx dashed #D0D0D0;
+}
+
+.spec-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.spec-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.placeholder-icon {
+  font-size: 40rpx;
+  color: #C0C0C0;
+}
+
+.placeholder-text {
+  font-size: 20rpx;
+  color: #C0C0C0;
+}
+
+/* 规格信息 */
+.spec-value-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
 }
 
 .spec-value-name {
-  flex: 1;
+  width: 100%;
   height: 60rpx;
   background: #F8F8F8;
   border-radius: 8rpx;
@@ -539,6 +559,12 @@
   border-color: #A8E6CF;
 }
 
+.spec-price-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
 .plus-symbol {
   font-size: 24rpx;
   color: #999;
@@ -546,7 +572,7 @@
 }
 
 .spec-value-price {
-  width: 120rpx;
+  flex: 1;
   height: 60rpx;
   background: #F8F8F8;
   border-radius: 8rpx;
@@ -577,6 +603,7 @@
   justify-content: center;
   font-size: 32rpx;
   flex-shrink: 0;
+  margin-top: 36rpx;
 }
 
 .add-value-btn {
@@ -598,7 +625,7 @@
 
 .add-spec2-btn {
   padding: 20rpx 40rpx;
-  background: linear-gradient(135deg, #E6FFEB 0%, #F0FFF4 100%);
+  background: white;
   border: 2rpx dashed #A8E6CF;
   color: #A8E6CF;
   border-radius: 12rpx;
@@ -609,7 +636,7 @@
 
 .tip-text {
   display: block;
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #999;
   margin-top: 12rpx;
 }
