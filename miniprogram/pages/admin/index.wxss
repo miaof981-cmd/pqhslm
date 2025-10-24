@@ -171,65 +171,41 @@
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20rpx;
+  gap: 15rpx;
   margin-bottom: 20rpx;
 }
 
 .stat-card {
   background: white;
-  padding: 25rpx;
-  border-radius: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
-  position: relative;
-  overflow: hidden;
-}
-
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 150%;
-  height: 150%;
-  background: radial-gradient(circle, rgba(168,230,207,0.1) 0%, transparent 70%);
-}
-
-.stat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15rpx;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
 }
 
 .stat-label {
   font-size: 24rpx;
   color: #999;
-}
-
-.stat-icon {
-  width: 40rpx;
-  height: 40rpx;
-  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
-  border-radius: 50%;
-  position: relative;
+  margin-bottom: 8rpx;
 }
 
 .stat-value {
-  font-size: 48rpx;
+  font-size: 40rpx;
   font-weight: 700;
   color: #333;
-  margin-bottom: 10rpx;
+  line-height: 1.2;
 }
 
-.stat-compare {
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
-.compare-label {
-  font-size: 22rpx;
+.stat-unit {
+  font-size: 20rpx;
+  font-weight: 400;
   color: #999;
+  margin-left: 4rpx;
+}
+
+.stat-trend {
+  font-size: 22rpx;
+  color: #666;
+  margin-top: 6rpx;
 }
 
 /* 图表区域 */
@@ -286,45 +262,24 @@
 /* 待处理事项 */
 .pending-section {
   background: white;
-  padding: 25rpx;
-  border-radius: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
+  padding: 20rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
 }
 
 .pending-list {
   display: flex;
   flex-direction: column;
-  gap: 15rpx;
-  margin-top: 20rpx;
+  gap: 12rpx;
+  margin-top: 15rpx;
 }
 
 .pending-item {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  padding: 20rpx;
-  background: #F5F5F5;
-  border-radius: 12rpx;
-}
-
-.pending-icon {
-  width: 80rpx;
-  height: 80rpx;
-  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
-  border-radius: 50%;
-  flex-shrink: 0;
-  position: relative;
-}
-
-.pending-icon::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 40rpx;
-  height: 40rpx;
-  border: 4rpx solid white;
+  justify-content: space-between;
+  padding: 18rpx;
+  background: #F8F8F8;
   border-radius: 8rpx;
 }
 
@@ -332,24 +287,26 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 4rpx;
 }
 
 .pending-title {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: #333;
 }
 
 .pending-desc {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #999;
 }
 
 .pending-count {
-  font-size: 36rpx;
+  font-size: 32rpx;
   font-weight: 700;
   color: #A8E6CF;
+  min-width: 50rpx;
+  text-align: right;
 }
 
 .pending-count.warning {

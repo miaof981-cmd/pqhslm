@@ -13,20 +13,17 @@ Page({
     // 仪表盘数据
     dashboard: {
       orderCount: 0,
-      yesterdayOrders: 0,
-      weekOrders: 0,
+      orderTrend: '+0',
+      buyerCount: 0,
+      buyerTrend: '+0',
       revenue: '0',
-      yesterdayRevenue: '0',
-      weekRevenue: '0',
-      paymentRate: '0',
-      successCount: 0,
-      totalCount: 0,
+      revenueTrend: '+0',
       refundCount: 0,
       refundAmount: '0',
-      activeUsers: 0,
-      newUsers: 0,
       artistCount: 0,
-      activeArtists: 0
+      activeArtists: 0,
+      userCount: 0,
+      newUsers: 0
     },
     
     // 待处理数量
@@ -107,20 +104,17 @@ Page({
     this.setData({
       dashboard: {
         orderCount: 28,
-        yesterdayOrders: 25,
-        weekOrders: 156,
+        orderTrend: '+3',
+        buyerCount: 15,
+        buyerTrend: '+2',
         revenue: '3,680',
-        yesterdayRevenue: '3,200',
-        weekRevenue: '15,680',
-        paymentRate: '95.5',
-        successCount: 267,
-        totalCount: 280,
+        revenueTrend: '+480',
         refundCount: 5,
         refundAmount: '580',
-        activeUsers: 89,
-        newUsers: 12,
         artistCount: 23,
-        activeArtists: 18
+        activeArtists: 18,
+        userCount: 89,
+        newUsers: 12
       },
       pendingOrders: 8,
       overdueOrders: 3,

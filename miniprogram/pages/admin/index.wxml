@@ -4,15 +4,6 @@
   </view>
   
   <view wx:else>
-    <!-- 顶部时间筛选 -->
-    <view class="time-filter">
-      <view class="filter-item {{timeFilter === 'today' ? 'active' : ''}}" data-filter="today" bindtap="switchTimeFilter">今日</view>
-      <view class="filter-item {{timeFilter === 'yesterday' ? 'active' : ''}}" data-filter="yesterday" bindtap="switchTimeFilter">昨日</view>
-      <view class="filter-item {{timeFilter === 'week' ? 'active' : ''}}" data-filter="week" bindtap="switchTimeFilter">本周</view>
-      <view class="filter-item {{timeFilter === 'month' ? 'active' : ''}}" data-filter="month" bindtap="switchTimeFilter">本月</view>
-      <view class="filter-item" bindtap="customDateRange">自定义</view>
-    </view>
-
     <!-- 主标签栏 -->
     <view class="main-tabs">
       <view class="main-tab {{currentTab === 'dashboard' ? 'active' : ''}}" data-tab="dashboard" bindtap="switchMainTab">
@@ -40,89 +31,50 @@
 
     <!-- 1. 仪表盘 -->
     <view wx:if="{{currentTab === 'dashboard'}}" class="tab-content">
+      <!-- 时间筛选（仅在仪表盘显示） -->
+      <view class="time-filter">
+        <view class="filter-item {{timeFilter === 'today' ? 'active' : ''}}" data-filter="today" bindtap="switchTimeFilter">今日</view>
+        <view class="filter-item {{timeFilter === 'yesterday' ? 'active' : ''}}" data-filter="yesterday" bindtap="switchTimeFilter">昨日</view>
+        <view class="filter-item {{timeFilter === 'week' ? 'active' : ''}}" data-filter="week" bindtap="switchTimeFilter">本周</view>
+        <view class="filter-item {{timeFilter === 'month' ? 'active' : ''}}" data-filter="month" bindtap="switchTimeFilter">本月</view>
+      </view>
+
       <!-- 核心数据卡片 -->
       <view class="stats-grid">
         <view class="stat-card" bindtap="goToOrders">
-          <view class="stat-header">
-            <text class="stat-label">订单数</text>
-            <view class="stat-icon icon-order-stat"></view>
-          </view>
-          <view class="stat-value">{{dashboard.orderCount}}</view>
-          <view class="stat-compare">
-            <text class="compare-label">昨日: {{dashboard.yesterdayOrders}}</text>
-            <text class="compare-label">本周: {{dashboard.weekOrders}}</text>
-          </view>
-        </view>
-
-        <view class="stat-card" bindtap="goToOrders">
-          <view class="stat-header">
-            <text class="stat-label">成交金额</text>
-            <view class="stat-icon icon-money"></view>
-          </view>
-          <view class="stat-value">¥{{dashboard.revenue}}</view>
-          <view class="stat-compare">
-            <text class="compare-label">昨日: ¥{{dashboard.yesterdayRevenue}}</text>
-            <text class="compare-label">本周: ¥{{dashboard.weekRevenue}}</text>
-          </view>
-        </view>
-
-        <view class="stat-card">
-          <view class="stat-header">
-            <text class="stat-label">支付成功率</text>
-            <view class="stat-icon icon-success"></view>
-          </view>
-          <view class="stat-value">{{dashboard.paymentRate}}%</view>
-          <view class="stat-compare">
-            <text class="compare-label">成功: {{dashboard.successCount}}</text>
-            <text class="compare-label">总数: {{dashboard.totalCount}}</text>
-          </view>
-        </view>
-
-        <view class="stat-card" bindtap="goToRefunds">
-          <view class="stat-header">
-            <text class="stat-label">退款</text>
-            <view class="stat-icon icon-refund"></view>
-          </view>
-          <view class="stat-value">{{dashboard.refundCount}}笔</view>
-          <view class="stat-compare">
-            <text class="compare-label">金额: ¥{{dashboard.refundAmount}}</text>
-          </view>
+          <view class="stat-label">订单数</view>
+          <view class="stat-value">{{dashboard.orderCount}}<text class="stat-unit">笔</text></view>
+          <view class="stat-trend">较昨日 {{dashboard.orderTrend}}</view>
         </view>
 
         <view class="stat-card" bindtap="goToUsers">
-          <view class="stat-header">
-            <text class="stat-label">活跃用户</text>
-            <view class="stat-icon icon-user"></view>
-          </view>
-          <view class="stat-value">{{dashboard.activeUsers}}</view>
-          <view class="stat-compare">
-            <text class="compare-label">新增: {{dashboard.newUsers}}</text>
-          </view>
+          <view class="stat-label">下单人数</view>
+          <view class="stat-value">{{dashboard.buyerCount}}<text class="stat-unit">人</text></view>
+          <view class="stat-trend">较昨日 {{dashboard.buyerTrend}}</view>
+        </view>
+
+        <view class="stat-card" bindtap="goToOrders">
+          <view class="stat-label">成交金额</view>
+          <view class="stat-value">{{dashboard.revenue}}<text class="stat-unit">元</text></view>
+          <view class="stat-trend">较昨日 {{dashboard.revenueTrend}}</view>
+        </view>
+
+        <view class="stat-card" bindtap="goToRefunds">
+          <view class="stat-label">退款金额</view>
+          <view class="stat-value">{{dashboard.refundAmount}}<text class="stat-unit">元</text></view>
+          <view class="stat-trend">{{dashboard.refundCount}}笔退款</view>
         </view>
 
         <view class="stat-card" bindtap="goToArtists">
-          <view class="stat-header">
-            <text class="stat-label">画师数</text>
-            <view class="stat-icon icon-artist-stat"></view>
-          </view>
-          <view class="stat-value">{{dashboard.artistCount}}</view>
-          <view class="stat-compare">
-            <text class="compare-label">活跃: {{dashboard.activeArtists}}</text>
-          </view>
+          <view class="stat-label">画师数</view>
+          <view class="stat-value">{{dashboard.artistCount}}<text class="stat-unit">人</text></view>
+          <view class="stat-trend">活跃 {{dashboard.activeArtists}}人</view>
         </view>
-      </view>
 
-      <!-- 趋势图表 -->
-      <view class="chart-section">
-        <view class="section-header">
-          <text class="section-title">数据趋势</text>
-          <view class="chart-tabs">
-            <text class="chart-tab {{chartType === '7days' ? 'active' : ''}}" data-type="7days" bindtap="switchChartType">7天</text>
-            <text class="chart-tab {{chartType === '30days' ? 'active' : ''}}" data-type="30days" bindtap="switchChartType">30天</text>
-          </view>
-        </view>
-        <view class="chart-placeholder">
-          <text>📊 图表区域（需集成图表组件）</text>
+        <view class="stat-card" bindtap="goToUsers">
+          <view class="stat-label">用户数</view>
+          <view class="stat-value">{{dashboard.userCount}}<text class="stat-unit">人</text></view>
+          <view class="stat-trend">新增 {{dashboard.newUsers}}人</view>
         </view>
       </view>
 
@@ -131,7 +83,6 @@
         <view class="section-title">待处理事项</view>
         <view class="pending-list">
           <view class="pending-item" bindtap="goToPendingOrders">
-            <view class="pending-icon icon-pending-order"></view>
             <view class="pending-info">
               <text class="pending-title">待处理订单</text>
               <text class="pending-desc">需要确认的订单</text>
@@ -139,7 +90,6 @@
             <view class="pending-count">{{pendingOrders}}</view>
           </view>
           <view class="pending-item" bindtap="goToOverdueOrders">
-            <view class="pending-icon icon-overdue"></view>
             <view class="pending-info">
               <text class="pending-title">拖稿订单</text>
               <text class="pending-desc">超时未交付</text>
@@ -147,7 +97,6 @@
             <view class="pending-count warning">{{overdueOrders}}</view>
           </view>
           <view class="pending-item" bindtap="goToArtistApplications">
-            <view class="pending-icon icon-pending-artist"></view>
             <view class="pending-info">
               <text class="pending-title">画师申请</text>
               <text class="pending-desc">待审核</text>
