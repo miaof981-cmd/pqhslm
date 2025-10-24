@@ -1,80 +1,197 @@
 <view class="container">
-  <view class="form-section">
-    <view class="form-title">{{isEdit ? '编辑商品' : '发布商品'}}</view>
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <view wx:else class="form-section">
+    <view class="page-header">
+      <text class="form-title">{{isEdit ? '编辑商品' : '发布商品'}}</text>
+      <text class="form-subtitle">{{isEdit ? '修改商品信息' : '填写商品基本信息'}}</text>
+    </view>
     
     <!-- 商品图片 -->
-    <view class="form-group">
-      <view class="form-label">商品图片 *</view>
+    <view class="form-card">
+      <view class="card-header">
+        <text class="card-title">商品图片</text>
+        <text class="required">*</text>
+      </view>
       <view class="image-upload">
         <view class="image-grid">
           <view wx:for="{{formData.images}}" wx:key="*this" class="image-item">
-            <image src="{{item}}" mode="aspectFill" />
-            <view class="delete-btn" data-index="{{index}}" bindtap="deleteImage">×</view>
+            <image src="{{item}}" mode="aspectFill" class="preview-image" />
+            <view wx:if="{{index === 0}}" class="cover-badge">封面</view>
+            <view class="delete-btn" data-index="{{index}}" bindtap="deleteImage">
+              <text class="delete-icon">×</text>
+            </view>
           </view>
           <view wx:if="{{formData.images.length < 9}}" 
                 class="upload-btn" 
                 bindtap="chooseImages">
-            <view class="upload-icon"></view>
+            <view class="upload-icon">+</view>
             <text class="upload-text">添加图片</text>
           </view>
         </view>
-        <view class="upload-hint">最多上传9张图片，第一张为封面</view>
-      </view>
-    </view>
-
-    <!-- 商品名称 -->
-    <view class="form-group">
-      <view class="form-label">商品名称 *</view>
-      <input class="form-input" 
-             placeholder="请输入商品名称" 
-             value="{{formData.name}}"
-             bindinput="onNameInput" 
-             maxlength="50" />
-    </view>
-
-    <!-- 商品价格 -->
-    <view class="form-group">
-      <view class="form-label">商品价格 *</view>
-      <view class="price-input-wrapper">
-        <text class="price-symbol">¥</text>
-        <input class="form-input price-input" 
-               type="digit"
-               placeholder="请输入价格" 
-               value="{{formData.price}}"
-               bindinput="onPriceInput" />
-      </view>
-    </view>
-
-    <!-- 出稿天数 -->
-    <view class="form-group">
-      <view class="form-label">出稿天数 *</view>
-      <slider class="delivery-slider"
-              min="1"
-              max="30"
-              value="{{formData.deliveryDays}}"
-              show-value
-              activeColor="#A8E6CF"
-              bindchange="onDeliveryChange" />
-      <view class="delivery-hint">预计{{formData.deliveryDays}}天完成</view>
-    </view>
-
-    <!-- 商品分类 -->
-    <view class="form-group">
-      <view class="form-label">商品分类 *</view>
-      <picker mode="selector" 
-              range="{{categories}}" 
-              range-key="name"
-              value="{{categoryIndex}}"
-              bindchange="onCategoryChange">
-        <view class="picker-display">
-          {{categoryName}}
+        <view class="upload-hint">
+          <text>• 最多上传9张图片，第一张为封面</text>
+          <text>• 建议尺寸：800×800像素</text>
         </view>
-      </picker>
+      </view>
+    </view>
+
+    <!-- 基本信息 -->
+    <view class="form-card">
+      <view class="card-header">
+        <text class="card-title">基本信息</text>
+      </view>
+      
+      <!-- 商品名称 -->
+      <view class="form-group">
+        <view class="form-label">
+          <text>商品名称</text>
+          <text class="required">*</text>
+        </view>
+        <input class="form-input" 
+               placeholder="请输入商品名称（2-50字）" 
+               value="{{formData.name}}"
+               bindinput="onNameInput" 
+               maxlength="50" />
+        <view class="char-count">{{formData.name.length}}/50</view>
+      </view>
+
+      <!-- 商品分类 -->
+      <view class="form-group">
+        <view class="form-label">
+          <text>商品分类</text>
+          <text class="required">*</text>
+        </view>
+        <picker mode="selector" 
+                range="{{categories}}" 
+                range-key="name"
+                value="{{categoryIndex}}"
+                bindchange="onCategoryChange">
+          <view class="picker-display">
+            <text class="{{categoryName === '请选择分类' ? 'placeholder' : ''}}">{{categoryName}}</text>
+            <view class="arrow-icon"></view>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 商品简介 -->
+      <view class="form-group">
+        <view class="form-label">
+          <text>商品简介</text>
+        </view>
+        <textarea class="form-textarea" 
+                  placeholder="请输入商品简介（选填，最多200字）" 
+                  value="{{formData.summary}}"
+                  bindinput="onSummaryInput"
+                  maxlength="200"
+                  auto-height />
+        <view class="char-count">{{formData.summary.length}}/200</view>
+      </view>
+    </view>
+
+    <!-- 价格与库存 -->
+    <view class="form-card">
+      <view class="card-header">
+        <text class="card-title">价格与库存</text>
+      </view>
+
+      <!-- 商品价格 -->
+      <view class="form-group">
+        <view class="form-label">
+          <text>商品价格</text>
+          <text class="required">*</text>
+        </view>
+        <view class="price-input-wrapper">
+          <text class="price-symbol">¥</text>
+          <input class="form-input price-input" 
+                 type="digit"
+                 placeholder="0.00" 
+                 value="{{formData.price}}"
+                 bindinput="onPriceInput" />
+        </view>
+      </view>
+
+      <!-- 库存数量 -->
+      <view class="form-group">
+        <view class="form-label">
+          <text>库存数量</text>
+        </view>
+        <view class="stock-control">
+          <button class="stock-btn minus" bindtap="decreaseStock">-</button>
+          <input class="stock-input" 
+                 type="number"
+                 value="{{formData.stock}}"
+                 bindinput="onStockInput" />
+          <button class="stock-btn plus" bindtap="increaseStock">+</button>
+        </view>
+        <view class="form-hint">留空或0表示不限库存</view>
+      </view>
+
+      <!-- 出稿天数 -->
+      <view class="form-group">
+        <view class="form-label">
+          <text>出稿天数</text>
+          <text class="required">*</text>
+        </view>
+        <slider class="delivery-slider"
+                min="1"
+                max="30"
+                value="{{formData.deliveryDays}}"
+                show-value
+                activeColor="#A8E6CF"
+                backgroundColor="#E0E0E0"
+                bindchange="onDeliveryChange" />
+        <view class="delivery-hint">预计{{formData.deliveryDays}}天完成</view>
+      </view>
+    </view>
+
+    <!-- 商品规格 -->
+    <view class="form-card">
+      <view class="card-header">
+        <text class="card-title">商品规格</text>
+        <text class="card-subtitle">（选填）</text>
+      </view>
+      
+      <view class="spec-list">
+        <view wx:for="{{formData.specs}}" wx:key="index" class="spec-item">
+          <view class="spec-header">
+            <input class="spec-name-input" 
+                   placeholder="规格名（如：尺寸）" 
+                   value="{{item.name}}"
+                   data-index="{{index}}"
+                   bindinput="onSpecNameInput" />
+            <view class="delete-spec-btn" data-index="{{index}}" bindtap="deleteSpec">删除</view>
+          </view>
+          <view class="spec-values">
+            <view wx:for="{{item.values}}" wx:for-item="value" wx:for-index="vIndex" wx:key="vIndex" class="spec-value-item">
+              <input class="spec-value-input" 
+                     placeholder="规格值" 
+                     value="{{value}}"
+                     data-index="{{index}}"
+                     data-vindex="{{vIndex}}"
+                     bindinput="onSpecValueInput" />
+              <view class="delete-value-btn" 
+                    data-index="{{index}}" 
+                    data-vindex="{{vIndex}}" 
+                    bindtap="deleteSpecValue">×</view>
+            </view>
+            <button class="add-value-btn" data-index="{{index}}" bindtap="addSpecValue">+ 添加规格值</button>
+          </view>
+        </view>
+      </view>
+      
+      <button wx:if="{{formData.specs.length < 3}}" class="add-spec-btn" bindtap="addSpec">+ 添加规格</button>
+      <view wx:else class="form-hint">最多添加3个规格</view>
     </view>
 
     <!-- 商品标签 -->
-    <view class="form-group">
-      <view class="form-label">商品标签（最多3个）</view>
+    <view class="form-card">
+      <view class="card-header">
+        <text class="card-title">商品标签</text>
+        <text class="card-subtitle">（最多3个）</text>
+      </view>
       <view class="tag-grid">
         <view wx:for="{{tagOptions}}" wx:key="*this"
               class="tag-item {{formData.tags.includes(item) ? 'active' : ''}}"
@@ -85,9 +202,74 @@
       </view>
     </view>
 
+    <!-- 商品详情 -->
+    <view class="form-card">
+      <view class="card-header">
+        <text class="card-title">商品详情</text>
+      </view>
+      <textarea class="form-textarea detail-textarea" 
+                placeholder="请输入商品详情说明，包括作品风格、制作流程、注意事项等" 
+                value="{{formData.detail}}"
+                bindinput="onDetailInput"
+                maxlength="1000"
+                auto-height />
+      <view class="char-count">{{formData.detail.length}}/1000</view>
+      <view class="form-hint">支持换行，详细描述有助于提升销量</view>
+    </view>
+
+    <!-- 详情图片 -->
+    <view class="form-card">
+      <view class="card-header">
+        <text class="card-title">详情图片</text>
+        <text class="card-subtitle">（选填）</text>
+      </view>
+      <view class="detail-image-upload">
+        <view class="detail-image-list">
+          <view wx:for="{{formData.detailImages}}" wx:key="*this" class="detail-image-item">
+            <image src="{{item}}" mode="widthFix" class="detail-image" />
+            <view class="delete-detail-btn" data-index="{{index}}" bindtap="deleteDetailImage">
+              <text>删除</text>
+            </view>
+          </view>
+        </view>
+        <button class="upload-detail-btn" bindtap="chooseDetailImages">
+          <text class="upload-icon">+</text>
+          <text>添加详情图片</text>
+        </button>
+        <view class="form-hint">详情图片会按顺序展示在商品详情页</view>
+      </view>
+    </view>
+
+    <!-- 其他设置 -->
+    <view class="form-card">
+      <view class="card-header">
+        <text class="card-title">其他设置</text>
+      </view>
+      
+      <view class="setting-item">
+        <text class="setting-label">是否上架</text>
+        <switch class="setting-switch" 
+                checked="{{formData.isOnSale}}" 
+                color="#A8E6CF"
+                bindchange="onSaleChange" />
+      </view>
+      
+      <view class="setting-item">
+        <text class="setting-label">允许购买数量</text>
+        <input class="setting-input" 
+               type="number"
+               placeholder="不限制" 
+               value="{{formData.maxBuyCount}}"
+               bindinput="onMaxBuyInput" />
+      </view>
+    </view>
+
     <!-- 提交按钮 -->
-    <button class="submit-btn" bindtap="submitForm">
-      {{isEdit ? '保存修改' : '立即发布'}}
-    </button>
+    <view class="action-bar">
+      <button class="cancel-btn" bindtap="cancel">取消</button>
+      <button class="submit-btn" bindtap="submitForm">
+        {{isEdit ? '保存修改' : '立即发布'}}
+      </button>
+    </view>
   </view>
 </view>
