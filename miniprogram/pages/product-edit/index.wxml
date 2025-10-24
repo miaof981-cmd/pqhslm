@@ -132,18 +132,43 @@
         </view>
       </view>
 
-      <!-- 库存数量 -->
+      <!-- 库存设置 -->
       <view class="form-group">
-        <view class="group-label">库存数量</view>
-        <view class="stock-control">
-          <button class="stock-btn minus" bindtap="decreaseStock">-</button>
-          <input class="stock-input" 
-                 type="number"
-                 value="{{formData.stock}}"
-                 bindinput="onStockInput" />
-          <button class="stock-btn plus" bindtap="increaseStock">+</button>
+        <view class="group-label">库存管理</view>
+        <view class="stock-mode-selector">
+          <view class="stock-mode-item {{!enableStockLimit ? 'active' : ''}}" 
+                bindtap="toggleStockMode" 
+                data-mode="auto">
+            <view class="mode-icon">♾️</view>
+            <view class="mode-info">
+              <text class="mode-title">自动补货</text>
+              <text class="mode-desc">无限库存，不限制购买</text>
+            </view>
+          </view>
+          <view class="stock-mode-item {{enableStockLimit ? 'active' : ''}}" 
+                bindtap="toggleStockMode" 
+                data-mode="limit">
+            <view class="mode-icon">📦</view>
+            <view class="mode-info">
+              <text class="mode-title">限量库存</text>
+              <text class="mode-desc">设置具体库存数量</text>
+            </view>
+          </view>
         </view>
-        <view class="group-hint">留空或0表示不限库存</view>
+        
+        <!-- 库存数量设置（仅在限量模式下显示） -->
+        <view wx:if="{{enableStockLimit}}" class="stock-setting">
+          <view class="stock-control">
+            <button class="stock-btn minus" bindtap="decreaseStock">-</button>
+            <input class="stock-input" 
+                   type="number"
+                   value="{{formData.stock}}"
+                   bindinput="onStockInput" 
+                   placeholder="请输入库存" />
+            <button class="stock-btn plus" bindtap="increaseStock">+</button>
+          </view>
+          <view class="group-hint">当前库存：{{formData.stock || 0}} 件</view>
+        </view>
       </view>
 
       <!-- 规格设置 -->

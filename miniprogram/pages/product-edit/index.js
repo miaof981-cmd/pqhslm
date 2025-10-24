@@ -15,13 +15,16 @@ Page({
       summary: '',
       summaryImages: [],
       basePrice: '', // 基础价格
-      stock: 100,
+      stock: 0, // 默认0表示无限库存
       category: '',
       images: [],
       tags: [],
       isOnSale: true,
       maxBuyCount: 0
     },
+    
+    // 库存管理
+    enableStockLimit: false, // 默认自动补货模式
     
     // 第一步：基础信息
     categories: [
@@ -350,6 +353,17 @@ Page({
     this.updatePricePreview()
   },
 
+  // 切换库存模式
+  toggleStockMode(e) {
+    const mode = e.currentTarget.dataset.mode
+    const enableStockLimit = mode === 'limit'
+    
+    this.setData({
+      enableStockLimit,
+      'formData.stock': enableStockLimit ? 100 : 0 // 切换到限量模式时默认100
+    })
+  },
+
   // 输入库存
   onStockInput(e) {
     const value = parseInt(e.detail.value) || 0
@@ -360,7 +374,7 @@ Page({
 
   // 减少库存
   decreaseStock() {
-    const stock = Math.max(0, this.data.formData.stock - 1)
+    const stock = Math.max(1, this.data.formData.stock - 1) // 最小为1
     this.setData({
       'formData.stock': stock
     })

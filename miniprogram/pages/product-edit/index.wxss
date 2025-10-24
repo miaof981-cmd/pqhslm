@@ -331,7 +331,61 @@
   flex: 1;
 }
 
-/* ===== 库存控制 ===== */
+/* ===== 库存管理 ===== */
+.stock-mode-selector {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.stock-mode-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx;
+  background: #F8F8F8;
+  border-radius: 12rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s;
+}
+
+.stock-mode-item.active {
+  background: #E6FFEB;
+  border-color: #A8E6CF;
+}
+
+.mode-icon {
+  font-size: 40rpx;
+  flex-shrink: 0;
+}
+
+.mode-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.mode-title {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.mode-desc {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.stock-setting {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  background: #F8F8F8;
+  border-radius: 12rpx;
+  border: 2rpx solid #E0E0E0;
+}
+
 .stock-control {
   display: flex;
   align-items: center;
@@ -341,34 +395,37 @@
 .stock-btn {
   width: 60rpx;
   height: 60rpx;
-  background: #F8F8F8;
+  background: white;
   border-radius: 12rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 32rpx;
   color: #666;
-  border: none;
+  border: 2rpx solid #E0E0E0;
   padding: 0;
   line-height: 1;
 }
 
 .stock-btn.minus {
   color: #FF6B6B;
+  border-color: #FFE0E0;
 }
 
 .stock-btn.plus {
   color: #A8E6CF;
+  border-color: #D0F0C0;
 }
 
 .stock-input {
   flex: 1;
   text-align: center;
   height: 60rpx;
-  background: #F8F8F8;
+  background: white;
   border-radius: 12rpx;
-  border: none;
+  border: 2rpx solid #E0E0E0;
   font-size: 28rpx;
+  font-weight: bold;
 }
 
 /* ===== 规格设置引导 ===== */
