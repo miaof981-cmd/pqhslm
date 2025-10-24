@@ -35,11 +35,9 @@ Page({
     orderStats: {
       all: 0,
       unpaid: 0,
-      paid: 0,
       processing: 0,
       completed: 0,
-      refunding: 0,
-      refunded: 0
+      refunding: 0
     },
     
     // 数据列表
@@ -297,11 +295,9 @@ Page({
     const orderStats = {
       all: mockOrders.length,
       unpaid: mockOrders.filter(o => o.status === 'unpaid').length,
-      paid: mockOrders.filter(o => o.status === 'paid').length,
-      processing: mockOrders.filter(o => o.status === 'processing').length,
+      processing: mockOrders.filter(o => o.status === 'processing' || o.status === 'paid').length,
       completed: mockOrders.filter(o => o.status === 'completed').length,
-      refunding: mockOrders.filter(o => o.status === 'refunding').length,
-      refunded: mockOrders.filter(o => o.status === 'refunded').length
+      refunding: mockOrders.filter(o => o.status === 'refunding' || o.status === 'refunded').length
     }
     
     this.setData({
@@ -466,6 +462,14 @@ Page({
     
     if (filter === 'all') {
       this.setData({ orders: this.data.allOrders })
+    } else if (filter === 'processing') {
+      // 制作中包含已支付和制作中状态
+      const filtered = this.data.allOrders.filter(o => o.status === 'processing' || o.status === 'paid')
+      this.setData({ orders: filtered })
+    } else if (filter === 'refunding') {
+      // 退款包含退款中和已退款
+      const filtered = this.data.allOrders.filter(o => o.status === 'refunding' || o.status === 'refunded')
+      this.setData({ orders: filtered })
     } else {
       const filtered = this.data.allOrders.filter(o => o.status === filter)
       this.setData({ orders: filtered })
@@ -558,34 +562,6 @@ Page({
     const id = e.currentTarget.dataset.id
     wx.navigateTo({
       url: `/pages/order-detail/index?id=${id}`
-    })
-  },
-
-  confirmOrder(e) {
-    const id = e.currentTarget.dataset.id
-    wx.showModal({
-      title: '确认订单',
-      content: '确认接受此订单？',
-      success: (res) => {
-        if (res.confirm) {
-          wx.showToast({ title: '订单已确认', icon: 'success' })
-          this.loadOrders()
-        }
-      }
-    })
-  },
-
-  completeOrder(e) {
-    const id = e.currentTarget.dataset.id
-    wx.showModal({
-      title: '完成订单',
-      content: '确认此订单已完成？',
-      success: (res) => {
-        if (res.confirm) {
-          wx.showToast({ title: '订单已完成', icon: 'success' })
-          this.loadOrders()
-        }
-      }
     })
   },
 

@@ -156,40 +156,35 @@
 
     <!-- 3. 订单管理 -->
     <view wx:if="{{currentTab === 'order'}}" class="tab-content">
-      <view class="section-header">
+      <!-- 顶部操作栏 -->
+      <view class="order-header-bar">
         <text class="section-title">订单管理</text>
-        <button class="export-btn" bindtap="exportOrders">导出Excel</button>
+        <view class="header-actions">
+          <input class="search-input-inline" placeholder="搜索订单" bindinput="searchOrders" />
+          <button class="export-btn-small" bindtap="exportOrders">导出</button>
+        </view>
       </view>
 
       <!-- 订单筛选 -->
-      <view class="filter-bar">
-        <view class="filter-item {{orderFilter === 'all' ? 'active' : ''}}" data-filter="all" bindtap="filterOrders">
-          全部({{orderStats.all}})
+      <scroll-view class="filter-scroll" scroll-x>
+        <view class="filter-bar-compact">
+          <view class="filter-item {{orderFilter === 'all' ? 'active' : ''}}" data-filter="all" bindtap="filterOrders">
+            全部<text class="filter-count">{{orderStats.all}}</text>
+          </view>
+          <view class="filter-item {{orderFilter === 'unpaid' ? 'active' : ''}}" data-filter="unpaid" bindtap="filterOrders">
+            待支付<text class="filter-count">{{orderStats.unpaid}}</text>
+          </view>
+          <view class="filter-item {{orderFilter === 'processing' ? 'active' : ''}}" data-filter="processing" bindtap="filterOrders">
+            制作中<text class="filter-count">{{orderStats.processing}}</text>
+          </view>
+          <view class="filter-item {{orderFilter === 'completed' ? 'active' : ''}}" data-filter="completed" bindtap="filterOrders">
+            已完成<text class="filter-count">{{orderStats.completed}}</text>
+          </view>
+          <view class="filter-item {{orderFilter === 'refunding' ? 'active' : ''}}" data-filter="refunding" bindtap="filterOrders">
+            退款中<text class="filter-count">{{orderStats.refunding}}</text>
+          </view>
         </view>
-        <view class="filter-item {{orderFilter === 'unpaid' ? 'active' : ''}}" data-filter="unpaid" bindtap="filterOrders">
-          待支付({{orderStats.unpaid}})
-        </view>
-        <view class="filter-item {{orderFilter === 'paid' ? 'active' : ''}}" data-filter="paid" bindtap="filterOrders">
-          已支付({{orderStats.paid}})
-        </view>
-        <view class="filter-item {{orderFilter === 'processing' ? 'active' : ''}}" data-filter="processing" bindtap="filterOrders">
-          制作中({{orderStats.processing}})
-        </view>
-        <view class="filter-item {{orderFilter === 'completed' ? 'active' : ''}}" data-filter="completed" bindtap="filterOrders">
-          已完成({{orderStats.completed}})
-        </view>
-        <view class="filter-item {{orderFilter === 'refunding' ? 'active' : ''}}" data-filter="refunding" bindtap="filterOrders">
-          退款中({{orderStats.refunding}})
-        </view>
-        <view class="filter-item {{orderFilter === 'refunded' ? 'active' : ''}}" data-filter="refunded" bindtap="filterOrders">
-          已退款({{orderStats.refunded}})
-        </view>
-      </view>
-
-      <!-- 搜索栏 -->
-      <view class="search-bar">
-        <input class="search-input" placeholder="搜索订单号/用户/商品" bindinput="searchOrders" />
-      </view>
+      </scroll-view>
 
       <!-- 订单列表 -->
       <view class="order-list">
@@ -202,7 +197,7 @@
             <image class="order-image" src="{{item.productImage}}" mode="aspectFill" />
             <view class="order-info">
               <text class="order-product">{{item.productName}}</text>
-              <text class="order-user">买家：{{item.userName}} {{item.userPhone}}</text>
+              <text class="order-user">买家：{{item.userName}}</text>
               <text class="order-artist">画师：{{item.artistName}}</text>
               <text class="order-time">下单：{{item.createTime}}</text>
               <text wx:if="{{item.deadline}}" class="order-deadline {{item.isOverdue ? 'overdue' : ''}}">
@@ -213,8 +208,6 @@
           <view class="order-footer">
             <text class="order-amount">¥{{item.amount}}</text>
             <view class="order-actions">
-              <button wx:if="{{item.status === 'paid'}}" class="action-btn primary" data-id="{{item._id}}" catchtap="confirmOrder">确认</button>
-              <button wx:if="{{item.status === 'processing'}}" class="action-btn success" data-id="{{item._id}}" catchtap="completeOrder">完成</button>
               <button wx:if="{{item.status === 'refunding'}}" class="action-btn warning" data-id="{{item._id}}" catchtap="processRefund">处理退款</button>
               <button class="action-btn default" data-id="{{item._id}}" catchtap="viewOrderDetail">详情</button>
             </view>
