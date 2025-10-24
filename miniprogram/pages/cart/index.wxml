@@ -1,7 +1,80 @@
 <view class="container">
-  <view wx:if="{{cartItems.length === 0}}" class="empty-cart">
-    <view class="empty-icon">🛒</view>
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <view wx:elif="{{cartItems.length > 0}}" class="cart-content">
+    <!-- 购物车列表 -->
+    <view class="cart-list">
+      <view wx:for="{{cartItems}}" wx:key="_id" class="cart-item {{item.selected ? 'selected' : ''}}">
+        <!-- 选择框 -->
+        <view class="checkbox" data-id="{{item._id}}" bindtap="toggleSelect">
+          <view wx:if="{{item.selected}}" class="checkbox-checked"></view>
+        </view>
+
+        <!-- 商品信息 -->
+        <view class="item-content" bindtap="viewProduct" data-id="{{item.productId}}">
+          <image class="product-image" src="{{item.productImage}}" mode="aspectFill" />
+          <view class="product-info">
+            <text class="product-name">{{item.productName}}</text>
+            <text class="product-artist">画师：{{item.artistName}}</text>
+            <view wx:if="{{item.spec}}" class="product-spec">规格：{{item.spec}}</view>
+            <view class="product-footer">
+              <text class="product-price">¥{{item.price}}</text>
+              <view class="quantity-control">
+                <button class="quantity-btn minus" data-id="{{item._id}}" bindtap="decreaseQuantity">-</button>
+                <text class="quantity-text">{{item.quantity}}</text>
+                <button class="quantity-btn plus" data-id="{{item._id}}" bindtap="increaseQuantity">+</button>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 删除按钮 -->
+        <view class="delete-btn" data-id="{{item._id}}" bindtap="deleteItem">
+          <text class="delete-icon">×</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 推荐商品 -->
+    <view wx:if="{{recommendProducts.length > 0}}" class="recommend-section">
+      <view class="recommend-header">
+        <text class="recommend-title">为你推荐</text>
+      </view>
+      <view class="recommend-list">
+        <view wx:for="{{recommendProducts}}" wx:key="_id" class="recommend-item" bindtap="viewProduct" data-id="{{item._id}}">
+          <image class="recommend-image" src="{{item.image}}" mode="aspectFill" />
+          <text class="recommend-name">{{item.name}}</text>
+          <text class="recommend-price">¥{{item.price}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:else class="empty-state">
+    <view class="empty-icon"></view>
     <text class="empty-text">购物车空空如也</text>
-    <button class="go-shopping" bindtap="goHome">去逛逛</button>
+    <button class="go-shopping-btn" bindtap="goShopping">去逛逛</button>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view wx:if="{{cartItems.length > 0}}" class="bottom-bar">
+    <view class="select-all" bindtap="toggleSelectAll">
+      <view class="checkbox {{allSelected ? 'checked' : ''}}">
+        <view wx:if="{{allSelected}}" class="checkbox-checked"></view>
+      </view>
+      <text class="select-all-text">全选</text>
+    </view>
+
+    <view class="total-info">
+      <text class="total-label">合计：</text>
+      <text class="total-price">¥{{totalPrice}}</text>
+    </view>
+
+    <button class="checkout-btn {{selectedCount > 0 ? 'active' : ''}}" bindtap="checkout">
+      结算({{selectedCount}})
+    </button>
   </view>
 </view>
