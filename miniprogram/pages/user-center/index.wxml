@@ -4,6 +4,15 @@
   </view>
   
   <view wx:else>
+    <!-- 开发测试栏 -->
+    <view class="dev-test-bar">
+      <view class="dev-info">
+        <text class="dev-label">用户ID: {{userId}}</text>
+        <text class="dev-label">角色: {{roleText}}</text>
+      </view>
+      <button class="switch-role-btn" bindtap="switchRole">切换权限</button>
+    </view>
+
     <!-- 用户信息卡片 -->
     <view class="user-card">
       <view class="user-avatar-container">
@@ -12,7 +21,7 @@
       </view>
       <view class="user-info">
         <view class="user-name">{{userInfo.name}}</view>
-        <view class="user-id">ID: {{userInfo.openid.slice(-8)}}</view>
+        <view class="user-id">用户ID: {{userId}}</view>
         <button class="update-btn" bindtap="updateUserInfo">更新信息</button>
       </view>
     </view>

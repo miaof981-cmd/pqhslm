@@ -10,7 +10,10 @@ Page({
       completed: 0,
       refunded: 0,
       total: 0
-    }
+    },
+    userId: 0,
+    role: 'customer',
+    roleText: '普通用户'
   },
 
   onLoad(options) {
@@ -25,6 +28,9 @@ Page({
   async loadData() {
     this.setData({ loading: true })
     
+    // 加载用户ID和角色
+    this.loadUserRole()
+    
     try {
       await Promise.all([
         this.loadUserInfo(),
@@ -36,6 +42,75 @@ Page({
     } finally {
       this.setData({ loading: false })
     }
+  },
+
+  // 加载用户角色
+  loadUserRole() {
+    const app = getApp()
+    const userId = wx.getStorageSync('userId') || 10001
+    const role = wx.getStorageSync('userRole') || 'customer'
+    
+    // 保存到本地
+    wx.setStorageSync('userId', userId)
+    wx.setStorageSync('userRole', role)
+    
+    // 更新全局数据
+    app.globalData.userId = userId
+    app.globalData.role = role
+    
+    this.setData({
+      userId: userId,
+      role: role,
+      roleText: this.getRoleText(role),
+      isArtist: role === 'artist' || role === 'admin'
+    })
+    
+    this.updateUserInfoRole(role)
+  },
+
+  // 更新用户信息中的角色
+  updateUserInfoRole(role) {
+    if (this.data.userInfo) {
+      this.setData({
+        'userInfo.role': role
+      })
+    }
+  },
+
+  // 获取角色文本
+  getRoleText(role) {
+    const roleMap = {
+      'customer': '普通用户',
+      'artist': '画师',
+      'admin': '管理员'
+    }
+    return roleMap[role] || '未知'
+  },
+
+  // 切换权限（测试用）
+  switchRole() {
+    const roles = ['customer', 'artist', 'admin']
+    const currentIndex = roles.indexOf(this.data.role)
+    const nextRole = roles[(currentIndex + 1) % roles.length]
+    
+    // 保存到本地
+    wx.setStorageSync('userRole', nextRole)
+    
+    // 更新全局数据
+    const app = getApp()
+    app.globalData.role = nextRole
+    
+    this.setData({
+      role: nextRole,
+      roleText: this.getRoleText(nextRole),
+      isArtist: nextRole === 'artist' || nextRole === 'admin',
+      'userInfo.role': nextRole
+    })
+    
+    wx.showToast({
+      title: `已切换为${this.getRoleText(nextRole)}`,
+      icon: 'success'
+    })
   },
 
   // 加载用户信息

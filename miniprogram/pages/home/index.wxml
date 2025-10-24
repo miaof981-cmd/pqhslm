@@ -1,10 +1,4 @@
 <view class="container">
-  <!-- 用户信息显示（开发用） -->
-  <view class="user-info-display">
-    <text>用户ID: {{userId || '未登录'}} | 角色: {{roleText}} </text>
-    <text class="switch-role-btn" bindtap="switchRole">切换权限</text>
-  </view>
-
   <!-- 轮播图 -->
   <swiper class="banner-swiper" autoplay="{{true}}" indicator-dots="{{true}}" circular="{{true}}" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#A8E6CF">
     <swiper-item wx:for="{{banners}}" wx:key="*this">

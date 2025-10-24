@@ -12,6 +12,39 @@
   color: #999;
 }
 
+/* 开发测试栏 */
+.dev-test-bar {
+  background: linear-gradient(90deg, #A8E6CF 0%, #D0F0C0 100%);
+  padding: 20rpx 30rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2rpx 8rpx rgba(168, 230, 207, 0.3);
+}
+
+.dev-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.dev-label {
+  color: white;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.switch-role-btn {
+  background-color: white;
+  color: #A8E6CF;
+  padding: 12rpx 30rpx;
+  border-radius: 25rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  border: none;
+  line-height: 1.5;
+}
+
 /* 用户信息卡片 */
 .user-card {
   background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
