@@ -12,7 +12,8 @@
     "pages/product-edit/index",
     "pages/member-renew/index",
     "pages/order-detail/index",
-    "pages/order-list/index"
+    "pages/order-list/index",
+    "pages/category-manage/index"
   ],
   "window": {
     "navigationBarTitleText": "画师商城",

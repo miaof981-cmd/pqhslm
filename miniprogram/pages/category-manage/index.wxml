@@ -1,0 +1,129 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+  
+  <view wx:else>
+    <!-- 页面标题 -->
+    <view class="page-header">
+      <view class="header-left">
+        <view class="back-btn" bindtap="goBack">
+          <view class="back-icon"></view>
+        </view>
+        <text class="page-title">分类管理</text>
+      </view>
+      <button class="add-btn" bindtap="addCategory">+ 添加分类</button>
+    </view>
+
+    <!-- 分类列表 -->
+    <view class="category-list">
+      <view wx:for="{{categories}}" wx:key="_id" class="category-item">
+        <view class="category-drag">
+          <view class="drag-icon"></view>
+        </view>
+        
+        <view class="category-info">
+          <view class="category-header">
+            <text class="category-name">{{item.name}}</text>
+            <view class="category-status status-{{item.status}}">
+              {{item.status === 'active' ? '启用' : '禁用'}}
+            </view>
+          </view>
+          
+          <view class="category-meta">
+            <text class="meta-item">排序：{{item.sort}}</text>
+            <text class="meta-item">商品数：{{item.productCount}}</text>
+            <text class="meta-item">创建时间：{{item.createTime}}</text>
+          </view>
+          
+          <!-- 子分类 -->
+          <view wx:if="{{item.children && item.children.length > 0}}" class="sub-categories">
+            <view class="sub-category-label">子分类：</view>
+            <view class="sub-category-tags">
+              <text wx:for="{{item.children}}" wx:key="_id" wx:for-item="sub" class="sub-tag">
+                {{sub.name}}
+              </text>
+            </view>
+          </view>
+        </view>
+        
+        <view class="category-actions">
+          <button class="action-btn" data-id="{{item._id}}" bindtap="editCategory">编辑</button>
+          <button class="action-btn" data-id="{{item._id}}" data-status="{{item.status}}" bindtap="toggleStatus">
+            {{item.status === 'active' ? '禁用' : '启用'}}
+          </button>
+          <button class="action-btn danger" data-id="{{item._id}}" bindtap="deleteCategory">删除</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:if="{{categories.length === 0}}" class="empty-state">
+      <view class="empty-icon"></view>
+      <text class="empty-text">暂无分类</text>
+      <button class="empty-btn" bindtap="addCategory">添加第一个分类</button>
+    </view>
+  </view>
+
+  <!-- 添加/编辑分类弹窗 -->
+  <view wx:if="{{showModal}}" class="modal-overlay" bindtap="closeModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">{{isEdit ? '编辑分类' : '添加分类'}}</text>
+        <view class="modal-close" bindtap="closeModal">×</view>
+      </view>
+      
+      <view class="modal-body">
+        <!-- 分类名称 -->
+        <view class="form-item">
+          <text class="form-label">分类名称 *</text>
+          <input class="form-input" placeholder="请输入分类名称" value="{{formData.name}}" bindinput="onNameInput" />
+        </view>
+        
+        <!-- 父分类 -->
+        <view class="form-item">
+          <text class="form-label">父分类</text>
+          <picker mode="selector" range="{{parentCategories}}" range-key="name" value="{{formData.parentIndex}}" bindchange="onParentChange">
+            <view class="form-picker">
+              <text class="picker-text">{{formData.parentName || '无（顶级分类）'}}</text>
+              <view class="picker-arrow"></view>
+            </view>
+          </picker>
+        </view>
+        
+        <!-- 排序 -->
+        <view class="form-item">
+          <text class="form-label">排序</text>
+          <input class="form-input" type="number" placeholder="数字越小越靠前" value="{{formData.sort}}" bindinput="onSortInput" />
+        </view>
+        
+        <!-- 分类图标 -->
+        <view class="form-item">
+          <text class="form-label">分类图标</text>
+          <view class="image-upload" bindtap="uploadIcon">
+            <image wx:if="{{formData.icon}}" class="upload-preview" src="{{formData.icon}}" mode="aspectFill" />
+            <view wx:else class="upload-placeholder">
+              <view class="upload-icon"></view>
+              <text class="upload-text">点击上传</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 状态 -->
+        <view class="form-item">
+          <text class="form-label">状态</text>
+          <view class="form-switch">
+            <switch checked="{{formData.status === 'active'}}" bindchange="onStatusChange" color="#A8E6CF" />
+            <text class="switch-label">{{formData.status === 'active' ? '启用' : '禁用'}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="closeModal">取消</button>
+        <button class="modal-btn confirm" bindtap="saveCategory">保存</button>
+      </view>
+    </view>
+  </view>
+</view>
+

@@ -586,7 +586,9 @@ Page({
 
   // 更多功能导航
   goToCategories() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: '/pages/category-manage/index'
+    })
   },
 
   goToCustomerService() {
