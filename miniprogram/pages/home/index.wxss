@@ -5,99 +5,6 @@
   padding-bottom: 120rpx;
 }
 
-/* 搜索栏 */
-.search-bar {
-  background-color: #A8E6CF;
-  padding: 20rpx 30rpx;
-  display: flex;
-  gap: 15rpx;
-  align-items: center;
-}
-
-.search-input {
-  flex: 1;
-  background-color: white;
-  border-radius: 50rpx;
-  padding: 20rpx 30rpx;
-  display: flex;
-  align-items: center;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
-}
-
-.search-icon {
-  width: 32rpx;
-  height: 32rpx;
-  margin-right: 15rpx;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.search-icon::before {
-  content: '';
-  position: absolute;
-  top: 4rpx;
-  left: 4rpx;
-  width: 16rpx;
-  height: 16rpx;
-  border: 3rpx solid #999;
-  border-radius: 50%;
-}
-
-.search-icon::after {
-  content: '';
-  position: absolute;
-  bottom: 4rpx;
-  right: 4rpx;
-  width: 10rpx;
-  height: 3rpx;
-  background-color: #999;
-  transform: rotate(45deg);
-  transform-origin: right bottom;
-}
-
-.search-placeholder {
-  font-size: 28rpx;
-  color: #999;
-  flex: 1;
-}
-
-/* 筛选按钮 */
-.filter-btn {
-  width: 80rpx;
-  height: 80rpx;
-  background-color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
-  flex-shrink: 0;
-}
-
-.filter-icon {
-  width: 36rpx;
-  height: 36rpx;
-  position: relative;
-}
-
-.filter-icon::before,
-.filter-icon::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 3rpx;
-  background-color: #A8E6CF;
-}
-
-.filter-icon::before {
-  top: 10rpx;
-}
-
-.filter-icon::after {
-  bottom: 10rpx;
-}
-
 /* 轮播图 */
 .banner-swiper {
   height: 280rpx;
@@ -160,7 +67,105 @@
   display: inline-block;
   margin-right: 40rpx;
   font-size: 24rpx;
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+/* 搜索筛选栏 */
+.search-filter-bar {
+  display: flex;
+  gap: 15rpx;
+  padding: 15rpx 20rpx;
+  align-items: center;
+}
+
+.search-input {
+  flex: 1;
+  background-color: white;
+  border-radius: 50rpx;
+  padding: 20rpx 30rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.08);
+}
+
+.search-icon {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 15rpx;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.search-icon::before {
+  content: '';
+  position: absolute;
+  top: 4rpx;
+  left: 4rpx;
+  width: 16rpx;
+  height: 16rpx;
+  border: 3rpx solid #666;
+  border-radius: 50%;
+}
+
+.search-icon::after {
+  content: '';
+  position: absolute;
+  bottom: 4rpx;
+  right: 4rpx;
+  width: 10rpx;
+  height: 3rpx;
+  background-color: #666;
+  transform: rotate(45deg);
+  transform-origin: right bottom;
+}
+
+.search-placeholder {
+  font-size: 28rpx;
+  color: #666;
+  flex: 1;
+}
+
+/* 筛选按钮 */
+.filter-btn {
+  background-color: white;
+  border-radius: 50rpx;
+  padding: 20rpx 30rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.08);
+  flex-shrink: 0;
+}
+
+.filter-icon {
+  width: 28rpx;
+  height: 28rpx;
+  position: relative;
+}
+
+.filter-icon::before,
+.filter-icon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3rpx;
+  background-color: #A8E6CF;
+}
+
+.filter-icon::before {
+  top: 8rpx;
+}
+
+.filter-icon::after {
+  bottom: 8rpx;
+}
+
+.filter-text {
+  font-size: 26rpx;
   color: #333;
+  font-weight: 600;
 }
 
 /* 筛选面板 */
@@ -297,15 +302,15 @@
   justify-content: space-between;
   align-items: center;
   padding: 15rpx 0;
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 700;
-  color: #333;
+  color: #1a1a1a;
 }
 
 .clear-filter {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #A8E6CF;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .loading-state, .empty-state {
@@ -342,7 +347,7 @@
 
 .product-name {
   font-size: 22rpx;
-  color: #333;
+  color: #1a1a1a;
   line-height: 1.4;
   margin-bottom: 6rpx;
   display: -webkit-box;
@@ -350,6 +355,7 @@
   -webkit-line-clamp: 2;
   overflow: hidden;
   height: 62rpx;
+  font-weight: 500;
 }
 
 .product-price {

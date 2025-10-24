@@ -1,15 +1,4 @@
 <view class="container">
-  <!-- 搜索栏 -->
-  <view class="search-bar">
-    <view class="search-input" bindtap="onSearch">
-      <view class="search-icon"></view>
-      <text class="search-placeholder">搜索你想要的画师作品</text>
-    </view>
-    <view class="filter-btn" bindtap="toggleFilter">
-      <view class="filter-icon"></view>
-    </view>
-  </view>
-
   <!-- 轮播图 -->
   <swiper class="banner-swiper" autoplay="{{true}}" indicator-dots="{{true}}" circular="{{true}}" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#A8E6CF">
     <swiper-item wx:for="{{banners}}" wx:key="*this">
@@ -28,6 +17,18 @@
         {{item.title}}
       </text>
     </scroll-view>
+  </view>
+
+  <!-- 搜索筛选栏 -->
+  <view class="search-filter-bar">
+    <view class="search-input" bindtap="onSearch">
+      <view class="search-icon"></view>
+      <text class="search-placeholder">搜索你想要的画师作品</text>
+    </view>
+    <view class="filter-btn" bindtap="toggleFilter">
+      <view class="filter-icon"></view>
+      <text class="filter-text">筛选</text>
+    </view>
   </view>
 
   <!-- 推荐区域 -->
