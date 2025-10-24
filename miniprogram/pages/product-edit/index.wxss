@@ -195,11 +195,10 @@
 }
 
 .char-count {
-  position: absolute;
-  right: 20rpx;
-  bottom: 20rpx;
   font-size: 22rpx;
   color: #CCC;
+  text-align: right;
+  margin-top: 10rpx;
 }
 
 /* 选择器 */
