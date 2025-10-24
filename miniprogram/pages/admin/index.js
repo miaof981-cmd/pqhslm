@@ -353,7 +353,11 @@ Page({
 
   // 自定义日期范围
   customDateRange() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.showModal({
+      title: '自定义日期',
+      content: '请选择日期范围（日期选择器功能待完善）',
+      showCancel: false
+    })
   },
 
   // 切换图表类型
@@ -550,12 +554,24 @@ Page({
   // 画师操作
   viewArtistDetail(e) {
     const id = e.currentTarget.dataset.id
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: `/pages/artist-detail/index?id=${id}`
+    })
   },
 
   editArtist(e) {
     const id = e.currentTarget.dataset.id
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.showModal({
+      title: '编辑画师',
+      content: '画师编辑功能（可跳转到画师详情页）',
+      success: (res) => {
+        if (res.confirm) {
+          wx.navigateTo({
+            url: `/pages/artist-detail/index?id=${id}`
+          })
+        }
+      }
+    })
   },
 
   approveArtist(e) {
@@ -594,30 +610,44 @@ Page({
   },
 
   goToCustomerService() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: '/pages/service-qr-manage/index'
+    })
   },
 
   goToStaff() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: '/pages/staff-manage/index'
+    })
   },
 
   goToReports() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: '/pages/report/index'
+    })
   },
 
   goToMedia() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: '/pages/media-library/index'
+    })
   },
 
   goToBanners() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: '/pages/banner-manage/index'
+    })
   },
 
   goToNotices() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: '/pages/notice-manage/index'
+    })
   },
 
   goToSettings() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: '/pages/system-settings/index'
+    })
   }
 })

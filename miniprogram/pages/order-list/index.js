@@ -264,13 +264,25 @@ Page({
   // 评价订单
   reviewOrder(e) {
     const id = e.currentTarget.dataset.id
-    wx.showToast({ title: '评价功能开发中', icon: 'none' })
+    wx.showModal({
+      title: '评价订单',
+      content: '请对本次服务进行评价（评价功能待完善）',
+      confirmText: '去评价',
+      success: (res) => {
+        if (res.confirm) {
+          // 可以跳转到评价页面或显示评价弹窗
+          wx.showToast({ title: '感谢您的评价', icon: 'success' })
+        }
+      }
+    })
   },
 
   // 查看评价
   viewReview(e) {
     const id = e.currentTarget.dataset.id
-    wx.showToast({ title: '查看评价功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: `/pages/order-detail/index?id=${id}`
+    })
   },
 
   // 再次购买

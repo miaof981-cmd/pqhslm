@@ -131,7 +131,9 @@ Page({
   // 查看画师
   viewArtist(e) {
     const id = e.currentTarget.dataset.id
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: `/pages/artist-detail/index?id=${id}`
+    })
   },
 
   // 联系画师
@@ -294,7 +296,11 @@ Page({
   },
 
   editOrder() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.showModal({
+      title: '编辑订单',
+      content: '订单编辑功能（管理员可修改订单状态、备注等）',
+      showCancel: false
+    })
   },
 
   // 下拉刷新

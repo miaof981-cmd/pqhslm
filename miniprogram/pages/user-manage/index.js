@@ -287,8 +287,10 @@ Page({
   // 查看用户订单
   viewUserOrders() {
     const userId = this.data.currentUser.userId
-    wx.showToast({ title: '功能开发中', icon: 'none' })
-    // 实际应跳转到订单列表页并筛选该用户的订单
+    this.closeDetailModal()
+    wx.navigateTo({
+      url: `/pages/order-list/index?userId=${userId}`
+    })
   },
 
   // 加载更多
