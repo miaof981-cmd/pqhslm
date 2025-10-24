@@ -162,12 +162,13 @@
         <view wx:if="{{spec1Selected}}" class="spec-config">
           <view class="spec-card">
             <view class="spec-card-header">
-              <text class="spec-level">一级规格</text>
-              <text class="spec-name-input-label">规格名称：</text>
-              <input class="spec-name-input-inline" 
-                     placeholder="如：构图类型" 
-                     value="{{spec1Name}}"
-                     bindinput="onSpec1NameInput" />
+              <view class="spec-header-left">
+                <text class="spec-level">一级规格</text>
+                <input class="spec-name-input" 
+                       placeholder="如：构图类型" 
+                       value="{{spec1Name}}"
+                       bindinput="onSpec1NameInput" />
+              </view>
               <button class="reset-spec-btn" bindtap="resetSpec1">重置</button>
             </view>
 
@@ -221,12 +222,13 @@
 
           <view wx:if="{{spec2Selected}}" class="spec-card">
             <view class="spec-card-header">
-              <text class="spec-level">二级规格</text>
-              <text class="spec-name-input-label">规格名称：</text>
-              <input class="spec-name-input-inline" 
-                     placeholder="如：输出比例" 
-                     value="{{spec2Name}}"
-                     bindinput="onSpec2NameInput" />
+              <view class="spec-header-left">
+                <text class="spec-level">二级规格</text>
+                <input class="spec-name-input" 
+                       placeholder="如：输出比例" 
+                       value="{{spec2Name}}"
+                       bindinput="onSpec2NameInput" />
+              </view>
               <button class="reset-spec-btn" bindtap="resetSpec2">移除</button>
             </view>
 

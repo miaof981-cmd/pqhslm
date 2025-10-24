@@ -432,44 +432,52 @@
 .spec-card-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 24rpx;
-  gap: 12rpx;
-  flex-wrap: wrap;
+}
+
+.spec-header-left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
 }
 
 .spec-level {
-  padding: 6rpx 16rpx;
+  padding: 8rpx 16rpx;
   background: linear-gradient(135deg, #A8E6CF 0%, #88D4AB 100%);
   color: white;
   border-radius: 8rpx;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: bold;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.spec-name-input-label {
-  font-size: 26rpx;
-  color: #666;
-}
-
-.spec-name-input-inline {
+.spec-name-input {
   flex: 1;
-  min-width: 200rpx;
   height: 60rpx;
   background: white;
   border-radius: 8rpx;
-  padding: 0 16rpx;
-  font-size: 26rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
   border: 2rpx solid #E0E0E0;
 }
 
+.spec-name-input:focus {
+  border-color: #A8E6CF;
+}
+
 .reset-spec-btn {
-  padding: 8rpx 20rpx;
+  padding: 12rpx 24rpx;
   background: white;
   border: 2rpx solid #FF6B6B;
   color: #FF6B6B;
   border-radius: 8rpx;
-  font-size: 24rpx;
+  font-size: 26rpx;
   line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .spec-values-section {
