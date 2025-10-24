@@ -4,6 +4,8 @@ Page({
     categories: [],
     products: [],
     allProducts: [],
+    recommendProducts: [],
+    notices: [],
     loading: true,
     currentCategory: 'all',
     currentCategoryName: '全部商品',
@@ -151,9 +153,13 @@ Page({
         }
       ]
     
+    // 前3个作为推荐商品
+    const recommendProducts = allProducts.slice(0, 3)
+    
     this.setData({
       allProducts: allProducts,
-      products: allProducts
+      products: allProducts,
+      recommendProducts: recommendProducts
     })
   },
 
@@ -239,6 +245,22 @@ Page({
     
     this.setData({
       products: filteredProducts
+    })
+  },
+
+  // 取消筛选
+  clearFilter() {
+    const categories = this.data.categories.map(cat => ({
+      ...cat,
+      active: cat.id === 'all'
+    }))
+    
+    this.setData({
+      categories: categories,
+      currentCategory: 'all',
+      currentCategoryName: '全部商品',
+      tempCategory: 'all',
+      products: this.data.allProducts
     })
   },
 

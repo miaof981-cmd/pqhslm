@@ -5,6 +5,9 @@
       <view class="search-icon"></view>
       <text class="search-placeholder">搜索你想要的画师作品</text>
     </view>
+    <view class="filter-btn" bindtap="toggleFilter">
+      <view class="filter-icon"></view>
+    </view>
   </view>
 
   <!-- 轮播图 -->
@@ -27,15 +30,22 @@
     </scroll-view>
   </view>
 
-  <!-- 搜索筛选栏 -->
-  <view class="search-filter-bar">
-    <view class="search-btn" bindtap="onSearch">
-      <view class="search-icon-small"></view>
-      <text>搜索</text>
+  <!-- 推荐区域 -->
+  <view wx:if="{{currentCategory === 'all' && recommendProducts.length > 0}}" class="recommend-section">
+    <view class="section-title">
+      <text>为你推荐</text>
     </view>
-    <view class="filter-btn" bindtap="toggleFilter">
-      <view class="filter-icon-small"></view>
-      <text>筛选</text>
+    <view class="product-grid">
+      <view wx:for="{{recommendProducts}}" wx:key="_id" 
+            class="product-card" 
+            data-id="{{item._id}}" 
+            bindtap="onProductTap">
+        <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
+        <view class="product-info">
+          <view class="product-name">{{item.name}}</view>
+          <view class="product-price">¥{{item.price}}</view>
+        </view>
+      </view>
     </view>
   </view>
 
@@ -64,8 +74,12 @@
     </view>
   </view>
 
-  <!-- 商品区域 -->
+  <!-- 全部商品区域 -->
   <view class="product-section">
+    <view class="section-title">
+      <text>{{currentCategoryName}}</text>
+      <text wx:if="{{currentCategory !== 'all'}}" class="clear-filter" bindtap="clearFilter">取消筛选</text>
+    </view>
     
     <view wx:if="{{loading}}" class="loading-state">
       <text>加载中...</text>
@@ -75,7 +89,7 @@
       <text>暂无商品</text>
     </view>
     
-    <view wx:else class="product-waterfall">
+    <view wx:else class="product-grid">
       <view wx:for="{{products}}" wx:key="_id" 
             class="product-card" 
             data-id="{{item._id}}" 
@@ -87,7 +101,7 @@
         <!-- 商品信息 -->
         <view class="product-info">
           <view class="product-name">{{item.name}}</view>
-          <view class="product-price">¥ {{item.price}}</view>
+          <view class="product-price">¥{{item.price}}</view>
         </view>
       </view>
     </view>

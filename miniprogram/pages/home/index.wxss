@@ -1,16 +1,21 @@
-/* 首页样式 - 3列布局 */
+/* 首页样式 - 紧凑3列布局 */
 .container {
   background-color: #f5f5f5;
   min-height: 100vh;
+  padding-bottom: 120rpx;
 }
 
 /* 搜索栏 */
 .search-bar {
   background-color: #A8E6CF;
   padding: 20rpx 30rpx;
+  display: flex;
+  gap: 15rpx;
+  align-items: center;
 }
 
 .search-input {
+  flex: 1;
   background-color: white;
   border-radius: 50rpx;
   padding: 20rpx 30rpx;
@@ -24,6 +29,7 @@
   height: 32rpx;
   margin-right: 15rpx;
   position: relative;
+  flex-shrink: 0;
 }
 
 .search-icon::before {
@@ -52,6 +58,44 @@
 .search-placeholder {
   font-size: 28rpx;
   color: #999;
+  flex: 1;
+}
+
+/* 筛选按钮 */
+.filter-btn {
+  width: 80rpx;
+  height: 80rpx;
+  background-color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+
+.filter-icon {
+  width: 36rpx;
+  height: 36rpx;
+  position: relative;
+}
+
+.filter-icon::before,
+.filter-icon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3rpx;
+  background-color: #A8E6CF;
+}
+
+.filter-icon::before {
+  top: 10rpx;
+}
+
+.filter-icon::after {
+  bottom: 10rpx;
 }
 
 /* 轮播图 */
@@ -117,77 +161,6 @@
   margin-right: 40rpx;
   font-size: 24rpx;
   color: #333;
-}
-
-/* 搜索筛选栏 */
-.search-filter-bar {
-  display: flex;
-  gap: 15rpx;
-  padding: 15rpx 20rpx;
-  background-color: white;
-  margin: 0 20rpx 15rpx;
-  border-radius: 15rpx;
-}
-
-.search-btn,
-.filter-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8rpx;
-  padding: 20rpx;
-  background-color: #f8f9fa;
-  border-radius: 12rpx;
-  font-size: 26rpx;
-  color: #333;
-}
-
-.search-icon-small,
-.filter-icon-small {
-  width: 28rpx;
-  height: 28rpx;
-  position: relative;
-}
-
-.search-icon-small::before {
-  content: '';
-  position: absolute;
-  top: 4rpx;
-  left: 4rpx;
-  width: 14rpx;
-  height: 14rpx;
-  border: 2rpx solid #A8E6CF;
-  border-radius: 50%;
-}
-
-.search-icon-small::after {
-  content: '';
-  position: absolute;
-  bottom: 4rpx;
-  right: 4rpx;
-  width: 8rpx;
-  height: 2rpx;
-  background-color: #A8E6CF;
-  transform: rotate(45deg);
-}
-
-.filter-icon-small::before,
-.filter-icon-small::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2rpx;
-  background-color: #A8E6CF;
-}
-
-.filter-icon-small::before {
-  top: 8rpx;
-}
-
-.filter-icon-small::after {
-  bottom: 8rpx;
 }
 
 /* 筛选面板 */
@@ -309,9 +282,30 @@
   color: white;
 }
 
+/* 推荐区域 */
+.recommend-section {
+  margin: 0 20rpx 15rpx;
+}
+
 /* 商品区域 */
 .product-section {
-  padding: 0 20rpx 120rpx;
+  margin: 0 20rpx;
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15rpx 0;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #333;
+}
+
+.clear-filter {
+  font-size: 24rpx;
+  color: #A8E6CF;
+  font-weight: 500;
 }
 
 .loading-state, .empty-state {
@@ -321,8 +315,8 @@
   font-size: 28rpx;
 }
 
-/* 瀑布流布局 - 3列 */
-.product-waterfall {
+/* 商品网格 - 3列紧凑布局 */
+.product-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10rpx;
@@ -338,26 +332,28 @@
 .product-image {
   width: 100%;
   aspect-ratio: 1;
+  display: block;
 }
 
+/* 紧凑的商品信息 */
 .product-info {
-  padding: 15rpx;
+  padding: 8rpx 10rpx;
 }
 
 .product-name {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #333;
-  line-height: 1.5;
-  margin-bottom: 10rpx;
+  line-height: 1.4;
+  margin-bottom: 6rpx;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  min-height: 72rpx;
+  height: 62rpx;
 }
 
 .product-price {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #FF6B6B;
   font-weight: 700;
 }
