@@ -4,27 +4,148 @@
   </view>
   
   <view wx:else>
+    <!-- 数据统计概览 -->
+    <view class="stats-overview">
+      <view class="stats-card">
+        <view class="stats-value">¥{{stats.totalRevenue}}</view>
+        <view class="stats-label">总收入</view>
+        <view class="stats-trend up">+{{stats.revenueGrowth}}%</view>
+      </view>
+      <view class="stats-card">
+        <view class="stats-value">{{stats.totalOrders}}</view>
+        <view class="stats-label">总订单</view>
+        <view class="stats-trend up">+{{stats.orderGrowth}}%</view>
+      </view>
+      <view class="stats-card">
+        <view class="stats-value">{{stats.totalArtists}}</view>
+        <view class="stats-label">画师数</view>
+        <view class="stats-trend">{{stats.artistGrowth}}%</view>
+      </view>
+      <view class="stats-card">
+        <view class="stats-value">{{stats.totalUsers}}</view>
+        <view class="stats-label">用户数</view>
+        <view class="stats-trend up">+{{stats.userGrowth}}%</view>
+      </view>
+    </view>
+
+    <!-- 快捷操作 -->
+    <view class="quick-actions">
+      <view class="action-item" bindtap="goToOrders">
+        <view class="action-icon icon-orders"></view>
+        <text class="action-label">订单管理</text>
+        <view wx:if="{{pendingOrders > 0}}" class="action-badge">{{pendingOrders}}</view>
+      </view>
+      <view class="action-item" bindtap="goToArtists">
+        <view class="action-icon icon-artists"></view>
+        <text class="action-label">画师审核</text>
+        <view wx:if="{{pendingApplications > 0}}" class="action-badge">{{pendingApplications}}</view>
+      </view>
+      <view class="action-item" bindtap="goToProducts">
+        <view class="action-icon icon-products"></view>
+        <text class="action-label">商品管理</text>
+      </view>
+      <view class="action-item" bindtap="goToCategories">
+        <view class="action-icon icon-categories"></view>
+        <text class="action-label">分类管理</text>
+      </view>
+    </view>
+
     <!-- 标签栏 -->
     <view class="tab-bar">
+      <view class="tab-item {{currentTab === 'orders' ? 'active' : ''}}" 
+            data-tab="orders" 
+            bindtap="switchTab">
+        全局订单
+      </view>
       <view class="tab-item {{currentTab === 'artists' ? 'active' : ''}}" 
             data-tab="artists" 
             bindtap="switchTab">
         画师管理
       </view>
-      <view class="tab-item {{currentTab === 'notices' ? 'active' : ''}}" 
-            data-tab="notices" 
+      <view class="tab-item {{currentTab === 'content' ? 'active' : ''}}" 
+            data-tab="content" 
             bindtap="switchTab">
-        公告管理
+        内容管理
       </view>
-      <view class="tab-item {{currentTab === 'service' ? 'active' : ''}}" 
-            data-tab="service" 
+      <view class="tab-item {{currentTab === 'settings' ? 'active' : ''}}" 
+            data-tab="settings" 
             bindtap="switchTab">
-        客服管理
+        系统设置
       </view>
-      <view class="tab-item {{currentTab === 'banners' ? 'active' : ''}}" 
-            data-tab="banners" 
-            bindtap="switchTab">
-        轮播图
+    </view>
+
+    <!-- 全局订单管理 -->
+    <view wx:if="{{currentTab === 'orders'}}" class="tab-content">
+      <!-- 订单筛选 -->
+      <view class="filter-bar">
+        <view class="filter-item {{orderFilter === 'all' ? 'active' : ''}}" 
+              data-filter="all" 
+              bindtap="filterOrders">
+          全部({{orderStats.all}})
+        </view>
+        <view class="filter-item {{orderFilter === 'pending' ? 'active' : ''}}" 
+              data-filter="pending" 
+              bindtap="filterOrders">
+          待处理({{orderStats.pending}})
+        </view>
+        <view class="filter-item {{orderFilter === 'processing' ? 'active' : ''}}" 
+              data-filter="processing" 
+              bindtap="filterOrders">
+          进行中({{orderStats.processing}})
+        </view>
+        <view class="filter-item {{orderFilter === 'completed' ? 'active' : ''}}" 
+              data-filter="completed" 
+              bindtap="filterOrders">
+          已完成({{orderStats.completed}})
+        </view>
+        <view class="filter-item {{orderFilter === 'refunded' ? 'active' : ''}}" 
+              data-filter="refunded" 
+              bindtap="filterOrders">
+          已退款({{orderStats.refunded}})
+        </view>
+      </view>
+
+      <!-- 订单列表 -->
+      <view wx:if="{{orders.length === 0}}" class="empty-state">
+        <text>暂无订单</text>
+      </view>
+      
+      <view wx:else class="order-list">
+        <view wx:for="{{orders}}" wx:key="_id" class="order-item" bindtap="viewOrderDetail" data-id="{{item._id}}">
+          <view class="order-header">
+            <text class="order-id">订单号：{{item.orderNo}}</text>
+            <view class="order-status status-{{item.status}}">{{item.statusText}}</view>
+          </view>
+          <view class="order-content">
+            <image class="order-image" src="{{item.productImage}}" mode="aspectFill" />
+            <view class="order-info">
+              <text class="order-product">{{item.productName}}</text>
+              <text class="order-artist">画师：{{item.artistName}}</text>
+              <text class="order-user">买家：{{item.userName}}</text>
+              <text class="order-time">下单时间：{{item.createTime}}</text>
+            </view>
+          </view>
+          <view class="order-footer">
+            <text class="order-amount">¥{{item.amount}}</text>
+            <view class="order-actions">
+              <button wx:if="{{item.status === 'pending'}}" class="action-btn primary" 
+                      data-id="{{item._id}}" 
+                      catchtap="confirmOrder">
+                确认订单
+              </button>
+              <button wx:if="{{item.status === 'processing'}}" class="action-btn success" 
+                      data-id="{{item._id}}" 
+                      catchtap="completeOrder">
+                完成订单
+              </button>
+              <button class="action-btn default" 
+                      data-id="{{item._id}}" 
+                      catchtap="viewOrderDetail">
+                查看详情
+              </button>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
 
@@ -53,7 +174,8 @@
             <text class="portfolio-label">作品展示：</text>
             <view class="portfolio-images">
               <image wx:for="{{item.portfolio}}" wx:key="*this" 
-                     src="{{item}}" 
+                     wx:for-item="img"
+                     src="{{img}}" 
                      mode="aspectFill" 
                      class="portfolio-image" />
             </view>
@@ -76,77 +198,127 @@
       </view>
     </view>
 
-    <!-- 公告管理 -->
-    <view wx:if="{{currentTab === 'notices'}}" class="tab-content">
-      <view class="section-header">
-        <text class="section-title">公告管理</text>
-        <button class="add-btn" bindtap="addNotice">+ 添加公告</button>
+    <!-- 内容管理 -->
+    <view wx:if="{{currentTab === 'content'}}" class="tab-content">
+      <view class="content-tabs">
+        <view class="content-tab {{contentTab === 'notices' ? 'active' : ''}}" 
+              data-tab="notices" 
+              bindtap="switchContentTab">
+          公告管理
+        </view>
+        <view class="content-tab {{contentTab === 'banners' ? 'active' : ''}}" 
+              data-tab="banners" 
+              bindtap="switchContentTab">
+          轮播图
+        </view>
+        <view class="content-tab {{contentTab === 'service' ? 'active' : ''}}" 
+              data-tab="service" 
+              bindtap="switchContentTab">
+          客服二维码
+        </view>
       </view>
-      
-      <view wx:if="{{notices.length === 0}}" class="empty-state">
-        <text>暂无公告</text>
+
+      <!-- 公告管理 -->
+      <view wx:if="{{contentTab === 'notices'}}">
+        <view class="section-header">
+          <text class="section-title">公告管理</text>
+          <button class="add-btn" bindtap="addNotice">+ 添加公告</button>
+        </view>
+        
+        <view wx:if="{{notices.length === 0}}" class="empty-state">
+          <text>暂无公告</text>
+        </view>
+        
+        <view wx:else class="notice-list">
+          <view wx:for="{{notices}}" wx:key="_id" class="notice-item">
+            <view class="notice-title">{{item.title}}</view>
+            <view class="notice-time">{{item.createTime}}</view>
+            <view class="notice-status status-{{item.status}}">
+              {{item.status === 'active' ? '已发布' : '已下架'}}
+            </view>
+          </view>
+        </view>
       </view>
-      
-      <view wx:else class="notice-list">
-        <view wx:for="{{notices}}" wx:key="_id" class="notice-item">
-          <view class="notice-title">{{item.title}}</view>
-          <view class="notice-time">{{item.createTime}}</view>
-          <view class="notice-status status-{{item.status}}">
-            {{item.status === 'active' ? '已发布' : '已下架'}}
+
+      <!-- 轮播图管理 -->
+      <view wx:if="{{contentTab === 'banners'}}">
+        <view class="section-header">
+          <text class="section-title">轮播图管理</text>
+          <button class="add-btn" bindtap="addBanner">+ 添加轮播图</button>
+        </view>
+        
+        <view wx:if="{{banners.length === 0}}" class="empty-state">
+          <text>暂无轮播图</text>
+        </view>
+        
+        <view wx:else class="banner-list">
+          <view wx:for="{{banners}}" wx:key="_id" class="banner-item">
+            <image class="banner-image" src="{{item.imageUrl}}" mode="aspectFill" />
+            <view class="banner-info">
+              <text class="banner-title">{{item.title}}</text>
+              <text class="banner-sort">排序：{{item.sort}}</text>
+              <text class="banner-status status-{{item.isActive ? 'active' : 'inactive'}}">
+                {{item.isActive ? '启用' : '禁用'}}
+              </text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 客服管理 -->
+      <view wx:if="{{contentTab === 'service'}}">
+        <view class="section-header">
+          <text class="section-title">客服二维码管理</text>
+          <button class="add-btn" bindtap="addServiceQR">+ 添加二维码</button>
+        </view>
+        
+        <view wx:if="{{serviceQRs.length === 0}}" class="empty-state">
+          <text>暂无客服二维码</text>
+        </view>
+        
+        <view wx:else class="qr-list">
+          <view wx:for="{{serviceQRs}}" wx:key="_id" class="qr-item">
+            <image class="qr-image" src="{{item.imageUrl}}" mode="aspectFit" />
+            <view class="qr-info">
+              <text class="qr-title">{{item.title}}</text>
+              <text class="qr-count">已分配：{{item.assignedCount}}次</text>
+              <text class="qr-status status-{{item.isActive ? 'active' : 'inactive'}}">
+                {{item.isActive ? '启用' : '禁用'}}
+              </text>
+            </view>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- 客服管理 -->
-    <view wx:if="{{currentTab === 'service'}}" class="tab-content">
-      <view class="section-header">
-        <text class="section-title">客服二维码管理</text>
-        <button class="add-btn" bindtap="addServiceQR">+ 添加二维码</button>
-      </view>
-      
-      <view wx:if="{{serviceQRs.length === 0}}" class="empty-state">
-        <text>暂无客服二维码</text>
-      </view>
-      
-      <view wx:else class="qr-list">
-        <view wx:for="{{serviceQRs}}" wx:key="_id" class="qr-item">
-          <image class="qr-image" src="{{item.imageUrl}}" mode="aspectFit" />
-          <view class="qr-info">
-            <text class="qr-title">{{item.title}}</text>
-            <text class="qr-count">已分配：{{item.assignedCount}}次</text>
-            <text class="qr-status status-{{item.isActive ? 'active' : 'inactive'}}">
-              {{item.isActive ? '启用' : '禁用'}}
-            </text>
+    <!-- 系统设置 -->
+    <view wx:if="{{currentTab === 'settings'}}" class="tab-content">
+      <view class="settings-list">
+        <view class="settings-item" bindtap="manageCategories">
+          <view class="settings-icon icon-category"></view>
+          <view class="settings-info">
+            <text class="settings-title">分类管理</text>
+            <text class="settings-desc">管理商品分类</text>
           </view>
+          <view class="settings-arrow">></view>
         </view>
-      </view>
-    </view>
-
-    <!-- 轮播图管理 -->
-    <view wx:if="{{currentTab === 'banners'}}" class="tab-content">
-      <view class="section-header">
-        <text class="section-title">轮播图管理</text>
-        <button class="add-btn" bindtap="addBanner">+ 添加轮播图</button>
-      </view>
-      
-      <view wx:if="{{banners.length === 0}}" class="empty-state">
-        <text>暂无轮播图</text>
-      </view>
-      
-      <view wx:else class="banner-list">
-        <view wx:for="{{banners}}" wx:key="_id" class="banner-item">
-          <image class="banner-image" src="{{item.imageUrl}}" mode="aspectFill" />
-          <view class="banner-info">
-            <text class="banner-title">{{item.title}}</text>
-            <text class="banner-sort">排序：{{item.sort}}</text>
-            <text class="banner-status status-{{item.isActive ? 'active' : 'inactive'}}">
-              {{item.isActive ? '启用' : '禁用'}}
-            </text>
+        <view class="settings-item" bindtap="manageMembership">
+          <view class="settings-icon icon-vip"></view>
+          <view class="settings-info">
+            <text class="settings-title">会员管理</text>
+            <text class="settings-desc">画师会员设置</text>
           </view>
+          <view class="settings-arrow">></view>
+        </view>
+        <view class="settings-item" bindtap="viewStatistics">
+          <view class="settings-icon icon-chart"></view>
+          <view class="settings-info">
+            <text class="settings-title">数据统计</text>
+            <text class="settings-desc">查看详细数据</text>
+          </view>
+          <view class="settings-arrow">></view>
         </view>
       </view>
     </view>
   </view>
 </view>
-
