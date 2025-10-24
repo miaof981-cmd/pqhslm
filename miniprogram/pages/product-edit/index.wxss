@@ -498,6 +498,7 @@
   display: flex;
   align-items: center;
   gap: 16rpx;
+  margin-right: 16rpx;
 }
 
 .spec-level {
