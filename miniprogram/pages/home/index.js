@@ -10,11 +10,21 @@ Page({
     currentCategory: 'all',
     currentCategoryName: '全部商品',
     showFilter: false,
-    tempCategory: 'all'
+    tempCategory: 'all',
+    openid: ''
   },
 
   onLoad() {
     this.loadData()
+    this.getOpenId()
+  },
+
+  // 获取OpenID
+  getOpenId() {
+    const app = getApp()
+    this.setData({
+      openid: app.globalData.openid || '模拟openid_123456'
+    })
   },
 
   onShow() {

@@ -1,4 +1,9 @@
 <view class="container">
+  <!-- OpenID显示（开发用） -->
+  <view class="openid-display">
+    <text>OpenID: {{openid || '未获取'}}</text>
+  </view>
+
   <!-- 轮播图 -->
   <swiper class="banner-swiper" autoplay="{{true}}" indicator-dots="{{true}}" circular="{{true}}" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#A8E6CF">
     <swiper-item wx:for="{{banners}}" wx:key="*this">

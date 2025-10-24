@@ -5,6 +5,15 @@
   padding-bottom: 120rpx;
 }
 
+/* OpenID显示 */
+.openid-display {
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: 20rpx;
+  padding: 8rpx 20rpx;
+  text-align: center;
+}
+
 /* 轮播图 */
 .banner-swiper {
   height: 280rpx;
@@ -293,27 +302,50 @@
 /* 推荐区域 */
 .recommend-section {
   margin: 0;
-  padding: 10rpx 5rpx;
+  padding: 15rpx 5rpx 10rpx;
   background: linear-gradient(135deg, rgba(168, 230, 207, 0.08) 0%, rgba(208, 240, 192, 0.08) 100%);
 }
 
 /* 商品区域 */
 .product-section {
   margin: 0;
-  padding: 10rpx 5rpx;
+  padding: 15rpx 5rpx 10rpx;
   background: linear-gradient(135deg, rgba(168, 230, 207, 0.05) 0%, rgba(208, 240, 192, 0.05) 100%);
 }
 
+/* 气泡样式标题 */
 .section-title {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: 0 0 10rpx 0;
-  font-size: 30rpx;
+  margin: 0 auto 15rpx;
+  width: fit-content;
+  max-width: 80%;
+}
+
+.section-title text {
+  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
+  color: white;
+  font-size: 28rpx;
   font-weight: 700;
-  color: #1a1a1a;
-  border-bottom: 3rpx solid #A8E6CF;
-  margin-bottom: 10rpx;
+  padding: 15rpx 40rpx;
+  border-radius: 50rpx;
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.4);
+  position: relative;
+}
+
+/* 气泡小三角 */
+.section-title text::after {
+  content: '';
+  position: absolute;
+  bottom: -8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10rpx solid transparent;
+  border-right: 10rpx solid transparent;
+  border-top: 10rpx solid #D0F0C0;
 }
 
 .clear-filter {

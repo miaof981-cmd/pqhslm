@@ -49,7 +49,7 @@
     </view>
 
     <!-- 画师认证/工作台 -->
-    <view wx:if="{{!isArtist}}" class="artist-certification">
+    <view wx:if="{{!isArtist}}" class="artist-certification" bindtap="applyArtist">
       <view class="cert-banner">
         <view class="cert-content">
           <text class="cert-title">画师认证</text>
@@ -57,9 +57,9 @@
         </view>
         <view class="cert-illustration">
           <view class="cert-icon-circle"></view>
+          <text class="cert-action-hint">点击认证 ></text>
         </view>
       </view>
-      <button class="cert-btn" bindtap="applyArtist">立即申请</button>
     </view>
 
     <view wx:else class="artist-workspace">

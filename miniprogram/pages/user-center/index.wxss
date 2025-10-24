@@ -323,16 +323,13 @@
   50% { transform: scale(1.1); opacity: 0.8; }
 }
 
-.cert-btn {
-  width: 100%;
-  background: linear-gradient(45deg, #A8E6CF, #D0F0C0);
-  color: white;
-  border-radius: 25rpx;
-  font-size: 28rpx;
+.cert-action-hint {
+  font-size: 24rpx;
+  color: #A8E6CF;
   font-weight: 600;
-  padding: 25rpx 0;
-  margin-top: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(168,230,207,0.3);
+  margin-top: 10rpx;
+  display: block;
+  text-align: center;
 }
 
 /* 画师工作台 */
