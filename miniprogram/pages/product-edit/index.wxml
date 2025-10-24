@@ -3,54 +3,58 @@
     <text>加载中...</text>
   </view>
 
-  <view wx:else class="form-section">
-    <view class="page-header">
-      <text class="form-title">{{isEdit ? '编辑商品' : '发布商品'}}</text>
-      <text class="form-subtitle">{{isEdit ? '修改商品信息' : '填写商品基本信息'}}</text>
-    </view>
-    
-    <!-- 商品图片 -->
-    <view class="form-card">
-      <view class="card-header">
-        <text class="card-title">商品图片</text>
-        <text class="required">*</text>
+  <view wx:else class="wizard-container">
+    <!-- 步骤导航栏 -->
+    <view class="step-nav">
+      <view class="step-item {{currentStep >= 1 ? 'active' : ''}}" bindtap="goToStep" data-step="1">
+        <view class="step-number">1</view>
+        <text class="step-label">基础信息</text>
       </view>
-      <view class="image-upload">
+      <view class="step-line {{currentStep >= 2 ? 'active' : ''}}"></view>
+      <view class="step-item {{currentStep >= 2 ? 'active' : ''}}" bindtap="goToStep" data-step="2">
+        <view class="step-number">2</view>
+        <text class="step-label">规格定价</text>
+      </view>
+      <view class="step-line {{currentStep >= 3 ? 'active' : ''}}"></view>
+      <view class="step-item {{currentStep >= 3 ? 'active' : ''}}" bindtap="goToStep" data-step="3">
+        <view class="step-number">3</view>
+        <text class="step-label">详情发布</text>
+      </view>
+    </view>
+
+    <!-- 进度条 -->
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{progress}}%"></view>
+    </view>
+
+    <!-- 第一步：基础信息 -->
+    <view wx:if="{{currentStep === 1}}" class="step-content">
+      <view class="step-title">
+        <text class="title-text">基础信息</text>
+        <text class="title-desc">上传作品图片，填写基本信息</text>
+      </view>
+
+      <!-- 商品主图 -->
+      <view class="form-group">
+        <view class="group-label">商品主图 <text class="required">*</text></view>
+        <view class="group-hint">上传作品示意图，第一张为封面</view>
         <view class="image-grid">
           <view wx:for="{{formData.images}}" wx:key="*this" class="image-item">
             <image src="{{item}}" mode="aspectFill" class="preview-image" />
             <view wx:if="{{index === 0}}" class="cover-badge">封面</view>
-            <view class="delete-btn" data-index="{{index}}" bindtap="deleteImage">
-              <text class="delete-icon">×</text>
-            </view>
+            <view class="delete-btn" data-index="{{index}}" bindtap="deleteImage">×</view>
           </view>
-          <view wx:if="{{formData.images.length < 9}}" 
-                class="upload-btn" 
-                bindtap="chooseImages">
+          <view wx:if="{{formData.images.length < 9}}" class="upload-btn" bindtap="chooseImages">
             <view class="upload-icon">+</view>
             <text class="upload-text">添加图片</text>
           </view>
         </view>
-        <view class="upload-hint">
-          <text>• 最多上传9张图片，第一张为封面</text>
-          <text>• 建议尺寸：800×800像素</text>
-        </view>
       </view>
-    </view>
 
-    <!-- 基本信息 -->
-    <view class="form-card">
-      <view class="card-header">
-        <text class="card-title">基本信息</text>
-      </view>
-      
       <!-- 商品名称 -->
       <view class="form-group">
-        <view class="form-label">
-          <text>商品名称</text>
-          <text class="required">*</text>
-        </view>
-        <input class="form-input full-height" 
+        <view class="group-label">商品名称 <text class="required">*</text></view>
+        <input class="form-input" 
                placeholder="请输入商品名称（2-50字）" 
                value="{{formData.name}}"
                bindinput="onNameInput" 
@@ -60,50 +64,77 @@
 
       <!-- 商品分类 -->
       <view class="form-group">
-        <view class="form-label">
-          <text>商品分类</text>
-          <text class="required">*</text>
-        </view>
+        <view class="group-label">商品分类 <text class="required">*</text></view>
         <picker mode="selector" 
                 range="{{categories}}" 
                 range-key="name"
                 value="{{categoryIndex}}"
                 bindchange="onCategoryChange">
-          <view class="picker-display full-height">
+          <view class="picker-display">
             <text class="{{categoryName === '请选择分类' ? 'placeholder' : ''}}">{{categoryName}}</text>
             <view class="arrow-icon"></view>
           </view>
         </picker>
       </view>
-    </view>
 
-    <!-- 价格与库存 -->
-    <view class="form-card">
-      <view class="card-header">
-        <text class="card-title">价格与库存</text>
+      <!-- 出稿天数 -->
+      <view class="form-group">
+        <view class="group-label">出稿天数 <text class="required">*</text></view>
+        <picker mode="selector" 
+                range="{{deliveryOptions}}" 
+                value="{{deliveryIndex}}"
+                bindchange="onDeliveryOptionChange">
+          <view class="picker-display">
+            <text>{{deliveryOptions[deliveryIndex]}}天</text>
+            <view class="arrow-icon"></view>
+          </view>
+        </picker>
       </view>
 
-      <!-- 商品价格 -->
+      <!-- 商品标签 -->
       <view class="form-group">
-        <view class="form-label">
-          <text>商品价格</text>
-          <text class="required">*</text>
+        <view class="group-label">商品标签 <text class="label-hint">（最多3个）</text></view>
+        <view class="tag-grid">
+          <view wx:for="{{tagOptions}}" wx:key="*this"
+                class="tag-item {{formData.tags.includes(item) ? 'active' : ''}}"
+                data-tag="{{item}}"
+                bindtap="toggleTag">
+            {{item}}
+          </view>
         </view>
+      </view>
+
+      <!-- 自动保存提示 -->
+      <view wx:if="{{draftSaved}}" class="draft-tip">
+        <text class="tip-icon">✓</text>
+        <text class="tip-text">草稿已自动保存</text>
+      </view>
+    </view>
+
+    <!-- 第二步：规格与定价 -->
+    <view wx:if="{{currentStep === 2}}" class="step-content">
+      <view class="step-title">
+        <text class="title-text">规格与定价</text>
+        <text class="title-desc">设置商品规格和价格体系</text>
+      </view>
+
+      <!-- 基础价格 -->
+      <view class="form-group">
+        <view class="group-label">基础价格 <text class="required">*</text></view>
+        <view class="group-hint">不选规格时的默认价格</view>
         <view class="price-input-wrapper">
           <text class="price-symbol">¥</text>
           <input class="form-input price-input" 
                  type="digit"
                  placeholder="0.00" 
-                 value="{{formData.price}}"
-                 bindinput="onPriceInput" />
+                 value="{{formData.basePrice}}"
+                 bindinput="onBasePriceInput" />
         </view>
       </view>
 
       <!-- 库存数量 -->
       <view class="form-group">
-        <view class="form-label">
-          <text>库存数量</text>
-        </view>
+        <view class="group-label">库存数量</view>
         <view class="stock-control">
           <button class="stock-btn minus" bindtap="decreaseStock">-</button>
           <input class="stock-input" 
@@ -112,170 +143,225 @@
                  bindinput="onStockInput" />
           <button class="stock-btn plus" bindtap="increaseStock">+</button>
         </view>
-        <view class="form-hint">留空或0表示不限库存</view>
+        <view class="group-hint">留空或0表示不限库存</view>
       </view>
 
-      <!-- 出稿天数 -->
+      <!-- 规格设置引导 -->
+      <view class="spec-guide">
+        <view class="guide-header">
+          <text class="guide-title">💡 规格设置（选填）</text>
+          <text class="guide-desc">为商品添加不同规格和价格组合</text>
+        </view>
+
+        <!-- 一级规格选择 -->
+        <view wx:if="{{!spec1Selected}}" class="spec-selector">
+          <view class="selector-title">选择一级规格类型</view>
+          <view class="spec-type-grid">
+            <view class="spec-type-btn" bindtap="selectSpecType" data-type="size">
+              <text class="type-icon">📐</text>
+              <text class="type-name">尺寸规格</text>
+            </view>
+            <view class="spec-type-btn" bindtap="selectSpecType" data-type="composition">
+              <text class="type-icon">🎨</text>
+              <text class="type-name">构图类型</text>
+            </view>
+            <view class="spec-type-btn" bindtap="selectSpecType" data-type="style">
+              <text class="type-icon">✨</text>
+              <text class="type-name">风格类型</text>
+            </view>
+            <view class="spec-type-btn" bindtap="selectSpecType" data-type="custom">
+              <text class="type-icon">⚙️</text>
+              <text class="type-name">自定义</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 规格配置 -->
+        <view wx:if="{{spec1Selected}}" class="spec-config">
+          <view class="spec-card">
+            <view class="spec-card-header">
+              <text class="spec-level">一级规格</text>
+              <text class="spec-name-input-label">规格名称：</text>
+              <input class="spec-name-input-inline" 
+                     placeholder="如：构图类型" 
+                     value="{{spec1Name}}"
+                     bindinput="onSpec1NameInput" />
+              <button class="reset-spec-btn" bindtap="resetSpec1">重置</button>
+            </view>
+
+            <view class="spec-values-section">
+              <text class="section-label">规格选项：</text>
+              <view class="spec-value-list">
+                <view wx:for="{{spec1Values}}" wx:key="index" class="spec-value-row">
+                  <input class="spec-value-name" 
+                         placeholder="选项名称" 
+                         value="{{item.name}}"
+                         data-index="{{index}}"
+                         bindinput="onSpec1ValueNameInput" />
+                  <text class="plus-symbol">+</text>
+                  <input class="spec-value-price" 
+                         type="digit"
+                         placeholder="0" 
+                         value="{{item.addPrice}}"
+                         data-index="{{index}}"
+                         bindinput="onSpec1ValuePriceInput" />
+                  <text class="price-unit">元</text>
+                  <view class="delete-value-icon" 
+                        data-index="{{index}}" 
+                        bindtap="deleteSpec1Value">×</view>
+                </view>
+              </view>
+              <button class="add-value-btn" bindtap="addSpec1Value">+ 添加选项</button>
+            </view>
+          </view>
+
+          <!-- 二级规格（可选） -->
+          <view wx:if="{{!spec2Selected}}" class="add-spec2-tip">
+            <button class="add-spec2-btn" bindtap="showSpec2Selector">+ 添加二级规格</button>
+            <text class="tip-text">二级规格可细分一级规格的选项</text>
+          </view>
+
+          <view wx:if="{{spec2Selected}}" class="spec-card">
+            <view class="spec-card-header">
+              <text class="spec-level">二级规格</text>
+              <text class="spec-name-input-label">规格名称：</text>
+              <input class="spec-name-input-inline" 
+                     placeholder="如：输出比例" 
+                     value="{{spec2Name}}"
+                     bindinput="onSpec2NameInput" />
+              <button class="reset-spec-btn" bindtap="resetSpec2">移除</button>
+            </view>
+
+            <view class="spec-values-section">
+              <text class="section-label">规格选项：</text>
+              <view class="spec-value-list">
+                <view wx:for="{{spec2Values}}" wx:key="index" class="spec-value-row">
+                  <input class="spec-value-name" 
+                         placeholder="选项名称" 
+                         value="{{item.name}}"
+                         data-index="{{index}}"
+                         bindinput="onSpec2ValueNameInput" />
+                  <text class="plus-symbol">+</text>
+                  <input class="spec-value-price" 
+                         type="digit"
+                         placeholder="0" 
+                         value="{{item.addPrice}}"
+                         data-index="{{index}}"
+                         bindinput="onSpec2ValuePriceInput" />
+                  <text class="price-unit">元</text>
+                  <view class="delete-value-icon" 
+                        data-index="{{index}}" 
+                        bindtap="deleteSpec2Value">×</view>
+                </view>
+              </view>
+              <button class="add-value-btn" bindtap="addSpec2Value">+ 添加选项</button>
+            </view>
+          </view>
+
+          <!-- 价格预览表 -->
+          <view wx:if="{{pricePreviewTable.length > 0}}" class="price-preview">
+            <text class="preview-title">💰 价格组合预览</text>
+            <view class="preview-table">
+              <view wx:for="{{pricePreviewTable}}" wx:key="index" class="preview-row">
+                <text class="preview-spec">{{item.spec}}</text>
+                <text class="preview-price">¥{{item.price}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 自动保存提示 -->
+      <view wx:if="{{draftSaved}}" class="draft-tip">
+        <text class="tip-icon">✓</text>
+        <text class="tip-text">草稿已自动保存</text>
+      </view>
+    </view>
+
+    <!-- 第三步：详情与发布 -->
+    <view wx:if="{{currentStep === 3}}" class="step-content">
+      <view class="step-title">
+        <text class="title-text">详情与发布</text>
+        <text class="title-desc">完善商品描述，准备发布</text>
+      </view>
+
+      <!-- 商品简介 -->
       <view class="form-group">
-        <view class="form-label">
-          <text>出稿天数</text>
-          <text class="required">*</text>
-        </view>
-        <slider class="delivery-slider"
-                min="1"
-                max="30"
-                value="{{formData.deliveryDays}}"
-                show-value
-                activeColor="#A8E6CF"
-                backgroundColor="#E0E0E0"
-                bindchange="onDeliveryChange" />
-        <view class="delivery-hint">预计{{formData.deliveryDays}}天完成</view>
+        <view class="group-label">商品简介</view>
+        <textarea class="form-textarea" 
+                  placeholder="专业画师手绘，风格多样，满意为止..." 
+                  value="{{formData.summary}}"
+                  bindinput="onSummaryInput"
+                  maxlength="500"
+                  auto-height />
+        <view class="char-count">{{formData.summary.length}}/500</view>
       </view>
-    </view>
 
-    <!-- 商品规格 -->
-    <view class="form-card">
-      <view class="card-header">
-        <text class="card-title">商品规格</text>
-        <text class="card-subtitle">（选填，最多2级）</text>
-      </view>
-      
-      <view class="form-hint spec-hint">
-        <text>• 一级规格：颜色、尺寸等主要规格</text>
-        <text>• 二级规格：在一级基础上的细分，如正方形、长方形等</text>
-        <text>• 可多选：用户可同时选择多个规格选项</text>
-      </view>
-      
-      <view class="spec-list">
-        <!-- 一级规格 -->
-        <view wx:for="{{formData.specs}}" wx:key="index" class="spec-item">
-          <view class="spec-level-tag">{{index === 0 ? '一级规格' : '二级规格'}}</view>
-          
-          <view class="spec-header">
-            <input class="spec-name-input full-height" 
-                   placeholder="{{index === 0 ? '如：颜色' : '如：构图'}}" 
-                   value="{{item.name}}"
-                   data-index="{{index}}"
-                   bindinput="onSpecNameInput" />
-            <view class="spec-multi-check">
-              <text class="check-label">可多选</text>
-              <switch class="mini-switch" 
-                      checked="{{item.multiple}}" 
-                      data-index="{{index}}"
-                      bindchange="onSpecMultipleChange"
-                      color="#A8E6CF"/>
-            </view>
-            <view class="delete-spec-btn" data-index="{{index}}" bindtap="deleteSpec">删除</view>
-          </view>
-          
-          <view class="spec-values">
-            <view wx:for="{{item.values}}" wx:for-item="value" wx:for-index="vIndex" wx:key="vIndex" class="spec-value-tag">
-              <input class="spec-value-input" 
-                     placeholder="规格值" 
-                     value="{{value.name}}"
-                     data-index="{{index}}"
-                     data-vindex="{{vIndex}}"
-                     bindinput="onSpecValueInput" />
-              <input class="spec-price-input" 
-                     type="digit"
-                     placeholder="加价"
-                     value="{{value.addPrice}}"
-                     data-index="{{index}}"
-                     data-vindex="{{vIndex}}"
-                     bindinput="onSpecPriceInput" />
-              <text class="price-unit">元</text>
-              <view class="delete-value-btn" 
-                    data-index="{{index}}" 
-                    data-vindex="{{vIndex}}" 
-                    bindtap="deleteSpecValue">×</view>
-            </view>
-            <button class="add-value-btn" data-index="{{index}}" bindtap="addSpecValue">+ 添加选项</button>
-          </view>
-        </view>
-      </view>
-      
-      <button wx:if="{{formData.specs.length < 2}}" class="add-spec-btn" bindtap="addSpec">
-        + 添加{{formData.specs.length === 0 ? '一' : '二'}}级规格
-      </button>
-      <view wx:else class="form-hint">已添加全部规格</view>
-    </view>
-
-    <!-- 商品标签 -->
-    <view class="form-card">
-      <view class="card-header">
-        <text class="card-title">商品标签</text>
-        <text class="card-subtitle">（最多3个）</text>
-      </view>
-      <view class="tag-grid">
-        <view wx:for="{{tagOptions}}" wx:key="*this"
-              class="tag-item {{formData.tags.includes(item) ? 'active' : ''}}"
-              data-tag="{{item}}"
-              bindtap="toggleTag">
-          {{item}}
-        </view>
-      </view>
-    </view>
-
-    <!-- 商品简介 -->
-    <view class="form-card">
-      <view class="card-header">
-        <text class="card-title">商品简介</text>
-        <text class="card-subtitle">（支持图文）</text>
-      </view>
-      
-      <!-- 简介文字 -->
-      <textarea class="form-textarea" 
-                placeholder="专业画师手绘，风格多样，满意为止..." 
-                value="{{formData.summary}}"
-                bindinput="onSummaryInput"
-                maxlength="500"
-                auto-height />
-      <view class="char-count">{{formData.summary.length}}/500</view>
-      
       <!-- 简介图片 -->
-      <view class="summary-images">
-        <view wx:for="{{formData.summaryImages}}" wx:key="*this" class="summary-image-item">
-          <image src="{{item}}" mode="aspectFill" class="summary-image" />
-          <view class="delete-summary-img" data-index="{{index}}" bindtap="deleteSummaryImage">×</view>
-        </view>
-        <view wx:if="{{formData.summaryImages.length < 3}}" class="add-summary-img" bindtap="chooseSummaryImages">
-          <text class="add-icon">+</text>
-          <text class="add-text">添加图片</text>
+      <view class="form-group">
+        <view class="group-label">简介图片 <text class="label-hint">（最多3张）</text></view>
+        <view class="summary-images">
+          <view wx:for="{{formData.summaryImages}}" wx:key="*this" class="summary-image-item">
+            <image src="{{item}}" mode="aspectFill" class="summary-image" />
+            <view class="delete-summary-img" data-index="{{index}}" bindtap="deleteSummaryImage">×</view>
+          </view>
+          <view wx:if="{{formData.summaryImages.length < 3}}" class="add-summary-img" bindtap="chooseSummaryImages">
+            <text class="add-icon">+</text>
+            <text class="add-text">添加图片</text>
+          </view>
         </view>
       </view>
-      <view class="form-hint">简介可以添加最多3张图片，直观展示作品效果</view>
+
+      <!-- 发布设置 -->
+      <view class="publish-settings">
+        <view class="setting-row">
+          <text class="setting-label">是否立即上架</text>
+          <switch class="setting-switch" 
+                  checked="{{formData.isOnSale}}" 
+                  color="#A8E6CF"
+                  bindchange="onSaleChange" />
+        </view>
+        <view class="setting-row">
+          <text class="setting-label">限购数量</text>
+          <input class="setting-input" 
+                 type="number"
+                 placeholder="0为不限购"
+                 value="{{formData.maxBuyCount}}"
+                 bindinput="onMaxBuyInput" />
+        </view>
+      </view>
+
+      <!-- 信息确认 -->
+      <view class="confirm-info">
+        <text class="confirm-title">📋 信息确认</text>
+        <view class="confirm-item">
+          <text class="confirm-label">商品名称：</text>
+          <text class="confirm-value">{{formData.name || '未填写'}}</text>
+        </view>
+        <view class="confirm-item">
+          <text class="confirm-label">商品分类：</text>
+          <text class="confirm-value">{{categoryName}}</text>
+        </view>
+        <view class="confirm-item">
+          <text class="confirm-label">基础价格：</text>
+          <text class="confirm-value">¥{{formData.basePrice || '0'}}</text>
+        </view>
+        <view class="confirm-item">
+          <text class="confirm-label">出稿天数：</text>
+          <text class="confirm-value">{{deliveryOptions[deliveryIndex]}}天</text>
+        </view>
+        <view class="confirm-item">
+          <text class="confirm-label">规格数量：</text>
+          <text class="confirm-value">{{pricePreviewTable.length || 0}}个组合</text>
+        </view>
+      </view>
     </view>
 
-    <!-- 其他设置 -->
-    <view class="form-card">
-      <view class="card-header">
-        <text class="card-title">其他设置</text>
-      </view>
-      
-      <view class="setting-item">
-        <text class="setting-label">是否上架</text>
-        <switch class="setting-switch" 
-                checked="{{formData.isOnSale}}" 
-                color="#A8E6CF"
-                bindchange="onSaleChange" />
-      </view>
-      
-      <view class="setting-item">
-        <text class="setting-label">允许购买数量</text>
-        <input class="setting-input" 
-               type="number"
-               placeholder="不限制" 
-               value="{{formData.maxBuyCount}}"
-               bindinput="onMaxBuyInput" />
-      </view>
-    </view>
-
-    <!-- 提交按钮 -->
+    <!-- 底部操作按钮 -->
     <view class="action-bar">
-      <button class="cancel-btn" bindtap="cancel">取消</button>
-      <button class="submit-btn" bindtap="submitForm">
-        {{isEdit ? '保存修改' : '立即发布'}}
-      </button>
+      <button wx:if="{{currentStep > 1}}" class="prev-btn" bindtap="prevStep">上一步</button>
+      <button wx:if="{{currentStep < 3}}" class="next-btn" bindtap="nextStep">下一步</button>
+      <button wx:if="{{currentStep === 3}}" class="submit-btn" bindtap="submitForm">🎉 发布商品</button>
     </view>
   </view>
 </view>
