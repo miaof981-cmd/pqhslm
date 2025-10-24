@@ -1,0 +1,72 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <view wx:else>
+    <!-- 订单状态 -->
+    <view class="status-card">
+      <view class="status-icon {{order.status}}"></view>
+      <view class="status-text">
+        {{order.status === 'created' ? '制作中' : order.status === 'completed' ? '已完成' : '已取消'}}
+      </view>
+      <view class="deadline-text">预计完成时间：{{order.deadline}}</view>
+    </view>
+
+    <!-- 商品信息 -->
+    <view class="product-card">
+      <image class="product-image" src="{{order.productImage}}" mode="aspectFill" />
+      <view class="product-info">
+        <view class="product-name">{{order.productName}}</view>
+        <view class="product-price">¥{{order.price}}</view>
+        <view class="product-delivery">{{order.deliveryDays}}天出稿</view>
+      </view>
+    </view>
+
+    <!-- 画师信息 -->
+    <view class="artist-card">
+      <view class="card-title">画师信息</view>
+      <view class="artist-info">
+        <image class="artist-avatar" src="{{order.artistAvatar}}" mode="aspectFill" />
+        <view class="artist-details">
+          <view class="artist-name">{{order.artistName}}</view>
+          <view class="artist-label">专业画师</view>
+        </view>
+        <button class="contact-btn" bindtap="contactArtist">联系画师</button>
+      </view>
+    </view>
+
+    <!-- 订单信息 -->
+    <view class="info-card">
+      <view class="card-title">订单信息</view>
+      <view class="info-row">
+        <text class="info-label">订单编号</text>
+        <text class="info-value">{{order._id}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">下单时间</text>
+        <text class="info-value">{{order.createTime}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">截稿时间</text>
+        <text class="info-value">{{order.deadline}}</text>
+      </view>
+      <view wx:if="{{order.remark}}" class="info-row">
+        <text class="info-label">备注</text>
+        <text class="info-value">{{order.remark}}</text>
+      </view>
+    </view>
+
+    <!-- 客服二维码 -->
+    <view class="service-card">
+      <view class="card-title">专属客服</view>
+      <image class="service-qr" src="{{order.serviceQR}}" mode="aspectFit" bindtap="viewServiceQR" />
+      <view class="service-hint">点击查看大图</view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view wx:if="{{order.status === 'created'}}" class="action-section">
+      <button class="cancel-btn" bindtap="cancelOrder">取消订单</button>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,316 @@
+/* 管理后台样式 */
+.container {
+  background-color: var(--background-color);
+  min-height: 100vh;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400rpx;
+  color: #7F8C8D;
+}
+
+.tab-bar {
+  display: flex;
+  background-color: white;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 25rpx 0;
+  font-size: 26rpx;
+  color: #7F8C8D;
+  position: relative;
+}
+
+.tab-item.active {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 4rpx;
+  background-color: var(--primary-color);
+}
+
+.tab-content {
+  padding: 30rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.add-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  padding: 15rpx 25rpx;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 100rpx 0;
+  color: #7F8C8D;
+  font-size: 28rpx;
+}
+
+/* 画师申请样式 */
+.application-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.application-item {
+  background-color: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.1);
+}
+
+.application-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.applicant-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.application-status {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  color: white;
+}
+
+.status-pending {
+  background-color: #F39C12;
+}
+
+.status-approved {
+  background-color: #27AE60;
+}
+
+.status-rejected {
+  background-color: #E74C3C;
+}
+
+.application-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  font-size: 24rpx;
+  color: #7F8C8D;
+  margin-bottom: 20rpx;
+}
+
+.portfolio-preview {
+  margin-bottom: 20rpx;
+}
+
+.portfolio-label {
+  font-size: 24rpx;
+  color: var(--text-color);
+  margin-bottom: 10rpx;
+}
+
+.portfolio-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.portfolio-image {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 10rpx;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 20rpx;
+}
+
+.approve-btn {
+  flex: 1;
+  background-color: #27AE60;
+  color: white;
+  border-radius: 15rpx;
+  font-size: 24rpx;
+  padding: 15rpx 0;
+}
+
+.reject-btn {
+  flex: 1;
+  background-color: #E74C3C;
+  color: white;
+  border-radius: 15rpx;
+  font-size: 24rpx;
+  padding: 15rpx 0;
+}
+
+/* 公告管理样式 */
+.notice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.notice-item {
+  background-color: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.1);
+}
+
+.notice-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 10rpx;
+}
+
+.notice-time {
+  font-size: 24rpx;
+  color: #7F8C8D;
+  margin-bottom: 10rpx;
+}
+
+.notice-status {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  color: white;
+  display: inline-block;
+}
+
+.status-active {
+  background-color: #27AE60;
+}
+
+.status-inactive {
+  background-color: #E74C3C;
+}
+
+/* 客服二维码样式 */
+.qr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.qr-item {
+  background-color: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.1);
+}
+
+.qr-image {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 15rpx;
+  margin-right: 20rpx;
+}
+
+.qr-info {
+  flex: 1;
+}
+
+.qr-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 10rpx;
+}
+
+.qr-count {
+  font-size: 24rpx;
+  color: #7F8C8D;
+  margin-bottom: 10rpx;
+}
+
+.qr-status {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  color: white;
+  display: inline-block;
+}
+
+/* 轮播图样式 */
+.banner-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.banner-item {
+  background-color: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.1);
+}
+
+.banner-image {
+  width: 200rpx;
+  height: 120rpx;
+  border-radius: 15rpx;
+  margin-right: 20rpx;
+}
+
+.banner-info {
+  flex: 1;
+}
+
+.banner-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 10rpx;
+}
+
+.banner-sort {
+  font-size: 24rpx;
+  color: #7F8C8D;
+  margin-bottom: 10rpx;
+}
+
+.banner-status {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  color: white;
+  display: inline-block;
+}
+

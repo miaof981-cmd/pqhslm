@@ -1,0 +1,250 @@
+/* 会员续费页样式 */
+.container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding: 30rpx;
+  padding-bottom: 200rpx;
+}
+
+/* 会员状态卡片 */
+.status-card {
+  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 8rpx 30rpx rgba(168, 230, 207, 0.3);
+}
+
+.status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.status-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: white;
+}
+
+.status-badge {
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.status-badge.active {
+  background-color: rgba(39, 174, 96, 0.2);
+  color: #27AE60;
+}
+
+.status-badge.expired {
+  background-color: rgba(231, 76, 60, 0.2);
+  color: #E74C3C;
+}
+
+.status-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15rpx 0;
+}
+
+.info-label {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.info-value {
+  font-size: 28rpx;
+  color: white;
+  font-weight: 600;
+}
+
+/* 套餐选择 */
+.plan-section {
+  background-color: white;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 30rpx;
+}
+
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+}
+
+.plan-card {
+  position: relative;
+  background-color: #f8f9fa;
+  border: 3rpx solid #e9ecef;
+  border-radius: 20rpx;
+  padding: 30rpx 20rpx;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.plan-card.active {
+  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
+  border-color: #A8E6CF;
+  transform: scale(1.05);
+  box-shadow: 0 8rpx 20rpx rgba(168, 230, 207, 0.3);
+}
+
+.plan-badge {
+  position: absolute;
+  top: -10rpx;
+  right: -10rpx;
+  background-color: #FF6B6B;
+  color: white;
+  font-size: 20rpx;
+  padding: 6rpx 12rpx;
+  border-radius: 15rpx;
+  font-weight: 600;
+}
+
+.plan-label {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.plan-card.active .plan-label {
+  color: white;
+}
+
+.plan-months {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 15rpx;
+}
+
+.plan-card.active .plan-months {
+  color: white;
+}
+
+.plan-price {
+  font-size: 40rpx;
+  color: #A8E6CF;
+  font-weight: 700;
+  margin-bottom: 8rpx;
+}
+
+.plan-card.active .plan-price {
+  color: white;
+}
+
+.plan-unit {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.plan-card.active .plan-unit {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 表单区域 */
+.form-section {
+  background-color: white;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.form-group {
+  margin-bottom: 30rpx;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 15rpx;
+}
+
+.price-input-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: #f8f9fa;
+  border: 2rpx solid #e9ecef;
+  border-radius: 15rpx;
+  padding: 0 25rpx;
+}
+
+.price-symbol {
+  font-size: 32rpx;
+  color: #A8E6CF;
+  font-weight: 700;
+  margin-right: 10rpx;
+}
+
+.form-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 25rpx 0;
+  font-size: 28rpx;
+}
+
+.price-input {
+  flex: 1;
+}
+
+.form-hint {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 10rpx;
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 150rpx;
+  background-color: #f8f9fa;
+  border: 2rpx solid #e9ecef;
+  border-radius: 15rpx;
+  padding: 25rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+/* 提交区域 */
+.submit-section {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  padding: 30rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.submit-btn {
+  width: 100%;
+  background: linear-gradient(45deg, #A8E6CF, #D0F0C0);
+  color: white;
+  border-radius: 25rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  padding: 30rpx 0;
+  box-shadow: 0 8rpx 20rpx rgba(168, 230, 207, 0.3);
+}
+
+.submit-hint {
+  text-align: center;
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 15rpx;
+}

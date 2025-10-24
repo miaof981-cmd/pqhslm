@@ -1,0 +1,106 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+  
+  <view wx:else>
+    <!-- 标签栏 -->
+    <view class="tab-bar">
+      <view class="tab-item {{currentTab === 'products' ? 'active' : ''}}" 
+            data-tab="products" 
+            bindtap="switchTab">
+        我的商品
+      </view>
+      <view class="tab-item {{currentTab === 'orders' ? 'active' : ''}}" 
+            data-tab="orders" 
+            bindtap="switchTab">
+        我的订单
+      </view>
+      <view class="tab-item {{currentTab === 'member' ? 'active' : ''}}" 
+            data-tab="member" 
+            bindtap="switchTab">
+        会员管理
+      </view>
+    </view>
+
+    <!-- 商品管理 -->
+    <view wx:if="{{currentTab === 'products'}}" class="tab-content">
+      <view class="section-header">
+        <text class="section-title">我的商品</text>
+        <button class="add-btn" bindtap="addProduct">+ 添加商品</button>
+      </view>
+      
+      <view wx:if="{{products.length === 0}}" class="empty-state">
+        <text>暂无商品</text>
+      </view>
+      
+      <view wx:else class="product-list">
+        <view wx:for="{{products}}" wx:key="_id" class="product-item">
+          <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
+          <view class="product-info">
+            <view class="product-name">{{item.name}}</view>
+            <view class="product-price">¥{{item.price}}</view>
+            <view class="product-status status-{{item.status}}">
+              {{item.status === 'active' ? '上架' : '下架'}}
+            </view>
+          </view>
+          <button class="edit-btn" data-id="{{item._id}}" bindtap="editProduct">编辑</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 订单管理 -->
+    <view wx:if="{{currentTab === 'orders'}}" class="tab-content">
+      <view class="section-title">我的订单</view>
+      
+      <view wx:if="{{orders.length === 0}}" class="empty-state">
+        <text>暂无订单</text>
+      </view>
+      
+      <view wx:else class="order-list">
+        <view wx:for="{{orders}}" wx:key="_id" class="order-item">
+          <view class="order-header">
+            <text class="order-id">订单 #{{item._id.slice(-8)}}</text>
+            <view class="order-status status-{{item.status}}">
+              {{item.status === 'created' ? '待处理' : item.status === 'completed' ? '已完成' : '进行中'}}
+            </view>
+          </view>
+          <view class="order-info">
+            <text>下单时间：{{item.createTime}}</text>
+            <text>截稿日期：{{item.deadline}}</text>
+            <text>订单金额：¥{{item.price}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 会员管理 -->
+    <view wx:if="{{currentTab === 'member'}}" class="tab-content">
+      <view class="section-title">会员管理</view>
+      
+      <view wx:if="{{!memberInfo}}" class="member-card">
+        <view class="member-status expired">
+          <text>未开通会员</text>
+        </view>
+        <view class="member-desc">开通会员后，您的商品将正常展示在商城中</view>
+        <button class="renew-btn" bindtap="renewMember">开通会员</button>
+      </view>
+      
+      <view wx:else class="member-card">
+        <view class="member-status {{memberInfo.isValid ? 'active' : 'expired'}}">
+          <text>{{memberInfo.isValid ? '会员有效' : '会员已过期'}}</text>
+        </view>
+        <view wx:if="{{memberInfo.isValid}}" class="member-info">
+          <text>到期时间：{{memberInfo.endDate}}</text>
+          <text>剩余天数：{{memberInfo.daysLeft}}天</text>
+        </view>
+        <view wx:else class="member-info">
+          <text>到期时间：{{memberInfo.endDate}}</text>
+          <text>您的商品已自动下架</text>
+        </view>
+        <button class="renew-btn" bindtap="renewMember">续费会员</button>
+      </view>
+    </view>
+  </view>
+</view>
+

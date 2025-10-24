@@ -1,0 +1,152 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+  
+  <view wx:else>
+    <!-- 标签栏 -->
+    <view class="tab-bar">
+      <view class="tab-item {{currentTab === 'artists' ? 'active' : ''}}" 
+            data-tab="artists" 
+            bindtap="switchTab">
+        画师管理
+      </view>
+      <view class="tab-item {{currentTab === 'notices' ? 'active' : ''}}" 
+            data-tab="notices" 
+            bindtap="switchTab">
+        公告管理
+      </view>
+      <view class="tab-item {{currentTab === 'service' ? 'active' : ''}}" 
+            data-tab="service" 
+            bindtap="switchTab">
+        客服管理
+      </view>
+      <view class="tab-item {{currentTab === 'banners' ? 'active' : ''}}" 
+            data-tab="banners" 
+            bindtap="switchTab">
+        轮播图
+      </view>
+    </view>
+
+    <!-- 画师管理 -->
+    <view wx:if="{{currentTab === 'artists'}}" class="tab-content">
+      <view class="section-title">画师申请审核</view>
+      
+      <view wx:if="{{applications.length === 0}}" class="empty-state">
+        <text>暂无申请</text>
+      </view>
+      
+      <view wx:else class="application-list">
+        <view wx:for="{{applications}}" wx:key="_id" class="application-item">
+          <view class="application-header">
+            <text class="applicant-name">{{item.name}}</text>
+            <view class="application-status status-{{item.status}}">
+              {{item.status === 'pending' ? '待审核' : item.status === 'approved' ? '已通过' : '已驳回'}}
+            </view>
+          </view>
+          <view class="application-info">
+            <text>联系方式：{{item.phone}}</text>
+            <text>擅长类型：{{item.specialty || '未填写'}}</text>
+            <text>申请时间：{{item.createTime}}</text>
+          </view>
+          <view class="portfolio-preview">
+            <text class="portfolio-label">作品展示：</text>
+            <view class="portfolio-images">
+              <image wx:for="{{item.portfolio}}" wx:key="*this" 
+                     src="{{item}}" 
+                     mode="aspectFill" 
+                     class="portfolio-image" />
+            </view>
+          </view>
+          <view wx:if="{{item.status === 'pending'}}" class="action-buttons">
+            <button class="approve-btn" 
+                    data-id="{{item._id}}" 
+                    data-action="approved" 
+                    bindtap="reviewApplication">
+              通过
+            </button>
+            <button class="reject-btn" 
+                    data-id="{{item._id}}" 
+                    data-action="rejected" 
+                    bindtap="reviewApplication">
+              驳回
+            </button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 公告管理 -->
+    <view wx:if="{{currentTab === 'notices'}}" class="tab-content">
+      <view class="section-header">
+        <text class="section-title">公告管理</text>
+        <button class="add-btn" bindtap="addNotice">+ 添加公告</button>
+      </view>
+      
+      <view wx:if="{{notices.length === 0}}" class="empty-state">
+        <text>暂无公告</text>
+      </view>
+      
+      <view wx:else class="notice-list">
+        <view wx:for="{{notices}}" wx:key="_id" class="notice-item">
+          <view class="notice-title">{{item.title}}</view>
+          <view class="notice-time">{{item.createTime}}</view>
+          <view class="notice-status status-{{item.status}}">
+            {{item.status === 'active' ? '已发布' : '已下架'}}
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 客服管理 -->
+    <view wx:if="{{currentTab === 'service'}}" class="tab-content">
+      <view class="section-header">
+        <text class="section-title">客服二维码管理</text>
+        <button class="add-btn" bindtap="addServiceQR">+ 添加二维码</button>
+      </view>
+      
+      <view wx:if="{{serviceQRs.length === 0}}" class="empty-state">
+        <text>暂无客服二维码</text>
+      </view>
+      
+      <view wx:else class="qr-list">
+        <view wx:for="{{serviceQRs}}" wx:key="_id" class="qr-item">
+          <image class="qr-image" src="{{item.imageUrl}}" mode="aspectFit" />
+          <view class="qr-info">
+            <text class="qr-title">{{item.title}}</text>
+            <text class="qr-count">已分配：{{item.assignedCount}}次</text>
+            <text class="qr-status status-{{item.isActive ? 'active' : 'inactive'}}">
+              {{item.isActive ? '启用' : '禁用'}}
+            </text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 轮播图管理 -->
+    <view wx:if="{{currentTab === 'banners'}}" class="tab-content">
+      <view class="section-header">
+        <text class="section-title">轮播图管理</text>
+        <button class="add-btn" bindtap="addBanner">+ 添加轮播图</button>
+      </view>
+      
+      <view wx:if="{{banners.length === 0}}" class="empty-state">
+        <text>暂无轮播图</text>
+      </view>
+      
+      <view wx:else class="banner-list">
+        <view wx:for="{{banners}}" wx:key="_id" class="banner-item">
+          <image class="banner-image" src="{{item.imageUrl}}" mode="aspectFill" />
+          <view class="banner-info">
+            <text class="banner-title">{{item.title}}</text>
+            <text class="banner-sort">排序：{{item.sort}}</text>
+            <text class="banner-status status-{{item.isActive ? 'active' : 'inactive'}}">
+              {{item.isActive ? '启用' : '禁用'}}
+            </text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+

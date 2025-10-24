@@ -1,0 +1,103 @@
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input" bindtap="onSearch">
+      <view class="search-icon"></view>
+      <text class="search-placeholder">搜索你想要的画师作品</text>
+    </view>
+  </view>
+
+  <!-- 轮播图 -->
+  <swiper class="banner-swiper" autoplay="{{true}}" indicator-dots="{{true}}" circular="{{true}}" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#A8E6CF">
+    <swiper-item wx:for="{{banners}}" wx:key="*this">
+      <image class="banner-image" src="{{item}}" mode="aspectFill" />
+    </swiper-item>
+  </swiper>
+
+  <!-- 公告滚动条 -->
+  <view class="notice-ticker" wx:if="{{notices.length > 0}}">
+    <view class="notice-icon"></view>
+    <scroll-view class="notice-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}">
+      <text wx:for="{{notices}}" wx:key="id" 
+            class="notice-item" 
+            data-id="{{item._id}}" 
+            bindtap="onNoticeTap">
+        {{item.title}}
+      </text>
+    </scroll-view>
+  </view>
+
+  <!-- 商品分类 -->
+  <view class="category-section">
+    <scroll-view class="category-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}">
+      <view class="category-list">
+        <view wx:for="{{categories}}" wx:key="id" 
+              class="category-item {{item.active ? 'active' : ''}}" 
+              data-id="{{item.id}}" 
+              bindtap="switchCategory">
+          <view class="category-icon icon-{{item.id}}"></view>
+          <text class="category-name">{{item.name}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 商品列表 -->
+  <view class="product-section">
+    <view class="section-header">
+      <text class="section-title">{{currentCategoryName}}</text>
+      <text class="section-subtitle">精选优质作品</text>
+    </view>
+    
+    <view wx:if="{{loading}}" class="loading-state">
+      <text>加载中...</text>
+    </view>
+    
+    <view wx:elif="{{products.length === 0}}" class="empty-state">
+      <text>暂无商品</text>
+    </view>
+    
+    <view wx:else class="product-grid">
+      <view wx:for="{{products}}" wx:key="_id" 
+            class="product-card" 
+            data-id="{{item._id}}" 
+            bindtap="onProductTap">
+        
+        <!-- 商品图片 -->
+        <view class="product-image-container">
+          <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
+          <view wx:if="{{item.tags.length > 0}}" class="product-tags">
+            <text wx:for="{{item.tags}}" wx:key="*this" class="product-tag">{{item}}</text>
+          </view>
+        </view>
+        
+        <!-- 商品信息 -->
+        <view class="product-info">
+          <view class="product-title">{{item.name}}</view>
+          
+          <!-- 画师信息 -->
+          <view class="artist-info">
+            <image class="artist-avatar" src="{{item.artist.avatar}}" mode="aspectFill" />
+            <text class="artist-name">{{item.artist.name}}</text>
+            <view class="rating">
+              <view class="rating-star"></view>
+              <text class="rating-score">{{item.rating}}</text>
+            </view>
+          </view>
+          
+          <!-- 价格信息 -->
+          <view class="price-info">
+            <text class="current-price">¥{{item.price}}</text>
+            <text wx:if="{{item.originalPrice}}" class="original-price">¥{{item.originalPrice}}</text>
+            <text class="delivery-time">{{item.deliveryDays}}天出稿</text>
+          </view>
+          
+          <!-- 销量信息 -->
+          <view class="sales-info">
+            <text class="sales-count">已售{{item.sales}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

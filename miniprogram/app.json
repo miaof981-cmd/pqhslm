@@ -1,0 +1,45 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/product-detail/index",
+    "pages/apply/index",
+    "pages/artist-dashboard/index",
+    "pages/admin/index",
+    "pages/notice-detail/index",
+    "pages/user-center/index",
+    "pages/product-edit/index",
+    "pages/member-renew/index",
+    "pages/order-detail/index",
+    "pages/order-list/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "画师商城",
+    "navigationBarBackgroundColor": "#A8E6CF",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#E6FFEB"
+  },
+  "tabBar": {
+    "color": "#666666",
+    "selectedColor": "#A8E6CF",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/user-center/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于小程序位置接口的效果展示"
+    }
+  },
+  "requiredBackgroundModes": ["audio"],
+  "plugins": {},
+  "resizable": true
+}

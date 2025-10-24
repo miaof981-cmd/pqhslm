@@ -1,0 +1,54 @@
+<view class="container">
+  <view class="form-section">
+    <view class="form-title">画师申请</view>
+    
+    <!-- 基本信息 -->
+    <view class="input-group">
+      <view class="input-label">姓名 *</view>
+      <input class="input-field" 
+             placeholder="请输入您的姓名" 
+             value="{{formData.name}}"
+             bindinput="onNameInput" />
+    </view>
+
+    <view class="input-group">
+      <view class="input-label">联系方式 *</view>
+      <input class="input-field" 
+             placeholder="请输入手机号或微信号" 
+             value="{{formData.phone}}"
+             bindinput="onPhoneInput" />
+    </view>
+
+    <view class="input-group">
+      <view class="input-label">擅长类型</view>
+      <input class="input-field" 
+             placeholder="如：插画、头像、海报设计等" 
+             value="{{formData.specialty}}"
+             bindinput="onSpecialtyInput" />
+    </view>
+
+    <!-- 作品上传 -->
+    <view class="input-group">
+      <view class="input-label">作品展示 *</view>
+      <view class="upload-section">
+        <view class="image-grid">
+          <view wx:for="{{formData.portfolio}}" wx:key="*this" class="image-item">
+            <image src="{{item}}" mode="aspectFill" />
+            <view class="delete-btn" data-index="{{index}}" bindtap="deleteImage">×</view>
+          </view>
+          <view wx:if="{{formData.portfolio.length < 9}}" 
+                class="upload-btn" 
+                bindtap="chooseImages">
+            <text>+</text>
+            <text class="upload-text">添加作品</text>
+          </view>
+        </view>
+        <view class="upload-hint">最多上传9张作品图片</view>
+      </view>
+    </view>
+
+    <!-- 提交按钮 -->
+    <button class="submit-btn" bindtap="submitApplication">提交申请</button>
+  </view>
+</view>
+

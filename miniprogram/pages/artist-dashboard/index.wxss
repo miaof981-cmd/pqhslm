@@ -1,0 +1,234 @@
+/* 画师工作台样式 */
+.container {
+  background-color: var(--background-color);
+  min-height: 100vh;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400rpx;
+  color: #7F8C8D;
+}
+
+.tab-bar {
+  display: flex;
+  background-color: white;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 30rpx 0;
+  font-size: 28rpx;
+  color: #7F8C8D;
+  position: relative;
+}
+
+.tab-item.active {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 4rpx;
+  background-color: var(--primary-color);
+}
+
+.tab-content {
+  padding: 30rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.add-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  padding: 15rpx 25rpx;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 100rpx 0;
+  color: #7F8C8D;
+  font-size: 28rpx;
+}
+
+.product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.product-item {
+  background-color: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.1);
+}
+
+.product-image {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 15rpx;
+  margin-right: 20rpx;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 10rpx;
+}
+
+.product-price {
+  font-size: 24rpx;
+  color: var(--primary-color);
+  margin-bottom: 10rpx;
+}
+
+.product-status {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  color: white;
+}
+
+.status-active {
+  background-color: #27AE60;
+}
+
+.status-inactive {
+  background-color: #E74C3C;
+}
+
+.edit-btn {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  border-radius: 15rpx;
+  font-size: 24rpx;
+  padding: 15rpx 25rpx;
+}
+
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.order-item {
+  background-color: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.1);
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.order-id {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.order-status {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  color: white;
+}
+
+.status-created {
+  background-color: #F39C12;
+}
+
+.status-completed {
+  background-color: #27AE60;
+}
+
+.order-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  font-size: 24rpx;
+  color: #7F8C8D;
+}
+
+.member-card {
+  background-color: white;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  text-align: center;
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.1);
+}
+
+.member-status {
+  font-size: 32rpx;
+  font-weight: 700;
+  margin-bottom: 20rpx;
+}
+
+.member-status.active {
+  color: #27AE60;
+}
+
+.member-status.expired {
+  color: #E74C3C;
+}
+
+.member-desc {
+  font-size: 24rpx;
+  color: #7F8C8D;
+  margin-bottom: 30rpx;
+}
+
+.member-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  font-size: 24rpx;
+  color: #7F8C8D;
+  margin-bottom: 30rpx;
+}
+
+.renew-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 25rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  padding: 20rpx 40rpx;
+}
+

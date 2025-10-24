@@ -1,0 +1,59 @@
+<view class="container">
+  <!-- 标签栏 -->
+  <view class="tabs">
+    <view class="tab-item {{currentTab === 'all' ? 'active' : ''}}" 
+          data-tab="all" 
+          bindtap="switchTab">
+      全部
+    </view>
+    <view class="tab-item {{currentTab === 'created' ? 'active' : ''}}" 
+          data-tab="created" 
+          bindtap="switchTab">
+      进行中
+    </view>
+    <view class="tab-item {{currentTab === 'completed' ? 'active' : ''}}" 
+          data-tab="completed" 
+          bindtap="switchTab">
+      已完成
+    </view>
+  </view>
+
+  <!-- 订单列表 -->
+  <view class="order-list">
+    <view wx:if="{{loading}}" class="loading">
+      <text>加载中...</text>
+    </view>
+
+    <view wx:elif="{{orders.length === 0}}" class="empty">
+      <text>暂无订单</text>
+    </view>
+
+    <view wx:else>
+      <view wx:for="{{orders}}" wx:key="_id" 
+            class="order-card" 
+            data-id="{{item._id}}"
+            bindtap="viewOrder">
+        <view class="order-header">
+          <text class="order-id">订单号：{{item._id}}</text>
+          <view class="order-status {{item.status}}">
+            {{item.status === 'created' ? '制作中' : '已完成'}}
+          </view>
+        </view>
+
+        <view class="order-content">
+          <image class="product-image" src="{{item.productImage}}" mode="aspectFill" />
+          <view class="product-info">
+            <view class="product-name">{{item.productName}}</view>
+            <view class="product-price">¥{{item.price}}</view>
+            <view class="product-time">下单时间：{{item.createTime}}</view>
+            <view class="product-deadline">截稿时间：{{item.deadline}}</view>
+          </view>
+        </view>
+
+        <view class="order-footer">
+          <text class="view-detail">查看详情 ></text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

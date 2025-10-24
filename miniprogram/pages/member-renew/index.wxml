@@ -1,0 +1,73 @@
+<view class="container">
+  <!-- 会员状态 -->
+  <view class="status-card">
+    <view class="status-header">
+      <text class="status-title">会员状态</text>
+      <view class="status-badge {{memberInfo.isValid ? 'active' : 'expired'}}">
+        {{memberInfo.isValid ? '有效' : '已过期'}}
+      </view>
+    </view>
+    <view class="status-info">
+      <text class="info-label">到期时间</text>
+      <text class="info-value">{{memberInfo.endDate}}</text>
+    </view>
+    <view wx:if="{{memberInfo.isValid}}" class="status-info">
+      <text class="info-label">剩余天数</text>
+      <text class="info-value">{{memberInfo.daysLeft}}天</text>
+    </view>
+  </view>
+
+  <!-- 套餐选择 -->
+  <view class="plan-section">
+    <view class="section-title">选择续费套餐</view>
+    <view class="plan-grid">
+      <view wx:for="{{plans}}" wx:key="months"
+            class="plan-card {{selectedPlan === index ? 'active' : ''}}"
+            data-index="{{index}}"
+            bindtap="selectPlan">
+        <view wx:if="{{item.discount > 0}}" class="plan-badge">省{{item.discount}}%</view>
+        <view class="plan-label">{{item.label}}</view>
+        <view class="plan-months">{{item.months}}个月</view>
+        <view class="plan-price">¥{{item.price}}</view>
+        <view class="plan-unit">¥{{item.avgPrice}}/月</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 付款信息 -->
+  <view class="form-section">
+    <view class="section-title">付款信息</view>
+    
+    <view class="form-group">
+      <view class="form-label">实付金额 *</view>
+      <view class="price-input-wrapper">
+        <text class="price-symbol">¥</text>
+        <input class="form-input price-input" 
+               type="digit"
+               placeholder="请输入实付金额" 
+               value="{{formData.amount}}"
+               bindinput="onAmountInput" />
+      </view>
+      <view class="form-hint">建议金额：¥{{plans[selectedPlan].price}}</view>
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">备注</view>
+      <textarea class="form-textarea" 
+                placeholder="请输入备注信息（选填）" 
+                value="{{formData.remark}}"
+                bindinput="onRemarkInput"
+                maxlength="200" />
+    </view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-section">
+    <button class="submit-btn" bindtap="submitRenew">
+      确认续费
+    </button>
+    <view class="submit-hint">
+      续费后会员有效期将延长{{plans[selectedPlan].months}}个月
+    </view>
+  </view>
+</view>

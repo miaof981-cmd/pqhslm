@@ -1,0 +1,219 @@
+/* 全局样式 */
+page {
+  background-color: #E6FFEB;
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* 主色调定义 */
+:root {
+  --primary-color: #A8E6CF;
+  --secondary-color: #D0F0C0;
+  --background-color: #E6FFEB;
+  --text-color: #2C3E50;
+  --border-color: #D0F0C0;
+}
+
+/* 通用按钮样式 */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 25rpx;
+  border: none;
+  font-size: 28rpx;
+  padding: 20rpx 40rpx;
+}
+
+.btn-secondary {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  border-radius: 25rpx;
+  border: none;
+  font-size: 28rpx;
+  padding: 20rpx 40rpx;
+}
+
+/* 卡片样式 */
+.card {
+  background-color: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.1);
+}
+
+/* 输入框样式 */
+.input-group {
+  margin: 20rpx 0;
+}
+
+.input-label {
+  font-size: 28rpx;
+  color: var(--text-color);
+  margin-bottom: 10rpx;
+}
+
+.input-field {
+  background-color: white;
+  border: 2rpx solid var(--border-color);
+  border-radius: 15rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+}
+
+/* 列表样式 */
+.list-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+/* 状态标签 */
+.status-tag {
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  color: white;
+}
+
+.status-active {
+  background-color: #27AE60;
+}
+
+.status-pending {
+  background-color: #F39C12;
+}
+
+.status-expired {
+  background-color: #E74C3C;
+}
+
+/* 浮动按钮 */
+.fab {
+  position: fixed;
+  right: 30rpx;
+  bottom: 30rpx;
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(168, 230, 207, 0.3);
+  z-index: 999;
+}
+
+/* 模态框 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin: 40rpx;
+  max-width: 600rpx;
+  width: 100%;
+}
+
+/* 轮播图样式 */
+.banner {
+  height: 300rpx;
+  border-radius: 20rpx;
+  overflow: hidden;
+  margin: 20rpx;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+}
+
+/* 商品网格 */
+.product-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+  padding: 20rpx;
+}
+
+.product-card {
+  background-color: white;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.1);
+}
+
+.product-image {
+  width: 100%;
+  height: 200rpx;
+  background-color: var(--secondary-color);
+}
+
+.product-info {
+  padding: 20rpx;
+}
+
+.product-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 10rpx;
+}
+
+.product-price {
+  font-size: 32rpx;
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.product-delivery {
+  font-size: 24rpx;
+  color: #7F8C8D;
+  margin-top: 5rpx;
+}
+
+/* 公告滚动条 */
+.notice-ticker {
+  background-color: var(--secondary-color);
+  padding: 20rpx;
+  margin: 20rpx;
+  border-radius: 15rpx;
+  display: flex;
+  align-items: center;
+}
+
+.notice-label {
+  font-size: 24rpx;
+  color: var(--text-color);
+  margin-right: 20rpx;
+  white-space: nowrap;
+}
+
+.notice-scroll {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.notice-item {
+  display: inline-block;
+  margin-right: 40rpx;
+  font-size: 24rpx;
+  color: var(--text-color);
+}

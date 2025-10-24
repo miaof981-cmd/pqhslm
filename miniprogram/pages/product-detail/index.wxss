@@ -1,0 +1,132 @@
+/* 商品详情页样式 */
+.container {
+  background-color: var(--background-color);
+  min-height: 100vh;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400rpx;
+  color: #7F8C8D;
+}
+
+.product-swiper {
+  height: 500rpx;
+  background-color: white;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+}
+
+.product-info {
+  background-color: white;
+  padding: 40rpx;
+  margin-top: 20rpx;
+}
+
+.product-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 20rpx;
+}
+
+.product-price {
+  font-size: 48rpx;
+  color: var(--primary-color);
+  font-weight: 700;
+  margin-bottom: 20rpx;
+}
+
+.product-delivery {
+  font-size: 28rpx;
+  color: #7F8C8D;
+  margin-bottom: 30rpx;
+}
+
+.artist-info {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background-color: var(--secondary-color);
+  border-radius: 15rpx;
+}
+
+.artist-label {
+  font-size: 28rpx;
+  color: var(--text-color);
+}
+
+.artist-name {
+  font-size: 28rpx;
+  color: var(--primary-color);
+  font-weight: 600;
+  margin-left: 10rpx;
+}
+
+.arrow {
+  margin-left: auto;
+  color: #7F8C8D;
+}
+
+.buy-section {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  padding: 30rpx;
+  border-top: 1rpx solid var(--border-color);
+}
+
+.buy-btn {
+  width: 100%;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 25rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.service-fab {
+  position: fixed;
+  right: 30rpx;
+  bottom: 120rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24rpx;
+  box-shadow: 0 8rpx 20rpx rgba(168, 230, 207, 0.3);
+}
+
+.modal-content {
+  text-align: center;
+}
+
+.qr-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 30rpx;
+}
+
+.qr-image {
+  width: 400rpx;
+  height: 400rpx;
+  margin-bottom: 20rpx;
+}
+
+.qr-hint {
+  font-size: 24rpx;
+  color: #7F8C8D;
+}
+

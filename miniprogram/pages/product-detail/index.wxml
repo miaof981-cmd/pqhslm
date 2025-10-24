@@ -1,0 +1,52 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+  
+  <view wx:else>
+    <!-- 商品图片轮播 -->
+    <swiper class="product-swiper" indicator-dots="{{true}}" circular="{{true}}">
+      <swiper-item wx:for="{{product.images}}" wx:key="*this">
+        <image class="product-image" src="{{item}}" mode="aspectFill" />
+      </swiper-item>
+    </swiper>
+
+    <!-- 商品信息 -->
+    <view class="product-info">
+      <view class="product-title">{{product.name}}</view>
+      <view class="product-price">¥{{product.price}}</view>
+      <view class="product-delivery">出稿时间：{{product.deliveryDays}}天</view>
+      
+      <!-- 画师信息 -->
+      <view class="artist-info" bindtap="viewArtist">
+        <text class="artist-label">画师：</text>
+        <text class="artist-name">{{artist.name || '未知'}}</text>
+        <text class="arrow">></text>
+      </view>
+    </view>
+
+    <!-- 购买按钮 -->
+    <view class="buy-section">
+      <button class="buy-btn" bindtap="buyProduct">立即购买</button>
+    </view>
+
+    <!-- 客服二维码浮动按钮 -->
+    <view class="service-fab" bindtap="toggleServiceQR">
+      <text>客服</text>
+    </view>
+
+    <!-- 客服二维码弹窗 -->
+    <view class="modal" wx:if="{{showServiceQR}}" bindtap="toggleServiceQR">
+      <view class="modal-content" catchtap="">
+        <view class="qr-title">扫码添加客服</view>
+        <image class="qr-image" 
+               src="{{hasOrder ? orderQR : serviceQR.imageUrl}}" 
+               mode="aspectFit" />
+        <view class="qr-hint">
+          {{hasOrder ? '专属客服二维码' : '随机客服二维码'}}
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+

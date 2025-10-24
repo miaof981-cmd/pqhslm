@@ -1,0 +1,43 @@
+/* 公告详情页样式 */
+.container {
+  background-color: var(--background-color);
+  min-height: 100vh;
+  padding: 30rpx;
+}
+
+.loading, .empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400rpx;
+  color: #7F8C8D;
+  font-size: 28rpx;
+}
+
+.notice-content {
+  background-color: white;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.1);
+}
+
+.notice-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 20rpx;
+  line-height: 1.4;
+}
+
+.notice-time {
+  font-size: 24rpx;
+  color: #7F8C8D;
+  margin-bottom: 30rpx;
+}
+
+.notice-body {
+  font-size: 28rpx;
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
