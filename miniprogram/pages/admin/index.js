@@ -47,7 +47,11 @@ Page({
     allOrders: [],
     artists: [],
     applications: [],
-    artistPerformance: []
+    artistPerformance: [],
+    
+    // 编辑画师弹窗
+    showEditArtistModal: false,
+    editingArtist: null
   },
 
   onLoad() {
@@ -593,16 +597,54 @@ Page({
 
   editArtist(e) {
     const id = e.currentTarget.dataset.id
-    wx.showModal({
-      title: '编辑画师',
-      content: '画师编辑功能（可跳转到画师详情页）',
-      success: (res) => {
-        if (res.confirm) {
-          wx.navigateTo({
-            url: `/pages/artist-detail/index?id=${id}`
-          })
-        }
-      }
+    const artist = this.data.artists.find(a => a._id === id)
+    if (artist) {
+      this.setData({
+        showEditArtistModal: true,
+        editingArtist: { ...artist }
+      })
+    }
+  },
+  
+  closeEditArtistModal() {
+    this.setData({
+      showEditArtistModal: false,
+      editingArtist: null
+    })
+  },
+  
+  updateArtistLevel(e) {
+    const level = e.detail.value
+    this.setData({
+      'editingArtist.level': parseInt(level)
+    })
+  },
+  
+  toggleArtistStatus() {
+    const newStatus = this.data.editingArtist.status === 'normal' ? 'disabled' : 'normal'
+    const newStatusText = newStatus === 'normal' ? '正常' : '已禁用'
+    this.setData({
+      'editingArtist.status': newStatus,
+      'editingArtist.statusText': newStatusText
+    })
+  },
+  
+  saveArtistEdit() {
+    const { editingArtist } = this.data
+    // 实际应调用后端API保存
+    wx.showToast({
+      title: '保存成功',
+      icon: 'success'
+    })
+    
+    // 更新列表中的画师数据
+    const artists = this.data.artists.map(a => 
+      a._id === editingArtist._id ? editingArtist : a
+    )
+    this.setData({
+      artists: artists,
+      showEditArtistModal: false,
+      editingArtist: null
     })
   },
 

@@ -329,4 +329,66 @@
       </view>
     </view>
   </view>
+
+  <!-- 编辑画师弹窗 -->
+  <view wx:if="{{showEditArtistModal}}" class="modal-overlay" bindtap="closeEditArtistModal">
+    <view class="modal-content" catchtap="{{null}}">
+      <view class="modal-header">
+        <text class="modal-title">编辑画师</text>
+        <view class="modal-close" bindtap="closeEditArtistModal">×</view>
+      </view>
+      
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">画师姓名</text>
+          <text class="form-value">{{editingArtist.name}}</text>
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">入驻时间</text>
+          <text class="form-value">{{editingArtist.joinTime}}</text>
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">画师等级</text>
+          <picker mode="selector" range="{{[1,2,3,4,5]}}" value="{{editingArtist.level - 1}}" bindchange="updateArtistLevel">
+            <view class="form-picker">
+              <text>{{editingArtist.level}}级</text>
+              <text class="picker-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">作品数量</text>
+          <text class="form-value">{{editingArtist.productCount}}个</text>
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">订单数量</text>
+          <text class="form-value">{{editingArtist.orderCount}}单</text>
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">总收入</text>
+          <text class="form-value">¥{{editingArtist.totalRevenue}}</text>
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">账号状态</text>
+          <view class="form-switch">
+            <text class="status-text {{editingArtist.status === 'normal' ? 'status-normal' : 'status-disabled'}}">
+              {{editingArtist.statusText}}
+            </text>
+            <switch checked="{{editingArtist.status === 'normal'}}" bindchange="toggleArtistStatus" color="#A8E6CF"/>
+          </view>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="modal-btn cancel-btn" bindtap="closeEditArtistModal">取消</button>
+        <button class="modal-btn confirm-btn" bindtap="saveArtistEdit">保存</button>
+      </view>
+    </view>
+  </view>
 </view>
