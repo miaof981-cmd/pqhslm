@@ -350,16 +350,6 @@
         </view>
         
         <view class="form-item">
-          <text class="form-label">画师等级</text>
-          <picker mode="selector" range="{{[1,2,3,4,5]}}" value="{{editingArtist.level - 1}}" bindchange="updateArtistLevel">
-            <view class="form-picker">
-              <text>{{editingArtist.level}}级</text>
-              <text class="picker-arrow">›</text>
-            </view>
-          </picker>
-        </view>
-        
-        <view class="form-item">
           <text class="form-label">作品数量</text>
           <text class="form-value">{{editingArtist.productCount}}个</text>
         </view>
@@ -374,6 +364,8 @@
           <text class="form-value">¥{{editingArtist.totalRevenue}}</text>
         </view>
         
+        <view class="form-divider"></view>
+        
         <view class="form-item">
           <text class="form-label">账号状态</text>
           <view class="form-switch">
@@ -382,6 +374,28 @@
             </text>
             <switch checked="{{editingArtist.status === 'normal'}}" bindchange="toggleArtistStatus" color="#A8E6CF"/>
           </view>
+        </view>
+        
+        <view class="form-divider"></view>
+        
+        <view class="form-section-title">商品管理</view>
+        
+        <view class="form-action-group">
+          <button class="action-btn-outline" bindtap="manageArtistProducts">
+            <text class="btn-icon">📦</text>
+            <text>商品管理</text>
+            <text class="btn-arrow">›</text>
+          </button>
+          
+          <button class="action-btn-outline" bindtap="toggleAllProducts" data-action="online">
+            <text class="btn-icon">✓</text>
+            <text>全部上架</text>
+          </button>
+          
+          <button class="action-btn-outline" bindtap="toggleAllProducts" data-action="offline">
+            <text class="btn-icon">✕</text>
+            <text>全部下架</text>
+          </button>
         </view>
       </view>
       

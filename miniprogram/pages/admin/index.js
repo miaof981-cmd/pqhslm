@@ -613,19 +613,51 @@ Page({
     })
   },
   
-  updateArtistLevel(e) {
-    const level = e.detail.value
-    this.setData({
-      'editingArtist.level': parseInt(level)
-    })
-  },
-  
   toggleArtistStatus() {
     const newStatus = this.data.editingArtist.status === 'normal' ? 'disabled' : 'normal'
     const newStatusText = newStatus === 'normal' ? '正常' : '已禁用'
     this.setData({
       'editingArtist.status': newStatus,
       'editingArtist.statusText': newStatusText
+    })
+  },
+  
+  // 管理画师的商品
+  manageArtistProducts() {
+    const artistId = this.data.editingArtist._id
+    const artistName = this.data.editingArtist.name
+    this.closeEditArtistModal()
+    // 跳转到商品管理页，并筛选该画师的商品
+    wx.navigateTo({
+      url: `/pages/product-manage/index?artistId=${artistId}&artistName=${artistName}`
+    })
+  },
+  
+  // 全部上架/下架
+  toggleAllProducts(e) {
+    const action = e.currentTarget.dataset.action
+    const actionText = action === 'online' ? '上架' : '下架'
+    const artistName = this.data.editingArtist.name
+    
+    wx.showModal({
+      title: `确认${actionText}`,
+      content: `确认将 ${artistName} 的所有商品${actionText}？`,
+      success: (res) => {
+        if (res.confirm) {
+          // 实际应调用后端API批量更新商品状态
+          wx.showToast({
+            title: `已全部${actionText}`,
+            icon: 'success'
+          })
+          
+          // 更新画师的商品数量统计
+          if (action === 'offline') {
+            this.setData({
+              'editingArtist.productCount': 0
+            })
+          }
+        }
+      }
     })
   },
   

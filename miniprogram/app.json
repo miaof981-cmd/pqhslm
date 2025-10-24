@@ -22,7 +22,8 @@
     "pages/staff-manage/index",
     "pages/report/index",
     "pages/media-library/index",
-    "pages/system-settings/index"
+    "pages/system-settings/index",
+    "pages/product-manage/index"
   ],
   "window": {
     "navigationBarTitleText": "画师商城",

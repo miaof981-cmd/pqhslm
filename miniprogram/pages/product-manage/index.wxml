@@ -1,0 +1,53 @@
+<view class="container">
+  <view class="header-bar">
+    <text class="artist-name">{{artistName}} 的商品</text>
+    <text class="product-count">共 {{products.length}} 件</text>
+  </view>
+
+  <!-- 筛选栏 -->
+  <view class="filter-bar">
+    <view class="filter-item {{statusFilter === 'all' ? 'active' : ''}}" data-filter="all" bindtap="filterByStatus">
+      全部({{stats.all}})
+    </view>
+    <view class="filter-item {{statusFilter === 'online' ? 'active' : ''}}" data-filter="online" bindtap="filterByStatus">
+      已上架({{stats.online}})
+    </view>
+    <view class="filter-item {{statusFilter === 'offline' ? 'active' : ''}}" data-filter="offline" bindtap="filterByStatus">
+      已下架({{stats.offline}})
+    </view>
+  </view>
+
+  <!-- 商品列表 -->
+  <view class="product-list">
+    <view wx:for="{{products}}" wx:key="_id" class="product-item">
+      <image class="product-image" src="{{item.image}}" mode="aspectFill" />
+      <view class="product-info">
+        <text class="product-name">{{item.name}}</text>
+        <view class="product-meta">
+          <text class="product-price">¥{{item.price}}</text>
+          <view class="product-status status-{{item.status}}">
+            {{item.status === 'online' ? '已上架' : '已下架'}}
+          </view>
+        </view>
+        <view class="product-stats">
+          <text class="stat-item">销量: {{item.sales}}</text>
+          <text class="stat-item">库存: {{item.stock}}</text>
+        </view>
+      </view>
+      <view class="product-actions">
+        <button class="action-btn" data-id="{{item._id}}" bindtap="editProduct">编辑</button>
+        <button class="action-btn {{item.status === 'online' ? 'btn-offline' : 'btn-online'}}" 
+                data-id="{{item._id}}" 
+                data-status="{{item.status}}" 
+                bindtap="toggleProductStatus">
+          {{item.status === 'online' ? '下架' : '上架'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{products.length === 0}}" class="empty-state">
+    <text>暂无商品</text>
+  </view>
+</view>
+
