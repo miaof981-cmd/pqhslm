@@ -33,8 +33,9 @@
 
   <!-- 推荐区域 -->
   <view wx:if="{{currentCategory === 'all' && recommendProducts.length > 0}}" class="recommend-section">
-    <view class="section-title">
-      <text>为你推荐</text>
+    <view class="hot-title">
+      <view class="hot-icon">HOT</view>
+      <text class="hot-text">为你推荐</text>
     </view>
     <view class="product-grid">
       <view wx:for="{{recommendProducts}}" wx:key="_id" 
@@ -77,8 +78,10 @@
 
   <!-- 全部商品区域 -->
   <view class="product-section">
-    <view class="section-title">
-      <text>{{currentCategoryName}}</text>
+    <view class="divider-title">
+      <view class="divider-line"></view>
+      <text class="divider-text">{{currentCategoryName}}</text>
+      <view class="divider-line"></view>
       <text wx:if="{{currentCategory !== 'all'}}" class="clear-filter" bindtap="clearFilter">取消筛选</text>
     </view>
     

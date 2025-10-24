@@ -131,13 +131,13 @@
 
 /* 筛选按钮 */
 .filter-btn {
-  background: #4CAF50;
+  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
   border-radius: 50rpx;
   padding: 20rpx 30rpx;
   display: flex;
   align-items: center;
   gap: 8rpx;
-  box-shadow: 0 2rpx 6rpx rgba(76, 175, 80, 0.3);
+  box-shadow: 0 2rpx 8rpx rgba(168, 230, 207, 0.3);
   flex-shrink: 0;
 }
 
@@ -249,8 +249,8 @@
 }
 
 .filter-item.active {
-  background-color: #4CAF50;
-  border-color: #4CAF50;
+  background-color: #A8E6CF;
+  border-color: #A8E6CF;
 }
 
 .filter-item-name {
@@ -286,7 +286,7 @@
 }
 
 .filter-confirm {
-  background: #4CAF50;
+  background: linear-gradient(45deg, #A8E6CF, #D0F0C0);
   color: white;
 }
 
@@ -304,30 +304,63 @@
   background: transparent;
 }
 
-/* 扁平紧凑标题 */
-.section-title {
+/* HOT标题样式 */
+.hot-title {
   display: flex;
-  justify-content: center;
   align-items: center;
-  margin: 0 auto 10rpx;
-  width: fit-content;
-  max-width: 80%;
+  gap: 15rpx;
+  margin-bottom: 15rpx;
+  padding: 0 5rpx;
 }
 
-.section-title text {
-  background: #F5F5F5;
-  color: #4CAF50;
-  font-size: 26rpx;
+.hot-icon {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  color: white;
+  font-size: 20rpx;
+  font-weight: 700;
+  padding: 6rpx 12rpx;
+  border-radius: 8rpx;
+  letter-spacing: 1rpx;
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 107, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.hot-text {
+  font-size: 28rpx;
   font-weight: 600;
-  padding: 12rpx 32rpx;
-  border-radius: 32rpx;
-  box-shadow: none;
-  position: relative;
+  color: #333;
+}
+
+/* 分割线标题样式 */
+.divider-title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15rpx;
+  padding: 0 5rpx;
+  gap: 15rpx;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1rpx;
+  background: linear-gradient(90deg, transparent 0%, #E0E0E0 50%, transparent 100%);
+}
+
+.divider-text {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #666;
+  white-space: nowrap;
 }
 
 .clear-filter {
   font-size: 26rpx;
-  color: #4CAF50;
+  color: #A8E6CF;
   font-weight: 600;
 }
 
