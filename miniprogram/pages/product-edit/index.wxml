@@ -364,7 +364,8 @@
                       wx:if="{{item <= formData.summaryImages.length}}"
                       class="insert-placeholder-btn"
                       data-index="{{item}}"
-                      bindtap="insertImagePlaceholder">
+                      catchtap="insertImagePlaceholder"
+                      hover-stop-propagation="{{true}}">
                 插入[图{{item}}]
               </button>
             </view>

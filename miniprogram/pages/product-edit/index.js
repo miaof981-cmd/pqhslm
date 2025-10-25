@@ -750,41 +750,44 @@ Page({
   },
 
   // 插入图片占位符
-  insertImagePlaceholder(e) {
+  async insertImagePlaceholder(e) {
     const imageIndex = e.currentTarget.dataset.index
     const placeholder = `[图${imageIndex}]`
     const { summary } = this.data.formData
-    let { cursorPosition, selectionStart, selectionEnd } = this.data
     
-    console.log('=== 插入图片占位符 ===')
+    console.log('=== 插入图片占位符（开始）===')
     console.log('当前文本:', summary)
     console.log('文本长度:', summary.length)
-    console.log('cursorPosition:', cursorPosition)
-    console.log('selectionStart:', selectionStart)
-    console.log('selectionEnd:', selectionEnd)
     
-    // 优先使用 selectionStart（更准确）
-    let insertPosition = cursorPosition
-    if (selectionStart >= 0 && selectionStart <= summary.length) {
-      insertPosition = selectionStart
-      console.log('使用 selectionStart:', insertPosition)
-    } else {
+    // 先尝试从组件中获取最新的光标位置
+    let finalSelectionStart = this.data.selectionStart
+    let finalSelectionEnd = this.data.selectionEnd
+    
+    console.log('data中保存的 selectionStart:', finalSelectionStart)
+    console.log('data中保存的 selectionEnd:', finalSelectionEnd)
+    
+    // 如果 selectionStart 无效，使用 cursorPosition 或末尾
+    let insertPosition = finalSelectionStart
+    if (insertPosition < 0 || insertPosition > summary.length) {
+      insertPosition = this.data.cursorPosition
       console.log('selectionStart 无效，使用 cursorPosition:', insertPosition)
     }
     
-    // 确保插入位置有效
-    if (typeof insertPosition !== 'number' || insertPosition < 0 || insertPosition > summary.length) {
-      insertPosition = summary.length // 默认插入到末尾
-      console.log('插入位置无效，使用末尾:', insertPosition)
+    if (insertPosition < 0 || insertPosition > summary.length) {
+      insertPosition = summary.length
+      console.log('cursorPosition 也无效，使用末尾:', insertPosition)
     }
+    
+    console.log('最终插入位置:', insertPosition)
     
     // 如果有选中文字，替换选中内容
     let before, after
-    if (selectionStart >= 0 && selectionEnd > selectionStart) {
+    if (finalSelectionStart >= 0 && finalSelectionEnd > finalSelectionStart && finalSelectionEnd <= summary.length) {
       console.log('检测到选中文字，将替换选中内容')
-      before = summary.substring(0, selectionStart)
-      after = summary.substring(selectionEnd)
-      insertPosition = selectionStart
+      console.log('选中范围:', finalSelectionStart, '-', finalSelectionEnd)
+      before = summary.substring(0, finalSelectionStart)
+      after = summary.substring(finalSelectionEnd)
+      insertPosition = finalSelectionStart
     } else {
       // 没有选中，在光标位置插入
       before = summary.substring(0, insertPosition)
@@ -803,10 +806,12 @@ Page({
     // 更新内容和光标位置
     this.setData({
       'formData.summary': newSummary,
-      cursorPosition: newCursorPosition,
       selectionStart: newCursorPosition,
-      selectionEnd: newCursorPosition
+      selectionEnd: newCursorPosition,
+      cursorPosition: newCursorPosition
     })
+    
+    console.log('=== 插入完成 ===')
     
     wx.showToast({
       title: `已插入 ${placeholder}`,
