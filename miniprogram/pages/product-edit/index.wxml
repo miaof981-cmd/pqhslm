@@ -372,12 +372,16 @@
           </view>
           
           <textarea class="form-textarea rich-textarea" 
+                    id="summaryTextarea"
                     placeholder="专业画师手绘，风格多样，满意为止...&#10;&#10;示例：&#10;作品介绍文字...&#10;[图1]&#10;更多说明文字...&#10;[图2]" 
                     value="{{formData.summary}}"
                     bindinput="onSummaryInput"
                     bindselectionchange="onSelectionChange"
+                    bindfocus="onTextareaFocus"
+                    bindtap="onTextareaTap"
                     selection-start="{{selectionStart}}"
                     selection-end="{{selectionEnd}}"
+                    cursor="{{cursorPosition}}"
                     maxlength="500"
                     auto-height />
           <view class="char-count">{{formData.summary.length}}/500</view>
