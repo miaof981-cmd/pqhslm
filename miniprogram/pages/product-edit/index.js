@@ -29,7 +29,7 @@ Page({
     // 富文本编辑器（使用 selection 来准确追踪光标）
     selectionStart: -1, // 选区开始位置
     selectionEnd: -1, // 选区结束位置
-    cursorPosition: 0 // 当前光标位置（用于插入）
+    cursorPosition: 0, // 当前光标位置（用于插入）
     
     // 第一步：基础信息
     categories: [
