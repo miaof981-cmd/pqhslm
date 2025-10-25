@@ -720,6 +720,44 @@ Page({
     })
   },
 
+  // 计算最终显示价格
+  calculateFinalPrice() {
+    const basePrice = parseFloat(this.data.formData.basePrice) || 0
+    
+    // 如果没有规格，直接返回基础价格
+    if (!this.data.spec1Selected || this.data.spec1Values.length === 0) {
+      return basePrice
+    }
+    
+    // 计算所有规格组合的价格，找出最低价
+    let minPrice = Infinity
+    
+    if (this.data.spec2Selected && this.data.spec2Values.length > 0) {
+      // 有二级规格，计算所有组合
+      this.data.spec1Values.forEach(v1 => {
+        this.data.spec2Values.forEach(v2 => {
+          const price1 = parseFloat(v1.addPrice) || 0
+          const price2 = parseFloat(v2.addPrice) || 0
+          const totalPrice = basePrice + price1 + price2
+          if (totalPrice < minPrice) {
+            minPrice = totalPrice
+          }
+        })
+      })
+    } else {
+      // 只有一级规格
+      this.data.spec1Values.forEach(v1 => {
+        const price1 = parseFloat(v1.addPrice) || 0
+        const totalPrice = basePrice + price1
+        if (totalPrice < minPrice) {
+          minPrice = totalPrice
+        }
+      })
+    }
+    
+    return minPrice === Infinity ? basePrice : minPrice
+  },
+
   // 提交表单
   async submitForm() {
     // 最终验证
@@ -730,9 +768,14 @@ Page({
     try {
       wx.showLoading({ title: this.data.isEdit ? '保存中...' : '发布中...' })
 
+      // 计算最终显示价格
+      const finalPrice = this.calculateFinalPrice()
+      
       // 组装完整数据
       const productData = {
         ...this.data.formData,
+        price: finalPrice, // 最终显示价格（最低价）
+        basePrice: this.data.formData.basePrice, // 保留基础价格
         deliveryDays: this.data.deliveryOptions[this.data.deliveryIndex],
         specs: []
       }
@@ -751,6 +794,9 @@ Page({
         })
       }
 
+      console.log('提交商品数据', productData)
+      console.log('最终显示价格', finalPrice)
+
       // 模拟提交
       await new Promise(resolve => setTimeout(resolve, 1000))
 
@@ -762,7 +808,7 @@ Page({
       // 成功提示
       wx.showModal({
         title: '🎉 发布成功',
-        content: '商品已成功发布！',
+        content: `商品已成功发布！\n显示价格：¥${finalPrice}`,
         showCancel: true,
         cancelText: '继续创建',
         confirmText: '返回首页',
