@@ -51,6 +51,7 @@ Page({
     spec2Name: '',
     spec2Values: [],
     pricePreviewTable: [], // 价格预览表
+    finalPrice: 0, // 最终显示价格（用于第三步确认）
   },
 
   onLoad(options) {
@@ -247,10 +248,22 @@ Page({
     }
     
     if (this.data.currentStep < 3) {
-      this.setData({
-        currentStep: this.data.currentStep + 1,
-        progress: (this.data.currentStep + 1) * 33.33
-      })
+      const nextStep = this.data.currentStep + 1
+      
+      // 如果进入第三步，计算最终价格
+      if (nextStep === 3) {
+        const finalPrice = this.calculateFinalPrice()
+        this.setData({
+          currentStep: nextStep,
+          progress: nextStep * 33.33,
+          finalPrice: finalPrice
+        })
+      } else {
+        this.setData({
+          currentStep: nextStep,
+          progress: nextStep * 33.33
+        })
+      }
       
       // 自动保存草稿
       this.saveDraft()

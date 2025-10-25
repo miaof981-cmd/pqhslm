@@ -328,26 +328,39 @@
       <!-- 商品简介（富文本） -->
       <view class="form-group">
         <view class="group-label">商品简介</view>
-        <view class="group-hint">可输入文字说明，并插入图片（最多3张）</view>
+        <view class="group-hint">输入文字说明，点击"插入图片"可在文本中嵌入图片（最多3张）</view>
         
-        <!-- 文字输入 -->
-        <textarea class="form-textarea" 
-                  placeholder="专业画师手绘，风格多样，满意为止...&#10;&#10;可以在下方插入图片展示作品效果" 
-                  value="{{formData.summary}}"
-                  bindinput="onSummaryInput"
-                  maxlength="500"
-                  auto-height />
-        <view class="char-count">{{formData.summary.length}}/500</view>
-        
-        <!-- 图片插入 -->
-        <view class="summary-images-inline">
-          <view wx:for="{{formData.summaryImages}}" wx:key="*this" class="summary-image-item">
-            <image src="{{item}}" mode="aspectFill" class="summary-image" />
-            <view class="delete-summary-img" data-index="{{index}}" bindtap="deleteSummaryImage">×</view>
+        <!-- 富文本编辑区域 -->
+        <view class="rich-text-editor">
+          <!-- 文字输入 -->
+          <textarea class="form-textarea" 
+                    placeholder="专业画师手绘，风格多样，满意为止...&#10;&#10;💡 提示：先输入文字，然后点击下方"插入图片"按钮，图片会按顺序插入到文本中" 
+                    value="{{formData.summary}}"
+                    bindinput="onSummaryInput"
+                    maxlength="500"
+                    auto-height />
+          <view class="char-count">{{formData.summary.length}}/500</view>
+          
+          <!-- 图片插入工具栏 -->
+          <view class="editor-toolbar">
+            <view class="toolbar-hint">📸 已插入 {{formData.summaryImages.length}}/3 张图片</view>
+            <button wx:if="{{formData.summaryImages.length < 3}}" 
+                    class="insert-image-btn" 
+                    bindtap="chooseSummaryImages">
+              + 插入图片
+            </button>
           </view>
-          <view wx:if="{{formData.summaryImages.length < 3}}" class="add-summary-img" bindtap="chooseSummaryImages">
-            <text class="add-icon">+</text>
-            <text class="add-text">插入图片</text>
+          
+          <!-- 已插入的图片预览 -->
+          <view wx:if="{{formData.summaryImages.length > 0}}" class="inserted-images">
+            <view class="images-hint">已插入的图片（按顺序显示在商品详情中）：</view>
+            <view class="image-preview-list">
+              <view wx:for="{{formData.summaryImages}}" wx:key="index" class="preview-image-item">
+                <text class="image-order">{{index + 1}}</text>
+                <image src="{{item}}" mode="aspectFill" class="preview-image" />
+                <view class="delete-image-btn" data-index="{{index}}" catchtap="deleteSummaryImage">×</view>
+              </view>
+            </view>
           </view>
         </view>
       </view>
@@ -374,17 +387,33 @@
           <text class="confirm-label">商品分类：</text>
           <text class="confirm-value">{{categoryName}}</text>
         </view>
-        <view class="confirm-item">
-          <text class="confirm-label">基础价格：</text>
-          <text class="confirm-value">¥{{formData.basePrice || '0'}}</text>
+        
+        <!-- 动态显示价格 -->
+        <view wx:if="{{pricePreviewTable.length === 0}}" class="confirm-item">
+          <text class="confirm-label">商品价格：</text>
+          <text class="confirm-value price-highlight">¥{{formData.basePrice || '0'}}</text>
         </view>
+        <view wx:else class="confirm-item">
+          <text class="confirm-label">价格区间：</text>
+          <text class="confirm-value price-highlight">¥{{finalPrice}} 起</text>
+        </view>
+        
         <view class="confirm-item">
           <text class="confirm-label">出稿天数：</text>
           <text class="confirm-value">{{deliveryOptions[deliveryIndex]}}天</text>
         </view>
-        <view class="confirm-item">
-          <text class="confirm-label">规格数量：</text>
-          <text class="confirm-value">{{pricePreviewTable.length || 0}}个组合</text>
+        
+        <!-- 规格信息 -->
+        <view wx:if="{{spec1Selected}}" class="confirm-item">
+          <text class="confirm-label">规格设置：</text>
+          <text class="confirm-value">
+            {{spec1Name}}({{spec1Values.length}}个)
+            <text wx:if="{{spec2Selected}}"> + {{spec2Name}}({{spec2Values.length}}个)</text>
+          </text>
+        </view>
+        <view wx:if="{{pricePreviewTable.length > 0}}" class="confirm-item">
+          <text class="confirm-label">价格组合：</text>
+          <text class="confirm-value">共{{pricePreviewTable.length}}种</text>
         </view>
       </view>
     </view>
