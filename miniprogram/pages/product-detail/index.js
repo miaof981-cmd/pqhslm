@@ -19,53 +19,121 @@ Page({
 
   // 加载商品详情
   async loadProduct() {
-    // 暂时使用模拟数据
-    this.setData({
-      product: {
-        _id: this.data.productId,
-        name: '示例商品',
-        price: 100,
-        deliveryDays: 3,
-        images: ['https://via.placeholder.com/300x200.png?text=商品详情'],
-        artistId: 'artist-1'
-      },
-      artist: {
-        _id: 'artist-1',
-        name: '示例画师'
-      },
-      serviceQR: {
-        imageUrl: 'https://via.placeholder.com/200x200.png?text=客服二维码'
-      }
-    })
-    this.setData({ loading: false })
+    this.setData({ loading: true })
     
-    // 云开发版本（需要先开通云开发）
-    // try {
-    //   const res = await wx.cloud.database().collection('products')
-    //     .doc(this.data.productId)
-    //     .get()
-    //   
-    //   if (res.data) {
-    //     this.setData({ product: res.data })
-    //     
-    //     // 加载画师信息
-    //     await this.loadArtist(res.data.artistId)
-    //     
-    //     // 检查是否有订单
-    //     await this.checkOrder()
-    //     
-    //     // 加载客服二维码
-    //     await this.loadServiceQR()
-    //   }
-    // } catch (error) {
-    //   console.error('加载商品失败', error)
-    //   wx.showToast({
-    //     title: '加载失败',
-    //     icon: 'none'
-    //   })
-    // } finally {
-    //   this.setData({ loading: false })
-    // }
+    try {
+      // 从本地存储加载商品
+      const products = wx.getStorageSync('mock_products') || []
+      let product = products.find(p => p.id === this.data.productId)
+      
+      console.log('=== 商品详情页加载 ===')
+      console.log('productId:', this.data.productId)
+      console.log('本地商品数量:', products.length)
+      console.log('找到的商品:', product)
+      
+      // 如果找不到，使用默认mock数据（兼容旧ID）
+      if (!product) {
+        const mockData = this.getMockProductById(this.data.productId)
+        if (mockData) {
+          product = mockData
+          console.log('使用默认mock数据')
+        } else {
+          wx.showToast({ title: '商品不存在', icon: 'none' })
+          setTimeout(() => wx.navigateBack(), 1500)
+          return
+        }
+      }
+      
+      // 计算显示价格
+      let displayPrice = parseFloat(product.basePrice) || parseFloat(product.price) || 0
+      
+      // 如果有规格，计算最低价
+      if (product.specs && product.specs.length > 0) {
+        const spec1 = product.specs[0]
+        if (spec1.values && spec1.values.length > 0) {
+          const prices = []
+          
+          if (product.specs.length > 1 && product.specs[1].values) {
+            // 两级规格
+            spec1.values.forEach(v1 => {
+              product.specs[1].values.forEach(v2 => {
+                const price1 = parseFloat(v1.addPrice) || 0
+                const price2 = parseFloat(v2.addPrice) || 0
+                prices.push(price1 + price2)
+              })
+            })
+          } else {
+            // 一级规格
+            spec1.values.forEach(v1 => {
+              prices.push(parseFloat(v1.addPrice) || 0)
+            })
+          }
+          
+          if (prices.length > 0) {
+            displayPrice = Math.min(...prices)
+          }
+        }
+      }
+      
+      this.setData({
+        product: {
+          ...product,
+          price: displayPrice
+        },
+        artist: product.artist || { name: '画师' },
+        serviceQR: {
+          imageUrl: 'https://via.placeholder.com/200x200.png?text=客服二维码'
+        },
+        loading: false
+      })
+      
+      console.log('商品数据加载完成，显示价格:', displayPrice)
+      
+    } catch (error) {
+      console.error('加载商品失败', error)
+      wx.showToast({ title: '加载失败', icon: 'none' })
+      this.setData({ loading: false })
+    }
+  },
+  
+  // 获取默认mock数据（兼容旧ID）
+  getMockProductById(id) {
+    const mockProducts = {
+      '1': {
+        id: '1',
+        name: '精美头像设计',
+        summary: '专业画师手绘，风格多样，满意为止',
+        summaryImages: [],
+        basePrice: '88.00',
+        price: 88,
+        stock: 100,
+        category: 'portrait',
+        images: ['https://via.placeholder.com/400x400.png?text=精美头像'],
+        tags: ['热销', '精品'],
+        isOnSale: true,
+        deliveryDays: 3,
+        artist: { name: '设计师小王', avatar: '' },
+        sales: 45
+      },
+      '2': {
+        id: '2',
+        name: '创意插画作品',
+        summary: '原创插画设计，风格独特，质量保证',
+        summaryImages: [],
+        basePrice: '168.00',
+        price: 168,
+        stock: 50,
+        category: 'illustration',
+        images: ['https://via.placeholder.com/400x400.png?text=创意插画'],
+        tags: ['原创', '限量'],
+        isOnSale: true,
+        deliveryDays: 5,
+        artist: { name: '插画师小李', avatar: '' },
+        sales: 23
+      }
+    }
+    
+    return mockProducts[id] || null
   },
 
   // 加载画师信息
