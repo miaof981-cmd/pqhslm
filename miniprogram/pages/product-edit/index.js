@@ -794,25 +794,65 @@ Page({
       console.log('提交商品数据', productData)
       console.log('最终显示价格', finalPrice)
 
-      // 模拟提交
+      // 模拟提交 - 保存到本地存储
       await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // 获取现有商品列表
+      let products = wx.getStorageSync('mock_products') || []
+      
+      if (this.data.isEdit) {
+        // 编辑模式：更新现有商品
+        const index = products.findIndex(p => p.id === this.data.productId)
+        if (index > -1) {
+          products[index] = {
+            ...products[index],
+            ...productData,
+            updateTime: Date.now()
+          }
+        }
+        console.log('更新商品', products[index])
+      } else {
+        // 新增模式：添加新商品
+        const newProduct = {
+          id: `product_${Date.now()}`,
+          ...productData,
+          createTime: Date.now(),
+          updateTime: Date.now()
+        }
+        products.unshift(newProduct) // 添加到列表开头
+        console.log('新增商品', newProduct)
+      }
+      
+      // 保存到本地存储
+      wx.setStorageSync('mock_products', products)
+      console.log('商品列表已保存', products)
 
       wx.hideLoading()
       
       // 清除草稿
       wx.removeStorageSync('product_draft')
       
-      // 成功提示
+      // 成功提示并返回
       wx.showToast({
-        title: '发布成功',
+        title: this.data.isEdit ? '保存成功' : '发布成功',
         icon: 'success',
-        duration: 1500
+        duration: 1500,
+        success: () => {
+          // Toast 显示后延迟返回
+          setTimeout(() => {
+            wx.navigateBack({
+              delta: 1,
+              fail: (err) => {
+                console.error('返回失败', err)
+                // 如果返回失败，尝试跳转到首页
+                wx.switchTab({
+                  url: '/pages/home/index'
+                })
+              }
+            })
+          }, 1500)
+        }
       })
-      
-      // 延迟返回上一页
-      setTimeout(() => {
-        wx.navigateBack()
-      }, 1500)
 
     } catch (error) {
       wx.hideLoading()
