@@ -10,10 +10,13 @@
         <image class="user-avatar" src="{{userInfo.avatar}}" mode="aspectFill" />
         <view class="user-details">
           <view class="user-name">{{userInfo.name}}</view>
-          <view class="user-id">ID: {{userId}} | {{roleText}}</view>
+          <view class="user-id">ID: {{userId}}</view>
+          <view class="user-roles">
+            <text wx:for="{{roleTexts}}" wx:key="*this" class="role-tag">{{item}}</text>
+          </view>
         </view>
       </view>
-      <view class="dev-switch" bindtap="switchRole">切换</view>
+      <view class="role-manage-btn" bindtap="goToRoleManage">权限</view>
     </view>
 
     <!-- 我的订单 -->
@@ -47,34 +50,39 @@
       </view>
     </view>
 
-    <!-- 画师认证/工作台 -->
-    <view wx:if="{{!isArtist}}" class="artist-certification" bindtap="applyArtist">
-      <view class="cert-banner">
-        <view class="cert-content">
-          <text class="cert-title">画师认证</text>
-          <text class="cert-subtitle">点此进入画师认证开始工作吧！</text>
+    <!-- 工作台入口（根据角色显示） -->
+    <view class="workspace-section">
+      <!-- 画师认证 -->
+      <view wx:if="{{roles.indexOf('artist') === -1 && roles.indexOf('admin') === -1}}" class="workspace-card cert-card" bindtap="applyArtist">
+        <view class="workspace-icon cert-icon"></view>
+        <view class="workspace-info">
+          <text class="workspace-title">画师认证</text>
+          <text class="workspace-desc">点此进入画师认证开始工作吧！</text>
         </view>
-        <view class="cert-illustration">
-          <view class="cert-icon-circle"></view>
-          <text class="cert-action-hint">点击认证 ></text>
-        </view>
+        <view class="workspace-arrow">></view>
       </view>
-    </view>
 
-    <view wx:else class="artist-workspace">
-      <view class="workspace-header">
-        <text class="workspace-title">画师工作台</text>
-        <view wx:if="{{memberInfo.isValid}}" class="member-status active">
-          <text>会员有效</text>
+      <!-- 画师工作台 -->
+      <view wx:if="{{roles.indexOf('artist') !== -1 || roles.indexOf('admin') !== -1}}" class="workspace-card artist-card" bindtap="goToArtistDashboard">
+        <view class="workspace-icon artist-icon"></view>
+        <view class="workspace-info">
+          <text class="workspace-title">画师工作台</text>
+          <text class="workspace-desc">管理作品、订单和会员</text>
+          <view wx:if="{{memberInfo}}" class="member-badge {{memberInfo.isValid ? 'active' : 'expired'}}">
+            {{memberInfo.isValid ? '会员有效' : '会员已过期'}}
+          </view>
         </view>
-        <view wx:else class="member-status expired">
-          <text>会员已过期</text>
-        </view>
+        <view class="workspace-arrow">></view>
       </view>
-      
-      <view class="workspace-actions">
-        <button class="workspace-btn primary" bindtap="goToArtistDashboard">进入工作台</button>
-        <button wx:if="{{!memberInfo.isValid}}" class="workspace-btn secondary" bindtap="renewMember">续费会员</button>
+
+      <!-- 管理后台 -->
+      <view wx:if="{{roles.indexOf('admin') !== -1}}" class="workspace-card admin-card" bindtap="goToAdmin">
+        <view class="workspace-icon admin-icon"></view>
+        <view class="workspace-info">
+          <text class="workspace-title">管理后台</text>
+          <text class="workspace-desc">平台管理和数据统计</text>
+        </view>
+        <view class="workspace-arrow">></view>
       </view>
     </view>
 
@@ -102,10 +110,6 @@
         <view class="function-item">
           <view class="function-icon icon-reward"></view>
           <text class="function-label">打赏记录</text>
-        </view>
-        <view wx:if="{{userInfo.role === 'admin'}}" class="function-item" bindtap="goToAdmin">
-          <view class="function-icon icon-admin"></view>
-          <text class="function-label">管理后台</text>
         </view>
       </view>
     </view>

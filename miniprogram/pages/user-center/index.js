@@ -3,7 +3,6 @@ Page({
     userInfo: null,
     orders: [],
     loading: true,
-    isArtist: false,
     memberInfo: null,
     orderStats: {
       created: 0,
@@ -12,8 +11,9 @@ Page({
       total: 0
     },
     userId: 0,
-    role: 'customer',
-    roleText: '普通用户'
+    // 改为多角色支持
+    roles: [], // ['customer', 'artist', 'admin']
+    roleTexts: [] // ['普通用户', '画师', '管理员']
   },
 
   onLoad(options) {
@@ -44,37 +44,41 @@ Page({
     }
   },
 
-  // 加载用户角色
+  // 加载用户角色（支持多角色）
   loadUserRole() {
     const app = getApp()
     const userId = wx.getStorageSync('userId') || 10001
-    const role = wx.getStorageSync('userRole') || 'customer'
+    
+    // 从本地存储读取用户的多个角色
+    let roles = wx.getStorageSync('userRoles') || ['customer']
+    
+    // 确保roles是数组
+    if (!Array.isArray(roles)) {
+      roles = ['customer']
+    }
+    
+    // 如果没有角色，默认为customer
+    if (roles.length === 0) {
+      roles = ['customer']
+    }
     
     // 保存到本地
     wx.setStorageSync('userId', userId)
-    wx.setStorageSync('userRole', role)
+    wx.setStorageSync('userRoles', roles)
     
-    // 更新全局数据
+    // 更新全局数据（主角色为第一个）
     app.globalData.userId = userId
-    app.globalData.role = role
+    app.globalData.role = roles[0]
+    app.globalData.roles = roles
+    
+    // 生成角色文本数组
+    const roleTexts = roles.map(role => this.getRoleText(role))
     
     this.setData({
       userId: userId,
-      role: role,
-      roleText: this.getRoleText(role),
-      isArtist: role === 'artist' || role === 'admin'
+      roles: roles,
+      roleTexts: roleTexts
     })
-    
-    this.updateUserInfoRole(role)
-  },
-
-  // 更新用户信息中的角色
-  updateUserInfoRole(role) {
-    if (this.data.userInfo) {
-      this.setData({
-        'userInfo.role': role
-      })
-    }
   },
 
   // 获取角色文本
@@ -87,29 +91,15 @@ Page({
     return roleMap[role] || '未知'
   },
 
-  // 切换权限（测试用）
-  switchRole() {
-    const roles = ['customer', 'artist', 'admin']
-    const currentIndex = roles.indexOf(this.data.role)
-    const nextRole = roles[(currentIndex + 1) % roles.length]
-    
-    // 保存到本地
-    wx.setStorageSync('userRole', nextRole)
-    
-    // 更新全局数据
-    const app = getApp()
-    app.globalData.role = nextRole
-    
-    this.setData({
-      role: nextRole,
-      roleText: this.getRoleText(nextRole),
-      isArtist: nextRole === 'artist' || nextRole === 'admin',
-      'userInfo.role': nextRole
-    })
-    
-    wx.showToast({
-      title: `已切换为${this.getRoleText(nextRole)}`,
-      icon: 'success'
+  // 检查是否有某个角色
+  hasRole(role) {
+    return this.data.roles.includes(role)
+  },
+
+  // 进入权限管理页面
+  goToRoleManage() {
+    wx.navigateTo({
+      url: '/pages/role-manage/index'
     })
   },
 
@@ -128,10 +118,7 @@ Page({
 
   // 检查画师状态
   async checkArtistStatus() {
-    const app = getApp()
-    const isArtist = app.globalData.role === 'artist' || app.globalData.role === 'admin'
-    
-    this.setData({ isArtist: isArtist })
+    const isArtist = this.hasRole('artist') || this.hasRole('admin')
     
     if (isArtist) {
       await this.loadMemberInfo()
