@@ -2,6 +2,7 @@ Page({
   data: {
     productId: '',
     product: null,
+    summaryContent: [], // 解析后的商品简介内容（文本+图片混排）
     artist: null,
     showServiceQR: false,
     serviceQR: null,
@@ -73,11 +74,17 @@ Page({
         }
       }
       
+      // 解析商品简介中的图片占位符
+      const summaryContent = this.parseSummaryContent(product.summary || '', product.summaryImages || [])
+      
+      console.log('解析后的商品简介:', summaryContent)
+      
       this.setData({
         product: {
           ...product,
           price: displayPrice
         },
+        summaryContent: summaryContent,
         artist: product.artist || { name: '画师' },
         serviceQR: {
           imageUrl: 'https://via.placeholder.com/200x200.png?text=客服二维码'
@@ -94,6 +101,75 @@ Page({
     }
   },
   
+
+  // 解析商品简介内容（将 [图X] 替换为图片）
+  parseSummaryContent(summary, images) {
+    if (!summary) return []
+    
+    console.log('=== 解析商品简介 ===')
+    console.log('原始文本:', summary)
+    console.log('图片数组:', images)
+    
+    const content = []
+    let lastIndex = 0
+    
+    // 正则匹配 [图1] [图2] [图3] 等占位符
+    const regex = /\[图(\d+)\]/g
+    let match
+    
+    while ((match = regex.exec(summary)) !== null) {
+      const fullMatch = match[0]  // [图1]
+      const imageIndex = parseInt(match[1]) - 1  // 0-based index
+      const matchIndex = match.index
+      
+      console.log('找到占位符:', fullMatch, '位置:', matchIndex, '图片索引:', imageIndex)
+      
+      // 添加占位符前的文本
+      if (matchIndex > lastIndex) {
+        const text = summary.substring(lastIndex, matchIndex)
+        if (text) {
+          content.push({
+            type: 'text',
+            content: text
+          })
+          console.log('添加文本:', text)
+        }
+      }
+      
+      // 添加图片（如果图片存在）
+      if (imageIndex >= 0 && imageIndex < images.length) {
+        content.push({
+          type: 'image',
+          content: images[imageIndex]
+        })
+        console.log('添加图片:', images[imageIndex])
+      } else {
+        // 图片不存在，保留占位符文本
+        content.push({
+          type: 'text',
+          content: fullMatch
+        })
+        console.log('图片不存在，保留占位符:', fullMatch)
+      }
+      
+      lastIndex = matchIndex + fullMatch.length
+    }
+    
+    // 添加剩余的文本
+    if (lastIndex < summary.length) {
+      const text = summary.substring(lastIndex)
+      if (text) {
+        content.push({
+          type: 'text',
+          content: text
+        })
+        console.log('添加剩余文本:', text)
+      }
+    }
+    
+    console.log('解析完成，内容块数量:', content.length)
+    return content
+  },
 
   // 加载画师信息
   async loadArtist(artistId) {

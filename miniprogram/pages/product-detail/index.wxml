@@ -54,16 +54,22 @@
     <view class="detail-section">
       <view class="section-title">商品详情</view>
       <view class="detail-content">
-        <text class="detail-text">{{product.summary || '暂无详情'}}</text>
+        <!-- 解析后的内容：文本和图片混排 -->
+        <block wx:if="{{summaryContent && summaryContent.length > 0}}">
+          <block wx:for="{{summaryContent}}" wx:key="index">
+            <!-- 文本块 -->
+            <text wx:if="{{item.type === 'text'}}" class="detail-text">{{item.content}}</text>
+            <!-- 图片块 -->
+            <image wx:if="{{item.type === 'image'}}" 
+                   class="detail-image" 
+                   src="{{item.content}}" 
+                   mode="widthFix" 
+                   lazy-load />
+          </block>
+        </block>
         
-        <!-- 详情图片 -->
-        <view wx:if="{{product.summaryImages && product.summaryImages.length > 0}}" class="detail-images">
-          <image wx:for="{{product.summaryImages}}" 
-                 wx:key="index" 
-                 class="detail-image" 
-                 src="{{item}}" 
-                 mode="widthFix" />
-        </view>
+        <!-- 如果没有内容，显示默认文本 -->
+        <text wx:if="{{!summaryContent || summaryContent.length === 0}}" class="detail-text">暂无详情</text>
       </view>
     </view>
 
