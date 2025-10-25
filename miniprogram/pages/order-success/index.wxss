@@ -127,21 +127,21 @@
 /* ===== 客服引导区域 ===== */
 .service-guide-section {
   margin: 0 30rpx 20rpx;
-  background: linear-gradient(135deg, #FFE6E6 0%, #FFF5E6 100%);
+  background: linear-gradient(135deg, #E6F9FF 0%, #F0FFFE 100%);
   border-radius: 20rpx;
   padding: 24rpx 30rpx;
-  border: 4rpx solid #FF9800;
+  border: 4rpx solid #4ECDC4;
   animation: pulse-border 2s ease-in-out infinite;
 }
 
 @keyframes pulse-border {
   0%, 100% {
-    border-color: #FF9800;
-    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4);
+    border-color: #4ECDC4;
+    box-shadow: 0 0 0 0 rgba(78, 205, 196, 0.4);
   }
   50% {
-    border-color: #FF6B00;
-    box-shadow: 0 0 0 10rpx rgba(255, 152, 0, 0.15);
+    border-color: #44BDB5;
+    box-shadow: 0 0 0 10rpx rgba(78, 205, 196, 0.15);
   }
 }
 
@@ -155,7 +155,7 @@
 .title-icon {
   width: 48rpx;
   height: 48rpx;
-  background: #FF9800;
+  background: linear-gradient(135deg, #4ECDC4 0%, #44BDB5 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -175,7 +175,7 @@
 .title-text {
   font-size: 34rpx;
   font-weight: bold;
-  color: #FF6B00;
+  color: #2C9A8F;
 }
 
 .guide-content {
@@ -186,13 +186,14 @@
 
 .guide-text {
   font-size: 26rpx;
-  color: #FF6B00;
+  color: #4ECDC4;
   line-height: 1.6;
 }
 
 .guide-text.highlight {
   font-size: 28rpx;
   font-weight: 500;
+  color: #2C9A8F;
 }
 
 /* ===== 客服二维码 ===== */
