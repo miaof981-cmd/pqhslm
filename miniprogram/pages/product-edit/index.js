@@ -441,6 +441,8 @@ Page({
       spec1Name: e.detail.value
     })
     this.updatePricePreview()
+    // 实时保存草稿
+    this.saveDraft()
   },
 
   // 输入一级规格值名称
@@ -450,6 +452,8 @@ Page({
     spec1Values[index].name = e.detail.value
     this.setData({ spec1Values })
     this.updatePricePreview()
+    // 实时保存草稿
+    this.saveDraft()
   },
 
   // 输入一级规格值加价
@@ -459,6 +463,8 @@ Page({
     spec1Values[index].addPrice = e.detail.value
     this.setData({ spec1Values })
     this.updatePricePreview()
+    // 实时保存草稿
+    this.saveDraft()
   },
 
   // 添加一级规格值
@@ -466,6 +472,8 @@ Page({
     const spec1Values = [...this.data.spec1Values]
     spec1Values.push({ name: '', addPrice: '0', image: '' })
     this.setData({ spec1Values })
+    // 保存草稿
+    this.saveDraft()
   },
 
   // 选择一级规格图片
@@ -494,6 +502,9 @@ Page({
 
       wx.hideLoading()
       wx.showToast({ title: '上传成功', icon: 'success' })
+      
+      // 保存草稿
+      this.saveDraft()
 
     } catch (error) {
       wx.hideLoading()
@@ -537,6 +548,8 @@ Page({
       spec2Name: e.detail.value
     })
     this.updatePricePreview()
+    // 实时保存草稿
+    this.saveDraft()
   },
 
   // 输入二级规格值名称
@@ -546,6 +559,8 @@ Page({
     spec2Values[index].name = e.detail.value
     this.setData({ spec2Values })
     this.updatePricePreview()
+    // 实时保存草稿
+    this.saveDraft()
   },
 
   // 输入二级规格值加价
@@ -555,6 +570,8 @@ Page({
     spec2Values[index].addPrice = e.detail.value
     this.setData({ spec2Values })
     this.updatePricePreview()
+    // 实时保存草稿
+    this.saveDraft()
   },
 
   // 添加二级规格值
@@ -562,6 +579,8 @@ Page({
     const spec2Values = [...this.data.spec2Values]
     spec2Values.push({ name: '', addPrice: '0', image: '' })
     this.setData({ spec2Values })
+    // 保存草稿
+    this.saveDraft()
   },
 
   // 选择二级规格图片
@@ -586,6 +605,9 @@ Page({
 
       wx.hideLoading()
       wx.showToast({ title: '上传成功', icon: 'success' })
+      
+      // 保存草稿
+      this.saveDraft()
 
     } catch (error) {
       wx.hideLoading()
