@@ -26,6 +26,10 @@ Page({
     // 库存管理
     enableStockLimit: false, // 默认自动补货模式
     
+    // 富文本编辑器
+    textareaCursor: -1, // textarea 光标位置
+    cursorPosition: 0, // 当前光标位置
+    
     // 第一步：基础信息
     categories: [
       { id: 'portrait', name: '头像设计' },
@@ -794,8 +798,52 @@ Page({
   // 输入商品简介
   onSummaryInput(e) {
     this.setData({
-      'formData.summary': e.detail.value
+      'formData.summary': e.detail.value,
+      cursorPosition: e.detail.cursor // 保存光标位置
     })
+  },
+
+  // 监听 textarea 获得焦点
+  onTextareaFocus(e) {
+    this.setData({
+      cursorPosition: e.detail.cursor
+    })
+  },
+
+  // 监听 textarea 失去焦点
+  onTextareaBlur(e) {
+    this.setData({
+      cursorPosition: e.detail.cursor
+    })
+  },
+
+  // 插入图片占位符
+  insertImagePlaceholder(e) {
+    const imageIndex = e.currentTarget.dataset.index
+    const placeholder = `[图${imageIndex}]`
+    const { summary } = this.data.formData
+    const { cursorPosition } = this.data
+    
+    // 在光标位置插入占位符
+    const before = summary.substring(0, cursorPosition)
+    const after = summary.substring(cursorPosition)
+    const newSummary = before + placeholder + after
+    
+    // 更新内容和光标位置
+    this.setData({
+      'formData.summary': newSummary,
+      cursorPosition: cursorPosition + placeholder.length,
+      textareaCursor: cursorPosition + placeholder.length
+    })
+    
+    wx.showToast({
+      title: `已插入 ${placeholder}`,
+      icon: 'success',
+      duration: 1000
+    })
+    
+    // 自动保存草稿
+    this.saveDraft()
   },
 
   // 选择简介图片
@@ -812,6 +860,15 @@ Page({
         this.setData({
           'formData.summaryImages': newImages
         })
+        
+        wx.showToast({
+          title: `已上传图${newImages.length}`,
+          icon: 'success',
+          duration: 1000
+        })
+        
+        // 自动保存草稿
+        this.saveDraft()
       }
     })
   },
@@ -820,9 +877,30 @@ Page({
   deleteSummaryImage(e) {
     const index = e.currentTarget.dataset.index
     const images = this.data.formData.summaryImages.filter((_, i) => i !== index)
-    this.setData({
-      'formData.summaryImages': images
-    })
+    
+    // 检查文本中是否有对应的占位符
+    const placeholder = `[图${index + 1}]`
+    if (this.data.formData.summary.indexOf(placeholder) > -1) {
+      wx.showModal({
+        title: '提示',
+        content: `文本中包含 ${placeholder}，删除图片后占位符将无法显示，是否继续？`,
+        success: (res) => {
+          if (res.confirm) {
+            this.setData({
+              'formData.summaryImages': images
+            })
+            // 自动保存草稿
+            this.saveDraft()
+          }
+        }
+      })
+    } else {
+      this.setData({
+        'formData.summaryImages': images
+      })
+      // 自动保存草稿
+      this.saveDraft()
+    }
   },
 
   // 上架开关

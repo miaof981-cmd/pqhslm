@@ -328,39 +328,65 @@
       <!-- 商品简介（富文本） -->
       <view class="form-group">
         <view class="group-label">商品简介</view>
-        <view class="group-hint">输入文字说明，点击"插入图片"可在文本中嵌入图片（最多3张）</view>
+        <view class="group-hint">输入文字说明，点击图片按钮可在光标位置插入占位符 [图1] [图2] [图3]</view>
         
         <!-- 富文本编辑区域 -->
         <view class="rich-text-editor">
-          <!-- 文字输入 -->
-          <textarea class="form-textarea" 
-                    placeholder="专业画师手绘，风格多样，满意为止..." 
+          <!-- 文字输入 + 插入按钮 -->
+          <view class="editor-header">
+            <text class="editor-label">商品描述</text>
+            <view class="editor-actions">
+              <button wx:for="{{[1,2,3]}}" 
+                      wx:key="*this"
+                      wx:if="{{item <= formData.summaryImages.length}}"
+                      class="insert-placeholder-btn"
+                      data-index="{{item}}"
+                      bindtap="insertImagePlaceholder">
+                插入[图{{item}}]
+              </button>
+            </view>
+          </view>
+          
+          <textarea class="form-textarea rich-textarea" 
+                    placeholder="专业画师手绘，风格多样，满意为止...&#10;&#10;示例：&#10;作品介绍文字...&#10;[图1]&#10;更多说明文字...&#10;[图2]" 
                     value="{{formData.summary}}"
                     bindinput="onSummaryInput"
+                    bindfocus="onTextareaFocus"
+                    bindblur="onTextareaBlur"
+                    cursor="{{textareaCursor}}"
                     maxlength="500"
                     auto-height />
           <view class="char-count">{{formData.summary.length}}/500</view>
           
-          <!-- 图片插入工具栏 -->
-          <view class="editor-toolbar">
-            <view class="toolbar-hint">已插入 {{formData.summaryImages.length}}/3 张图片</view>
-            <button wx:if="{{formData.summaryImages.length < 3}}" 
-                    class="insert-image-btn" 
-                    bindtap="chooseSummaryImages">
-              + 插入图片
-            </button>
-          </view>
-          
-          <!-- 已插入的图片预览 -->
-          <view wx:if="{{formData.summaryImages.length > 0}}" class="inserted-images">
-            <view class="images-hint">已插入的图片（按顺序显示在商品详情中）：</view>
-            <view class="image-preview-list">
-              <view wx:for="{{formData.summaryImages}}" wx:key="index" class="preview-image-item">
-                <text class="image-order">{{index + 1}}</text>
-                <image src="{{item}}" mode="aspectFill" class="preview-image" />
+          <!-- 图片上传区域 -->
+          <view class="images-upload-section">
+            <text class="section-title">上传图片（最多3张）</text>
+            <view class="upload-hint">上传后可点击上方按钮将图片插入到文本中的任意位置</view>
+            
+            <view class="image-upload-list">
+              <!-- 已上传的图片 -->
+              <view wx:for="{{formData.summaryImages}}" 
+                    wx:key="index" 
+                    class="upload-image-item">
+                <image src="{{item}}" mode="aspectFill" class="upload-image" />
+                <view class="image-label">[图{{index + 1}}]</view>
                 <view class="delete-image-btn" data-index="{{index}}" catchtap="deleteSummaryImage">×</view>
               </view>
+              
+              <!-- 上传按钮 -->
+              <view wx:if="{{formData.summaryImages.length < 3}}" 
+                    class="upload-image-btn" 
+                    bindtap="chooseSummaryImages">
+                <text class="upload-icon">+</text>
+                <text class="upload-text">上传图片</text>
+              </view>
             </view>
+          </view>
+          
+          <!-- 预览说明 -->
+          <view wx:if="{{formData.summaryImages.length > 0 && formData.summary.indexOf('[图') > -1}}" class="preview-hint">
+            <text class="hint-icon">i</text>
+            <text class="hint-text">商品详情中，文本里的 [图1] [图2] [图3] 会替换为对应的图片</text>
           </view>
         </view>
       </view>
