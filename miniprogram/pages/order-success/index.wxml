@@ -1,0 +1,109 @@
+<view class="order-success-container">
+  <!-- 顶部成功状态 -->
+  <view class="success-header">
+    <view class="success-icon-wrapper">
+      <view class="success-icon">✓</view>
+    </view>
+    <view class="success-title">订单创建成功！</view>
+    <view class="success-desc">请添加客服微信完成支付</view>
+  </view>
+
+  <!-- 订单信息卡片 -->
+  <view class="order-info-card">
+    <view class="card-title">订单信息</view>
+    
+    <view class="info-row">
+      <text class="info-label">订单编号</text>
+      <view class="info-value">
+        <text>{{orderInfo.orderNo}}</text>
+        <text class="copy-btn" bindtap="copyOrderNo">复制</text>
+      </view>
+    </view>
+    
+    <view class="info-row">
+      <text class="info-label">商品名称</text>
+      <text class="info-value">{{orderInfo.productName}}</text>
+    </view>
+    
+    <view wx:if="{{orderInfo.spec1}}" class="info-row">
+      <text class="info-label">商品规格</text>
+      <text class="info-value">{{orderInfo.spec1}}{{orderInfo.spec2 ? ' / ' + orderInfo.spec2 : ''}}</text>
+    </view>
+    
+    <view class="info-row">
+      <text class="info-label">购买数量</text>
+      <text class="info-value">×{{orderInfo.quantity}}</text>
+    </view>
+    
+    <view class="info-row">
+      <text class="info-label">下单时间</text>
+      <text class="info-value">{{orderInfo.createTime}}</text>
+    </view>
+    
+    <view class="info-row total">
+      <text class="info-label">订单金额</text>
+      <text class="info-value amount">¥{{orderInfo.totalAmount}}</text>
+    </view>
+  </view>
+
+  <!-- 客服引导区域 -->
+  <view class="service-guide-section">
+    <view class="guide-title">
+      <view class="title-icon">!</view>
+      <text class="title-text">重要提示</text>
+    </view>
+    
+    <view class="guide-content">
+      <text class="guide-text highlight">请务必添加下方客服微信</text>
+      <text class="guide-text">客服将为您确认订单详情并提供支付方式</text>
+    </view>
+  </view>
+
+  <!-- 客服二维码 -->
+  <view class="qr-section">
+    <view class="qr-title">长按识别添加客服</view>
+    <view class="qr-wrapper">
+      <image class="qr-image" 
+             src="{{serviceQR.imageUrl}}" 
+             mode="aspectFit"
+             bindlongpress="onLongPressQR" />
+      <view class="qr-hint">长按二维码 → 识别图中二维码 → 添加好友</view>
+    </view>
+    
+    <!-- 提示步骤 -->
+    <view class="steps-container">
+      <view class="step-item">
+        <view class="step-number">1</view>
+        <text class="step-text">长按上方二维码</text>
+      </view>
+      <view class="step-divider">→</view>
+      <view class="step-item">
+        <view class="step-number">2</view>
+        <text class="step-text">识别并添加好友</text>
+      </view>
+      <view class="step-divider">→</view>
+      <view class="step-item">
+        <view class="step-number">3</view>
+        <text class="step-text">发送订单号给客服</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 温馨提示 -->
+  <view class="warm-tips">
+    <view class="tips-title">温馨提示</view>
+    <view class="tips-list">
+      <view class="tip-item">• 订单创建后请尽快联系客服，避免超时取消</view>
+      <view class="tip-item">• 客服工作时间：9:00 - 22:00</view>
+      <view class="tip-item">• 添加客服后请发送订单编号以便快速处理</view>
+      <view class="tip-item">• 支付完成后客服将通知画师开始创作</view>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-actions">
+    <button class="action-btn secondary" bindtap="viewOrderDetail">查看订单</button>
+    <button class="action-btn primary" bindtap="backToHome">返回首页</button>
+  </view>
+</view>
+
