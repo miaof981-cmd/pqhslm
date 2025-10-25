@@ -72,11 +72,20 @@ Page({
 
   // 加载商品列表
   async loadProducts() {
-    const allProducts = [
+    // 从本地存储加载商品
+    let allProducts = wx.getStorageSync('mock_products') || []
+    
+    console.log('从本地存储加载商品', allProducts.length, '个')
+    
+    // 如果本地没有商品，使用默认数据
+    if (allProducts.length === 0) {
+      allProducts = [
         {
           _id: '1',
+          id: 'product_default_1',
           name: '精美头像设计',
           price: 88,
+          basePrice: '88',
           originalPrice: 128,
           deliveryDays: 3,
           images: ['https://via.placeholder.com/300x300.png?text=精美头像'],
@@ -84,12 +93,15 @@ Page({
           artist: { name: '设计师小王', avatar: 'https://via.placeholder.com/50x50.png?text=王' },
           sales: 156,
           rating: 4.9,
-          tags: ['热门', '精品']
+          tags: ['热门', '精品'],
+          isOnSale: true
         },
         {
           _id: '2',
+          id: 'product_default_2',
           name: '创意插画作品',
           price: 168,
+          basePrice: '168',
           originalPrice: 200,
           deliveryDays: 5,
           images: ['https://via.placeholder.com/300x300.png?text=创意插画'],
@@ -97,7 +109,8 @@ Page({
           artist: { name: '插画师小李', avatar: 'https://via.placeholder.com/50x50.png?text=李' },
           sales: 89,
           rating: 4.8,
-          tags: ['原创', '限量']
+          tags: ['原创', '限量'],
+          isOnSale: true
         },
         {
           _id: '3',
@@ -152,6 +165,62 @@ Page({
           tags: ['专业', '现代']
         }
       ]
+    } else {
+      // 转换本地存储的商品格式为首页显示格式
+      allProducts = allProducts
+        .filter(p => p.isOnSale !== false) // 只显示上架的商品
+        .map(p => {
+          // 计算显示价格
+          let displayPrice = parseFloat(p.basePrice) || 0
+          
+          // 如果有规格，计算最低价格
+          if (p.specs && p.specs.length > 0) {
+            const spec1 = p.specs[0]
+            if (spec1.values && spec1.values.length > 0) {
+              const prices = []
+              
+              if (p.specs.length > 1 && p.specs[1].values) {
+                // 两级规格：一级价格 + 二级加价
+                spec1.values.forEach(v1 => {
+                  p.specs[1].values.forEach(v2 => {
+                    const price1 = parseFloat(v1.addPrice) || 0
+                    const price2 = parseFloat(v2.addPrice) || 0
+                    prices.push(price1 + price2)
+                  })
+                })
+              } else {
+                // 只有一级规格
+                spec1.values.forEach(v1 => {
+                  prices.push(parseFloat(v1.addPrice) || 0)
+                })
+              }
+              
+              if (prices.length > 0) {
+                displayPrice = Math.min(...prices)
+              }
+            }
+          }
+          
+          return {
+            _id: p.id || p._id,
+            id: p.id,
+            name: p.name || '未命名商品',
+            price: displayPrice,
+            basePrice: p.basePrice,
+            originalPrice: displayPrice * 1.3, // 模拟原价
+            deliveryDays: p.deliveryDays || 7,
+            images: p.images && p.images.length > 0 ? p.images : ['https://via.placeholder.com/300x300.png?text=商品图'],
+            category: p.category || 'other',
+            artist: p.artist || { name: '画师', avatar: '' },
+            sales: p.sales || 0,
+            rating: p.rating || 5.0,
+            tags: p.tags || [],
+            isOnSale: p.isOnSale !== false
+          }
+        })
+      
+      console.log('转换后的商品数据', allProducts)
+    }
     
     // 前3个作为推荐商品
     const recommendProducts = allProducts.slice(0, 3)

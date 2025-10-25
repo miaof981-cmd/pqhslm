@@ -55,15 +55,16 @@ Page({
 
   onLoad(options) {
     if (options.id) {
+      // 编辑模式：加载商品数据
       this.setData({
         productId: options.id,
         isEdit: true
       })
       this.loadProduct()
+    } else {
+      // 新增模式：尝试恢复草稿
+      this.loadDraft()
     }
-    
-    // 尝试恢复草稿
-    this.loadDraft()
   },
 
   // 加载商品信息
@@ -71,34 +72,68 @@ Page({
     this.setData({ loading: true })
     
     try {
-      // 模拟加载商品数据
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // 从本地存储加载商品数据
+      const products = wx.getStorageSync('mock_products') || []
+      const product = products.find(p => p.id === this.data.productId)
       
-      const mockProduct = {
-        name: '精美头像设计',
-        summary: '专业画师手绘，风格多样，满意为止',
-        summaryImages: [],
-        basePrice: '88.00',
-        stock: 100,
-        category: 'portrait',
-        images: [
-          'https://via.placeholder.com/400x400.png?text=商品图1',
-          'https://via.placeholder.com/400x400.png?text=商品图2'
-        ],
-        tags: ['热销', '精品'],
-        isOnSale: true,
-        maxBuyCount: 5
+      if (!product) {
+        wx.showToast({ title: '商品不存在', icon: 'none' })
+        setTimeout(() => wx.navigateBack(), 1500)
+        return
       }
       
+      console.log('加载商品数据', product)
+      
       // 找到分类索引
-      const categoryIndex = this.data.categories.findIndex(c => c.id === mockProduct.category)
+      const categoryIndex = this.data.categories.findIndex(c => c.id === product.category)
       const categoryName = categoryIndex >= 0 ? this.data.categories[categoryIndex].name : '请选择分类'
       
+      // 找到出稿天数索引
+      const deliveryIndex = this.data.deliveryOptions.findIndex(d => d === product.deliveryDays)
+      
+      // 恢复表单数据
       this.setData({
-        formData: mockProduct,
-        categoryIndex,
-        categoryName
+        formData: {
+          name: product.name || '',
+          summary: product.summary || '',
+          summaryImages: product.summaryImages || [],
+          basePrice: product.basePrice || '',
+          stock: product.stock || 0,
+          category: product.category || '',
+          images: product.images || [],
+          tags: product.tags || [],
+          isOnSale: product.isOnSale !== false,
+          maxBuyCount: product.maxBuyCount || 0
+        },
+        categoryIndex: categoryIndex >= 0 ? categoryIndex : -1,
+        categoryName,
+        deliveryIndex: deliveryIndex >= 0 ? deliveryIndex : 0,
+        enableStockLimit: product.stock > 0
       })
+      
+      // 恢复规格数据
+      if (product.specs && product.specs.length > 0) {
+        const spec1 = product.specs[0]
+        this.setData({
+          spec1Selected: true,
+          spec1Name: spec1.name || '',
+          spec1Values: spec1.values || []
+        })
+        
+        if (product.specs.length > 1) {
+          const spec2 = product.specs[1]
+          this.setData({
+            spec2Selected: true,
+            spec2Name: spec2.name || '',
+            spec2Values: spec2.values || []
+          })
+        }
+        
+        // 更新价格预览
+        this.updatePricePreview()
+      }
+      
+      console.log('商品数据加载完成')
     } catch (error) {
       console.error('加载商品失败', error)
       wx.showToast({ title: '加载失败', icon: 'none' })
@@ -832,27 +867,43 @@ Page({
       // 清除草稿
       wx.removeStorageSync('product_draft')
       
-      // 成功提示并返回
+      // 成功提示
       wx.showToast({
         title: this.data.isEdit ? '保存成功' : '发布成功',
         icon: 'success',
-        duration: 1500,
-        success: () => {
-          // Toast 显示后延迟返回
-          setTimeout(() => {
-            wx.navigateBack({
-              delta: 1,
-              fail: (err) => {
-                console.error('返回失败', err)
-                // 如果返回失败，尝试跳转到首页
-                wx.switchTab({
-                  url: '/pages/home/index'
-                })
-              }
-            })
-          }, 1500)
-        }
+        duration: 1500
       })
+      
+      // 延迟后返回
+      setTimeout(() => {
+        // 获取页面栈
+        const pages = getCurrentPages()
+        console.log('当前页面栈长度', pages.length)
+        
+        if (pages.length > 1) {
+          // 有上一页，直接返回
+          wx.navigateBack({
+            delta: 1,
+            success: () => {
+              console.log('返回上一页成功')
+              // 刷新上一页数据
+              const prevPage = pages[pages.length - 2]
+              if (prevPage && typeof prevPage.onShow === 'function') {
+                prevPage.onShow()
+              }
+            },
+            fail: (err) => {
+              console.error('返回失败', err)
+            }
+          })
+        } else {
+          // 没有上一页，跳转到首页
+          console.log('没有上一页，跳转首页')
+          wx.switchTab({
+            url: '/pages/home/index'
+          })
+        }
+      }, 1500)
 
     } catch (error) {
       wx.hideLoading()
