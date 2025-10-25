@@ -909,17 +909,38 @@ Page({
       // 获取现有商品列表
       let products = wx.getStorageSync('mock_products') || []
       
+      console.log('=== 保存商品调试信息 ===')
+      console.log('当前模式:', this.data.isEdit ? '编辑' : '新增')
+      console.log('商品ID:', this.data.productId)
+      console.log('现有商品数量:', products.length)
+      console.log('现有商品ID列表:', products.map(p => p.id))
+      
       if (this.data.isEdit) {
         // 编辑模式：更新现有商品
         const index = products.findIndex(p => p.id === this.data.productId)
+        console.log('查找结果 index:', index)
+        
         if (index > -1) {
+          // 找到了，更新
           products[index] = {
             ...products[index],
             ...productData,
+            id: this.data.productId, // 保持原ID
             updateTime: Date.now()
           }
+          console.log('✓ 更新现有商品成功', products[index])
+        } else {
+          // 没找到，说明是旧数据首次保存，作为新增处理
+          console.log('⚠️ 未找到商品，作为新增处理（旧数据迁移）')
+          const newProduct = {
+            id: this.data.productId, // 保持原ID（如 '1', '2'）
+            ...productData,
+            createTime: Date.now(),
+            updateTime: Date.now()
+          }
+          products.unshift(newProduct)
+          console.log('✓ 新增商品成功（迁移旧数据）', newProduct)
         }
-        console.log('更新商品', products[index])
       } else {
         // 新增模式：添加新商品
         const newProduct = {
@@ -929,7 +950,7 @@ Page({
           updateTime: Date.now()
         }
         products.unshift(newProduct) // 添加到列表开头
-        console.log('新增商品', newProduct)
+        console.log('✓ 新增商品成功', newProduct)
       }
       
       // 保存到本地存储
@@ -952,22 +973,41 @@ Page({
       setTimeout(() => {
         // 获取页面栈
         const pages = getCurrentPages()
-        console.log('当前页面栈长度', pages.length)
+        console.log('=== 返回逻辑调试信息 ===')
+        console.log('页面栈长度:', pages.length)
+        console.log('页面栈:', pages.map(p => p.route))
         
         if (pages.length > 1) {
           // 有上一页，直接返回
+          const prevPage = pages[pages.length - 2]
+          console.log('上一页路由:', prevPage.route)
+          console.log('上一页是否有 onShow:', typeof prevPage.onShow === 'function')
+          console.log('上一页是否有 loadProducts:', typeof prevPage.loadProducts === 'function')
+          
           wx.navigateBack({
             delta: 1,
             success: () => {
-              console.log('返回上一页成功')
-              // 刷新上一页数据
-              const prevPage = pages[pages.length - 2]
-              if (prevPage && typeof prevPage.onShow === 'function') {
-                prevPage.onShow()
+              console.log('✓ 返回上一页成功')
+              
+              // 尝试刷新上一页数据
+              if (prevPage) {
+                console.log('尝试刷新上一页数据...')
+                
+                // 如果是商品管理页，调用 loadProducts
+                if (typeof prevPage.loadProducts === 'function') {
+                  console.log('调用 loadProducts()')
+                  prevPage.loadProducts()
+                }
+                
+                // 如果有 onShow，也调用一次
+                if (typeof prevPage.onShow === 'function') {
+                  console.log('调用 onShow()')
+                  prevPage.onShow()
+                }
               }
             },
             fail: (err) => {
-              console.error('返回失败', err)
+              console.error('❌ 返回失败', err)
             }
           })
         } else {

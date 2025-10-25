@@ -23,55 +23,98 @@ Page({
   },
 
   loadProducts() {
-    // 模拟数据 - 实际应从后端API获取
-    const mockProducts = [
-      {
-        _id: '1',
-        name: '精美头像设计',
-        image: 'https://via.placeholder.com/200',
-        price: '88.00',
-        status: 'online',
-        sales: 45,
-        stock: 100
-      },
-      {
-        _id: '2',
-        name: '创意插画作品',
-        image: 'https://via.placeholder.com/200',
-        price: '168.00',
-        status: 'online',
-        sales: 23,
-        stock: 50
-      },
-      {
-        _id: '3',
-        name: '企业LOGO设计',
-        image: 'https://via.placeholder.com/200',
-        price: '299.00',
-        status: 'offline',
-        sales: 12,
-        stock: 30
-      },
-      {
-        _id: '4',
-        name: '卡通形象设计',
-        image: 'https://via.placeholder.com/200',
-        price: '128.00',
-        status: 'online',
-        sales: 56,
-        stock: 80
-      }
-    ]
-
-    const stats = {
-      all: mockProducts.length,
-      online: mockProducts.filter(p => p.status === 'online').length,
-      offline: mockProducts.filter(p => p.status === 'offline').length
+    console.log('=== 商品管理页加载数据 ===')
+    
+    // 从本地存储加载商品
+    let products = wx.getStorageSync('mock_products') || []
+    console.log('从本地存储加载商品数量:', products.length)
+    
+    // 如果本地没有商品，使用默认数据
+    if (products.length === 0) {
+      console.log('本地无数据，使用默认 mock 数据')
+      products = [
+        {
+          _id: '1',
+          id: '1',
+          name: '精美头像设计',
+          image: 'https://via.placeholder.com/200',
+          images: ['https://via.placeholder.com/200'],
+          price: '88.00',
+          basePrice: '88.00',
+          status: 'online',
+          isOnSale: true,
+          sales: 45,
+          stock: 100
+        },
+        {
+          _id: '2',
+          id: '2',
+          name: '创意插画作品',
+          image: 'https://via.placeholder.com/200',
+          images: ['https://via.placeholder.com/200'],
+          price: '168.00',
+          basePrice: '168.00',
+          status: 'online',
+          isOnSale: true,
+          sales: 23,
+          stock: 50
+        },
+        {
+          _id: '3',
+          id: '3',
+          name: '企业LOGO设计',
+          image: 'https://via.placeholder.com/200',
+          images: ['https://via.placeholder.com/200'],
+          price: '299.00',
+          basePrice: '299.00',
+          status: 'offline',
+          isOnSale: false,
+          sales: 12,
+          stock: 30
+        },
+        {
+          _id: '4',
+          id: '4',
+          name: '卡通形象设计',
+          image: 'https://via.placeholder.com/200',
+          images: ['https://via.placeholder.com/200'],
+          price: '128.00',
+          basePrice: '128.00',
+          status: 'online',
+          isOnSale: true,
+          sales: 56,
+          stock: 80
+        }
+      ]
+    } else {
+      // 转换本地存储的商品格式为页面显示格式
+      products = products.map(p => ({
+        _id: p.id || p._id,
+        id: p.id || p._id,
+        name: p.name || '未命名商品',
+        image: (p.images && p.images[0]) || 'https://via.placeholder.com/200',
+        images: p.images || [],
+        price: p.price || p.basePrice || '0.00',
+        basePrice: p.basePrice || '0.00',
+        status: p.isOnSale ? 'online' : 'offline',
+        isOnSale: p.isOnSale !== false,
+        sales: p.sales || 0,
+        stock: p.stock || 0
+      }))
+      console.log('转换后的商品数据:', products)
     }
 
+    const stats = {
+      all: products.length,
+      online: products.filter(p => p.status === 'online').length,
+      offline: products.filter(p => p.status === 'offline').length
+    }
+
+    console.log('统计数据:', stats)
+
     this.setData({
-      allProducts: mockProducts,
-      products: mockProducts,
+      allProducts: products,
+      products: products,
       stats: stats
     })
   },
