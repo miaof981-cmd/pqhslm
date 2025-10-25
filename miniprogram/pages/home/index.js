@@ -77,95 +77,7 @@ Page({
     
     console.log('从本地存储加载商品', allProducts.length, '个')
     
-    // 如果本地没有商品，使用默认数据
-    if (allProducts.length === 0) {
-      allProducts = [
-        {
-          _id: '1',
-          id: 'product_default_1',
-          name: '精美头像设计',
-          price: 88,
-          basePrice: '88',
-          originalPrice: 128,
-          deliveryDays: 3,
-          images: ['https://via.placeholder.com/300x300.png?text=精美头像'],
-          category: 'portrait',
-          artist: { name: '设计师小王', avatar: 'https://via.placeholder.com/50x50.png?text=王' },
-          sales: 156,
-          rating: 4.9,
-          tags: ['热门', '精品'],
-          isOnSale: true
-        },
-        {
-          _id: '2',
-          id: 'product_default_2',
-          name: '创意插画作品',
-          price: 168,
-          basePrice: '168',
-          originalPrice: 200,
-          deliveryDays: 5,
-          images: ['https://via.placeholder.com/300x300.png?text=创意插画'],
-          category: 'illustration',
-          artist: { name: '插画师小李', avatar: 'https://via.placeholder.com/50x50.png?text=李' },
-          sales: 89,
-          rating: 4.8,
-          tags: ['原创', '限量'],
-          isOnSale: true
-        },
-        {
-          _id: '3',
-          name: '企业LOGO设计',
-          price: 299,
-          originalPrice: 399,
-          deliveryDays: 7,
-          images: ['https://via.placeholder.com/300x300.png?text=LOGO设计'],
-          category: 'logo',
-          artist: { name: '品牌设计师', avatar: 'https://via.placeholder.com/50x50.png?text=品牌' },
-          sales: 234,
-          rating: 5.0,
-          tags: ['专业', '包修改']
-        },
-        {
-          _id: '4',
-          name: '可爱表情包',
-          price: 29,
-          originalPrice: 39,
-          deliveryDays: 2,
-          images: ['https://via.placeholder.com/300x300.png?text=表情包'],
-          category: 'emoticon',
-          artist: { name: '表情包达人', avatar: 'https://via.placeholder.com/50x50.png?text=表情' },
-          sales: 567,
-          rating: 4.7,
-          tags: ['可爱', '实用']
-        },
-        {
-          _id: '5',
-          name: '海报设计',
-          price: 199,
-          originalPrice: 259,
-          deliveryDays: 4,
-          images: ['https://via.placeholder.com/300x300.png?text=海报设计'],
-          category: 'poster',
-          artist: { name: '平面设计师', avatar: 'https://via.placeholder.com/50x50.png?text=平面' },
-          sales: 78,
-          rating: 4.9,
-          tags: ['创意', '高质量']
-        },
-        {
-          _id: '6',
-          name: 'UI界面设计',
-          price: 399,
-          originalPrice: 499,
-          deliveryDays: 6,
-          images: ['https://via.placeholder.com/300x300.png?text=UI设计'],
-          category: 'ui',
-          artist: { name: 'UI设计师', avatar: 'https://via.placeholder.com/50x50.png?text=UI' },
-          sales: 45,
-          rating: 5.0,
-          tags: ['专业', '现代']
-        }
-      ]
-    } else {
+    if (allProducts.length > 0) {
       // 转换本地存储的商品格式为首页显示格式
       allProducts = allProducts
         .filter(p => p.isOnSale !== false) // 只显示上架的商品
@@ -219,7 +131,9 @@ Page({
           }
         })
       
-      console.log('转换后的商品数据', allProducts)
+      console.log('转换后的商品数据', allProducts.length, '个')
+    } else {
+      console.log('本地存储为空，无商品数据')
     }
     
     // 前3个作为推荐商品

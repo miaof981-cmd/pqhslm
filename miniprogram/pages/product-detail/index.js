@@ -24,24 +24,22 @@ Page({
     try {
       // 从本地存储加载商品
       const products = wx.getStorageSync('mock_products') || []
-      let product = products.find(p => p.id === this.data.productId)
+      const product = products.find(p => p.id === this.data.productId)
       
       console.log('=== 商品详情页加载 ===')
       console.log('productId:', this.data.productId)
       console.log('本地商品数量:', products.length)
       console.log('找到的商品:', product)
       
-      // 如果找不到，使用默认mock数据（兼容旧ID）
       if (!product) {
-        const mockData = this.getMockProductById(this.data.productId)
-        if (mockData) {
-          product = mockData
-          console.log('使用默认mock数据')
-        } else {
-          wx.showToast({ title: '商品不存在', icon: 'none' })
-          setTimeout(() => wx.navigateBack(), 1500)
-          return
-        }
+        wx.showToast({ 
+          title: '商品不存在或已下架', 
+          icon: 'none',
+          duration: 2000
+        })
+        console.error('商品ID不存在:', this.data.productId)
+        setTimeout(() => wx.navigateBack(), 2000)
+        return
       }
       
       // 计算显示价格
@@ -96,45 +94,6 @@ Page({
     }
   },
   
-  // 获取默认mock数据（兼容旧ID）
-  getMockProductById(id) {
-    const mockProducts = {
-      '1': {
-        id: '1',
-        name: '精美头像设计',
-        summary: '专业画师手绘，风格多样，满意为止',
-        summaryImages: [],
-        basePrice: '88.00',
-        price: 88,
-        stock: 100,
-        category: 'portrait',
-        images: ['https://via.placeholder.com/400x400.png?text=精美头像'],
-        tags: ['热销', '精品'],
-        isOnSale: true,
-        deliveryDays: 3,
-        artist: { name: '设计师小王', avatar: '' },
-        sales: 45
-      },
-      '2': {
-        id: '2',
-        name: '创意插画作品',
-        summary: '原创插画设计，风格独特，质量保证',
-        summaryImages: [],
-        basePrice: '168.00',
-        price: 168,
-        stock: 50,
-        category: 'illustration',
-        images: ['https://via.placeholder.com/400x400.png?text=创意插画'],
-        tags: ['原创', '限量'],
-        isOnSale: true,
-        deliveryDays: 5,
-        artist: { name: '插画师小李', avatar: '' },
-        sales: 23
-      }
-    }
-    
-    return mockProducts[id] || null
-  },
 
   // 加载画师信息
   async loadArtist(artistId) {

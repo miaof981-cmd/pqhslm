@@ -29,64 +29,7 @@ Page({
     let products = wx.getStorageSync('mock_products') || []
     console.log('从本地存储加载商品数量:', products.length)
     
-    // 如果本地没有商品，使用默认数据
-    if (products.length === 0) {
-      console.log('本地无数据，使用默认 mock 数据')
-      products = [
-        {
-          _id: '1',
-          id: '1',
-          name: '精美头像设计',
-          image: 'https://via.placeholder.com/200',
-          images: ['https://via.placeholder.com/200'],
-          price: '88.00',
-          basePrice: '88.00',
-          status: 'online',
-          isOnSale: true,
-          sales: 45,
-          stock: 100
-        },
-        {
-          _id: '2',
-          id: '2',
-          name: '创意插画作品',
-          image: 'https://via.placeholder.com/200',
-          images: ['https://via.placeholder.com/200'],
-          price: '168.00',
-          basePrice: '168.00',
-          status: 'online',
-          isOnSale: true,
-          sales: 23,
-          stock: 50
-        },
-        {
-          _id: '3',
-          id: '3',
-          name: '企业LOGO设计',
-          image: 'https://via.placeholder.com/200',
-          images: ['https://via.placeholder.com/200'],
-          price: '299.00',
-          basePrice: '299.00',
-          status: 'offline',
-          isOnSale: false,
-          sales: 12,
-          stock: 30
-        },
-        {
-          _id: '4',
-          id: '4',
-          name: '卡通形象设计',
-          image: 'https://via.placeholder.com/200',
-          images: ['https://via.placeholder.com/200'],
-          price: '128.00',
-          basePrice: '128.00',
-          status: 'online',
-          isOnSale: true,
-          sales: 56,
-          stock: 80
-        }
-      ]
-    } else {
+    if (products.length > 0) {
       // 转换本地存储的商品格式为页面显示格式
       products = products.map(p => ({
         _id: p.id || p._id,
@@ -101,7 +44,9 @@ Page({
         sales: p.sales || 0,
         stock: p.stock || 0
       }))
-      console.log('转换后的商品数据:', products)
+      console.log('转换后的商品数据:', products.length, '个')
+    } else {
+      console.log('本地存储为空，无商品数据')
     }
 
     const stats = {

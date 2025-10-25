@@ -376,7 +376,7 @@
                     bindinput="onSummaryInput"
                     bindfocus="onTextareaFocus"
                     bindblur="onTextareaBlur"
-                    cursor="{{textareaCursor}}"
+                    bindtap="onTextareaTap"
                     maxlength="500"
                     auto-height />
           <view class="char-count">{{formData.summary.length}}/500</view>
