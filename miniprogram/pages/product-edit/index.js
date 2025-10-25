@@ -121,6 +121,9 @@ Page({
 
   prevStep() {
     if (this.data.currentStep > 1) {
+      // 先保存当前步骤的数据
+      this.saveDraft()
+      
       this.setData({
         currentStep: this.data.currentStep - 1,
         progress: (this.data.currentStep - 1) * 33.33
@@ -180,25 +183,34 @@ Page({
   saveDraft() {
     const draftData = {
       currentStep: this.data.currentStep,
-      formData: this.data.formData,
+      progress: this.data.progress,
+      formData: JSON.parse(JSON.stringify(this.data.formData)), // 深拷贝
       categoryIndex: this.data.categoryIndex,
+      categoryName: this.data.categoryName,
       deliveryIndex: this.data.deliveryIndex,
+      enableStockLimit: this.data.enableStockLimit,
       spec1Selected: this.data.spec1Selected,
       spec1Name: this.data.spec1Name,
-      spec1Values: this.data.spec1Values,
+      spec1Values: JSON.parse(JSON.stringify(this.data.spec1Values)), // 深拷贝
       spec2Selected: this.data.spec2Selected,
       spec2Name: this.data.spec2Name,
-      spec2Values: this.data.spec2Values,
+      spec2Values: JSON.parse(JSON.stringify(this.data.spec2Values)), // 深拷贝
+      pricePreviewTable: this.data.pricePreviewTable,
       timestamp: Date.now()
     }
     
-    wx.setStorageSync('product_draft', draftData)
-    
-    // 显示保存提示
-    this.setData({ draftSaved: true })
-    setTimeout(() => {
-      this.setData({ draftSaved: false })
-    }, 2000)
+    try {
+      wx.setStorageSync('product_draft', draftData)
+      console.log('草稿已保存', draftData)
+      
+      // 显示保存提示
+      this.setData({ draftSaved: true })
+      setTimeout(() => {
+        this.setData({ draftSaved: false })
+      }, 2000)
+    } catch (error) {
+      console.error('保存草稿失败', error)
+    }
   },
 
   // 加载草稿
@@ -216,29 +228,32 @@ Page({
             content: '是否继续编辑？',
             success: (res) => {
               if (res.confirm) {
+                console.log('恢复草稿', draft)
                 this.setData({
                   currentStep: draft.currentStep || 1,
-                  progress: (draft.currentStep || 1) * 33.33,
+                  progress: draft.progress || 33,
                   formData: draft.formData || this.data.formData,
-                  categoryIndex: draft.categoryIndex || -1,
+                  categoryIndex: draft.categoryIndex >= 0 ? draft.categoryIndex : -1,
+                  categoryName: draft.categoryName || '请选择分类',
                   deliveryIndex: draft.deliveryIndex || 0,
+                  enableStockLimit: draft.enableStockLimit || false,
                   spec1Selected: draft.spec1Selected || false,
                   spec1Name: draft.spec1Name || '',
                   spec1Values: draft.spec1Values || [],
                   spec2Selected: draft.spec2Selected || false,
                   spec2Name: draft.spec2Name || '',
-                  spec2Values: draft.spec2Values || []
+                  spec2Values: draft.spec2Values || [],
+                  pricePreviewTable: draft.pricePreviewTable || []
                 })
-                
-                // 恢复分类名称
-                if (draft.categoryIndex >= 0) {
-                  this.setData({
-                    categoryName: this.data.categories[draft.categoryIndex].name
-                  })
-                }
+              } else {
+                // 用户选择不恢复，清除草稿
+                wx.removeStorageSync('product_draft')
               }
             }
           })
+        } else {
+          // 草稿过期，清除
+          wx.removeStorageSync('product_draft')
         }
       }
     } catch (error) {
@@ -297,12 +312,14 @@ Page({
   // 选择分类
   onCategoryChange(e) {
     const index = parseInt(e.detail.value)
-    const category = this.data.categories[index]
-    this.setData({
-      'formData.category': category.id,
-      categoryIndex: index,
-      categoryName: category.name
-    })
+    if (index >= 0 && index < this.data.categories.length) {
+      const category = this.data.categories[index]
+      this.setData({
+        'formData.category': category.id,
+        categoryIndex: index,
+        categoryName: category.name
+      })
+    }
   },
 
   // 选择出稿天数
