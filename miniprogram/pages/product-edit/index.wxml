@@ -218,7 +218,6 @@
                            data-index="{{index}}"
                            bindinput="onSpec1ValueNameInput" />
                     <view class="spec-price-row">
-                      <text class="plus-symbol">+</text>
                       <input class="spec-value-price" 
                              type="digit"
                              placeholder="0" 
