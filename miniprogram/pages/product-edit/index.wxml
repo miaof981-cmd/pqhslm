@@ -229,9 +229,9 @@
                   </view>
                   
                   <!-- 删除按钮 -->
-                  <view class="delete-value-icon" 
+                  <view class="delete-value-btn" 
                         data-index="{{index}}" 
-                        bindtap="deleteSpec1Value">×</view>
+                        catchtap="deleteSpec1Value">×</view>
                 </view>
               </view>
               <button class="add-value-btn" bindtap="addSpec1Value">+ 添加选项</button>
@@ -289,9 +289,9 @@
                   </view>
                   
                   <!-- 删除按钮 -->
-                  <view class="delete-value-icon" 
+                  <view class="delete-value-btn" 
                         data-index="{{index}}" 
-                        bindtap="deleteSpec2Value">×</view>
+                        catchtap="deleteSpec2Value">×</view>
                 </view>
               </view>
               <button class="add-value-btn" bindtap="addSpec2Value">+ 添加选项</button>

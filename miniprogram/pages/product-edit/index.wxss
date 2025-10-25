@@ -658,9 +658,9 @@
   color: #999;
 }
 
-.delete-value-icon {
-  width: 48rpx;
-  height: 48rpx;
+.delete-value-btn {
+  width: 56rpx;
+  height: 56rpx;
   background: #FF6B6B;
   color: white;
   border-radius: 50%;
@@ -669,7 +669,10 @@
   justify-content: center;
   font-size: 32rpx;
   flex-shrink: 0;
-  margin-top: 36rpx;
+  margin-top: 32rpx;
+  /* 增加点击区域 */
+  padding: 8rpx;
+  margin: 32rpx -8rpx 0 0;
 }
 
 .add-value-btn {

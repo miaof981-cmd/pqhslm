@@ -632,8 +632,7 @@ Page({
 
   // 更新价格预览表
   updatePricePreview() {
-    const { formData, spec1Selected, spec1Name, spec1Values, spec2Selected, spec2Name, spec2Values } = this.data
-    const basePrice = parseFloat(formData.basePrice) || 0
+    const { spec1Selected, spec1Values, spec2Selected, spec2Values } = this.data
     const previewTable = []
     
     if (!spec1Selected || spec1Values.length === 0) {
@@ -642,12 +641,12 @@ Page({
     }
     
     if (spec2Selected && spec2Values.length > 0) {
-      // 两级规格组合
+      // 两级规格组合：一级价格 + 二级加价
       spec1Values.forEach(v1 => {
         spec2Values.forEach(v2 => {
-          const price1 = parseFloat(v1.addPrice) || 0
-          const price2 = parseFloat(v2.addPrice) || 0
-          const totalPrice = (basePrice + price1 + price2).toFixed(2)
+          const price1 = parseFloat(v1.addPrice) || 0  // 一级规格价格
+          const price2 = parseFloat(v2.addPrice) || 0  // 二级加价
+          const totalPrice = (price1 + price2).toFixed(2)
           previewTable.push({
             spec: `${v1.name} - ${v2.name}`,
             price: totalPrice
@@ -655,13 +654,12 @@ Page({
         })
       })
     } else {
-      // 只有一级规格
+      // 只有一级规格：直接使用一级规格价格
       spec1Values.forEach(v1 => {
         const price1 = parseFloat(v1.addPrice) || 0
-        const totalPrice = (basePrice + price1).toFixed(2)
         previewTable.push({
           spec: v1.name,
-          price: totalPrice
+          price: price1.toFixed(2)
         })
       })
     }
@@ -729,28 +727,27 @@ Page({
       return basePrice
     }
     
-    // 计算所有规格组合的价格，找出最低价
+    // 有规格：计算所有规格组合的价格，找出最低价
     let minPrice = Infinity
     
     if (this.data.spec2Selected && this.data.spec2Values.length > 0) {
-      // 有二级规格，计算所有组合
+      // 两级规格：一级价格 + 二级加价
       this.data.spec1Values.forEach(v1 => {
         this.data.spec2Values.forEach(v2 => {
-          const price1 = parseFloat(v1.addPrice) || 0
-          const price2 = parseFloat(v2.addPrice) || 0
-          const totalPrice = basePrice + price1 + price2
+          const price1 = parseFloat(v1.addPrice) || 0  // 一级规格价格
+          const price2 = parseFloat(v2.addPrice) || 0  // 二级加价
+          const totalPrice = price1 + price2
           if (totalPrice < minPrice) {
             minPrice = totalPrice
           }
         })
       })
     } else {
-      // 只有一级规格
+      // 只有一级规格：直接使用一级规格价格
       this.data.spec1Values.forEach(v1 => {
         const price1 = parseFloat(v1.addPrice) || 0
-        const totalPrice = basePrice + price1
-        if (totalPrice < minPrice) {
-          minPrice = totalPrice
+        if (price1 < minPrice) {
+          minPrice = price1
         }
       })
     }
