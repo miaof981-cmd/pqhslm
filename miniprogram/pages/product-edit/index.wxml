@@ -300,7 +300,7 @@
 
           <!-- 价格预览表 -->
           <view wx:if="{{pricePreviewTable.length > 0}}" class="price-preview">
-            <text class="preview-title">💰 价格组合预览</text>
+            <text class="preview-title">价格组合预览</text>
             <view class="preview-table">
               <view wx:for="{{pricePreviewTable}}" wx:key="index" class="preview-row">
                 <text class="preview-spec">{{item.spec}}</text>
@@ -334,7 +334,7 @@
         <view class="rich-text-editor">
           <!-- 文字输入 -->
           <textarea class="form-textarea" 
-                    placeholder="专业画师手绘，风格多样，满意为止...&#10;&#10;💡 提示：先输入文字，然后点击下方"插入图片"按钮，图片会按顺序插入到文本中" 
+                    placeholder="专业画师手绘，风格多样，满意为止..." 
                     value="{{formData.summary}}"
                     bindinput="onSummaryInput"
                     maxlength="500"
@@ -343,7 +343,7 @@
           
           <!-- 图片插入工具栏 -->
           <view class="editor-toolbar">
-            <view class="toolbar-hint">📸 已插入 {{formData.summaryImages.length}}/3 张图片</view>
+            <view class="toolbar-hint">已插入 {{formData.summaryImages.length}}/3 张图片</view>
             <button wx:if="{{formData.summaryImages.length < 3}}" 
                     class="insert-image-btn" 
                     bindtap="chooseSummaryImages">
@@ -378,7 +378,7 @@
 
       <!-- 信息确认 -->
       <view class="confirm-info">
-        <text class="confirm-title">📋 信息确认</text>
+        <text class="confirm-title">信息确认</text>
         <view class="confirm-item">
           <text class="confirm-label">商品名称：</text>
           <text class="confirm-value">{{formData.name || '未填写'}}</text>
@@ -422,7 +422,7 @@
     <view class="action-bar">
       <button wx:if="{{currentStep > 1}}" class="prev-btn" bindtap="prevStep">上一步</button>
       <button wx:if="{{currentStep < 3}}" class="next-btn" bindtap="nextStep">下一步</button>
-      <button wx:if="{{currentStep === 3}}" class="submit-btn" bindtap="submitForm">🎉 发布商品</button>
+      <button wx:if="{{currentStep === 3}}" class="submit-btn" bindtap="submitForm">发布商品</button>
     </view>
   </view>
 </view>
