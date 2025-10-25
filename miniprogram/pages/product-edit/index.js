@@ -26,9 +26,10 @@ Page({
     // 库存管理
     enableStockLimit: false, // 默认自动补货模式
     
-    // 富文本编辑器
-    textareaCursor: -1, // textarea 光标位置
-    cursorPosition: 0, // 当前光标位置
+    // 富文本编辑器（使用 selection 来准确追踪光标）
+    selectionStart: -1, // 选区开始位置
+    selectionEnd: -1, // 选区结束位置
+    cursorPosition: 0 // 当前光标位置（用于插入）
     
     // 第一步：基础信息
     categories: [
@@ -729,43 +730,23 @@ Page({
 
   // 输入商品简介
   onSummaryInput(e) {
-    const cursorPos = typeof e.detail.cursor === 'number' ? e.detail.cursor : e.detail.value.length
-    console.log('onSummaryInput - cursor:', cursorPos)
     this.setData({
-      'formData.summary': e.detail.value,
-      cursorPosition: cursorPos
+      'formData.summary': e.detail.value
     })
   },
 
-  // 监听 textarea 获得焦点
-  onTextareaFocus(e) {
-    const cursorPos = typeof e.detail.cursor === 'number' ? e.detail.cursor : 0
-    console.log('onTextareaFocus - cursor:', cursorPos)
+  // 监听光标位置变化（核心方法）
+  onSelectionChange(e) {
+    const { selectionStart, selectionEnd } = e.detail
+    console.log('=== 光标位置变化 ===')
+    console.log('selectionStart:', selectionStart)
+    console.log('selectionEnd:', selectionEnd)
+    
     this.setData({
-      cursorPosition: cursorPos
+      selectionStart: selectionStart,
+      selectionEnd: selectionEnd,
+      cursorPosition: selectionStart // 使用选区开始位置作为插入位置
     })
-  },
-
-  // 监听 textarea 失去焦点
-  onTextareaBlur(e) {
-    const cursorPos = typeof e.detail.cursor === 'number' ? e.detail.cursor : e.detail.value.length
-    console.log('onTextareaBlur - cursor:', cursorPos)
-    this.setData({
-      cursorPosition: cursorPos
-    })
-  },
-
-  // 监听 textarea 点击
-  onTextareaTap(e) {
-    // 点击时记录光标位置
-    setTimeout(() => {
-      const query = this.createSelectorQuery()
-      query.select('.rich-textarea').fields({
-        context: true
-      }, (res) => {
-        console.log('onTextareaTap - textarea context:', res)
-      }).exec()
-    }, 50)
   },
 
   // 插入图片占位符
@@ -773,38 +754,58 @@ Page({
     const imageIndex = e.currentTarget.dataset.index
     const placeholder = `[图${imageIndex}]`
     const { summary } = this.data.formData
-    let { cursorPosition } = this.data
-    
-    // 确保 cursorPosition 是有效数字
-    if (typeof cursorPosition !== 'number' || isNaN(cursorPosition)) {
-      cursorPosition = summary.length // 默认插入到末尾
-      console.log('光标位置无效，插入到末尾')
-    }
-    
-    // 限制在有效范围内
-    cursorPosition = Math.max(0, Math.min(cursorPosition, summary.length))
+    let { cursorPosition, selectionStart, selectionEnd } = this.data
     
     console.log('=== 插入图片占位符 ===')
-    console.log('当前文本长度:', summary.length)
-    console.log('光标位置:', cursorPosition)
-    console.log('占位符:', placeholder)
+    console.log('当前文本:', summary)
+    console.log('文本长度:', summary.length)
+    console.log('cursorPosition:', cursorPosition)
+    console.log('selectionStart:', selectionStart)
+    console.log('selectionEnd:', selectionEnd)
     
-    // 在光标位置插入占位符
-    const before = summary.substring(0, cursorPosition)
-    const after = summary.substring(cursorPosition)
+    // 优先使用 selectionStart（更准确）
+    let insertPosition = cursorPosition
+    if (selectionStart >= 0 && selectionStart <= summary.length) {
+      insertPosition = selectionStart
+      console.log('使用 selectionStart:', insertPosition)
+    } else {
+      console.log('selectionStart 无效，使用 cursorPosition:', insertPosition)
+    }
+    
+    // 确保插入位置有效
+    if (typeof insertPosition !== 'number' || insertPosition < 0 || insertPosition > summary.length) {
+      insertPosition = summary.length // 默认插入到末尾
+      console.log('插入位置无效，使用末尾:', insertPosition)
+    }
+    
+    // 如果有选中文字，替换选中内容
+    let before, after
+    if (selectionStart >= 0 && selectionEnd > selectionStart) {
+      console.log('检测到选中文字，将替换选中内容')
+      before = summary.substring(0, selectionStart)
+      after = summary.substring(selectionEnd)
+      insertPosition = selectionStart
+    } else {
+      // 没有选中，在光标位置插入
+      before = summary.substring(0, insertPosition)
+      after = summary.substring(insertPosition)
+    }
+    
     const newSummary = before + placeholder + after
+    const newCursorPosition = insertPosition + placeholder.length
     
-    console.log('插入前文本:', summary)
+    console.log('before:', before)
+    console.log('placeholder:', placeholder)
+    console.log('after:', after)
     console.log('插入后文本:', newSummary)
-    console.log('before长度:', before.length)
-    console.log('after长度:', after.length)
+    console.log('新光标位置:', newCursorPosition)
     
     // 更新内容和光标位置
-    const newCursorPosition = cursorPosition + placeholder.length
     this.setData({
       'formData.summary': newSummary,
       cursorPosition: newCursorPosition,
-      textareaCursor: newCursorPosition
+      selectionStart: newCursorPosition,
+      selectionEnd: newCursorPosition
     })
     
     wx.showToast({
