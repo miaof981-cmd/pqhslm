@@ -16,7 +16,10 @@ Page({
     selectedSpec2: null, // 选中的二级规格
     quantity: 1, // 购买数量
     currentPrice: 0, // 当前价格
-    canSubmit: false // 是否可以提交订单
+    canSubmit: false, // 是否可以提交订单
+    
+    // 客服引导弹窗
+    showServiceGuideModal: false
   },
 
   onLoad(options) {
@@ -260,6 +263,28 @@ Page({
     // 什么都不做，只是阻止事件冒泡
   },
 
+  // 显示客服引导弹窗
+  showServiceGuide() {
+    this.setData({
+      showServiceGuideModal: true
+    })
+  },
+
+  // 关闭客服引导弹窗
+  closeServiceGuide() {
+    this.setData({
+      showServiceGuideModal: false
+    })
+  },
+
+  // 从引导页打开客服二维码
+  openServiceQRFromGuide() {
+    this.closeServiceGuide()
+    setTimeout(() => {
+      this.toggleServiceQR()
+    }, 300)
+  },
+
   // 打开购买弹窗
   buyProduct() {
     if (!this.data.product) return
@@ -392,19 +417,25 @@ Page({
     
     console.log('订单信息:')
     console.log('商品:', product.name)
-    console.log('一级规格:', selectedSpec1 !== null ? product.specs[0].values[selectedSpec1].name : '无')
-    console.log('二级规格:', selectedSpec2 !== null ? product.specs[1].values[selectedSpec2].name : '无')
+    console.log('一级规格:', selectedSpec1 !== null && product.specs && product.specs[0] ? product.specs[0].values[selectedSpec1].name : '无')
+    console.log('二级规格:', selectedSpec2 !== null && product.specs && product.specs[1] ? product.specs[1].values[selectedSpec2].name : '无')
     console.log('数量:', quantity)
     console.log('单价:', currentPrice)
     console.log('总价:', currentPrice * quantity)
     
+    // 关闭购买弹窗
+    this.closeBuyModal()
+    
+    // 显示订单成功提示
     wx.showToast({
-      title: '模拟下单成功',
-      icon: 'success'
+      title: '订单创建成功',
+      icon: 'success',
+      duration: 1500
     })
     
+    // 跳转到客服引导页
     setTimeout(() => {
-      this.closeBuyModal()
+      this.showServiceGuide()
     }, 1500)
     
     // 云开发版本（需要先开通云开发）
