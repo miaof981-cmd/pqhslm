@@ -8,7 +8,15 @@ Page({
     serviceQR: null,
     orderQR: null,
     hasOrder: false,
-    loading: true
+    loading: true,
+    
+    // 购买弹窗相关
+    showBuyModal: false,
+    selectedSpec1: null, // 选中的一级规格
+    selectedSpec2: null, // 选中的二级规格
+    quantity: 1, // 购买数量
+    currentPrice: 0, // 当前价格
+    canSubmit: false // 是否可以提交订单
   },
 
   onLoad(options) {
@@ -252,14 +260,152 @@ Page({
     // 什么都不做，只是阻止事件冒泡
   },
 
-  // 购买商品
-  async buyProduct() {
+  // 打开购买弹窗
+  buyProduct() {
     if (!this.data.product) return
+    
+    const { product } = this.data
+    
+    // 初始化购买信息
+    let initialPrice = parseFloat(product.basePrice) || parseFloat(product.price) || 0
+    let canSubmit = true
+    
+    // 如果有规格，初始化为未选择状态
+    if (product.specs && product.specs.length > 0) {
+      canSubmit = false // 需要选择规格才能提交
+    }
+    
+    this.setData({
+      showBuyModal: true,
+      selectedSpec1: null,
+      selectedSpec2: null,
+      quantity: 1,
+      currentPrice: initialPrice,
+      canSubmit: canSubmit
+    })
+  },
+  
+  // 关闭购买弹窗
+  closeBuyModal() {
+    this.setData({
+      showBuyModal: false
+    })
+  },
+  
+  // 选择一级规格
+  selectSpec1(e) {
+    const index = e.currentTarget.dataset.index
+    const { product } = this.data
+    
+    this.setData({
+      selectedSpec1: index,
+      selectedSpec2: null // 重置二级规格
+    })
+    
+    this.calculatePrice()
+  },
+  
+  // 选择二级规格
+  selectSpec2(e) {
+    const index = e.currentTarget.dataset.index
+    
+    this.setData({
+      selectedSpec2: index
+    })
+    
+    this.calculatePrice()
+  },
+  
+  // 计算价格
+  calculatePrice() {
+    const { product, selectedSpec1, selectedSpec2 } = this.data
+    let price = parseFloat(product.basePrice) || 0
+    let canSubmit = true
+    
+    if (product.specs && product.specs.length > 0) {
+      // 有规格的情况
+      if (selectedSpec1 === null) {
+        canSubmit = false
+      } else {
+        const spec1 = product.specs[0]
+        if (spec1.values && spec1.values[selectedSpec1]) {
+          price = parseFloat(spec1.values[selectedSpec1].addPrice) || 0
+          
+          // 如果有二级规格
+          if (product.specs.length > 1) {
+            if (selectedSpec2 === null) {
+              canSubmit = false
+            } else {
+              const spec2 = product.specs[1]
+              if (spec2.values && spec2.values[selectedSpec2]) {
+                price += parseFloat(spec2.values[selectedSpec2].addPrice) || 0
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    this.setData({
+      currentPrice: price,
+      canSubmit: canSubmit
+    })
+  },
+  
+  // 减少数量
+  decreaseQuantity() {
+    if (this.data.quantity > 1) {
+      this.setData({
+        quantity: this.data.quantity - 1
+      })
+    }
+  },
+  
+  // 增加数量
+  increaseQuantity() {
+    const { product, quantity } = this.data
+    const maxQuantity = product.stock || 999
+    
+    if (quantity < maxQuantity) {
+      this.setData({
+        quantity: quantity + 1
+      })
+    } else {
+      wx.showToast({
+        title: `最多购买${maxQuantity}件`,
+        icon: 'none'
+      })
+    }
+  },
+  
+  // 确认下单
+  confirmOrder() {
+    if (!this.data.canSubmit) {
+      wx.showToast({
+        title: '请选择完整规格',
+        icon: 'none'
+      })
+      return
+    }
+    
+    const { product, selectedSpec1, selectedSpec2, quantity, currentPrice } = this.data
+    
+    console.log('订单信息:')
+    console.log('商品:', product.name)
+    console.log('一级规格:', selectedSpec1 !== null ? product.specs[0].values[selectedSpec1].name : '无')
+    console.log('二级规格:', selectedSpec2 !== null ? product.specs[1].values[selectedSpec2].name : '无')
+    console.log('数量:', quantity)
+    console.log('单价:', currentPrice)
+    console.log('总价:', currentPrice * quantity)
     
     wx.showToast({
       title: '模拟下单成功',
       icon: 'success'
     })
+    
+    setTimeout(() => {
+      this.closeBuyModal()
+    }, 1500)
     
     // 云开发版本（需要先开通云开发）
     // try {

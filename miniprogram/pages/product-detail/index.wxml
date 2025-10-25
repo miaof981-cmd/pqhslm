@@ -103,4 +103,75 @@
       <button class="modal-close" catchtap="toggleServiceQR">关闭</button>
     </view>
   </view>
+
+  <!-- 购买弹窗 -->
+  <view class="buy-modal-overlay" wx:if="{{showBuyModal}}" catchtap="closeBuyModal">
+    <view class="buy-modal-content" catchtap="stopPropagation">
+      <!-- 商品信息 -->
+      <view class="buy-modal-header">
+        <image class="buy-modal-image" src="{{product.images[0]}}" mode="aspectFill" />
+        <view class="buy-modal-info">
+          <view class="buy-modal-price">¥{{currentPrice}}</view>
+          <view class="buy-modal-stock">库存：{{product.stock === 0 ? '♾️' : product.stock}}</view>
+        </view>
+        <view class="buy-modal-close" catchtap="closeBuyModal">×</view>
+      </view>
+
+      <!-- 规格选择 -->
+      <view class="buy-modal-body">
+        <!-- 一级规格 -->
+        <view wx:if="{{product.specs && product.specs.length > 0}}" class="spec-section">
+          <view class="spec-title">{{product.specs[0].name}}</view>
+          <view class="spec-options">
+            <view wx:for="{{product.specs[0].values}}" 
+                  wx:key="index"
+                  class="spec-option {{selectedSpec1 === index ? 'selected' : ''}}"
+                  data-index="{{index}}"
+                  catchtap="selectSpec1">
+              <image wx:if="{{item.image}}" class="spec-image" src="{{item.image}}" mode="aspectFill" />
+              <text class="spec-name">{{item.name}}</text>
+              <text class="spec-price">¥{{item.addPrice}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 二级规格 -->
+        <view wx:if="{{product.specs && product.specs.length > 1}}" class="spec-section">
+          <view class="spec-title">{{product.specs[1].name}}</view>
+          <view class="spec-options">
+            <view wx:for="{{product.specs[1].values}}" 
+                  wx:key="index"
+                  class="spec-option {{selectedSpec2 === index ? 'selected' : ''}}"
+                  data-index="{{index}}"
+                  catchtap="selectSpec2">
+              <image wx:if="{{item.image}}" class="spec-image" src="{{item.image}}" mode="aspectFill" />
+              <text class="spec-name">{{item.name}}</text>
+              <text class="spec-price">+¥{{item.addPrice}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 数量选择 -->
+        <view class="quantity-section">
+          <view class="quantity-title">购买数量</view>
+          <view class="quantity-controls">
+            <view class="quantity-btn {{quantity <= 1 ? 'disabled' : ''}}" catchtap="decreaseQuantity">-</view>
+            <input class="quantity-input" type="number" value="{{quantity}}" disabled />
+            <view class="quantity-btn" catchtap="increaseQuantity">+</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 底部按钮 -->
+      <view class="buy-modal-footer">
+        <view class="total-price">
+          <text class="total-label">合计：</text>
+          <text class="total-value">¥{{currentPrice * quantity}}</text>
+        </view>
+        <button class="confirm-buy-btn {{canSubmit ? '' : 'disabled'}}" catchtap="confirmOrder">
+          确认购买
+        </button>
+      </view>
+    </view>
+  </view>
 </view>
