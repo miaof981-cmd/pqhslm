@@ -803,21 +803,16 @@ Page({
       wx.removeStorageSync('product_draft')
       
       // 成功提示
-      wx.showModal({
-        title: '🎉 发布成功',
-        content: `商品已成功发布！\n显示价格：¥${finalPrice}`,
-        showCancel: true,
-        cancelText: '继续创建',
-        confirmText: '返回首页',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateBack()
-          } else {
-            // 重置表单
-            this.resetForm()
-          }
-        }
+      wx.showToast({
+        title: '发布成功',
+        icon: 'success',
+        duration: 1500
       })
+      
+      // 延迟返回上一页
+      setTimeout(() => {
+        wx.navigateBack()
+      }, 1500)
 
     } catch (error) {
       wx.hideLoading()
