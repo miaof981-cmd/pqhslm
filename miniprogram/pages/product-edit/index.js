@@ -799,21 +799,21 @@ Page({
   onSummaryInput(e) {
     this.setData({
       'formData.summary': e.detail.value,
-      cursorPosition: e.detail.cursor // 保存光标位置
+      cursorPosition: e.detail.cursor || 0 // 保存光标位置，默认0
     })
   },
 
   // 监听 textarea 获得焦点
   onTextareaFocus(e) {
     this.setData({
-      cursorPosition: e.detail.cursor
+      cursorPosition: e.detail.cursor || 0
     })
   },
 
   // 监听 textarea 失去焦点
   onTextareaBlur(e) {
     this.setData({
-      cursorPosition: e.detail.cursor
+      cursorPosition: e.detail.cursor || e.detail.value.length // 使用文本长度作为后备
     })
   },
 
@@ -822,18 +822,38 @@ Page({
     const imageIndex = e.currentTarget.dataset.index
     const placeholder = `[图${imageIndex}]`
     const { summary } = this.data.formData
-    const { cursorPosition } = this.data
+    let { cursorPosition } = this.data
+    
+    // 确保 cursorPosition 是有效数字
+    if (typeof cursorPosition !== 'number' || isNaN(cursorPosition)) {
+      cursorPosition = summary.length // 默认插入到末尾
+      console.log('光标位置无效，插入到末尾')
+    }
+    
+    // 限制在有效范围内
+    cursorPosition = Math.max(0, Math.min(cursorPosition, summary.length))
+    
+    console.log('=== 插入图片占位符 ===')
+    console.log('当前文本长度:', summary.length)
+    console.log('光标位置:', cursorPosition)
+    console.log('占位符:', placeholder)
     
     // 在光标位置插入占位符
     const before = summary.substring(0, cursorPosition)
     const after = summary.substring(cursorPosition)
     const newSummary = before + placeholder + after
     
+    console.log('插入前文本:', summary)
+    console.log('插入后文本:', newSummary)
+    console.log('before长度:', before.length)
+    console.log('after长度:', after.length)
+    
     // 更新内容和光标位置
+    const newCursorPosition = cursorPosition + placeholder.length
     this.setData({
       'formData.summary': newSummary,
-      cursorPosition: cursorPosition + placeholder.length,
-      textareaCursor: cursorPosition + placeholder.length
+      cursorPosition: newCursorPosition,
+      textareaCursor: newCursorPosition
     })
     
     wx.showToast({
