@@ -241,9 +241,15 @@ Page({
 
   // 显示/隐藏客服二维码
   toggleServiceQR() {
+    console.log('toggleServiceQR 被调用，当前状态:', this.data.showServiceQR)
     this.setData({
       showServiceQR: !this.data.showServiceQR
     })
+  },
+
+  // 阻止事件冒泡（空方法）
+  stopPropagation() {
+    // 什么都不做，只是阻止事件冒泡
   },
 
   // 购买商品

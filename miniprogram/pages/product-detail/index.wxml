@@ -93,14 +93,14 @@
   </view>
 
   <!-- 客服二维码弹窗 -->
-  <view class="modal-overlay" wx:if="{{showServiceQR}}" bindtap="toggleServiceQR">
-    <view class="modal-content" catchtap="">
+  <view class="modal-overlay" wx:if="{{showServiceQR}}" catchtap="toggleServiceQR">
+    <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-title">扫码添加客服</view>
       <image class="qr-image" 
              src="{{hasOrder ? orderQR : serviceQR.imageUrl}}" 
              mode="aspectFit" />
       <text class="qr-hint">{{hasOrder ? '专属客服二维码' : '随机客服二维码'}}</text>
-      <button class="modal-close" bindtap="toggleServiceQR">关闭</button>
+      <button class="modal-close" catchtap="toggleServiceQR">关闭</button>
     </view>
   </view>
 </view>
