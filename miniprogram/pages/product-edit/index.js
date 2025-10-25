@@ -74,7 +74,13 @@ Page({
     try {
       // 从本地存储加载商品数据
       const products = wx.getStorageSync('mock_products') || []
-      const product = products.find(p => p.id === this.data.productId)
+      let product = products.find(p => p.id === this.data.productId)
+      
+      // 如果找不到，尝试用旧的 mock 数据格式
+      if (!product) {
+        console.log('本地存储未找到，使用默认 mock 数据')
+        product = this.getMockProductById(this.data.productId)
+      }
       
       if (!product) {
         wx.showToast({ title: '商品不存在', icon: 'none' })
@@ -140,6 +146,74 @@ Page({
     } finally {
       this.setData({ loading: false })
     }
+  },
+
+  // 获取默认 mock 数据（用于兼容旧数据）
+  getMockProductById(id) {
+    const mockProducts = {
+      '1': {
+        id: '1',
+        name: '精美头像设计',
+        summary: '专业画师手绘，风格多样，满意为止',
+        summaryImages: [],
+        basePrice: '88.00',
+        stock: 100,
+        category: 'portrait',
+        images: ['https://via.placeholder.com/400x400.png?text=精美头像'],
+        tags: ['热销', '精品'],
+        isOnSale: true,
+        deliveryDays: 3,
+        artist: { name: '设计师小王', avatar: '' },
+        sales: 45
+      },
+      '2': {
+        id: '2',
+        name: '创意插画作品',
+        summary: '原创插画设计，风格独特，质量保证',
+        summaryImages: [],
+        basePrice: '168.00',
+        stock: 50,
+        category: 'illustration',
+        images: ['https://via.placeholder.com/400x400.png?text=创意插画'],
+        tags: ['原创', '限量'],
+        isOnSale: true,
+        deliveryDays: 5,
+        artist: { name: '插画师小李', avatar: '' },
+        sales: 23
+      },
+      '3': {
+        id: '3',
+        name: '企业LOGO设计',
+        summary: '专业LOGO设计，多种方案可选',
+        summaryImages: [],
+        basePrice: '299.00',
+        stock: 30,
+        category: 'logo',
+        images: ['https://via.placeholder.com/400x400.png?text=LOGO设计'],
+        tags: ['专业', '商用'],
+        isOnSale: false,
+        deliveryDays: 7,
+        artist: { name: 'LOGO设计师', avatar: '' },
+        sales: 12
+      },
+      '4': {
+        id: '4',
+        name: '卡通形象设计',
+        summary: '可爱卡通形象设计，适合各种场景',
+        summaryImages: [],
+        basePrice: '128.00',
+        stock: 80,
+        category: 'illustration',
+        images: ['https://via.placeholder.com/400x400.png?text=卡通形象'],
+        tags: ['可爱', '热销'],
+        isOnSale: true,
+        deliveryDays: 5,
+        artist: { name: '卡通设计师', avatar: '' },
+        sales: 56
+      }
+    }
+    
+    return mockProducts[id] || null
   },
 
   // 步骤导航
