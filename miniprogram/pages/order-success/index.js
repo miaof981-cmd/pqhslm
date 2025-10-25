@@ -7,12 +7,12 @@ Page({
   },
 
   onLoad(options) {
-    // 从URL参数获取订单信息
+    // 从URL参数获取订单信息（需要解码）
     const orderInfo = {
       orderNo: this.generateOrderNo(),
-      productName: options.productName || '商品',
-      spec1: options.spec1 || '',
-      spec2: options.spec2 || '',
+      productName: decodeURIComponent(options.productName || '商品'),
+      spec1: decodeURIComponent(options.spec1 || ''),
+      spec2: decodeURIComponent(options.spec2 || ''),
       quantity: parseInt(options.quantity) || 1,
       price: parseFloat(options.price) || 0,
       totalAmount: parseFloat(options.totalAmount) || 0,
@@ -27,6 +27,7 @@ Page({
     }
 
     console.log('订单信息:', orderInfo)
+    console.log('原始参数:', options)
 
     this.setData({
       orderInfo: orderInfo,
