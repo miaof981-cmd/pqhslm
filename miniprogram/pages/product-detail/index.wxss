@@ -202,16 +202,81 @@
   justify-content: center;
   padding: 0 24rpx;
   margin-right: 20rpx;
+  position: relative;
 }
 
-.service-icon {
-  font-size: 36rpx;
-  margin-bottom: 4rpx;
+/* 客服图标容器 */
+.service-icon-wrapper {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6rpx;
+}
+
+/* 聊天气泡 */
+.chat-bubble {
+  width: 44rpx;
+  height: 36rpx;
+  background: linear-gradient(135deg, #4ECDC4 0%, #44BDB5 100%);
+  border-radius: 20rpx 20rpx 20rpx 4rpx;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  box-shadow: 0 4rpx 12rpx rgba(78, 205, 196, 0.3);
+  animation: bubble-float 2s ease-in-out infinite;
+}
+
+/* 气泡内的三个点 */
+.bubble-dot {
+  width: 6rpx;
+  height: 6rpx;
+  background: white;
+  border-radius: 50%;
+  animation: dot-bounce 1.4s ease-in-out infinite;
+}
+
+.bubble-dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.bubble-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.bubble-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* 气泡浮动动画 */
+@keyframes bubble-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4rpx);
+  }
+}
+
+/* 点跳动动画 */
+@keyframes dot-bounce {
+  0%, 60%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  30% {
+    transform: scale(1.3);
+    opacity: 0.8;
+  }
 }
 
 .service-text {
-  font-size: 20rpx;
-  color: #666;
+  font-size: 22rpx;
+  color: #4ECDC4;
+  font-weight: 500;
 }
 
 .buy-btn {

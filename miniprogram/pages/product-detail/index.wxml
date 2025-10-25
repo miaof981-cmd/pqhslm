@@ -80,8 +80,14 @@
   <!-- 底部操作栏 -->
   <view wx:if="{{!loading}}" class="bottom-bar">
     <view class="service-btn" bindtap="toggleServiceQR">
-      <text class="service-icon">◉</text>
-      <text class="service-text">客服</text>
+      <view class="service-icon-wrapper">
+        <view class="chat-bubble">
+          <view class="bubble-dot"></view>
+          <view class="bubble-dot"></view>
+          <view class="bubble-dot"></view>
+        </view>
+      </view>
+      <text class="service-text">联系客服</text>
     </view>
     <button class="buy-btn" bindtap="buyProduct">立即购买</button>
   </view>
