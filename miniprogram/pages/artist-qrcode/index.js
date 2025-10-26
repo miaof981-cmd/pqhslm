@@ -1,28 +1,43 @@
 Page({
   data: {
-    step: 1, // 当前步骤：1-个人信息，2-工作信息，3-完成
+    isSubmitted: false, // 是否已提交
     
-    // 步骤1：个人信息
+    // 工作人员二维码
+    staffQRCode: '',
+    
+    // 个人信息
     contactPhone: '',
     contactWechat: '',
-    emergencyName: '',
-    emergencyPhone: '',
     verifyCode: '',
     canSendCode: false,
     codeButtonText: '发送验证码',
     countdown: 60,
     
-    // 步骤2：工作信息
-    qrcodeUrl: '',
-    artistName: '',
-    artistBio: '',
+    // 紧急联系人
+    emergencyName: '',
+    emergencyRelation: '',
+    emergencyPhone: '',
+    relationOptions: ['父母', '配偶', '子女', '兄弟姐妹', '朋友', '其他'],
+    relationIndex: -1,
     
     // 完成信息
     createTime: ''
   },
 
   onLoad() {
+    this.loadStaffQRCode()
     this.checkExistingProfile()
+  },
+
+  // 加载工作人员二维码
+  loadStaffQRCode() {
+    const staffQRCode = wx.getStorageSync('staff_contact_qrcode') || '/assets/default-qrcode.png'
+    
+    console.log('👔 加载工作人员联系二维码:', staffQRCode)
+    
+    this.setData({
+      staffQRCode: staffQRCode
+    })
   },
 
   // 检查是否已有档案
@@ -37,7 +52,7 @@ Page({
     if (profile) {
       // 已有档案，直接显示完成状态
       this.setData({
-        step: 3,
+        isSubmitted: true,
         artistName: profile.artistName,
         contactPhone: profile.contactPhone,
         createTime: profile.createTime
@@ -76,6 +91,14 @@ Page({
   onEmergencyPhoneInput(e) {
     this.setData({
       emergencyPhone: e.detail.value
+    })
+  },
+
+  onRelationChange(e) {
+    const index = e.detail.value
+    this.setData({
+      relationIndex: index,
+      emergencyRelation: this.data.relationOptions[index]
     })
   },
 
@@ -132,11 +155,11 @@ Page({
     }, 1000)
   },
 
-  // 进入步骤2
-  goToStep2() {
-    // 验证步骤1的所有字段
-    const { contactPhone, verifyCode, contactWechat, emergencyName, emergencyPhone } = this.data
+  // 提交档案
+  submitProfile() {
+    const { contactPhone, verifyCode, contactWechat, emergencyName, emergencyRelation, emergencyPhone } = this.data
     
+    // 验证个人信息
     if (!this.validatePhone(contactPhone)) {
       wx.showToast({
         title: '请输入正确的手机号',
@@ -178,97 +201,17 @@ Page({
       return
     }
     
+    if (!emergencyRelation) {
+      wx.showToast({
+        title: '请选择与紧急联系人的关系',
+        icon: 'none'
+      })
+      return
+    }
+    
     if (!this.validatePhone(emergencyPhone)) {
       wx.showToast({
         title: '请输入正确的紧急联系电话',
-        icon: 'none'
-      })
-      return
-    }
-    
-    // 验证通过，进入步骤2
-    this.setData({
-      step: 2
-    })
-    
-    // 滚动到顶部
-    wx.pageScrollTo({
-      scrollTop: 0,
-      duration: 300
-    })
-  },
-
-  // ========== 步骤2：工作信息设置 ==========
-  
-  // 选择二维码
-  chooseQRCode() {
-    wx.chooseImage({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success: (res) => {
-        const tempFilePath = res.tempFilePaths[0]
-        
-        this.setData({
-          qrcodeUrl: tempFilePath
-        })
-        
-        wx.showToast({
-          title: '上传成功',
-          icon: 'success'
-        })
-      }
-    })
-  },
-
-  onArtistNameInput(e) {
-    this.setData({
-      artistName: e.detail.value
-    })
-  },
-
-  onArtistBioInput(e) {
-    this.setData({
-      artistBio: e.detail.value
-    })
-  },
-
-  // 返回步骤1
-  backToStep1() {
-    this.setData({
-      step: 1
-    })
-    
-    wx.pageScrollTo({
-      scrollTop: 0,
-      duration: 300
-    })
-  },
-
-  // 提交档案
-  submitProfile() {
-    const { qrcodeUrl, artistName, artistBio } = this.data
-    
-    // 验证步骤2的字段
-    if (!qrcodeUrl) {
-      wx.showToast({
-        title: '请上传工作二维码',
-        icon: 'none'
-      })
-      return
-    }
-    
-    if (!artistName || artistName.length < 2 || artistName.length > 20) {
-      wx.showToast({
-        title: '接单昵称为2-20字',
-        icon: 'none'
-      })
-      return
-    }
-    
-    if (!artistBio || artistBio.length < 10 || artistBio.length > 200) {
-      wx.showToast({
-        title: '接单简介为10-200字',
         icon: 'none'
       })
       return
@@ -294,11 +237,8 @@ Page({
       contactPhone: this.data.contactPhone,
       contactWechat: this.data.contactWechat,
       emergencyName: this.data.emergencyName,
+      emergencyRelation: this.data.emergencyRelation,
       emergencyPhone: this.data.emergencyPhone,
-      // 工作信息
-      qrcodeUrl: this.data.qrcodeUrl,
-      artistName: this.data.artistName,
-      artistBio: this.data.artistBio,
       // 时间戳
       createTime: createTime,
       updateTime: createTime
@@ -309,11 +249,6 @@ Page({
     artistProfiles[userId] = profile
     wx.setStorageSync('artist_profiles', artistProfiles)
     
-    // 同时保存工作二维码到原有的存储位置
-    const artistQRCodes = wx.getStorageSync('artist_qrcodes') || {}
-    artistQRCodes[userId] = this.data.qrcodeUrl
-    wx.setStorageSync('artist_qrcodes', artistQRCodes)
-    
     // 保存联系方式历史记录（用于后台查看，画师无法删除）
     const contactHistory = wx.getStorageSync('artist_contact_history') || {}
     if (!contactHistory[userId]) {
@@ -323,6 +258,7 @@ Page({
       contactPhone: this.data.contactPhone,
       contactWechat: this.data.contactWechat,
       emergencyName: this.data.emergencyName,
+      emergencyRelation: this.data.emergencyRelation,
       emergencyPhone: this.data.emergencyPhone,
       recordTime: createTime
     })
@@ -330,21 +266,27 @@ Page({
     
     console.log('✅ 画师档案已保存')
     console.log('  - 用户ID:', userId)
-    console.log('  - 接单昵称:', this.data.artistName)
     console.log('  - 联系电话:', this.data.contactPhone)
+    console.log('  - 紧急联系人:', this.data.emergencyName, '(', this.data.emergencyRelation, ')')
     console.log('  - 联系方式历史记录数:', contactHistory[userId].length)
     
     setTimeout(() => {
       wx.hideLoading()
       
       this.setData({
-        step: 3,
+        isSubmitted: true,
         createTime: createTime
       })
       
       wx.showToast({
         title: '档案建立成功',
         icon: 'success'
+      })
+      
+      // 滚动到顶部
+      wx.pageScrollTo({
+        scrollTop: 0,
+        duration: 300
       })
     }, 1000)
   },

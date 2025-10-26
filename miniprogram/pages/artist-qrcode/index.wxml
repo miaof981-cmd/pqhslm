@@ -5,59 +5,73 @@
     <view class="header-subtitle">完善个人信息，开启接单之旅</view>
   </view>
 
-  <!-- 进度指示 -->
-  <view class="progress-section">
-    <view class="progress-item {{step >= 1 ? 'active' : ''}} {{step > 1 ? 'completed' : ''}}">
-      <view class="progress-dot">1</view>
-      <text class="progress-text">个人信息</text>
-    </view>
-    <view class="progress-line {{step > 1 ? 'active' : ''}}"></view>
-    <view class="progress-item {{step >= 2 ? 'active' : ''}}">
-      <view class="progress-dot">2</view>
-      <text class="progress-text">工作信息</text>
-    </view>
-  </view>
-
   <view class="content-section">
-    <!-- ========== 步骤1：个人信息登记 ========== -->
-    <view wx:if="{{step === 1}}" class="step-content">
+    <!-- ========== 未提交状态：显示表单 ========== -->
+    <view wx:if="{{!isSubmitted}}" class="step-content">
+      <!-- 第一步：添加工作人员 -->
+      <view class="staff-contact-section">
+        <view class="section-header">
+          <view class="step-badge">第一步</view>
+          <text class="section-title">添加工作人员微信</text>
+        </view>
+        <text class="section-hint">扫码添加工作人员，等待开启工作台权限</text>
+        
+        <view class="staff-qrcode-box">
+          <image class="staff-qrcode" src="{{staffQRCode}}" mode="aspectFit" />
+          <text class="qrcode-label">长按识别二维码</text>
+          <text class="qrcode-hint">添加后请说明您是新通过的画师</text>
+        </view>
+      </view>
+
+      <!-- 分隔提示 -->
+      <view class="divider-section">
+        <view class="divider-line"></view>
+        <text class="divider-text">在等待回复期间，请完善以下信息</text>
+        <view class="divider-line"></view>
+      </view>
+
+      <!-- 第二步：填写个人信息 -->
       <view class="form-section">
-        <text class="section-title">联系方式</text>
+        <view class="section-header">
+          <view class="step-badge">第二步</view>
+          <text class="section-title">完善个人信息</text>
+        </view>
         <text class="section-hint">用于内部联系，不会公开在主页</text>
 
-        <!-- 联系手机号 -->
-        <view class="form-item">
-          <text class="form-label required">联系手机号</text>
-          <view class="phone-input-group">
+        <!-- 联系手机号 + 验证码组 -->
+        <view class="form-group">
+          <view class="form-item">
+            <text class="form-label required">联系手机号</text>
             <input 
-              class="form-input phone-input" 
+              class="form-input" 
               type="number" 
               maxlength="11"
               placeholder="请输入手机号" 
               value="{{contactPhone}}"
               bindinput="onPhoneInput"
             />
-            <button 
-              class="verify-btn {{canSendCode ? '' : 'disabled'}}" 
-              bindtap="sendVerifyCode"
-              disabled="{{!canSendCode}}"
-            >
-              {{codeButtonText}}
-            </button>
           </view>
-        </view>
 
-        <!-- 验证码 -->
-        <view class="form-item">
-          <text class="form-label required">验证码</text>
-          <input 
-            class="form-input" 
-            type="number" 
-            maxlength="6"
-            placeholder="请输入验证码" 
-            value="{{verifyCode}}"
-            bindinput="onCodeInput"
-          />
+          <view class="form-item">
+            <text class="form-label required">验证码</text>
+            <view class="verify-input-group">
+              <input 
+                class="form-input verify-input" 
+                type="number" 
+                maxlength="6"
+                placeholder="请输入验证码" 
+                value="{{verifyCode}}"
+                bindinput="onCodeInput"
+              />
+              <button 
+                class="verify-btn {{canSendCode ? '' : 'disabled'}}" 
+                bindtap="sendVerifyCode"
+                disabled="{{!canSendCode}}"
+              >
+                {{codeButtonText}}
+              </button>
+            </view>
+          </view>
         </view>
 
         <!-- 联系微信 -->
@@ -71,110 +85,90 @@
           />
         </view>
 
-        <!-- 紧急联系人 -->
-        <view class="form-item">
-          <text class="form-label required">紧急联系人</text>
-          <input 
-            class="form-input" 
-            placeholder="请输入紧急联系人姓名" 
-            value="{{emergencyName}}"
-            bindinput="onEmergencyNameInput"
-          />
-        </view>
+        <!-- 紧急联系人组 -->
+        <view class="form-group">
+          <view class="form-item">
+            <text class="form-label required">紧急联系人</text>
+            <input 
+              class="form-input" 
+              placeholder="请输入紧急联系人姓名" 
+              value="{{emergencyName}}"
+              bindinput="onEmergencyNameInput"
+            />
+          </view>
 
-        <!-- 紧急联系电话 -->
-        <view class="form-item">
-          <text class="form-label required">紧急联系电话</text>
-          <input 
-            class="form-input" 
-            type="number" 
-            maxlength="11"
-            placeholder="请输入紧急联系人电话" 
-            value="{{emergencyPhone}}"
-            bindinput="onEmergencyPhoneInput"
-          />
-        </view>
-      </view>
+          <view class="form-item">
+            <text class="form-label required">与紧急联系人关系</text>
+            <picker 
+              mode="selector" 
+              range="{{relationOptions}}" 
+              value="{{relationIndex}}"
+              bindchange="onRelationChange"
+            >
+              <view class="picker-input">
+                {{relationIndex >= 0 ? relationOptions[relationIndex] : '请选择关系'}}
+              </view>
+            </picker>
+          </view>
 
-      <!-- 下一步按钮 -->
-      <view class="step-actions">
-        <button class="action-btn primary" bindtap="goToStep2">
-          下一步
-        </button>
-      </view>
-    </view>
-
-    <!-- ========== 步骤2：工作信息设置 ========== -->
-    <view wx:if="{{step === 2}}" class="step-content">
-      <!-- 工作二维码 -->
-      <view class="form-section">
-        <text class="section-title">工作二维码</text>
-        <text class="section-hint">客户下单后会看到此二维码，用于联系您</text>
-
-        <view wx:if="{{qrcodeUrl}}" class="qrcode-preview">
-          <image class="qrcode-image" src="{{qrcodeUrl}}" mode="aspectFit" />
-          <button class="change-btn" bindtap="chooseQRCode">更换二维码</button>
-        </view>
-
-        <view wx:else class="qrcode-upload" bindtap="chooseQRCode">
-          <view class="upload-icon">📸</view>
-          <text class="upload-hint">点击上传工作二维码</text>
-          <text class="upload-desc">建议上传清晰的二维码图片</text>
+          <view class="form-item">
+            <text class="form-label required">紧急联系电话</text>
+            <input 
+              class="form-input" 
+              type="number" 
+              maxlength="11"
+              placeholder="请输入紧急联系人电话" 
+              value="{{emergencyPhone}}"
+              bindinput="onEmergencyPhoneInput"
+            />
+          </view>
         </view>
       </view>
 
-      <!-- 接单昵称 -->
-      <view class="form-section">
-        <view class="form-item">
-          <text class="form-label required">接单昵称</text>
-          <input 
-            class="form-input" 
-            placeholder="请输入接单昵称（2-20字）" 
-            maxlength="20"
-            value="{{artistName}}"
-            bindinput="onArtistNameInput"
-          />
-        </view>
-
-        <!-- 接单简介 -->
-        <view class="form-item">
-          <text class="form-label required">接单简介</text>
-          <textarea 
-            class="form-textarea" 
-            placeholder="请简单介绍您的绘画风格、擅长类型等（10-200字）" 
-            maxlength="200"
-            value="{{artistBio}}"
-            bindinput="onArtistBioInput"
-          />
-          <text class="char-count">{{artistBio.length}}/200</text>
-        </view>
-      </view>
 
       <!-- 提交按钮 -->
-      <view class="step-actions">
-        <button class="action-btn secondary" bindtap="backToStep1">
-          上一步
-        </button>
-        <button class="action-btn primary" bindtap="submitProfile">
+      <view class="submit-section">
+        <button class="action-btn primary full" bindtap="submitProfile">
           提交档案
         </button>
       </view>
+
+      <!-- 重要说明 -->
+      <view class="notice-box">
+        <view class="notice-title">重要说明</view>
+        <view class="notice-item">
+          <text class="notice-dot">•</text>
+          <text class="notice-text">联系方式仅用于内部联系，不会公开在主页</text>
+        </view>
+        <view class="notice-item">
+          <text class="notice-dot">•</text>
+          <text class="notice-text">档案建立后，您可以新增最新联系方式</text>
+        </view>
+        <view class="notice-item">
+          <text class="notice-dot">•</text>
+          <text class="notice-text">历史联系方式将被永久保留，无法删除</text>
+        </view>
+        <view class="notice-item">
+          <text class="notice-dot">•</text>
+          <text class="notice-text">请确保信息真实有效，便于平台联系</text>
+        </view>
+      </view>
     </view>
 
-    <!-- ========== 完成状态 ========== -->
-    <view wx:if="{{step === 3}}" class="success-content">
+    <!-- ========== 已提交状态 ========== -->
+    <view wx:if="{{isSubmitted}}" class="success-content">
       <view class="success-icon">✓</view>
       <text class="success-title">个人档案已建立</text>
       <text class="success-desc">您现在可以开始接单了</text>
       
       <view class="success-info">
         <view class="info-item">
-          <text class="info-label">接单昵称</text>
-          <text class="info-value">{{artistName}}</text>
-        </view>
-        <view class="info-item">
           <text class="info-label">联系手机</text>
           <text class="info-value">{{contactPhone}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">联系微信</text>
+          <text class="info-value">{{contactWechat}}</text>
         </view>
         <view class="info-item">
           <text class="info-label">档案建立时间</text>
@@ -182,30 +176,9 @@
         </view>
       </view>
 
-      <button class="action-btn primary" bindtap="goToWorkspace">
+      <button class="action-btn primary full" bindtap="goToWorkspace">
         进入工作台
       </button>
-    </view>
-
-    <!-- 重要说明 -->
-    <view wx:if="{{step < 3}}" class="notice-box">
-      <view class="notice-title">重要说明</view>
-      <view class="notice-item">
-        <text class="notice-dot">•</text>
-        <text class="notice-text">联系方式仅用于内部联系，不会公开在主页</text>
-      </view>
-      <view class="notice-item">
-        <text class="notice-dot">•</text>
-        <text class="notice-text">档案建立后，您可以新增最新联系方式</text>
-      </view>
-      <view class="notice-item">
-        <text class="notice-dot">•</text>
-        <text class="notice-text">历史联系方式将被永久保留，无法删除</text>
-      </view>
-      <view class="notice-item">
-        <text class="notice-dot">•</text>
-        <text class="notice-text">请确保信息真实有效，便于平台联系</text>
-      </view>
     </view>
   </view>
 </view>
