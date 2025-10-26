@@ -15,6 +15,15 @@
     <view class="info-hint">当前拥有 {{roles.length}} 个身份</view>
   </view>
 
+  <!-- 安全警告 -->
+  <view class="warning-card">
+    <view class="warning-icon">⚠️</view>
+    <view class="warning-content">
+      <text class="warning-title">安全提示</text>
+      <text class="warning-text">当前权限管理仅用于开发测试！生产环境必须使用云数据库存储权限，并在服务端验证。详见项目根目录的"权限管理说明.md"</text>
+    </view>
+  </view>
+
   <!-- 权限说明 -->
   <view class="tips-card">
     <view class="tips-icon">ℹ️</view>

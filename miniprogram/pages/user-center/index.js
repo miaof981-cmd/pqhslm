@@ -106,12 +106,16 @@ Page({
   // 加载用户信息
   async loadUserInfo() {
     const app = getApp()
+    
+    // 获取用户的主要角色（第一个角色）
+    const mainRole = this.data.roles.length > 0 ? this.data.roles[0] : 'customer'
+    
     this.setData({ 
       userInfo: {
         openid: app.globalData.openid,
         name: '妙妙',
         avatar: 'https://via.placeholder.com/100x100.png?text=妙妙',
-        role: 'customer'
+        role: mainRole  // 使用实际的主要角色
       }
     })
   },

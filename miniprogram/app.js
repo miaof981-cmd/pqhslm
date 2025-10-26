@@ -76,13 +76,23 @@ App({
     })
   },
 
-  // 检查权限
+  // 检查权限（支持多角色）
   checkPermission(requiredRole) {
-    const roleHierarchy = {
-      'customer': 1,
-      'artist': 2,
-      'admin': 3
-    }
-    return roleHierarchy[this.globalData.role] >= roleHierarchy[requiredRole]
+    // 从本地存储读取用户的所有角色
+    const userRoles = wx.getStorageSync('userRoles') || ['customer']
+    
+    // 检查用户是否拥有所需角色
+    return userRoles.includes(requiredRole)
+  },
+  
+  // 检查是否有任一权限
+  hasAnyRole(roles) {
+    const userRoles = wx.getStorageSync('userRoles') || ['customer']
+    return roles.some(role => userRoles.includes(role))
+  },
+  
+  // 获取用户所有角色
+  getUserRoles() {
+    return wx.getStorageSync('userRoles') || ['customer']
   }
 })

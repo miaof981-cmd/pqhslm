@@ -65,6 +65,42 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+/* 安全警告卡片 */
+.warning-card {
+  margin: 30rpx 30rpx 20rpx;
+  background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+  border-radius: 20rpx;
+  padding: 24rpx;
+  display: flex;
+  gap: 16rpx;
+  box-shadow: 0 4rpx 20rpx rgba(255, 152, 0, 0.15);
+  border: 2rpx solid #FFB74D;
+}
+
+.warning-icon {
+  font-size: 40rpx;
+  flex-shrink: 0;
+}
+
+.warning-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.warning-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #E65100;
+}
+
+.warning-text {
+  font-size: 24rpx;
+  color: #F57C00;
+  line-height: 1.6;
+}
+
 /* 提示卡片 */
 .tips-card {
   margin: 0 30rpx 30rpx;
