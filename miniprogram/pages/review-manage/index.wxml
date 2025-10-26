@@ -1,0 +1,208 @@
+<view class="container">
+  <!-- 头部 -->
+  <view class="header">
+    <view class="header-title">画师审核管理</view>
+    <view class="today-stats">
+      <text class="stats-label">今日已审核</text>
+      <text class="stats-value">{{todayReviewCount}}</text>
+    </view>
+  </view>
+
+  <!-- 标签切换 -->
+  <view class="tabs">
+    <view 
+      class="tab-item {{currentTab === 'pending' ? 'active' : ''}}" 
+      bindtap="switchTab" 
+      data-tab="pending">
+      <text class="tab-text">待审核</text>
+      <view wx:if="{{pendingCount > 0}}" class="tab-badge">{{pendingCount}}</view>
+    </view>
+    <view 
+      class="tab-item {{currentTab === 'approved' ? 'active' : ''}}" 
+      bindtap="switchTab" 
+      data-tab="approved">
+      <text class="tab-text">已通过</text>
+    </view>
+    <view 
+      class="tab-item {{currentTab === 'rejected' ? 'active' : ''}}" 
+      bindtap="switchTab" 
+      data-tab="rejected">
+      <text class="tab-text">已驳回</text>
+    </view>
+  </view>
+
+  <!-- 申请列表 -->
+  <view class="content">
+    <!-- 待审核 -->
+    <view wx:if="{{currentTab === 'pending'}}">
+      <view wx:if="{{applications.length === 0}}" class="empty-state">
+        <text class="empty-icon">📋</text>
+        <text class="empty-text">暂无待审核申请</text>
+      </view>
+      <view wx:else class="application-list">
+        <view 
+          wx:for="{{applications}}" 
+          wx:key="id" 
+          class="application-card"
+          bindtap="viewDetail"
+          data-id="{{item.id}}">
+          <!-- 申请人信息 -->
+          <view class="card-header">
+            <image class="avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
+            <view class="user-info">
+              <text class="nickname">{{item.nickName}}</text>
+              <text class="realname">{{item.name}} · {{item.age}}岁</text>
+            </view>
+            <view class="time-badge">{{item.submitTime}}</view>
+          </view>
+
+          <!-- 价格信息 -->
+          <view class="price-info">
+            <view class="price-item">
+              <text class="price-label">理想稿酬</text>
+              <text class="price-value">¥{{item.idealPrice}}</text>
+            </view>
+            <view class="price-item">
+              <text class="price-label">最低价格</text>
+              <text class="price-value">¥{{item.minPrice}}</text>
+            </view>
+          </view>
+
+          <!-- 作品预览 -->
+          <view class="works-preview">
+            <text class="preview-label">作品展示（{{item.finishedWorks.length}}张）</text>
+            <view class="preview-images">
+              <image 
+                wx:for="{{item.finishedWorks}}" 
+                wx:key="*this" 
+                wx:for-item="img"
+                src="{{img}}" 
+                mode="aspectFill" 
+                class="preview-img" 
+                catchtap="previewImage"
+                data-urls="{{item.finishedWorks}}"
+                data-current="{{img}}" />
+            </view>
+          </view>
+
+          <!-- 操作按钮 -->
+          <view class="card-actions" catchtap="stopPropagation">
+            <button class="action-btn reject-btn" bindtap="showRejectModal" data-item="{{item}}">驳回</button>
+            <button class="action-btn approve-btn" bindtap="approveApplication" data-id="{{item.id}}">通过</button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 已通过 -->
+    <view wx:if="{{currentTab === 'approved'}}">
+      <view wx:if="{{applications.length === 0}}" class="empty-state">
+        <text class="empty-icon">✅</text>
+        <text class="empty-text">暂无通过记录</text>
+      </view>
+      <view wx:else class="history-list">
+        <view wx:for="{{applications}}" wx:key="id" class="history-card" bindtap="viewDetail" data-id="{{item.id}}">
+          <view class="history-header">
+            <image class="history-avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
+            <view class="history-info">
+              <text class="history-name">{{item.nickName}}</text>
+              <text class="history-time">通过时间：{{item.approveTime}}</text>
+            </view>
+            <view class="status-tag approved">已通过</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 已驳回 -->
+    <view wx:if="{{currentTab === 'rejected'}}">
+      <view wx:if="{{applications.length === 0}}" class="empty-state">
+        <text class="empty-icon">❌</text>
+        <text class="empty-text">暂无驳回记录</text>
+      </view>
+      <view wx:else class="history-list">
+        <view wx:for="{{applications}}" wx:key="id" class="history-card" bindtap="viewDetail" data-id="{{item.id}}">
+          <view class="history-header">
+            <image class="history-avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
+            <view class="history-info">
+              <text class="history-name">{{item.nickName}}</text>
+              <text class="history-time">驳回时间：{{item.rejectTime}}</text>
+            </view>
+            <view class="status-tag rejected">已驳回</view>
+          </view>
+          <view wx:if="{{item.rejectReason}}" class="reject-reason">
+            <text class="reason-label">驳回原因：</text>
+            <text class="reason-text">{{item.rejectReason}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 驳回话术设置按钮 -->
+  <view class="float-btn" bindtap="showRejectTemplates">
+    <text class="float-icon">💬</text>
+    <text class="float-text">话术</text>
+  </view>
+
+  <!-- 驳回弹窗 -->
+  <view wx:if="{{showRejectModal}}" class="modal-mask" bindtap="hideRejectModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">驳回申请</text>
+        <view class="modal-close" bindtap="hideRejectModal">×</view>
+      </view>
+      <view class="modal-body">
+        <text class="modal-label">选择驳回原因或自定义</text>
+        <view class="quick-replies">
+          <view 
+            wx:for="{{rejectTemplates}}" 
+            wx:key="index"
+            class="reply-item"
+            bindtap="selectTemplate"
+            data-text="{{item}}">
+            {{item}}
+          </view>
+        </view>
+        <textarea 
+          class="reject-input" 
+          placeholder="请输入驳回原因"
+          value="{{rejectReason}}"
+          bindinput="onRejectReasonInput"
+          maxlength="200" />
+        <text class="char-count">{{rejectReason.length}}/200</text>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn cancel-btn" bindtap="hideRejectModal">取消</button>
+        <button class="modal-btn confirm-btn" bindtap="confirmReject">确认驳回</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 话术管理弹窗 -->
+  <view wx:if="{{showTemplateModal}}" class="modal-mask" bindtap="hideTemplateModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">驳回话术管理</text>
+        <view class="modal-close" bindtap="hideTemplateModal">×</view>
+      </view>
+      <view class="modal-body">
+        <text class="modal-label">快捷回复（最多5条）</text>
+        <view class="template-list">
+          <view wx:for="{{rejectTemplates}}" wx:key="index" class="template-item">
+            <text class="template-text">{{index + 1}}. {{item}}</text>
+            <view class="template-actions">
+              <text class="template-btn edit" bindtap="editTemplate" data-index="{{index}}">编辑</text>
+              <text class="template-btn delete" bindtap="deleteTemplate" data-index="{{index}}">删除</text>
+            </view>
+          </view>
+        </view>
+        <button wx:if="{{rejectTemplates.length < 5}}" class="add-template-btn" bindtap="addTemplate">+ 添加话术</button>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn confirm-btn" bindtap="hideTemplateModal">完成</button>
+      </view>
+    </view>
+  </view>
+</view>
+

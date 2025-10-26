@@ -96,9 +96,9 @@
             </view>
             <view class="pending-count warning">{{overdueOrders}}</view>
           </view>
-          <view class="pending-item" bindtap="goToArtistApplications">
+          <view class="pending-item" bindtap="goToReviewManage">
             <view class="pending-info">
-              <text class="pending-title">画师申请</text>
+              <text class="pending-title">画师审核</text>
               <text class="pending-desc">待审核</text>
             </view>
             <view class="pending-count">{{pendingApplications}}</view>
@@ -220,9 +220,6 @@
     <view wx:if="{{currentTab === 'artist'}}" class="tab-content">
       <view class="sub-tabs">
         <view class="sub-tab {{artistTab === 'list' ? 'active' : ''}}" data-tab="list" bindtap="switchArtistTab">画师列表</view>
-        <view class="sub-tab {{artistTab === 'applications' ? 'active' : ''}}" data-tab="applications" bindtap="switchArtistTab">
-          待审核({{pendingApplications}})
-        </view>
         <view class="sub-tab {{artistTab === 'performance' ? 'active' : ''}}" data-tab="performance" bindtap="switchArtistTab">业绩排行</view>
       </view>
 
@@ -244,34 +241,6 @@
               <view class="artist-status status-{{item.status}}">{{item.statusText}}</view>
               <button class="action-btn" data-id="{{item._id}}" catchtap="editArtist">管理</button>
             </view>
-          </view>
-        </view>
-      </view>
-
-      <!-- 画师申请 -->
-      <view wx:if="{{artistTab === 'applications'}}">
-        <view class="application-list">
-          <view wx:for="{{applications}}" wx:key="_id" class="application-item" bindtap="viewApplicationDetail" data-id="{{item._id}}">
-            <view class="application-header">
-              <image class="applicant-avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
-              <view class="applicant-info">
-                <text class="applicant-nickname">{{item.nickName}}</text>
-                <text class="applicant-name">{{item.name}}</text>
-              </view>
-            </view>
-            <text class="applicant-specialty">{{item.specialty}}</text>
-            <view class="portfolio-preview">
-              <text class="portfolio-label">作品展示：</text>
-              <view class="portfolio-images">
-                <image wx:for="{{item.portfolio}}" wx:key="*this" wx:for-item="img" src="{{img}}" mode="aspectFill" class="portfolio-image" />
-              </view>
-            </view>
-            <text class="application-time">申请时间：{{item.createTime}}</text>
-            <view class="action-buttons" catchtap="stopPropagation">
-              <button class="approve-btn" data-id="{{item._id}}" bindtap="approveArtist">通过</button>
-              <button class="reject-btn" data-id="{{item._id}}" bindtap="rejectArtist">驳回</button>
-            </view>
-            <view class="view-detail-hint">点击查看详情 ›</view>
           </view>
         </view>
       </view>

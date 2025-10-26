@@ -532,8 +532,11 @@ Page({
     this.setData({ orders: overdueOrders })
   },
 
-  goToArtistApplications() {
-    this.setData({ currentTab: 'artist', artistTab: 'applications' })
+  // 跳转到审核管理页面
+  goToReviewManage() {
+    wx.navigateTo({
+      url: '/pages/review-manage/index'
+    })
   },
 
   // 商品操作
@@ -685,104 +688,6 @@ Page({
     })
   },
 
-  // 查看申请详情
-  viewApplicationDetail(e) {
-    const id = e.currentTarget.dataset.id
-    wx.navigateTo({
-      url: `/pages/artist-application-detail/index?id=${id}`
-    })
-  },
-
-  // 阻止事件冒泡
-  stopPropagation() {
-    // 空函数，用于阻止事件冒泡
-  },
-
-  approveArtist(e) {
-    const id = e.currentTarget.dataset.id
-    const application = this.data.applications.find(app => app._id === id)
-    
-    if (!application) {
-      wx.showToast({ title: '申请不存在', icon: 'none' })
-      return
-    }
-    
-    wx.showModal({
-      title: '通过申请',
-      content: `确认通过 ${application.name} 的画师申请？`,
-      success: (res) => {
-        if (res.confirm) {
-          // 更新申请状态
-          let allApplications = wx.getStorageSync('artist_applications') || []
-          const index = allApplications.findIndex(app => app.id === id)
-          
-          if (index !== -1) {
-            allApplications[index].status = 'approved'
-            allApplications[index].approveTime = new Date().toLocaleString('zh-CN')
-            wx.setStorageSync('artist_applications', allApplications)
-            
-            // 给用户添加画师权限
-            const userId = allApplications[index].userId
-            
-            // 如果是当前用户，立即更新权限
-            const currentUserId = wx.getStorageSync('userId')
-            if (userId === currentUserId) {
-              let userRoles = wx.getStorageSync('userRoles') || ['customer']
-              if (!userRoles.includes('artist')) {
-                userRoles.push('artist')
-                wx.setStorageSync('userRoles', userRoles)
-                
-                const app = getApp()
-                app.globalData.userRoles = userRoles
-              }
-            }
-            
-            wx.showToast({ title: '已通过', icon: 'success' })
-            
-            // 重新加载申请列表
-            setTimeout(() => {
-              this.loadApplications()
-            }, 500)
-          }
-        }
-      }
-    })
-  },
-
-  rejectArtist(e) {
-    const id = e.currentTarget.dataset.id
-    const application = this.data.applications.find(app => app._id === id)
-    
-    if (!application) {
-      wx.showToast({ title: '申请不存在', icon: 'none' })
-      return
-    }
-    
-    wx.showModal({
-      title: '驳回申请',
-      content: `确认驳回 ${application.name} 的画师申请？`,
-      success: (res) => {
-        if (res.confirm) {
-          // 更新申请状态
-          let allApplications = wx.getStorageSync('artist_applications') || []
-          const index = allApplications.findIndex(app => app.id === id)
-          
-          if (index !== -1) {
-            allApplications[index].status = 'rejected'
-            allApplications[index].rejectTime = new Date().toLocaleString('zh-CN')
-            wx.setStorageSync('artist_applications', allApplications)
-            
-            wx.showToast({ title: '已驳回', icon: 'success' })
-            
-            // 重新加载申请列表
-            setTimeout(() => {
-              this.loadApplications()
-            }, 500)
-          }
-        }
-      }
-    })
-  },
 
   // 更多功能导航
   goToCategories() {
