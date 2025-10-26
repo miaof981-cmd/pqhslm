@@ -1,0 +1,97 @@
+<view class="container">
+  <view class="header">
+    <view class="title">画师申请详情</view>
+  </view>
+
+  <view class="content">
+    <!-- 微信信息 -->
+    <view class="section">
+      <view class="section-title">微信信息</view>
+      <view class="wx-info">
+        <image class="wx-avatar" src="{{application.avatarUrl}}" mode="aspectFill" />
+        <view class="wx-details">
+          <text class="wx-nickname">{{application.nickName}}</text>
+          <text class="wx-id">微信号：{{application.wechat}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 基本信息 -->
+    <view class="section">
+      <view class="section-title">基本信息</view>
+      <view class="info-grid">
+        <view class="info-item">
+          <text class="label">姓名</text>
+          <text class="value">{{application.name}}</text>
+        </view>
+        <view class="info-item">
+          <text class="label">年龄</text>
+          <text class="value">{{application.age}}岁</text>
+        </view>
+        <view class="info-item">
+          <text class="label">理想稿酬</text>
+          <text class="value price">¥{{application.idealPrice}}</text>
+        </view>
+        <view class="info-item">
+          <text class="label">最低价格</text>
+          <text class="value price">¥{{application.minPrice}}</text>
+        </view>
+        <view class="info-item">
+          <text class="label">提交时间</text>
+          <text class="value">{{application.submitTime}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 满意作品 -->
+    <view class="section">
+      <view class="section-title">满意的作品（{{application.finishedWorks.length}}张）</view>
+      <view class="image-grid">
+        <image 
+          wx:for="{{application.finishedWorks}}" 
+          wx:key="index"
+          src="{{item}}" 
+          class="work-image"
+          mode="aspectFill"
+          bindtap="previewImage"
+          data-urls="{{application.finishedWorks}}"
+          data-current="{{item}}"
+        />
+      </view>
+    </view>
+
+    <!-- 绘画过程 -->
+    <view class="section">
+      <view class="section-title">绘画过程（{{application.processImages.length}}张）</view>
+      <view class="image-grid">
+        <image 
+          wx:for="{{application.processImages}}" 
+          wx:key="index"
+          src="{{item}}" 
+          class="work-image"
+          mode="aspectFill"
+          bindtap="previewImage"
+          data-urls="{{application.processImages}}"
+          data-current="{{item}}"
+        />
+      </view>
+    </view>
+
+    <!-- 申请状态 -->
+    <view class="section">
+      <view class="section-title">申请状态</view>
+      <view class="status-card status-{{application.status}}">
+        <text class="status-text">{{statusText}}</text>
+        <text wx:if="{{application.approveTime}}" class="status-time">审核时间：{{application.approveTime}}</text>
+        <text wx:if="{{application.rejectTime}}" class="status-time">驳回时间：{{application.rejectTime}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作按钮（仅待审核状态显示） -->
+  <view wx:if="{{application.status === 'pending'}}" class="action-bar">
+    <button class="action-btn reject-btn" bindtap="rejectApplication">驳回</button>
+    <button class="action-btn approve-btn" bindtap="approveApplication">通过</button>
+  </view>
+</view>
+

@@ -828,18 +828,33 @@
 
 .application-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 10rpx;
+  gap: 20rpx;
+  margin-bottom: 16rpx;
 }
 
-.applicant-name {
+.applicant-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 40rpx;
+  background: #F5F5F5;
+  flex-shrink: 0;
+}
+
+.applicant-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.applicant-nickname {
   font-size: 28rpx;
   font-weight: 600;
   color: #333;
 }
 
-.applicant-phone {
+.applicant-name {
   font-size: 24rpx;
   color: #999;
 }
@@ -879,6 +894,15 @@
   font-size: 22rpx;
   color: #999;
   margin-bottom: 15rpx;
+}
+
+.view-detail-hint {
+  text-align: center;
+  font-size: 24rpx;
+  color: #A8E6CF;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx dashed #E0E0E0;
 }
 
 .action-buttons {

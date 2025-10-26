@@ -1,0 +1,192 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #E6FFEB 0%, #F0FFF4 100%);
+  padding-bottom: 120rpx;
+}
+
+.header {
+  background: linear-gradient(135deg, #A8E6CF 0%, #88D4AB 100%);
+  padding: 40rpx 30rpx 30rpx;
+  color: white;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+}
+
+.content {
+  padding: 30rpx;
+}
+
+/* 区块样式 */
+.section {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(168, 230, 207, 0.15);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #2C3E50;
+  margin-bottom: 24rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 3rpx solid #A8E6CF;
+}
+
+/* 微信信息 */
+.wx-info {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.wx-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 60rpx;
+  background: #F5F5F5;
+}
+
+.wx-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.wx-nickname {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #2C3E50;
+}
+
+.wx-id {
+  font-size: 24rpx;
+  color: #7F8C8D;
+}
+
+/* 信息网格 */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24rpx;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.label {
+  font-size: 24rpx;
+  color: #7F8C8D;
+}
+
+.value {
+  font-size: 28rpx;
+  color: #2C3E50;
+  font-weight: 500;
+}
+
+.value.price {
+  color: #E74C3C;
+  font-weight: bold;
+  font-size: 32rpx;
+}
+
+/* 图片网格 */
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+}
+
+.work-image {
+  width: 100%;
+  height: 200rpx;
+  border-radius: 12rpx;
+  background: #F5F5F5;
+}
+
+/* 状态卡片 */
+.status-card {
+  padding: 30rpx;
+  border-radius: 16rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.status-card.status-pending {
+  background: linear-gradient(135deg, #FFF3CD 0%, #FFEAA7 100%);
+}
+
+.status-card.status-approved {
+  background: linear-gradient(135deg, #D4EDDA 0%, #A8E6CF 100%);
+}
+
+.status-card.status-rejected {
+  background: linear-gradient(135deg, #F8D7DA 0%, #FFCDD2 100%);
+}
+
+.status-text {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #2C3E50;
+}
+
+.status-time {
+  font-size: 24rpx;
+  color: #7F8C8D;
+}
+
+/* 操作按钮栏 */
+.action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 20rpx 30rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 20rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.action-btn {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+}
+
+.reject-btn {
+  background: linear-gradient(135deg, #FFE5E5 0%, #FFD0D0 100%);
+  color: #E74C3C;
+}
+
+.reject-btn:active {
+  background: linear-gradient(135deg, #FFD0D0 0%, #FFBABA 100%);
+}
+
+.approve-btn {
+  background: linear-gradient(135deg, #A8E6CF 0%, #88D4AB 100%);
+  color: white;
+}
+
+.approve-btn:active {
+  background: linear-gradient(135deg, #88D4AB 0%, #6BC490 100%);
+}
+

@@ -377,6 +377,10 @@ Page({
     // 转换为管理后台需要的格式
     const formattedApplications = pendingApplications.map(app => ({
       _id: app.id,
+      // 微信信息
+      avatarUrl: app.avatarUrl || '',
+      nickName: app.nickName || '未知用户',
+      // 申请信息
       name: app.name,
       phone: app.wechat, // 使用微信号
       specialty: `年龄：${app.age}岁，理想稿酬：¥${app.idealPrice}，最低价格：¥${app.minPrice}`,
@@ -679,6 +683,19 @@ Page({
       showEditArtistModal: false,
       editingArtist: null
     })
+  },
+
+  // 查看申请详情
+  viewApplicationDetail(e) {
+    const id = e.currentTarget.dataset.id
+    wx.navigateTo({
+      url: `/pages/artist-application-detail/index?id=${id}`
+    })
+  },
+
+  // 阻止事件冒泡
+  stopPropagation() {
+    // 空函数，用于阻止事件冒泡
   },
 
   approveArtist(e) {

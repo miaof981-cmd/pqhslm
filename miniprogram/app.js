@@ -8,59 +8,59 @@ App({
   },
 
   onLaunch() {
-    // 暂时禁用云开发，避免权限错误
-    // 初始化云开发
-    // if (!wx.cloud) {
-    //   console.error('请使用 2.2.3 或以上的基础库以使用云能力')
-    // } else {
-    //   wx.cloud.init({
-    //     env: 'cloud1-0g8v8v8v8v8v8v8v', // 请替换为你的云开发环境ID
-    //     traceUser: true,
-    //   })
-    // }
-
-    // 获取用户信息
-    this.getUserInfo()
+    // 初始化用户信息
+    this.initUserInfo()
   },
 
-  // 获取用户信息
-  getUserInfo() {
-    // 暂时使用模拟数据，避免云开发权限错误
-    this.globalData.openid = 'dev-openid-demo-' + Date.now()
-    this.getUserProfile()
+  // 初始化用户信息
+  initUserInfo() {
+    // 检查本地存储是否有用户信息
+    const userInfo = wx.getStorageSync('userInfo')
+    const userId = wx.getStorageSync('userId')
+    const openid = wx.getStorageSync('openid')
     
-    // 云开发版本（需要先开通云开发）
-    // wx.cloud.callFunction({
-    //   name: 'login',
-    //   success: res => {
-    //     this.globalData.openid = res.result.openid
-    //     this.getUserProfile()
-    //   },
-    //   fail: err => {
-    //     console.error('获取openid失败', err)
-    //   }
-    // })
-  },
-
-  // 获取用户资料
-  getUserProfile() {
-    // 暂时使用模拟数据
-    this.globalData.userProfile = {
-      openid: this.globalData.openid,
-      role: 'customer',
-      name: '测试用户'
+    if (userInfo && userId && openid) {
+      // 已有用户信息，直接使用
+      this.globalData.userInfo = userInfo
+      this.globalData.userId = userId
+      this.globalData.openid = openid
+      console.log('用户信息已加载:', userInfo)
+    } else {
+      // 没有用户信息，生成临时ID
+      const tempUserId = 1001 + Math.floor(Math.random() * 1000)
+      const tempOpenid = 'dev-openid-' + Date.now()
+      
+      this.globalData.userId = tempUserId
+      this.globalData.openid = tempOpenid
+      
+      wx.setStorageSync('userId', tempUserId)
+      wx.setStorageSync('openid', tempOpenid)
+      
+      console.log('生成临时用户ID:', tempUserId)
     }
-    this.globalData.role = 'customer'
-    
-    // 云开发版本（需要先开通云开发）
-    // wx.cloud.database().collection('users').where({
-    //   openid: this.globalData.openid
-    // }).get().then(res => {
-    //   if (res.data.length > 0) {
-    //     this.globalData.userProfile = res.data[0]
-    //     this.globalData.role = res.data[0].role || 'customer'
-    //   }
-    // })
+  },
+
+  // 获取微信用户信息（需要用户授权）
+  async getWxUserInfo() {
+    return new Promise((resolve, reject) => {
+      wx.getUserProfile({
+        desc: '用于完善用户资料',
+        success: (res) => {
+          const userInfo = res.userInfo
+          
+          // 保存用户信息到本地
+          wx.setStorageSync('userInfo', userInfo)
+          this.globalData.userInfo = userInfo
+          
+          console.log('获取微信用户信息成功:', userInfo)
+          resolve(userInfo)
+        },
+        fail: (err) => {
+          console.error('获取微信用户信息失败:', err)
+          reject(err)
+        }
+      })
+    })
   },
 
   // 设置用户角色

@@ -212,33 +212,81 @@ Page({
     }
 
     try {
-      wx.showLoading({ title: '提交中...' })
-
       const app = getApp()
-      const userId = wx.getStorageSync('userId') || app.globalData.userId || 1001
-      const openid = wx.getStorageSync('openid') || app.globalData.openid || 'mock_openid_' + userId
-
-      // 创建申请记录
-      const application = {
-        id: 'app_' + Date.now(),
-        userId: userId,
-        openid: openid,
-        name: this.data.formData.name,
-        age: this.data.formData.age,
-        wechat: this.data.formData.wechat,
-        idealPrice: this.data.formData.idealPrice,
-        minPrice: this.data.formData.minPrice,
-        finishedWorks: this.data.formData.finishedWorks,
-        processImages: this.data.formData.processImages,
-        status: 'pending', // pending, approved, rejected
-        submitTime: new Date().toLocaleString('zh-CN', { 
-          year: 'numeric', 
-          month: '2-digit', 
-          day: '2-digit', 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        }).replace(/\//g, '-')
+      
+      // 检查是否已授权微信信息
+      let userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo
+      
+      if (!userInfo) {
+        // 请求授权
+        wx.showModal({
+          title: '需要授权',
+          content: '为了完善您的申请资料，需要获取您的微信头像和昵称',
+          confirmText: '去授权',
+          success: async (res) => {
+            if (res.confirm) {
+              try {
+                userInfo = await app.getWxUserInfo()
+                // 授权成功后继续提交
+                this.doSubmitApplication(userInfo)
+              } catch (error) {
+                wx.showToast({
+                  title: '授权失败，请重试',
+                  icon: 'none'
+                })
+              }
+            }
+          }
+        })
+        return
       }
+      
+      // 已授权，直接提交
+      this.doSubmitApplication(userInfo)
+
+    } catch (error) {
+      wx.hideLoading()
+      console.error('提交申请失败', error)
+      wx.showToast({
+        title: '提交失败，请重试',
+        icon: 'none'
+      })
+    }
+  },
+
+  // 执行提交申请
+  doSubmitApplication(userInfo) {
+    wx.showLoading({ title: '提交中...' })
+
+    const app = getApp()
+    const userId = wx.getStorageSync('userId') || app.globalData.userId || 1001
+    const openid = wx.getStorageSync('openid') || app.globalData.openid || 'mock_openid_' + userId
+
+    // 创建申请记录
+    const application = {
+      id: 'app_' + Date.now(),
+      userId: userId,
+      openid: openid,
+      // 微信信息
+      avatarUrl: userInfo.avatarUrl,
+      nickName: userInfo.nickName,
+      // 申请表单信息
+      name: this.data.formData.name,
+      age: this.data.formData.age,
+      wechat: this.data.formData.wechat,
+      idealPrice: this.data.formData.idealPrice,
+      minPrice: this.data.formData.minPrice,
+      finishedWorks: this.data.formData.finishedWorks,
+      processImages: this.data.formData.processImages,
+      status: 'pending', // pending, approved, rejected
+      submitTime: new Date().toLocaleString('zh-CN', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }).replace(/\//g, '-')
+    }
 
       // 保存到本地存储
       let applications = wx.getStorageSync('artist_applications') || []

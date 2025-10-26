@@ -251,12 +251,15 @@
       <!-- 画师申请 -->
       <view wx:if="{{artistTab === 'applications'}}">
         <view class="application-list">
-          <view wx:for="{{applications}}" wx:key="_id" class="application-item">
+          <view wx:for="{{applications}}" wx:key="_id" class="application-item" bindtap="viewApplicationDetail" data-id="{{item._id}}">
             <view class="application-header">
-              <text class="applicant-name">{{item.name}}</text>
-              <text class="applicant-phone">{{item.phone}}</text>
+              <image class="applicant-avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
+              <view class="applicant-info">
+                <text class="applicant-nickname">{{item.nickName}}</text>
+                <text class="applicant-name">{{item.name}}</text>
+              </view>
             </view>
-            <text class="applicant-specialty">擅长：{{item.specialty}}</text>
+            <text class="applicant-specialty">{{item.specialty}}</text>
             <view class="portfolio-preview">
               <text class="portfolio-label">作品展示：</text>
               <view class="portfolio-images">
@@ -264,10 +267,11 @@
               </view>
             </view>
             <text class="application-time">申请时间：{{item.createTime}}</text>
-            <view class="action-buttons">
+            <view class="action-buttons" catchtap="stopPropagation">
               <button class="approve-btn" data-id="{{item._id}}" bindtap="approveArtist">通过</button>
               <button class="reject-btn" data-id="{{item._id}}" bindtap="rejectArtist">驳回</button>
             </view>
+            <view class="view-detail-hint">点击查看详情 ›</view>
           </view>
         </view>
       </view>
