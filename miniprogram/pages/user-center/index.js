@@ -131,16 +131,13 @@ Page({
     // ✅ 同步全局
     app.globalData.roles = roles
     app.globalData.role = roles[0]
-    
-    // 获取用户ID
-    const userId = wx.getStorageSync('userId') || app.globalData.userId || 1001
     app.globalData.userId = userId
     
     // 生成角色文本
     const roleTexts = roles.map(r => this.getRoleText(r))
     
     // ✅ 检查申请状态（用于判断是否显示工作台入口）
-    const applications = wx.getStorageSync('artist_applications') || []
+    // applications 已在上面声明，这里直接使用
     const userApplications = applications.filter(app => app.userId === userId)
     let applicationApproved = false
     
