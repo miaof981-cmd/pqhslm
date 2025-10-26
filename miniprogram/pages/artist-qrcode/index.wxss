@@ -29,7 +29,54 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
-/* 权限状态提示 */
+/* 申请通过提示 */
+.approval-notice {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 32rpx;
+  background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
+  border-radius: 20rpx;
+  border: 2rpx solid #66BB6A;
+  box-shadow: 0 4rpx 16rpx rgba(102, 187, 106, 0.15);
+  margin: 0 32rpx 24rpx;
+}
+
+.notice-icon {
+  width: 80rpx;
+  height: 80rpx;
+  background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  color: #FFFFFF;
+  flex-shrink: 0;
+  box-shadow: 0 4rpx 12rpx rgba(102, 187, 106, 0.3);
+}
+
+.notice-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.notice-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2E7D32;
+  line-height: 1.4;
+}
+
+.notice-desc {
+  font-size: 26rpx;
+  color: #558B2F;
+  line-height: 1.5;
+}
+
+/* 权限状态提示（旧版，保留用于其他地方） */
 .permission-status {
   display: flex;
   align-items: center;

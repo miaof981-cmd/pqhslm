@@ -2,6 +2,7 @@ Page({
   data: {
     isSubmitted: false, // 是否已提交
     hasArtistPermission: false, // 是否已有画师权限
+    applicationApproved: false, // 申请是否已通过（但权限未开启）
     
     // 工作人员二维码
     staffQRCode: '',
@@ -27,9 +28,37 @@ Page({
   },
 
   onLoad() {
+    this.checkApplicationStatus() // 先检查申请状态
     this.checkArtistPermission()
     this.loadStaffQRCode()
     this.checkExistingProfile()
+  },
+
+  // 检查申请状态
+  checkApplicationStatus() {
+    const app = getApp()
+    const userId = app.globalData.userId || wx.getStorageSync('userId')
+    
+    // 读取所有申请记录
+    const allApplications = wx.getStorageSync('artist_applications') || []
+    const userApplications = allApplications.filter(app => app.userId === userId)
+    
+    if (userApplications.length > 0) {
+      // 按时间排序，取最新的
+      userApplications.sort((a, b) => new Date(b.submitTime) - new Date(a.submitTime))
+      const latestApp = userApplications[0]
+      
+      console.log('📋 [artist-qrcode] 申请状态检查:')
+      console.log('  - 最新申请状态:', latestApp.status)
+      
+      // 如果申请已通过，标记为已通过
+      if (latestApp.status === 'approved') {
+        this.setData({
+          applicationApproved: true
+        })
+        console.log('  ✅ 申请已通过，等待权限开启')
+      }
+    }
   },
 
   // 检查是否有画师权限
