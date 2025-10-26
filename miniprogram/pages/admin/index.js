@@ -102,263 +102,266 @@ Page({
 
   // 加载仪表盘数据
   async loadDashboard() {
-    // 模拟数据 - 根据timeFilter显示不同数据
-    const { timeFilter } = this.data
+    // 从本地存储读取真实数据
+    const allOrders = wx.getStorageSync('mock_orders') || []
+    const allApplications = wx.getStorageSync('artist_applications') || []
     
-    // 根据不同时间范围返回不同数据
-    const dashboardData = {
-      today: {
-        orderCount: 28,
-        orderTrend: '+3',
-        buyerCount: 15,
-        buyerTrend: '+2',
-        revenue: '3,680',
-        revenueTrend: '+480',
-        refundCount: 5,
-        refundAmount: '580',
-        artistCount: 23,
-        activeArtists: 18,
-        userCount: 89,
-        newUsers: 12
-      },
-      yesterday: {
-        orderCount: 25,
-        orderTrend: '+5',
-        buyerCount: 13,
-        buyerTrend: '+1',
-        revenue: '3,200',
-        revenueTrend: '+320',
-        refundCount: 3,
-        refundAmount: '420',
-        artistCount: 23,
-        activeArtists: 17,
-        userCount: 77,
-        newUsers: 8
-      },
-      week: {
-        orderCount: 156,
-        orderTrend: '+18',
-        buyerCount: 89,
-        buyerTrend: '+12',
-        revenue: '15,680',
-        revenueTrend: '+2,340',
-        refundCount: 12,
-        refundAmount: '1,580',
-        artistCount: 23,
-        activeArtists: 20,
-        userCount: 89,
-        newUsers: 23
-      },
-      month: {
-        orderCount: 567,
-        orderTrend: '+89',
-        buyerCount: 234,
-        buyerTrend: '+45',
-        revenue: '58,900',
-        revenueTrend: '+8,900',
-        refundCount: 28,
-        refundAmount: '3,680',
-        artistCount: 23,
-        activeArtists: 21,
-        userCount: 89,
-        newUsers: 56
-      }
-    }
+    // 计算订单统计
+    const orderCount = allOrders.length
+    const processingOrders = allOrders.filter(o => o.status === 'processing' || o.status === 'paid')
+    const completedOrders = allOrders.filter(o => o.status === 'completed')
+    const refundingOrders = allOrders.filter(o => o.status === 'refunding' || o.status === 'refunded')
+    
+    // 计算总收入（已完成订单）
+    const totalRevenue = completedOrders.reduce((sum, order) => {
+      const price = parseFloat(order.totalPrice) || 0
+      return sum + price
+    }, 0)
+    
+    // 计算退款金额
+    const refundAmount = refundingOrders.reduce((sum, order) => {
+      const price = parseFloat(order.totalPrice) || 0
+      return sum + price
+    }, 0)
+    
+    // 计算画师数量
+    const approvedArtists = allApplications.filter(app => app.status === 'approved')
+    const artistCount = approvedArtists.length
+    
+    // 计算用户数量（从订单中去重买家）
+    const uniqueBuyers = new Set(allOrders.map(o => o.buyerId || o.buyer))
+    const buyerCount = uniqueBuyers.size
+    
+    // 计算待处理数量
+    const pendingOrders = allOrders.filter(o => o.status === 'unpaid' || o.status === 'paid').length
+    const pendingApplicationsCount = allApplications.filter(app => app.status === 'pending').length
+    
+    // 计算逾期订单（截止日期已过但未完成）
+    const now = new Date()
+    const overdueOrders = allOrders.filter(o => {
+      if (o.status === 'completed' || o.status === 'refunded') return false
+      if (!o.deadline) return false
+      const deadline = new Date(o.deadline)
+      return deadline < now
+    }).length
     
     this.setData({
-      dashboard: dashboardData[timeFilter] || dashboardData.today,
-      pendingOrders: 8,
-      overdueOrders: 3,
-      pendingApplications: 2
+      dashboard: {
+        orderCount: orderCount,
+        orderTrend: '+0',
+        buyerCount: buyerCount,
+        buyerTrend: '+0',
+        revenue: totalRevenue.toFixed(2),
+        revenueTrend: '+0',
+        refundCount: refundingOrders.length,
+        refundAmount: refundAmount.toFixed(2),
+        artistCount: artistCount,
+        activeArtists: artistCount,
+        userCount: buyerCount,
+        newUsers: 0
+      },
+      pendingOrders: pendingOrders,
+      overdueOrders: overdueOrders,
+      pendingApplications: pendingApplicationsCount
     })
     
-    // 显示切换提示
-    const filterText = {
-      today: '今日',
-      yesterday: '昨日',
-      week: '本周',
-      month: '本月'
-    }
-    wx.showToast({
-      title: `已切换到${filterText[timeFilter]}`,
-      icon: 'success',
-      duration: 1000
+    console.log('仪表盘数据:', {
+      订单总数: orderCount,
+      总收入: totalRevenue,
+      画师数: artistCount,
+      买家数: buyerCount,
+      待处理订单: pendingOrders,
+      逾期订单: overdueOrders,
+      待审核申请: pendingApplicationsCount
     })
   },
 
   // 加载商品列表
   async loadProducts() {
-    const mockProducts = [
-      {
-        _id: '1',
-        name: '精美头像设计',
-        image: 'https://via.placeholder.com/200',
-        category: '头像设计',
-        price: '88.00',
-        status: 'online',
-        isHot: true,
-        isRecommend: true,
-        isSpecial: false
-      },
-      {
-        _id: '2',
-        name: '创意插画作品',
-        image: 'https://via.placeholder.com/200',
-        category: '插画',
-        price: '168.00',
-        status: 'online',
-        isHot: false,
-        isRecommend: true,
-        isSpecial: true
-      },
-      {
-        _id: '3',
-        name: '企业LOGO设计',
-        image: 'https://via.placeholder.com/200',
-        category: 'LOGO',
-        price: '299.00',
-        status: 'offline',
-        isHot: false,
-        isRecommend: false,
-        isSpecial: false
+    // 从本地存储读取真实商品数据
+    const allProducts = wx.getStorageSync('mock_products') || []
+    
+    // 转换为管理后台需要的格式
+    const formattedProducts = allProducts.map(product => {
+      // 计算显示价格
+      let displayPrice = '0.00'
+      if (product.basePrice) {
+        displayPrice = parseFloat(product.basePrice).toFixed(2)
+      } else if (product.spec && product.spec.length > 0) {
+        // 找最低价格
+        const prices = []
+        product.spec.forEach(spec1 => {
+          if (spec1.options) {
+            spec1.options.forEach(opt1 => {
+              const price1 = parseFloat(opt1.price) || 0
+              if (spec1.subSpecs && spec1.subSpecs.length > 0) {
+                spec1.subSpecs.forEach(spec2 => {
+                  if (spec2.options) {
+                    spec2.options.forEach(opt2 => {
+                      const price2 = parseFloat(opt2.price) || 0
+                      prices.push(price1 + price2)
+                    })
+                  }
+                })
+              } else {
+                prices.push(price1)
+              }
+            })
+          }
+        })
+        if (prices.length > 0) {
+          displayPrice = Math.min(...prices).toFixed(2)
+        }
       }
-    ]
+      
+      return {
+        _id: product.id,
+        name: product.name || '未命名商品',
+        image: (product.images && product.images[0]) || '',
+        category: product.category || '未分类',
+        price: displayPrice,
+        status: product.onSale ? 'online' : 'offline',
+        isHot: product.tags && product.tags.includes('hot'),
+        isRecommend: product.tags && product.tags.includes('recommend'),
+        isSpecial: product.tags && product.tags.includes('special'),
+        deliveryDays: product.deliveryDays || 7
+      }
+    })
+    
+    console.log('加载商品列表:', formattedProducts.length, '个商品')
     
     this.setData({
-      allProducts: mockProducts,
-      products: mockProducts
+      allProducts: formattedProducts,
+      products: formattedProducts
     })
   },
 
   // 加载订单列表
   async loadOrders() {
-    const mockOrders = [
-      {
-        _id: '1',
-        orderNo: 'ORD202401250001',
-        productName: '精美头像设计',
-        productImage: 'https://via.placeholder.com/100',
-        userName: '张三',
-        userPhone: '138****1234',
-        artistName: '画师A',
-        amount: '88.00',
-        status: 'paid',
-        statusText: '已支付',
-        createTime: '2024-01-25 10:30',
-        deadline: '2024-02-01 10:30',
-        isOverdue: false
-      },
-      {
-        _id: '2',
-        orderNo: 'ORD202401250002',
-        productName: '创意插画作品',
-        productImage: 'https://via.placeholder.com/100',
-        userName: '李四',
-        userPhone: '139****5678',
-        artistName: '画师B',
-        amount: '168.00',
-        status: 'processing',
-        statusText: '制作中',
-        createTime: '2024-01-24 15:20',
-        deadline: '2024-02-05 15:20',
-        isOverdue: false
-      },
-      {
-        _id: '3',
-        orderNo: 'ORD202401240003',
-        productName: '企业LOGO设计',
-        productImage: 'https://via.placeholder.com/100',
-        userName: '王五',
-        userPhone: '137****9012',
-        artistName: '画师C',
-        amount: '299.00',
-        status: 'processing',
-        statusText: '制作中',
-        createTime: '2024-01-20 09:15',
-        deadline: '2024-01-24 09:15',
-        isOverdue: true
-      },
-      {
-        _id: '4',
-        orderNo: 'ORD202401230004',
-        productName: '卡通形象设计',
-        productImage: 'https://via.placeholder.com/100',
-        userName: '赵六',
-        userPhone: '136****3456',
-        artistName: '画师D',
-        amount: '128.00',
-        status: 'completed',
-        statusText: '已完成',
-        createTime: '2024-01-23 14:00',
-        deadline: '2024-01-30 14:00',
-        isOverdue: false
+    // 从本地存储读取真实订单数据
+    const allOrders = wx.getStorageSync('mock_orders') || []
+    
+    // 状态文本映射
+    const statusTextMap = {
+      'unpaid': '待支付',
+      'paid': '已支付',
+      'processing': '制作中',
+      'completed': '已完成',
+      'refunding': '退款中',
+      'refunded': '已退款'
+    }
+    
+    // 转换为管理后台需要的格式
+    const now = new Date()
+    const formattedOrders = allOrders.map(order => {
+      // 判断是否逾期
+      let isOverdue = false
+      if (order.deadline && (order.status === 'processing' || order.status === 'paid')) {
+        const deadline = new Date(order.deadline)
+        isOverdue = deadline < now
       }
-    ]
+      
+      return {
+        _id: order.id,
+        orderNo: order.orderNo,
+        productName: order.productName,
+        productImage: order.productImage || '',
+        userName: order.buyer || order.buyerName || '未知用户',
+        userPhone: order.buyerPhone || '',
+        artistName: order.artistName || '未知画师',
+        amount: parseFloat(order.totalPrice || 0).toFixed(2),
+        status: order.status,
+        statusText: statusTextMap[order.status] || order.status,
+        createTime: order.createTime,
+        deadline: order.deadline,
+        isOverdue: isOverdue,
+        buyerId: order.buyerId,
+        productId: order.productId,
+        specs: order.specs || []
+      }
+    })
     
     // 计算订单统计
     const orderStats = {
-      all: mockOrders.length,
-      unpaid: mockOrders.filter(o => o.status === 'unpaid').length,
-      processing: mockOrders.filter(o => o.status === 'processing' || o.status === 'paid').length,
-      completed: mockOrders.filter(o => o.status === 'completed').length,
-      refunding: mockOrders.filter(o => o.status === 'refunding' || o.status === 'refunded').length
+      all: formattedOrders.length,
+      unpaid: formattedOrders.filter(o => o.status === 'unpaid').length,
+      processing: formattedOrders.filter(o => o.status === 'processing' || o.status === 'paid').length,
+      completed: formattedOrders.filter(o => o.status === 'completed').length,
+      refunding: formattedOrders.filter(o => o.status === 'refunding' || o.status === 'refunded').length
     }
     
+    console.log('加载订单列表:', formattedOrders.length, '个订单', orderStats)
+    
     this.setData({
-      allOrders: mockOrders,
-      orders: mockOrders,
+      allOrders: formattedOrders,
+      orders: formattedOrders,
       orderStats: orderStats
     })
   },
 
   // 加载画师列表
   async loadArtists() {
-    const mockArtists = [
-      {
-        _id: '1',
-        name: '画师小A',
-        avatar: 'https://via.placeholder.com/100',
-        level: 'S',
-        joinTime: '2023-06-15',
-        productCount: 15,
-        orderCount: 89,
-        totalRevenue: '8,960',
-        status: 'active',
-        statusText: '正常'
-      },
-      {
-        _id: '2',
-        name: '画师小B',
-        avatar: 'https://via.placeholder.com/100',
-        level: 'A',
-        joinTime: '2023-08-20',
-        productCount: 12,
-        orderCount: 67,
-        totalRevenue: '6,720',
-        status: 'active',
-        statusText: '正常'
-      },
-      {
-        _id: '3',
-        name: '画师小C',
-        avatar: 'https://via.placeholder.com/100',
-        level: 'B',
-        joinTime: '2023-10-10',
-        productCount: 8,
-        orderCount: 45,
-        totalRevenue: '4,500',
-        status: 'active',
-        statusText: '正常'
-      }
-    ]
+    // 从本地存储读取已通过的画师申请
+    const allApplications = wx.getStorageSync('artist_applications') || []
+    const approvedApplications = allApplications.filter(app => app.status === 'approved')
     
-    // 业绩排行（按收入排序）
-    const performance = [...mockArtists].sort((a, b) => {
-      return parseFloat(b.totalRevenue.replace(',', '')) - parseFloat(a.totalRevenue.replace(',', ''))
+    // 读取所有商品和订单，用于统计画师数据
+    const allProducts = wx.getStorageSync('mock_products') || []
+    const allOrders = wx.getStorageSync('mock_orders') || []
+    
+    // 转换为画师列表
+    const artists = approvedApplications.map(app => {
+      // 统计该画师的商品数量（通过userId匹配）
+      const artistProducts = allProducts.filter(p => p.artistId === app.userId)
+      const productCount = artistProducts.length
+      
+      // 统计该画师的订单数量和总收入
+      const artistOrders = allOrders.filter(o => o.artistId === app.userId || o.artistName === app.name)
+      const orderCount = artistOrders.length
+      const completedOrders = artistOrders.filter(o => o.status === 'completed')
+      const totalRevenue = completedOrders.reduce((sum, order) => {
+        return sum + (parseFloat(order.totalPrice) || 0)
+      }, 0)
+      
+      // 根据订单数量和收入评定等级
+      let level = 'C'
+      if (orderCount >= 50 && totalRevenue >= 5000) {
+        level = 'S'
+      } else if (orderCount >= 30 && totalRevenue >= 3000) {
+        level = 'A'
+      } else if (orderCount >= 10 && totalRevenue >= 1000) {
+        level = 'B'
+      }
+      
+      return {
+        _id: app.userId,
+        name: app.name,
+        avatar: '', // 暂无头像
+        level: level,
+        joinTime: app.approveTime || app.submitTime,
+        productCount: productCount,
+        orderCount: orderCount,
+        totalRevenue: totalRevenue.toFixed(2),
+        status: 'active',
+        statusText: '正常',
+        wechat: app.wechat,
+        age: app.age,
+        idealPrice: app.idealPrice,
+        minPrice: app.minPrice,
+        userId: app.userId,
+        openid: app.openid
+      }
     })
     
+    // 业绩排行（按收入排序）
+    const performance = [...artists].sort((a, b) => {
+      return parseFloat(b.totalRevenue) - parseFloat(a.totalRevenue)
+    })
+    
+    console.log('加载画师列表:', artists.length, '位画师')
+    
     this.setData({
-      artists: mockArtists,
+      artists: artists,
       artistPerformance: performance
     })
   },
