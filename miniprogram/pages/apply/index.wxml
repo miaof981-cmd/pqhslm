@@ -1,54 +1,193 @@
 <view class="container">
+  <view class="header-section">
+    <view class="header-title">画师认证申请</view>
+    <view class="header-subtitle">加入联盟，开启您的创作之旅</view>
+  </view>
+
   <view class="form-section">
-    <view class="form-title">画师申请</view>
-    
     <!-- 基本信息 -->
-    <view class="input-group">
-      <view class="input-label">姓名 *</view>
-      <input class="input-field" 
-             placeholder="请输入您的姓名" 
-             value="{{formData.name}}"
-             bindinput="onNameInput" />
+    <view class="section-card">
+      <view class="section-title">
+        <view class="title-icon"></view>
+        <text class="title-text">基本信息</text>
+      </view>
+      
+      <view class="input-group">
+        <view class="input-label">
+          <text class="label-text">真实姓名</text>
+          <text class="required">*</text>
+        </view>
+        <input class="input-field" 
+               placeholder="请输入您的真实姓名" 
+               value="{{formData.name}}"
+               bindinput="onNameInput" />
+      </view>
+
+      <view class="input-group">
+        <view class="input-label">
+          <text class="label-text">真实年龄</text>
+          <text class="required">*</text>
+        </view>
+        <input class="input-field" 
+               type="number"
+               placeholder="请输入您的年龄" 
+               value="{{formData.age}}"
+               bindinput="onAgeInput" />
+      </view>
+
+      <view class="input-group">
+        <view class="input-label">
+          <text class="label-text">联系微信</text>
+          <text class="required">*</text>
+        </view>
+        <input class="input-field" 
+               placeholder="请输入您的微信号" 
+               value="{{formData.wechat}}"
+               bindinput="onWechatInput" />
+        <view class="input-hint">用于接收订单通知和沟通</view>
+      </view>
     </view>
 
-    <view class="input-group">
-      <view class="input-label">联系方式 *</view>
-      <input class="input-field" 
-             placeholder="请输入手机号或微信号" 
-             value="{{formData.phone}}"
-             bindinput="onPhoneInput" />
+    <!-- 价格信息 -->
+    <view class="section-card">
+      <view class="section-title">
+        <view class="title-icon"></view>
+        <text class="title-text">价格信息</text>
+      </view>
+      
+      <view class="input-group">
+        <view class="input-label">
+          <text class="label-text">理想稿酬（元）</text>
+          <text class="required">*</text>
+        </view>
+        <input class="input-field" 
+               type="digit"
+               placeholder="如：200" 
+               value="{{formData.idealPrice}}"
+               bindinput="onIdealPriceInput" />
+        <view class="input-hint">您期望的单件作品价格</view>
+      </view>
+
+      <view class="input-group">
+        <view class="input-label">
+          <text class="label-text">最低可接受价格（元）</text>
+          <text class="required">*</text>
+        </view>
+        <input class="input-field" 
+               type="digit"
+               placeholder="如：100" 
+               value="{{formData.minPrice}}"
+               bindinput="onMinPriceInput" />
+        <view class="input-hint">低于此价格的订单您可以选择拒绝</view>
+      </view>
     </view>
 
-    <view class="input-group">
-      <view class="input-label">擅长类型</view>
-      <input class="input-field" 
-             placeholder="如：插画、头像、海报设计等" 
-             value="{{formData.specialty}}"
-             bindinput="onSpecialtyInput" />
-    </view>
-
-    <!-- 作品上传 -->
-    <view class="input-group">
-      <view class="input-label">作品展示 *</view>
-      <view class="upload-section">
+    <!-- 作品展示 -->
+    <view class="section-card">
+      <view class="section-title">
+        <view class="title-icon"></view>
+        <text class="title-text">作品展示</text>
+      </view>
+      
+      <view class="upload-group">
+        <view class="upload-label">
+          <text class="label-text">满意的作品</text>
+          <text class="required">*</text>
+        </view>
+        <view class="upload-hint-top">请上传您最满意的作品，展示您的绘画风格和水平</view>
         <view class="image-grid">
-          <view wx:for="{{formData.portfolio}}" wx:key="*this" class="image-item">
+          <view wx:for="{{formData.finishedWorks}}" wx:key="*this" class="image-item">
             <image src="{{item}}" mode="aspectFill" />
-            <view class="delete-btn" data-index="{{index}}" bindtap="deleteImage">×</view>
+            <view class="delete-btn" data-type="finishedWorks" data-index="{{index}}" bindtap="deleteImage">
+              <view class="delete-icon"></view>
+            </view>
           </view>
-          <view wx:if="{{formData.portfolio.length < 9}}" 
+          <view wx:if="{{formData.finishedWorks.length < 9}}" 
                 class="upload-btn" 
+                data-type="finishedWorks"
                 bindtap="chooseImages">
-            <text>+</text>
+            <view class="upload-icon"></view>
             <text class="upload-text">添加作品</text>
+            <text class="upload-count">{{formData.finishedWorks.length}}/9</text>
           </view>
         </view>
-        <view class="upload-hint">最多上传9张作品图片</view>
+      </view>
+
+      <view class="upload-group">
+        <view class="upload-label">
+          <text class="label-text">绘画过程</text>
+          <text class="required">*</text>
+        </view>
+        <view class="upload-hint-top">请上传绘画过程图（草稿、线稿、上色等），证明作品原创性</view>
+        <view class="image-grid">
+          <view wx:for="{{formData.processImages}}" wx:key="*this" class="image-item">
+            <image src="{{item}}" mode="aspectFill" />
+            <view class="delete-btn" data-type="processImages" data-index="{{index}}" bindtap="deleteImage">
+              <view class="delete-icon"></view>
+            </view>
+          </view>
+          <view wx:if="{{formData.processImages.length < 9}}" 
+                class="upload-btn" 
+                data-type="processImages"
+                bindtap="chooseImages">
+            <view class="upload-icon"></view>
+            <text class="upload-text">添加过程图</text>
+            <text class="upload-count">{{formData.processImages.length}}/9</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 会员制条款 -->
+    <view class="section-card agreement-card">
+      <view class="section-title">
+        <view class="title-icon warning"></view>
+        <text class="title-text">会员制说明</text>
+      </view>
+      
+      <view class="agreement-content">
+        <view class="agreement-title">联盟会员制度</view>
+        <view class="agreement-text">
+          1. 联盟采用会员制运营模式，画师需缴纳会员费后方可接单。
+        </view>
+        <view class="agreement-text">
+          2. 会员费用于平台运营、推广和技术维护，不可退还。
+        </view>
+        <view class="agreement-text">
+          3. 会员有效期内，画师可自由上架商品、接收订单。
+        </view>
+        <view class="agreement-text">
+          4. 会员到期后，商品将自动下架，需续费后重新上架。
+        </view>
+        <view class="agreement-text">
+          5. 画师需保证作品原创性，不得抄袭、盗用他人作品。
+        </view>
+        <view class="agreement-text">
+          6. 画师需按时交稿，如有延期需提前与客户沟通。
+        </view>
+        <view class="agreement-text">
+          7. 平台会收取一定比例的服务费用于运营和推广。
+        </view>
+        <view class="agreement-text">
+          8. 违反规定的画师将被取消会员资格，不予退费。
+        </view>
+      </view>
+
+      <view class="agreement-checkbox" bindtap="toggleAgreement">
+        <view class="checkbox {{agreedToTerms ? 'checked' : ''}}">
+          <view wx:if="{{agreedToTerms}}" class="checkbox-icon"></view>
+        </view>
+        <text class="checkbox-text">我已阅读并同意以上会员制条款</text>
       </view>
     </view>
 
     <!-- 提交按钮 -->
-    <button class="submit-btn" bindtap="submitApplication">提交申请</button>
+    <button class="submit-btn {{agreedToTerms ? '' : 'disabled'}}" 
+            bindtap="submitApplication"
+            disabled="{{!agreedToTerms}}">
+      提交申请
+    </button>
+    
+    <view class="submit-hint">提交后请耐心等待管理员审核，我们会在1-3个工作日内给您答复</view>
   </view>
 </view>
-

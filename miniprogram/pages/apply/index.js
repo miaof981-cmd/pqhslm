@@ -1,11 +1,15 @@
 Page({
   data: {
     formData: {
-      name: '',
-      phone: '',
-      specialty: '',
-      portfolio: []
+      name: '',           // 真实姓名
+      age: '',            // 真实年龄
+      wechat: '',         // 联系微信
+      idealPrice: '',     // 理想稿酬
+      minPrice: '',       // 最低可接受价格
+      finishedWorks: [],  // 满意的作品
+      processImages: []   // 绘画过程
     },
+    agreedToTerms: false, // 是否同意条款
     uploading: false
   },
 
@@ -16,25 +20,49 @@ Page({
     })
   },
 
-  // 输入电话
-  onPhoneInput(e) {
+  // 输入年龄
+  onAgeInput(e) {
     this.setData({
-      'formData.phone': e.detail.value
+      'formData.age': e.detail.value
     })
   },
 
-  // 输入擅长类型
-  onSpecialtyInput(e) {
+  // 输入微信
+  onWechatInput(e) {
     this.setData({
-      'formData.specialty': e.detail.value
+      'formData.wechat': e.detail.value
     })
   },
 
-  // 选择作品图片
-  async chooseImages() {
+  // 输入理想稿酬
+  onIdealPriceInput(e) {
+    this.setData({
+      'formData.idealPrice': e.detail.value
+    })
+  },
+
+  // 输入最低价格
+  onMinPriceInput(e) {
+    this.setData({
+      'formData.minPrice': e.detail.value
+    })
+  },
+
+  // 切换同意条款
+  toggleAgreement() {
+    this.setData({
+      agreedToTerms: !this.data.agreedToTerms
+    })
+  },
+
+  // 选择图片
+  async chooseImages(e) {
+    const { type } = e.currentTarget.dataset
+    const currentImages = this.data.formData[type]
+    
     try {
       const res = await wx.chooseImage({
-        count: 9 - this.data.formData.portfolio.length,
+        count: 9 - currentImages.length,
         sizeType: ['compressed'],
         sourceType: ['album', 'camera']
       })
@@ -43,7 +71,7 @@ Page({
       
       // 暂时使用本地图片路径
       this.setData({
-        'formData.portfolio': [...this.data.formData.portfolio, ...res.tempFilePaths]
+        [`formData.${type}`]: [...currentImages, ...res.tempFilePaths]
       })
 
       wx.hideLoading()
@@ -54,49 +82,108 @@ Page({
 
     } catch (error) {
       wx.hideLoading()
-      console.error('上传失败', error)
-      wx.showToast({
-        title: '上传失败',
-        icon: 'none'
-      })
+      if (error.errMsg !== 'chooseImage:fail cancel') {
+        console.error('上传失败', error)
+        wx.showToast({
+          title: '上传失败',
+          icon: 'none'
+        })
+      }
     }
   },
 
   // 删除图片
   deleteImage(e) {
-    const index = e.currentTarget.dataset.index
-    const portfolio = this.data.formData.portfolio
-    portfolio.splice(index, 1)
+    const { type, index } = e.currentTarget.dataset
+    const images = this.data.formData[type]
+    images.splice(index, 1)
     this.setData({
-      'formData.portfolio': portfolio
+      [`formData.${type}`]: images
     })
+  },
+
+  // 表单验证
+  validateForm() {
+    const { name, age, wechat, idealPrice, minPrice, finishedWorks, processImages } = this.data.formData
+    
+    if (!name.trim()) {
+      wx.showToast({
+        title: '请输入真实姓名',
+        icon: 'none'
+      })
+      return false
+    }
+
+    if (!age || age < 16 || age > 100) {
+      wx.showToast({
+        title: '请输入有效的年龄（16-100岁）',
+        icon: 'none'
+      })
+      return false
+    }
+
+    if (!wechat.trim()) {
+      wx.showToast({
+        title: '请输入联系微信',
+        icon: 'none'
+      })
+      return false
+    }
+
+    if (!idealPrice || idealPrice <= 0) {
+      wx.showToast({
+        title: '请输入理想稿酬',
+        icon: 'none'
+      })
+      return false
+    }
+
+    if (!minPrice || minPrice <= 0) {
+      wx.showToast({
+        title: '请输入最低可接受价格',
+        icon: 'none'
+      })
+      return false
+    }
+
+    if (parseFloat(minPrice) > parseFloat(idealPrice)) {
+      wx.showToast({
+        title: '最低价格不能高于理想稿酬',
+        icon: 'none'
+      })
+      return false
+    }
+
+    if (finishedWorks.length === 0) {
+      wx.showToast({
+        title: '请至少上传1张满意的作品',
+        icon: 'none'
+      })
+      return false
+    }
+
+    if (processImages.length === 0) {
+      wx.showToast({
+        title: '请至少上传1张绘画过程图',
+        icon: 'none'
+      })
+      return false
+    }
+
+    if (!this.data.agreedToTerms) {
+      wx.showToast({
+        title: '请先阅读并同意会员制条款',
+        icon: 'none'
+      })
+      return false
+    }
+
+    return true
   },
 
   // 提交申请
   async submitApplication() {
-    const { name, phone, specialty, portfolio } = this.data.formData
-    
-    if (!name.trim()) {
-      wx.showToast({
-        title: '请输入姓名',
-        icon: 'none'
-      })
-      return
-    }
-
-    if (!phone.trim()) {
-      wx.showToast({
-        title: '请输入联系方式',
-        icon: 'none'
-      })
-      return
-    }
-
-    if (portfolio.length === 0) {
-      wx.showToast({
-        title: '请上传作品图片',
-        icon: 'none'
-      })
+    if (!this.validateForm()) {
       return
     }
 
@@ -104,29 +191,41 @@ Page({
       wx.showLoading({ title: '提交中...' })
 
       // 暂时使用模拟提交
+      // 实际应该调用云函数上传图片和保存数据
       setTimeout(() => {
         wx.hideLoading()
-        wx.showToast({
+        
+        wx.showModal({
           title: '申请提交成功',
-          icon: 'success'
-        })
+          content: '您的申请已提交，我们会在1-3个工作日内审核并通过微信通知您审核结果。\n\n审核通过后，您需要缴纳会员费才能开始接单。',
+          showCancel: false,
+          confirmText: '我知道了',
+          success: () => {
+            // 清空表单
+            this.setData({
+              formData: {
+                name: '',
+                age: '',
+                wechat: '',
+                idealPrice: '',
+                minPrice: '',
+                finishedWorks: [],
+                processImages: []
+              },
+              agreedToTerms: false
+            })
 
-        // 清空表单
-        this.setData({
-          formData: {
-            name: '',
-            phone: '',
-            specialty: '',
-            portfolio: []
+            // 返回上一页
+            wx.navigateBack()
           }
         })
-      }, 1000)
+      }, 1500)
 
     } catch (error) {
       wx.hideLoading()
       console.error('提交申请失败', error)
       wx.showToast({
-        title: '提交失败',
+        title: '提交失败，请重试',
         icon: 'none'
       })
     }
