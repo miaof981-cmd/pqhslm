@@ -757,15 +757,6 @@ Page({
     // 空函数，仅用于阻止事件冒泡
   },
   
-  toggleArtistStatus() {
-    const newStatus = this.data.editingArtist.status === 'normal' ? 'disabled' : 'normal'
-    const newStatusText = newStatus === 'normal' ? '正常' : '已禁用'
-    this.setData({
-      'editingArtist.status': newStatus,
-      'editingArtist.statusText': newStatusText
-    })
-  },
-  
   // 管理画师的商品
   manageArtistProducts() {
     const artist = this.data.editingArtist
@@ -775,34 +766,63 @@ Page({
     })
   },
   
-  // 批量上下架商品（开关切换）
-  toggleAllProductsSwitch(e) {
-    const checked = e.detail.value
+  // 强制下架全部商品
+  offlineAllProducts() {
     const artist = this.data.editingArtist
-    const actionText = checked ? '上架' : '下架'
     
     wx.showModal({
-      title: `确认${actionText}全部商品`,
-      content: `确认将画师"${artist.name}"的全部商品${actionText}？`,
+      title: '确认强制下架',
+      content: `确认强制下架画师"${artist.name}"的全部商品？\n\n下架后：\n• 商品不会显示在商城\n• 无法被购买（包括购物车中的）\n• 画师仍可处理现有订单\n\n此操作通常用于惩罚违规画师`,
+      confirmText: '确认下架',
+      confirmColor: '#FF6B6B',
       success: (res) => {
         if (res.confirm) {
           // 更新状态
           this.setData({
-            'editingArtist.allProductsOnline': checked
+            'editingArtist.allProductsOffline': true
           })
           
-          // TODO: 实际操作需要调用后端API批量更新商品状态
+          // TODO: 调用后端API批量下架商品
+          // 1. 更新所有商品状态为 offline
+          // 2. 标记商品为"强制下架"，即使在购物车中也无法购买
           
           wx.showToast({
-            title: `已${actionText}全部商品`,
+            title: '已强制下架全部商品',
             icon: 'success',
-            duration: 1500
+            duration: 2000
           })
-        } else {
-          // 取消操作，恢复开关状态
+          
+          // 刷新画师列表
+          this.loadArtists()
+        }
+      }
+    })
+  },
+  
+  // 恢复商品上架
+  restoreAllProducts() {
+    const artist = this.data.editingArtist
+    
+    wx.showModal({
+      title: '确认恢复上架',
+      content: `确认恢复画师"${artist.name}"的商品上架权限？\n\n恢复后，画师可以重新上架商品`,
+      success: (res) => {
+        if (res.confirm) {
+          // 更新状态
           this.setData({
-            'editingArtist.allProductsOnline': !checked
+            'editingArtist.allProductsOffline': false
           })
+          
+          // TODO: 调用后端API恢复商品上架权限
+          
+          wx.showToast({
+            title: '已恢复上架权限',
+            icon: 'success',
+            duration: 2000
+          })
+          
+          // 刷新画师列表
+          this.loadArtists()
         }
       }
     })

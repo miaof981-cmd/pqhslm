@@ -345,16 +345,6 @@
             <view class="id-hint">用于企业微信昵称设置，方便订单分配</view>
           </view>
           
-          <!-- 账号状态 -->
-          <view class="info-row" style="align-items: center;">
-            <text class="info-label">账号状态</text>
-            <view class="status-switch-group">
-              <switch checked="{{editingArtist.status === 'normal'}}" bindchange="toggleArtistStatus" color="#A8E6CF"/>
-              <text class="status-text {{editingArtist.status === 'normal' ? 'status-normal' : 'status-disabled'}}">
-                {{editingArtist.status === 'normal' ? '正常' : '已禁用'}}
-              </text>
-            </view>
-          </view>
         </view>
         
         <!-- 基础信息 -->
@@ -418,13 +408,31 @@
             <text class="btn-arrow">›</text>
           </button>
           
-          <!-- 全部商品上下架 -->
-          <view class="info-row" style="align-items: center; margin-top: 20rpx;">
-            <text class="info-label">全部商品上架</text>
-            <view class="status-switch-group">
-              <switch checked="{{editingArtist.allProductsOnline}}" bindchange="toggleAllProductsSwitch" color="#A8E6CF"/>
-              <text class="status-text">{{editingArtist.allProductsOnline ? '已上架' : '已下架'}}</text>
-            </view>
+          <!-- 商品状态提示 -->
+          <view class="product-status-hint">
+            <text class="hint-label">商品状态：</text>
+            <text class="hint-value {{editingArtist.allProductsOffline ? 'status-offline' : 'status-online'}}">
+              {{editingArtist.allProductsOffline ? '全部已下架（惩罚中）' : '正常销售中'}}
+            </text>
+          </view>
+          
+          <!-- 下架全部商品按钮 -->
+          <button wx:if="{{!editingArtist.allProductsOffline}}" 
+                  class="btn-offline-all" 
+                  bindtap="offlineAllProducts">
+            强制下架全部商品
+          </button>
+          
+          <!-- 恢复上架按钮 -->
+          <button wx:else 
+                  class="btn-restore-products" 
+                  bindtap="restoreAllProducts">
+            恢复商品上架
+          </button>
+          
+          <view class="offline-hint">
+            <text class="hint-icon">⚠️</text>
+            <text class="hint-text">下架后，商品不会显示在商城，已加入购物车的也无法购买，但画师仍可处理现有订单</text>
           </view>
         </view>
         
