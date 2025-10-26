@@ -13,13 +13,20 @@ Page({
   },
 
   onLoad(options) {
-    if (options.artistId) {
-      this.setData({
-        artistId: options.artistId,
-        artistName: options.artistName || '画师'
-      })
-      this.loadProducts()
-    }
+    // 从options或当前用户ID获取画师ID
+    const artistId = options.artistId || wx.getStorageSync('userId')
+    const artistName = options.artistName || '我'
+    
+    this.setData({
+      artistId: artistId,
+      artistName: artistName
+    })
+    this.loadProducts()
+  },
+
+  onShow() {
+    // 每次显示页面时刷新商品列表
+    this.loadProducts()
   },
 
   loadProducts() {
@@ -123,6 +130,13 @@ Page({
           })
         }
       }
+    })
+  },
+
+  // 添加商品（跳转到编辑页面）
+  addProduct() {
+    wx.navigateTo({
+      url: '/pages/product-edit/index'
     })
   }
 })

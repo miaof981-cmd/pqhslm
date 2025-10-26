@@ -105,6 +105,39 @@
           </view>
         </view>
       </view>
+
+      <!-- 画师排行榜 -->
+      <view class="ranking-section">
+        <view class="section-header-row">
+          <text class="section-title">画师排行榜</text>
+          <view class="ranking-tabs">
+            <text class="ranking-tab {{rankingType === 'order' ? 'active' : ''}}" data-type="order" bindtap="switchRankingType">订单量</text>
+            <text class="ranking-tab {{rankingType === 'revenue' ? 'active' : ''}}" data-type="revenue" bindtap="switchRankingType">收入</text>
+            <text class="ranking-tab {{rankingType === 'rate' ? 'active' : ''}}" data-type="rate" bindtap="switchRankingType">完成率</text>
+          </view>
+        </view>
+
+        <view class="ranking-list">
+          <view wx:for="{{artistRanking}}" wx:key="userId" class="ranking-item">
+            <view class="rank-badge rank-{{index + 1}}">
+              <text>{{index + 1}}</text>
+            </view>
+            <image class="artist-avatar" src="{{item.avatar}}" mode="aspectFill"/>
+            <view class="artist-info">
+              <text class="artist-name">{{item.name}}</text>
+              <text class="artist-id">ID: {{item.userId}}</text>
+            </view>
+            <view class="ranking-data">
+              <text class="data-value" wx:if="{{rankingType === 'order'}}">{{item.orderCount}}单</text>
+              <text class="data-value" wx:elif="{{rankingType === 'revenue'}}">¥{{item.revenue}}</text>
+              <text class="data-value" wx:else>{{item.completeRate}}%</text>
+            </view>
+          </view>
+          <view wx:if="{{artistRanking.length === 0}}" class="empty-ranking">
+            <text>暂无数据</text>
+          </view>
+        </view>
+      </view>
     </view>
 
     <!-- 2. 商品管理 -->

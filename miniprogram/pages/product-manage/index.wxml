@@ -1,42 +1,57 @@
 <view class="container">
-  <view class="header-bar">
-    <text class="artist-name">{{artistName}} 的商品</text>
-    <text class="product-count">共 {{products.length}} 件</text>
+  <!-- 顶部标题栏 -->
+  <view class="header-section">
+    <view class="header-content">
+      <view class="title-row">
+        <text class="page-title">我的商品</text>
+        <text class="product-count">{{products.length}}件</text>
+      </view>
+      <button class="upload-btn" bindtap="addProduct">
+        <text class="upload-icon">+</text>
+        上传商品
+      </button>
+    </view>
   </view>
 
-  <!-- 筛选栏 -->
-  <view class="filter-bar">
-    <view class="filter-item {{statusFilter === 'all' ? 'active' : ''}}" data-filter="all" bindtap="filterByStatus">
-      全部({{stats.all}})
-    </view>
-    <view class="filter-item {{statusFilter === 'online' ? 'active' : ''}}" data-filter="online" bindtap="filterByStatus">
-      已上架({{stats.online}})
-    </view>
-    <view class="filter-item {{statusFilter === 'offline' ? 'active' : ''}}" data-filter="offline" bindtap="filterByStatus">
-      已下架({{stats.offline}})
+  <!-- 筛选标签 -->
+  <view class="filter-section">
+    <view class="filter-tabs">
+      <view class="filter-tab {{statusFilter === 'all' ? 'active' : ''}}" data-filter="all" bindtap="filterByStatus">
+        <text class="tab-label">全部</text>
+        <text class="tab-count">{{stats.all}}</text>
+      </view>
+      <view class="filter-tab {{statusFilter === 'online' ? 'active' : ''}}" data-filter="online" bindtap="filterByStatus">
+        <text class="tab-label">已上架</text>
+        <text class="tab-count">{{stats.online}}</text>
+      </view>
+      <view class="filter-tab {{statusFilter === 'offline' ? 'active' : ''}}" data-filter="offline" bindtap="filterByStatus">
+        <text class="tab-label">已下架</text>
+        <text class="tab-count">{{stats.offline}}</text>
+      </view>
     </view>
   </view>
 
   <!-- 商品列表 -->
   <view class="product-list">
-    <view wx:for="{{products}}" wx:key="_id" class="product-item">
+    <view wx:for="{{products}}" wx:key="_id" class="product-card">
       <image class="product-image" src="{{item.image}}" mode="aspectFill" />
       <view class="product-info">
         <text class="product-name">{{item.name}}</text>
-        <view class="product-meta">
+        <view class="product-price-row">
           <text class="product-price">¥{{item.price}}</text>
-          <view class="product-status status-{{item.status}}">
+          <view class="status-badge {{item.status === 'online' ? 'badge-online' : 'badge-offline'}}">
             {{item.status === 'online' ? '已上架' : '已下架'}}
           </view>
         </view>
         <view class="product-stats">
-          <text class="stat-item">销量: {{item.sales}}</text>
-          <text class="stat-item">库存: {{item.stock === 0 ? '♾️' : item.stock}}</text>
+          <text class="stat-text">销量 {{item.sales}}</text>
+          <text class="stat-divider">|</text>
+          <text class="stat-text">库存 {{item.stock === 0 ? '♾️' : item.stock}}</text>
         </view>
       </view>
       <view class="product-actions">
-        <button class="action-btn" data-id="{{item._id}}" bindtap="editProduct">编辑</button>
-        <button class="action-btn {{item.status === 'online' ? 'btn-offline' : 'btn-online'}}" 
+        <button class="action-btn edit-btn" data-id="{{item._id}}" bindtap="editProduct">编辑</button>
+        <button class="action-btn toggle-btn {{item.status === 'online' ? 'btn-offline' : 'btn-online'}}" 
                 data-id="{{item._id}}" 
                 data-status="{{item.status}}" 
                 bindtap="toggleProductStatus">
@@ -46,8 +61,10 @@
     </view>
   </view>
 
+  <!-- 空状态 -->
   <view wx:if="{{products.length === 0}}" class="empty-state">
-    <text>暂无商品</text>
+    <view class="empty-icon">📦</view>
+    <text class="empty-title">还没有商品</text>
+    <text class="empty-hint">点击上方按钮上传您的第一件商品吧</text>
   </view>
 </view>
-
