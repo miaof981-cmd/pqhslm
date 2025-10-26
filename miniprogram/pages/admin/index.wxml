@@ -409,14 +409,11 @@
           </button>
           
           <!-- 商品状态开关 -->
-          <view class="info-row" style="align-items: center; margin-top: 24rpx;">
-            <text class="info-label">商品销售状态</text>
-            <view class="status-switch-group">
-              <switch checked="{{!editingArtist.allProductsOffline}}" bindchange="toggleProductsStatus" color="#66BB6A"/>
-              <text class="status-text {{editingArtist.allProductsOffline ? 'status-offline' : 'status-online'}}">
-                {{editingArtist.allProductsOffline ? '全部已下架' : '正常销售中'}}
-              </text>
-            </view>
+          <view class="product-status-row">
+            <text class="status-title {{editingArtist.allProductsOffline ? 'status-offline' : 'status-online'}}">
+              {{editingArtist.allProductsOffline ? '全部商品已下架' : '商品正常销售中'}}
+            </text>
+            <switch checked="{{!editingArtist.allProductsOffline}}" bindchange="toggleProductsStatus" color="#66BB6A"/>
           </view>
           
           <view class="offline-hint">

@@ -1742,3 +1742,26 @@
   color: #E65100;
   line-height: 1.6;
 }
+
+/* 商品状态行 */
+.product-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 0;
+  margin-top: 20rpx;
+}
+
+.status-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  flex: 1;
+}
+
+.status-title.status-online {
+  color: #66BB6A;
+}
+
+.status-title.status-offline {
+  color: #FF6B6B;
+}
