@@ -38,6 +38,7 @@ Page({
   checkPermission() {
     const app = getApp()
     const roles = app.getUserRoles()
+    const userId = app.globalData.userId || wx.getStorageSync('userId')
     
     // 收集用户可以使用的工作角色（只有画师和客服）
     const availableRoles = []
@@ -48,8 +49,31 @@ Page({
       availableRoles.push('service')
     }
     
-    // 检查是否有权限
+    // ⭐ 如果没有工作台权限，检查是否申请已通过
     if (availableRoles.length === 0) {
+      console.log('🔍 没有工作台权限，检查申请状态...')
+      
+      // 检查画师申请状态
+      const applications = wx.getStorageSync('artist_applications') || []
+      const userApplications = applications.filter(app => app.userId === userId)
+      
+      if (userApplications.length > 0) {
+        userApplications.sort((a, b) => new Date(b.submitTime) - new Date(a.submitTime))
+        const latestApp = userApplications[0]
+        
+        console.log('📋 最新申请状态:', latestApp.status)
+        
+        // 如果申请已通过，跳转到建立档案页面
+        if (latestApp.status === 'approved') {
+          console.log('✅ 申请已通过，跳转到建立档案页面')
+          wx.redirectTo({
+            url: '/pages/artist-qrcode/index'
+          })
+          return
+        }
+      }
+      
+      // 申请未通过或未申请，显示权限不足提示
       this.setData({
         loading: false,
         hasPermission: false
