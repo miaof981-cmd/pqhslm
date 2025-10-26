@@ -151,8 +151,8 @@ page {
 }
 
 .verify-modal {
-  width: 90%;
-  max-width: 640rpx;
+  width: 92%;
+  max-width: 680rpx;
 }
 
 .modal-header {
@@ -178,7 +178,7 @@ page {
 
 /* 弹窗内容 */
 .modal-section {
-  padding: 40rpx;
+  padding: 32rpx 40rpx;
 }
 
 .section-label {
@@ -228,7 +228,7 @@ page {
 .input-item {
   display: flex;
   align-items: center;
-  padding: 24rpx 0;
+  padding: 28rpx 0;
   border-bottom: 1rpx solid #F0F0F0;
 }
 
@@ -237,7 +237,7 @@ page {
 }
 
 .item-label {
-  width: 160rpx;
+  width: 140rpx;
   font-size: 28rpx;
   color: #666;
   flex-shrink: 0;
@@ -283,11 +283,11 @@ page {
 
 .verify-code-input {
   flex: 1;
-  margin-right: 20rpx;
+  margin-right: 16rpx;
 }
 
 .send-code-btn {
-  width: 180rpx;
+  width: 160rpx;
   height: 60rpx;
   line-height: 60rpx;
   padding: 0;
