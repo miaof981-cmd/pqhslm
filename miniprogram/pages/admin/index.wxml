@@ -308,7 +308,7 @@
 
   <!-- 编辑画师弹窗 -->
   <view wx:if="{{showEditArtistModal}}" class="modal-overlay" bindtap="closeEditArtistModal">
-    <view class="modal-content" catchtap="{{null}}">
+    <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">画师信息</text>
         <view class="modal-close" bindtap="closeEditArtistModal">×</view>
@@ -339,8 +339,8 @@
           <view class="wechat-id-section">
             <view class="id-label">企业昵称：</view>
             <view class="id-display">
-              <text class="id-value">联盟id{{editingArtist.artistNumber}}+{{editingArtist.realName || editingArtist.name}}</text>
-              <button class="btn-copy-id" bindtap="copyWechatId" data-id="联盟id{{editingArtist.artistNumber}}+{{editingArtist.realName || editingArtist.name}}">复制</button>
+              <text class="id-value">联盟id{{editingArtist.artistNumber}}{{editingArtist.realName || editingArtist.name}}</text>
+              <button class="btn-copy-id" bindtap="copyWechatId" data-id="联盟id{{editingArtist.artistNumber}}{{editingArtist.realName || editingArtist.name}}">复制</button>
             </view>
             <view class="id-hint">用于企业微信昵称设置，方便订单分配</view>
           </view>

@@ -681,7 +681,7 @@ Page({
           })
           
           // 显示简短提示
-          const wechatId = `联盟id${newArtistNumber}+${artist.realName || artist.name}`
+          const wechatId = `联盟id${newArtistNumber}${artist.realName || artist.name}`
           wx.showToast({
             title: `权限已开通\n画师编号：${newArtistNumber}`,
             icon: 'none',
@@ -750,6 +750,11 @@ Page({
       showEditArtistModal: false,
       editingArtist: null
     })
+  },
+  
+  // 阻止事件冒泡（防止弹窗内部点击导致关闭）
+  stopPropagation() {
+    // 空函数，仅用于阻止事件冒泡
   },
   
   toggleArtistStatus() {
