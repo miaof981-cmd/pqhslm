@@ -10,6 +10,7 @@
   background: linear-gradient(135deg, #A8E6CF, #C8E6C9);
   padding: 80rpx 40rpx 60rpx;
   text-align: center;
+  position: relative;
 }
 
 .header-title {
@@ -24,53 +25,158 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
-/* ✅ 申请状态提示 */
-.status-banner {
-  margin: 30rpx;
+/* ✅ 申请记录按钮 */
+.history-btn {
+  margin-top: 24rpx;
+  display: inline-flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 32rpx;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 50rpx;
+  backdrop-filter: blur(10rpx);
+  border: 2rpx solid rgba(255, 255, 255, 0.4);
+}
+
+.history-btn-text {
+  font-size: 28rpx;
+  color: white;
+  font-weight: 500;
+}
+
+.history-badge {
+  padding: 4rpx 16rpx;
   border-radius: 20rpx;
-  padding: 30rpx;
-  background: white;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  font-size: 22rpx;
+  font-weight: bold;
 }
 
-.status-banner.status-pending {
-  border-left: 8rpx solid #FFB74D;
+.history-badge.pending {
+  background: #FFB74D;
+  color: white;
 }
 
-.status-banner.status-rejected {
-  border-left: 8rpx solid #FF6B6B;
+.history-badge.rejected {
+  background: #FF6B6B;
+  color: white;
 }
 
-.status-content {
+/* ✅ 申请记录弹窗 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
-  gap: 20rpx;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 40rpx;
 }
 
-.status-icon {
-  font-size: 48rpx;
-  line-height: 1;
-}
-
-.status-info {
-  flex: 1;
+.modal-content {
+  width: 100%;
+  max-width: 600rpx;
+  max-height: 80vh;
+  background: white;
+  border-radius: 24rpx;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  overflow: hidden;
 }
 
-.status-title {
-  font-size: 32rpx;
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx;
+  border-bottom: 2rpx solid #F5F5F5;
+}
+
+.modal-title {
+  font-size: 36rpx;
   font-weight: bold;
   color: #333;
 }
 
-.status-desc {
+.modal-close {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: #999;
+  border-radius: 50%;
+  background: #F5F5F5;
+}
+
+.modal-body {
+  flex: 1;
+  padding: 24rpx;
+  max-height: 60vh;
+}
+
+/* 申请记录项 */
+.history-item {
+  background: white;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  border: 2rpx solid #F0F0F0;
+}
+
+.history-item.status-pending {
+  border-left: 6rpx solid #FFB74D;
+}
+
+.history-item.status-approved {
+  border-left: 6rpx solid #66BB6A;
+}
+
+.history-item.status-rejected {
+  border-left: 6rpx solid #FF6B6B;
+}
+
+.history-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.status-badge {
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: bold;
+}
+
+.status-badge.pending {
+  background: #FFF3E0;
+  color: #FFB74D;
+}
+
+.status-badge.approved {
+  background: #E8F5E9;
+  color: #66BB6A;
+}
+
+.status-badge.rejected {
+  background: #FFEBEE;
+  color: #FF6B6B;
+}
+
+.history-time {
   font-size: 24rpx;
   color: #999;
 }
 
-.reject-reason-box {
-  margin-top: 12rpx;
+/* 驳回原因 */
+.history-reject-reason {
+  margin-top: 16rpx;
   padding: 16rpx;
   background: #FFF5F5;
   border-radius: 12rpx;
@@ -90,11 +196,29 @@
   line-height: 1.6;
 }
 
-.status-hint {
-  font-size: 24rpx;
-  color: #42A5F5;
-  margin-top: 12rpx;
+.reason-time {
+  font-size: 22rpx;
+  color: #999;
   display: block;
+  margin-top: 8rpx;
+}
+
+/* 通过信息 */
+.history-approve-info {
+  margin-top: 12rpx;
+}
+
+.approve-text {
+  font-size: 24rpx;
+  color: #66BB6A;
+}
+
+/* 空状态 */
+.empty-history {
+  text-align: center;
+  padding: 80rpx 0;
+  color: #999;
+  font-size: 28rpx;
 }
 
 /* 表单区域 */

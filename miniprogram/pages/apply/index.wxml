@@ -2,31 +2,51 @@
   <view class="header-section">
     <view class="header-title">画师认证申请</view>
     <view class="header-subtitle">加入联盟，开启您的创作之旅</view>
+    
+    <!-- ✅ 申请记录按钮（如果有申请记录） -->
+    <view wx:if="{{hasApplicationHistory}}" class="history-btn" bindtap="showApplicationHistory">
+      <text class="history-btn-text">查看申请记录</text>
+      <text wx:if="{{applicationStatus === 'pending'}}" class="history-badge pending">审核中</text>
+      <text wx:elif="{{applicationStatus === 'rejected'}}" class="history-badge rejected">未通过</text>
+    </view>
   </view>
 
-  <!-- ✅ 申请状态提示（如果有申请记录） -->
-  <view wx:if="{{applicationStatus}}" class="status-banner status-{{applicationStatus}}">
-    <!-- 待审核 -->
-    <view wx:if="{{applicationStatus === 'pending'}}" class="status-content">
-      <view class="status-icon">⏳</view>
-      <view class="status-info">
-        <text class="status-title">您的申请正在审核中</text>
-        <text class="status-desc">提交时间：{{applicationTime}}</text>
+  <!-- ✅ 申请记录弹窗 -->
+  <view wx:if="{{showHistoryModal}}" class="modal-overlay" bindtap="hideApplicationHistory">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">申请记录</text>
+        <view class="modal-close" bindtap="hideApplicationHistory">✕</view>
       </view>
-    </view>
-    
-    <!-- 已驳回 -->
-    <view wx:elif="{{applicationStatus === 'rejected'}}" class="status-content">
-      <view class="status-icon">❌</view>
-      <view class="status-info">
-        <text class="status-title">申请未通过</text>
-        <text class="status-desc">驳回时间：{{rejectTime}}</text>
-        <view class="reject-reason-box">
-          <text class="reason-label">驳回原因：</text>
-          <text class="reason-text">{{rejectReason}}</text>
+      
+      <scroll-view class="modal-body" scroll-y>
+        <view wx:for="{{applicationHistory}}" wx:key="id" class="history-item status-{{item.status}}">
+          <view class="history-item-header">
+            <view class="history-status">
+              <text wx:if="{{item.status === 'pending'}}" class="status-badge pending">⏳ 审核中</text>
+              <text wx:elif="{{item.status === 'approved'}}" class="status-badge approved">✓ 已通过</text>
+              <text wx:elif="{{item.status === 'rejected'}}" class="status-badge rejected">✕ 未通过</text>
+            </view>
+            <text class="history-time">{{item.submitTime}}</text>
+          </view>
+          
+          <!-- 驳回原因 -->
+          <view wx:if="{{item.status === 'rejected'}}" class="history-reject-reason">
+            <text class="reason-label">驳回原因：</text>
+            <text class="reason-text">{{item.rejectReason}}</text>
+            <text class="reason-time">驳回时间：{{item.rejectTime}}</text>
+          </view>
+          
+          <!-- 通过信息 -->
+          <view wx:if="{{item.status === 'approved'}}" class="history-approve-info">
+            <text class="approve-text">通过时间：{{item.approveTime}}</text>
+          </view>
         </view>
-        <text class="status-hint">您可以修改后重新提交申请</text>
-      </view>
+        
+        <view wx:if="{{applicationHistory.length === 0}}" class="empty-history">
+          <text>暂无申请记录</text>
+        </view>
+      </scroll-view>
     </view>
   </view>
 

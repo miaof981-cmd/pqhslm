@@ -12,48 +12,69 @@ Page({
     agreedToTerms: false,     // 是否同意条款
     showTermsDetail: false,   // 是否显示详细条款
     uploading: false,
-    // ✅ 新增：申请状态
-    applicationStatus: null,  // null: 无申请, 'pending': 待审核, 'rejected': 已驳回
+    // ✅ 新增：申请记录相关
+    hasApplicationHistory: false,  // 是否有申请记录
+    applicationStatus: null,       // 最新申请状态
     applicationTime: '',
     rejectTime: '',
-    rejectReason: ''
+    rejectReason: '',
+    showHistoryModal: false,       // 是否显示申请记录弹窗
+    applicationHistory: []         // 完整申请历史
   },
 
   onLoad() {
-    // ✅ 加载申请状态
-    this.loadApplicationStatus()
+    // ✅ 加载申请状态和历史记录
+    this.loadApplicationHistory()
   },
 
-  // ✅ 加载申请状态
-  loadApplicationStatus() {
+  // ✅ 加载申请历史记录
+  loadApplicationHistory() {
     const app = getApp()
     const userId = app.globalData.userId || wx.getStorageSync('userId')
     
     // 从本地存储读取申请记录
     const applications = wx.getStorageSync('artist_applications') || []
     
-    // 查找当前用户的最新申请
+    // 查找当前用户的所有申请
     const userApplications = applications.filter(app => app.userId === userId)
     
     if (userApplications.length > 0) {
-      // 按时间排序，取最新的
+      // 按时间排序（最新的在前）
       userApplications.sort((a, b) => new Date(b.submitTime) - new Date(a.submitTime))
+      
       const latestApp = userApplications[0]
       
-      // 如果已通过，不显示状态
-      if (latestApp.status === 'approved') {
-        return
-      }
-      
-      console.log('📋 加载到申请状态:', latestApp.status)
+      console.log('📋 加载到申请记录:', userApplications.length, '条')
+      console.log('📋 最新申请状态:', latestApp.status)
       
       this.setData({
+        hasApplicationHistory: true,
+        applicationHistory: userApplications,
         applicationStatus: latestApp.status,
         applicationTime: latestApp.submitTime,
         rejectTime: latestApp.rejectTime || '',
         rejectReason: latestApp.rejectReason || ''
       })
     }
+  },
+
+  // ✅ 显示申请记录弹窗
+  showApplicationHistory() {
+    this.setData({
+      showHistoryModal: true
+    })
+  },
+
+  // ✅ 隐藏申请记录弹窗
+  hideApplicationHistory() {
+    this.setData({
+      showHistoryModal: false
+    })
+  },
+
+  // ✅ 阻止事件冒泡
+  stopPropagation() {
+    // 空函数，用于阻止点击模态框内容时关闭弹窗
   },
 
   // 输入姓名
