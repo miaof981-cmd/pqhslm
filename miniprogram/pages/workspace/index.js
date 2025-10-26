@@ -40,6 +40,13 @@ Page({
     const roles = app.getUserRoles()
     const userId = app.globalData.userId || wx.getStorageSync('userId')
     
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    console.log('🔐 [workspace] 权限检查开始')
+    console.log('  - 用户ID:', userId)
+    console.log('  - getUserRoles() 返回:', roles)
+    console.log('  - 本地存储 userRoles:', wx.getStorageSync('userRoles'))
+    console.log('  - app.globalData.roles:', app.globalData.roles)
+    
     // 收集用户可以使用的工作角色（只有画师和客服）
     const availableRoles = []
     if (roles.includes('artist')) {
@@ -48,6 +55,9 @@ Page({
     if (roles.includes('service')) {
       availableRoles.push('service')
     }
+    
+    console.log('  - 可用工作角色:', availableRoles)
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     
     // ⭐ 如果没有工作台权限，检查是否申请已通过
     if (availableRoles.length === 0) {
