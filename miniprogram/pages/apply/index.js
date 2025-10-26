@@ -214,8 +214,39 @@ Page({
     try {
       wx.showLoading({ title: '提交中...' })
 
-      // 暂时使用模拟提交
-      // 实际应该调用云函数上传图片和保存数据
+      const app = getApp()
+      const userId = wx.getStorageSync('userId') || app.globalData.userId || 1001
+      const openid = wx.getStorageSync('openid') || app.globalData.openid || 'mock_openid_' + userId
+
+      // 创建申请记录
+      const application = {
+        id: 'app_' + Date.now(),
+        userId: userId,
+        openid: openid,
+        name: this.data.formData.name,
+        age: this.data.formData.age,
+        wechat: this.data.formData.wechat,
+        idealPrice: this.data.formData.idealPrice,
+        minPrice: this.data.formData.minPrice,
+        finishedWorks: this.data.formData.finishedWorks,
+        processImages: this.data.formData.processImages,
+        status: 'pending', // pending, approved, rejected
+        submitTime: new Date().toLocaleString('zh-CN', { 
+          year: 'numeric', 
+          month: '2-digit', 
+          day: '2-digit', 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        }).replace(/\//g, '-')
+      }
+
+      // 保存到本地存储
+      let applications = wx.getStorageSync('artist_applications') || []
+      applications.unshift(application) // 新申请放在最前面
+      wx.setStorageSync('artist_applications', applications)
+
+      console.log('申请已保存:', application)
+
       setTimeout(() => {
         wx.hideLoading()
         
@@ -243,7 +274,7 @@ Page({
             wx.navigateBack()
           }
         })
-      }, 1500)
+      }, 1000)
 
     } catch (error) {
       wx.hideLoading()

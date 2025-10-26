@@ -365,32 +365,30 @@ Page({
 
   // 加载画师申请
   async loadApplications() {
+    // 从本地存储读取真实的申请数据
+    const allApplications = wx.getStorageSync('artist_applications') || []
+    
+    // 只显示待审核的申请
+    const pendingApplications = allApplications.filter(app => app.status === 'pending')
+    
+    // 转换为管理后台需要的格式
+    const formattedApplications = pendingApplications.map(app => ({
+      _id: app.id,
+      name: app.name,
+      phone: app.wechat, // 使用微信号
+      specialty: `年龄：${app.age}岁，理想稿酬：¥${app.idealPrice}，最低价格：¥${app.minPrice}`,
+      portfolio: app.finishedWorks.slice(0, 4), // 最多显示4张作品
+      createTime: app.submitTime,
+      userId: app.userId,
+      openid: app.openid,
+      processImages: app.processImages
+    }))
+    
+    console.log('加载申请列表:', formattedApplications)
+    
     this.setData({
-      applications: [
-        {
-          _id: '1',
-          name: '张三',
-          phone: '138****1234',
-          specialty: '插画、头像设计',
-          portfolio: [
-            'https://via.placeholder.com/200',
-            'https://via.placeholder.com/200',
-            'https://via.placeholder.com/200'
-          ],
-          createTime: '2024-01-25 14:30'
-        },
-        {
-          _id: '2',
-          name: '李四',
-          phone: '139****5678',
-          specialty: 'LOGO设计、品牌设计',
-          portfolio: [
-            'https://via.placeholder.com/200',
-            'https://via.placeholder.com/200'
-          ],
-          createTime: '2024-01-24 10:15'
-        }
-      ]
+      applications: formattedApplications,
+      pendingApplications: formattedApplications.length
     })
   },
 
@@ -682,13 +680,50 @@ Page({
 
   approveArtist(e) {
     const id = e.currentTarget.dataset.id
+    const application = this.data.applications.find(app => app._id === id)
+    
+    if (!application) {
+      wx.showToast({ title: '申请不存在', icon: 'none' })
+      return
+    }
+    
     wx.showModal({
       title: '通过申请',
-      content: '确认通过此画师申请？',
+      content: `确认通过 ${application.name} 的画师申请？`,
       success: (res) => {
         if (res.confirm) {
-          wx.showToast({ title: '已通过', icon: 'success' })
-          this.loadApplications()
+          // 更新申请状态
+          let allApplications = wx.getStorageSync('artist_applications') || []
+          const index = allApplications.findIndex(app => app.id === id)
+          
+          if (index !== -1) {
+            allApplications[index].status = 'approved'
+            allApplications[index].approveTime = new Date().toLocaleString('zh-CN')
+            wx.setStorageSync('artist_applications', allApplications)
+            
+            // 给用户添加画师权限
+            const userId = allApplications[index].userId
+            
+            // 如果是当前用户，立即更新权限
+            const currentUserId = wx.getStorageSync('userId')
+            if (userId === currentUserId) {
+              let userRoles = wx.getStorageSync('userRoles') || ['customer']
+              if (!userRoles.includes('artist')) {
+                userRoles.push('artist')
+                wx.setStorageSync('userRoles', userRoles)
+                
+                const app = getApp()
+                app.globalData.userRoles = userRoles
+              }
+            }
+            
+            wx.showToast({ title: '已通过', icon: 'success' })
+            
+            // 重新加载申请列表
+            setTimeout(() => {
+              this.loadApplications()
+            }, 500)
+          }
         }
       }
     })
@@ -696,13 +731,34 @@ Page({
 
   rejectArtist(e) {
     const id = e.currentTarget.dataset.id
+    const application = this.data.applications.find(app => app._id === id)
+    
+    if (!application) {
+      wx.showToast({ title: '申请不存在', icon: 'none' })
+      return
+    }
+    
     wx.showModal({
       title: '驳回申请',
-      content: '确认驳回此画师申请？',
+      content: `确认驳回 ${application.name} 的画师申请？`,
       success: (res) => {
         if (res.confirm) {
-          wx.showToast({ title: '已驳回', icon: 'success' })
-          this.loadApplications()
+          // 更新申请状态
+          let allApplications = wx.getStorageSync('artist_applications') || []
+          const index = allApplications.findIndex(app => app.id === id)
+          
+          if (index !== -1) {
+            allApplications[index].status = 'rejected'
+            allApplications[index].rejectTime = new Date().toLocaleString('zh-CN')
+            wx.setStorageSync('artist_applications', allApplications)
+            
+            wx.showToast({ title: '已驳回', icon: 'success' })
+            
+            // 重新加载申请列表
+            setTimeout(() => {
+              this.loadApplications()
+            }, 500)
+          }
         }
       }
     })
