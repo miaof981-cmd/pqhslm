@@ -31,30 +31,70 @@ Page({
     console.log('🔄 个人中心页面 onShow 触发')
     console.log('  - 时间:', new Date().toLocaleTimeString())
     
-    // ✅ 新增：检查刷新标志
+    // ✅ 优化：先清空旧数据，避免渲染保留
+    console.log('🧹 清空旧的角色数据...')
+    this.setData({
+      roles: [],
+      roleTexts: []
+    })
+    
+    // ✅ 检查刷新标志
     const needRefresh = wx.getStorageSync('needRefresh')
     
     if (needRefresh) {
       console.log('⚡ 检测到刷新标志，执行强制刷新')
-      
       // 清除刷新标志
       wx.removeStorageSync('needRefresh')
+    }
+    
+    // ✅ 优化：延迟200ms确保缓存已更新
+    setTimeout(() => {
+      console.log('🔄 开始重新加载角色数据...')
       
-      // ✅ 新增：先清空当前数据
+      const app = getApp()
+      let roles = wx.getStorageSync('userRoles') || ['customer']
+      
+      // ✅ 确保 roles 一定是数组
+      if (!Array.isArray(roles)) {
+        console.warn('⚠️ roles 不是数组，转换为数组:', roles)
+        roles = [roles]
+      }
+      
+      console.log('  - 读取到的角色:', roles)
+      
+      // 更新全局数据
+      app.globalData.roles = roles
+      app.globalData.role = roles[0]
+      
+      // 生成角色文本
+      const roleTexts = roles.map(r => this.getRoleText(r))
+      
+      // ✅ 强制更新页面数据
       this.setData({
-        roles: [],
-        roleTexts: [],
-        loading: true
+        roles: roles,
+        roleTexts: roleTexts
+      }, () => {
+        console.log('✅ 角色刷新完成:', this.data.roles)
+        
+        // 验证UI显示逻辑
+        const hasArtist = this.data.roles.indexOf('artist') !== -1
+        const hasAdmin = this.data.roles.indexOf('admin') !== -1
+        const shouldShowCert = !hasArtist && !hasAdmin
+        const shouldShowWorkspace = hasArtist || hasAdmin
+        
+        console.log('📊 UI 显示逻辑判断:')
+        console.log('  - 包含画师角色:', hasArtist)
+        console.log('  - 包含管理员角色:', hasAdmin)
+        console.log('  - 应显示画师认证:', shouldShowCert)
+        console.log('  - 应显示工作台:', shouldShowWorkspace)
       })
       
-      // ✅ 新增：延迟加载，确保清空生效
-      setTimeout(() => {
-        console.log('🔄 开始重新加载数据...')
+      // 加载其他数据
+      if (needRefresh) {
+        this.setData({ loading: true })
         this.loadData()
-      }, 100)
-    } else {
-      console.log('✅ 正常显示，无需刷新')
-    }
+      }
+    }, 200)
     
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   },

@@ -8,6 +8,21 @@ App({
   },
 
   onLaunch() {
+    // ✅ 新增：临时修复逻辑 - 强制恢复ID为1001
+    const savedId = wx.getStorageSync('userId')
+    if (savedId && savedId !== 1001) {
+      console.log('⚙️ 检测到ID异常，强制恢复为1001')
+      console.log('  - 当前ID:', savedId)
+      wx.setStorageSync('userId', 1001)
+      wx.setStorageSync('maxUserId', 1001)
+      this.globalData.userId = 1001
+    } else if (!savedId) {
+      console.log('🆕 未检测到ID，生成默认1001')
+      wx.setStorageSync('userId', 1001)
+      wx.setStorageSync('maxUserId', 1001)
+      this.globalData.userId = 1001
+    }
+    
     // 初始化用户信息
     this.initUserInfo()
     
