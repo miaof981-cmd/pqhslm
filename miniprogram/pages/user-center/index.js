@@ -27,6 +27,7 @@ Page({
   },
 
   onShow() {
+    console.log('🔄 个人中心页面显示，重新加载数据...')
     this.loadData()
   },
 
@@ -85,6 +86,11 @@ Page({
     
     // 生成角色文本数组
     const roleTexts = roles.map(role => this.getRoleText(role))
+    
+    console.log('👤 用户角色加载完成:')
+    console.log('  - 用户ID:', userId)
+    console.log('  - 角色列表:', roles)
+    console.log('  - 角色文本:', roleTexts)
     
     this.setData({
       userId: userId,

@@ -29,21 +29,39 @@ App({
       
       if (userInfo) {
         this.globalData.userInfo = userInfo
-        console.log('用户信息已加载:', userInfo)
+        console.log('✅ 用户信息已加载 - ID:', userId, '昵称:', userInfo.nickName)
       }
     } else {
-      // 没有用户信息，使用固定的开发测试ID
-      const tempUserId = 1001  // 固定ID，不再随机
-      const tempOpenid = 'dev-openid-1001'
+      // 没有用户信息，生成新的自增ID
+      const newUserId = this.generateNewUserId()
+      const newOpenid = `openid-${newUserId}-${Date.now()}`
       
-      this.globalData.userId = tempUserId
-      this.globalData.openid = tempOpenid
+      this.globalData.userId = newUserId
+      this.globalData.openid = newOpenid
       
-      wx.setStorageSync('userId', tempUserId)
-      wx.setStorageSync('openid', tempOpenid)
+      wx.setStorageSync('userId', newUserId)
+      wx.setStorageSync('openid', newOpenid)
       
-      console.log('使用固定开发测试ID:', tempUserId)
+      console.log('🆕 生成新用户ID:', newUserId)
     }
+  },
+
+  // 生成新的自增用户ID
+  generateNewUserId() {
+    // 获取当前最大的用户ID
+    let maxUserId = wx.getStorageSync('maxUserId') || 1000
+    
+    // 新用户ID = 最大ID + 1
+    const newUserId = maxUserId + 1
+    
+    // 保存新的最大ID
+    wx.setStorageSync('maxUserId', newUserId)
+    
+    console.log('📊 ID生成逻辑:')
+    console.log('  - 当前最大ID:', maxUserId)
+    console.log('  - 新用户ID:', newUserId)
+    
+    return newUserId
   },
 
   // 检查登录状态
