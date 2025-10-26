@@ -37,10 +37,21 @@ Page({
       // 请求微信授权
       const userInfo = await this.getUserProfile()
       
-      // 保存用户信息
+      console.log('📱 获取到的微信用户信息:', userInfo)
+      console.log('  - 昵称:', userInfo.nickName)
+      console.log('  - 头像:', userInfo.avatarUrl)
+      
+      // 保存用户信息到本地存储
       wx.setStorageSync('userInfo', userInfo)
       wx.setStorageSync('hasLoggedIn', true)
+      
+      // 保存到全局数据
       app.globalData.userInfo = userInfo
+      
+      // 验证保存结果
+      const savedInfo = wx.getStorageSync('userInfo')
+      console.log('✅ 保存验证 - 本地存储:', savedInfo)
+      console.log('✅ 保存验证 - 全局数据:', app.globalData.userInfo)
       
       wx.hideLoading()
       
@@ -51,7 +62,7 @@ Page({
         duration: 1500
       })
       
-      console.log('✅ 登录成功:', userInfo)
+      console.log('✅ 登录成功，即将跳转首页')
       
       // 延迟跳转，让用户看到欢迎提示
       setTimeout(() => {

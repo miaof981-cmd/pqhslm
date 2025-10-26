@@ -133,13 +133,24 @@ Page({
   async loadUserInfo() {
     const app = getApp()
     
+    console.log('🔄 开始加载用户信息...')
+    
     // 获取微信用户信息（优先从本地存储，其次从全局）
     let wxUserInfo = wx.getStorageSync('userInfo')
+    console.log('  📦 本地存储:', wxUserInfo)
+    
     if (!wxUserInfo) {
       wxUserInfo = app.globalData.userInfo
+      console.log('  🌐 全局数据:', wxUserInfo)
     }
     
-    console.log('📱 读取微信用户信息:', wxUserInfo)
+    if (wxUserInfo) {
+      console.log('  ✅ 找到用户信息:')
+      console.log('    - 昵称:', wxUserInfo.nickName)
+      console.log('    - 头像:', wxUserInfo.avatarUrl)
+    } else {
+      console.log('  ⚠️ 未找到用户信息，使用默认值')
+    }
     
     // 获取用户的主要角色（第一个角色）
     const mainRole = this.data.roles.length > 0 ? this.data.roles[0] : 'customer'
@@ -156,7 +167,9 @@ Page({
     
     this.setData({ userInfo })
     
-    console.log('✅ 用户中心显示信息:', userInfo)
+    console.log('✅ 用户中心最终显示:')
+    console.log('  - 名称:', userInfo.name)
+    console.log('  - 头像:', userInfo.avatar)
   },
 
   // 检查画师状态
