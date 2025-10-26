@@ -28,73 +28,37 @@ Page({
 
   onShow() {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    console.log('🔄 个人中心页面 onShow 触发')
+    console.log('🔄 [user-center] 页面显示，准备刷新角色数据')
     console.log('  - 时间:', new Date().toLocaleTimeString())
-    
-    // ✅ 优化：先清空旧数据，避免渲染保留
-    console.log('🧹 清空旧的角色数据...')
-    this.setData({
-      roles: [],
-      roleTexts: []
-    })
     
     // ✅ 检查刷新标志
     const needRefresh = wx.getStorageSync('needRefresh')
-    
     if (needRefresh) {
-      console.log('⚡ 检测到刷新标志，执行强制刷新')
-      // 清除刷新标志
+      console.log('⚡ 检测到 needRefresh 标志，强制刷新数据')
       wx.removeStorageSync('needRefresh')
+      
+      // 先清空旧数据，避免保留上次角色状态
+      this.setData({ roles: [], roleTexts: [] })
+      
+      // 延迟一点，确保本地存储已写入
+      setTimeout(() => {
+        this.loadUserRole()
+        this.loadData()
+      }, 100)
+      
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      return
     }
     
-    // ✅ 优化：延迟200ms确保缓存已更新
+    console.log('🟢 正常进入个人中心')
+    
+    // 先清空旧数据
+    this.setData({ roles: [], roleTexts: [] })
+    
+    // 延迟加载
     setTimeout(() => {
-      console.log('🔄 开始重新加载角色数据...')
-      
-      const app = getApp()
-      let roles = wx.getStorageSync('userRoles') || ['customer']
-      
-      // ✅ 确保 roles 一定是数组
-      if (!Array.isArray(roles)) {
-        console.warn('⚠️ roles 不是数组，转换为数组:', roles)
-        roles = [roles]
-      }
-      
-      console.log('  - 读取到的角色:', roles)
-      
-      // 更新全局数据
-      app.globalData.roles = roles
-      app.globalData.role = roles[0]
-      
-      // 生成角色文本
-      const roleTexts = roles.map(r => this.getRoleText(r))
-      
-      // ✅ 强制更新页面数据
-      this.setData({
-        roles: roles,
-        roleTexts: roleTexts
-      }, () => {
-        console.log('✅ 角色刷新完成:', this.data.roles)
-        
-        // 验证UI显示逻辑
-        const hasArtist = this.data.roles.indexOf('artist') !== -1
-        const hasAdmin = this.data.roles.indexOf('admin') !== -1
-        const shouldShowCert = !hasArtist && !hasAdmin
-        const shouldShowWorkspace = hasArtist || hasAdmin
-        
-        console.log('📊 UI 显示逻辑判断:')
-        console.log('  - 包含画师角色:', hasArtist)
-        console.log('  - 包含管理员角色:', hasAdmin)
-        console.log('  - 应显示画师认证:', shouldShowCert)
-        console.log('  - 应显示工作台:', shouldShowWorkspace)
-      })
-      
-      // 加载其他数据
-      if (needRefresh) {
-        this.setData({ loading: true })
-        this.loadData()
-      }
-    }, 200)
+      this.loadUserRole()
+    }, 100)
     
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   },
@@ -123,60 +87,44 @@ Page({
   // 加载用户角色（支持多角色）
   loadUserRole() {
     const app = getApp()
+    let roles = wx.getStorageSync('userRoles')
     
-    console.log('👤 开始加载用户角色...')
+    console.log('🧾 本地读取roles:', roles)
     
-    // 优先从app.globalData获取，确保与app.js中的初始化一致
-    let userId = wx.getStorageSync('userId')
-    if (!userId) {
-      userId = app.globalData.userId || 1001
-      wx.setStorageSync('userId', userId)
+    // ✅ 如果 roles 是字符串，则转为数组
+    if (typeof roles === 'string') {
+      console.warn('⚠️ roles 是字符串，转换为数组:', roles)
+      roles = [roles]
     }
     
-    // 从本地存储读取用户的多个角色
-    let roles = wx.getStorageSync('userRoles') || ['customer']
-    
-    console.log('  - 本地存储读取:', wx.getStorageSync('userRoles'))
-    console.log('  - 全局数据读取:', app.globalData.roles)
-    
-    // 确保roles是数组
-    if (!Array.isArray(roles)) {
-      console.warn('⚠️ roles 不是数组，重置为 [customer]')
+    // ✅ 如果 roles 为空，默认是普通用户
+    if (!roles || roles.length === 0) {
+      console.log('⚠️ roles 为空，默认设置为 [customer]')
       roles = ['customer']
     }
     
-    // 如果没有角色，默认为customer
-    if (roles.length === 0) {
-      console.warn('⚠️ roles 为空数组，重置为 [customer]')
-      roles = ['customer']
-    }
+    console.log('✅ 最终使用的 roles:', roles)
     
-    // 保存角色到本地（不再重复保存userId）
-    wx.setStorageSync('userRoles', roles)
-    
-    // 更新全局数据（主角色为第一个）
-    app.globalData.userId = userId
-    app.globalData.role = roles[0]
+    // ✅ 同步全局
     app.globalData.roles = roles
+    app.globalData.role = roles[0]
     
-    // 生成角色文本数组
-    const roleTexts = roles.map(role => this.getRoleText(role))
+    // 获取用户ID
+    const userId = wx.getStorageSync('userId') || app.globalData.userId || 1001
+    app.globalData.userId = userId
     
-    console.log('👤 用户角色加载完成:')
-    console.log('  - 用户ID:', userId)
-    console.log('  - 角色列表:', roles)
-    console.log('  - 角色文本:', roleTexts)
-    console.log('  - 主角色:', roles[0])
+    // 生成角色文本
+    const roleTexts = roles.map(r => this.getRoleText(r))
     
-    // ✅ 修改：添加回调确认
+    // ✅ 更新页面
     this.setData({
       userId: userId,
       roles: roles,
       roleTexts: roleTexts
     }, () => {
-      console.log('✅ setData 完成，当前页面 roles:', this.data.roles)
+      console.log('✅ 页面角色刷新完成:', this.data.roles)
       
-      // ✅ 新增：验证条件判断
+      // 验证UI显示逻辑
       const hasArtist = this.data.roles.indexOf('artist') !== -1
       const hasAdmin = this.data.roles.indexOf('admin') !== -1
       const shouldShowCert = !hasArtist && !hasAdmin

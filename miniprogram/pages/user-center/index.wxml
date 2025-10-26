@@ -1,4 +1,9 @@
 <view class="container">
+  <!-- ✅ 调试信息：显示当前角色 -->
+  <view style="font-size:24rpx; color:#666; padding:10rpx; text-align:center; background:#f0f0f0;">
+    当前角色：{{roles}}
+  </view>
+  
   <view wx:if="{{loading}}" class="loading">
     <text>加载中...</text>
   </view>
