@@ -2,35 +2,46 @@ Page({
   data: {
     balance: 0,
     withdrawAmount: '',
-    withdrawMethod: 'wechat',
-    quickAmounts: [100, 200, 500, 1000],
+    isVerified: false, // 是否已实名认证
+    realName: '',
+    idCard: '',
+    bankName: '',
+    bankCard: '',
+    bankBranch: '',
     withdrawRecords: []
   },
 
   onLoad() {
     this.loadBalance()
     this.loadWithdrawRecords()
+    this.loadUserInfo()
   },
 
   // 加载余额
   loadBalance() {
-    // 从本地存储加载
     const rewardRecords = wx.getStorageSync('reward_records') || []
     const withdrawRecords = wx.getStorageSync('withdraw_records') || []
     
-    // 计算总收入
-    const totalIncome = rewardRecords.reduce((sum, r) => sum + parseFloat(r.amount), 0)
-    
-    // 计算已提现金额
-    const totalWithdraw = withdrawRecords
+    const totalReward = rewardRecords.reduce((sum, r) => sum + (r.amount || 0), 0)
+    const totalWithdrawn = withdrawRecords
       .filter(r => r.status === 'success')
-      .reduce((sum, r) => sum + parseFloat(r.amount), 0)
-    
-    // 可用余额 = 总收入 - 已提现
-    const balance = (totalIncome - totalWithdraw).toFixed(2)
+      .reduce((sum, r) => sum + (r.amount || 0), 0)
     
     this.setData({
-      balance: balance > 0 ? balance : '0.00'
+      balance: (totalReward - totalWithdrawn).toFixed(2)
+    })
+  },
+
+  // 加载用户信息
+  loadUserInfo() {
+    const userInfo = wx.getStorageSync('user_verify_info') || {}
+    this.setData({
+      isVerified: !!userInfo.isVerified,
+      realName: userInfo.realName || '',
+      idCard: userInfo.idCard || '',
+      bankName: userInfo.bankName || '',
+      bankCard: userInfo.bankCard || '',
+      bankBranch: userInfo.bankBranch || ''
     })
   },
 
@@ -38,37 +49,32 @@ Page({
   loadWithdrawRecords() {
     const records = wx.getStorageSync('withdraw_records') || []
     
+    // 生成模拟数据（首次）
     if (records.length === 0) {
-      // 生成模拟数据
       const mockRecords = [
         {
-          id: 1,
-          amount: 100,
-          method: 'wechat',
+          id: Date.now() - 86400000,
+          amount: 200,
           status: 'success',
           statusText: '已到账',
-          time: '2025-10-20 10:30'
+          time: '2025-10-20 14:30'
         },
         {
-          id: 2,
-          amount: 50,
-          method: 'alipay',
-          status: 'pending',
-          statusText: '处理中',
-          time: '2025-10-25 14:20'
+          id: Date.now() - 172800000,
+          amount: 150,
+          status: 'success',
+          statusText: '已到账',
+          time: '2025-10-18 09:15'
         }
       ]
-      this.setData({
-        withdrawRecords: mockRecords
-      })
+      wx.setStorageSync('withdraw_records', mockRecords)
+      this.setData({ withdrawRecords: mockRecords })
     } else {
-      this.setData({
-        withdrawRecords: records.reverse()
-      })
+      this.setData({ withdrawRecords: records })
     }
   },
 
-  // 输入提现金额
+  // 金额输入
   onAmountInput(e) {
     this.setData({
       withdrawAmount: e.detail.value
@@ -90,45 +96,51 @@ Page({
     })
   },
 
-  // 选择提现方式
-  selectMethod(e) {
-    const method = e.currentTarget.dataset.method
-    this.setData({
-      withdrawMethod: method
-    })
+  // 实名信息输入
+  onRealNameInput(e) {
+    this.setData({ realName: e.detail.value })
   },
 
-  // 提交提现申请
+  onIdCardInput(e) {
+    this.setData({ idCard: e.detail.value })
+  },
+
+  // 银行卡信息输入
+  onBankNameInput(e) {
+    this.setData({ bankName: e.detail.value })
+  },
+
+  onBankCardInput(e) {
+    this.setData({ bankCard: e.detail.value })
+  },
+
+  onBankBranchInput(e) {
+    this.setData({ bankBranch: e.detail.value })
+  },
+
+  // 提交提现
   submitWithdraw() {
-    const { withdrawAmount, balance, withdrawMethod } = this.data
+    const { withdrawAmount, balance, isVerified, realName, idCard, bankName, bankCard } = this.data
     
-    // 验证
-    if (!withdrawAmount) {
+    // 验证金额
+    if (!withdrawAmount || parseFloat(withdrawAmount) <= 0) {
       wx.showToast({
         title: '请输入提现金额',
         icon: 'none'
       })
       return
     }
-    
+
     const amount = parseFloat(withdrawAmount)
     
     if (amount < 10) {
       wx.showToast({
-        title: '最低提现金额为10元',
+        title: '最低提现10元',
         icon: 'none'
       })
       return
     }
-    
-    if (amount > parseFloat(balance)) {
-      wx.showToast({
-        title: '余额不足',
-        icon: 'none'
-      })
-      return
-    }
-    
+
     if (amount > 5000) {
       wx.showToast({
         title: '单笔最高提现5000元',
@@ -136,58 +148,115 @@ Page({
       })
       return
     }
-    
+
+    if (amount > parseFloat(balance)) {
+      wx.showToast({
+        title: '余额不足',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 验证实名信息
+    if (!isVerified) {
+      if (!realName || !idCard) {
+        wx.showToast({
+          title: '请完善实名信息',
+          icon: 'none'
+        })
+        return
+      }
+
+      // 简单验证身份证格式
+      if (idCard.length !== 18) {
+        wx.showToast({
+          title: '身份证号格式错误',
+          icon: 'none'
+        })
+        return
+      }
+    }
+
+    // 验证银行卡信息
+    if (!bankName || !bankCard) {
+      wx.showToast({
+        title: '请完善银行卡信息',
+        icon: 'none'
+      })
+      return
+    }
+
+    if (bankCard.length < 16) {
+      wx.showToast({
+        title: '银行卡号格式错误',
+        icon: 'none'
+      })
+      return
+    }
+
     wx.showModal({
       title: '确认提现',
-      content: `确认提现 ¥${amount} 到${withdrawMethod === 'wechat' ? '微信零钱' : '支付宝'}？`,
+      content: `提现金额：¥${amount}\n到账银行卡：${bankName}(${bankCard.slice(-4)})`,
       success: (res) => {
         if (res.confirm) {
-          this.processWithdraw(amount, withdrawMethod)
+          this.processWithdraw(amount)
         }
       }
     })
   },
 
   // 处理提现
-  processWithdraw(amount, method) {
-    wx.showLoading({ title: '处理中...' })
-    
+  processWithdraw(amount) {
+    wx.showLoading({ title: '提交中...' })
+
+    // 保存实名信息
+    if (!this.data.isVerified) {
+      wx.setStorageSync('user_verify_info', {
+        isVerified: true,
+        realName: this.data.realName,
+        idCard: this.data.idCard,
+        bankName: this.data.bankName,
+        bankCard: this.data.bankCard,
+        bankBranch: this.data.bankBranch
+      })
+    }
+
+    // 模拟提现
     setTimeout(() => {
       wx.hideLoading()
-      
-      // 保存提现记录
-      const records = wx.getStorageSync('withdraw_records') || []
+
+      // 添加提现记录
       const newRecord = {
         id: Date.now(),
         amount: amount,
-        method: method,
         status: 'pending',
         statusText: '处理中',
-        time: new Date().toLocaleString()
+        time: new Date().toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }).replace(/\//g, '-')
       }
-      records.push(newRecord)
+
+      const records = wx.getStorageSync('withdraw_records') || []
+      records.unshift(newRecord)
       wx.setStorageSync('withdraw_records', records)
-      
+
       wx.showToast({
         title: '提现申请已提交',
         icon: 'success'
       })
-      
+
       // 刷新数据
       this.setData({
-        withdrawAmount: ''
+        withdrawAmount: '',
+        isVerified: true,
+        withdrawRecords: records
       })
+      
       this.loadBalance()
-      this.loadWithdrawRecords()
     }, 1000)
-  },
-
-  // 查看全部记录
-  viewAllRecords() {
-    wx.showToast({
-      title: '提现记录详情页开发中',
-      icon: 'none'
-    })
   }
 })
-
