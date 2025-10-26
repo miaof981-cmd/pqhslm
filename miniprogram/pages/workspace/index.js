@@ -491,16 +491,14 @@ Page({
         break
         
       case 'rewards':
-        wx.showToast({
-          title: '打赏记录开发中',
-          icon: 'none'
+        wx.navigateTo({
+          url: '/pages/reward-records/index'
         })
         break
         
       case 'withdraw':
-        wx.showToast({
-          title: '资金提现开发中',
-          icon: 'none'
+        wx.navigateTo({
+          url: '/pages/withdraw/index'
         })
         break
         
@@ -514,15 +512,9 @@ Page({
     const { id } = e.currentTarget.dataset
     console.log('查看订单详情:', id)
     
-    wx.showToast({
-      title: '订单详情页开发中',
-      icon: 'none'
+    wx.navigateTo({
+      url: `/pages/order-detail/index?id=${id}`
     })
-    
-    // 后续实现：
-    // wx.navigateTo({
-    //   url: `/pages/order-detail/index?id=${id}`
-    // })
   },
   
   // 筛选订单

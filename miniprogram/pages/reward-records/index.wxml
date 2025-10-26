@@ -1,0 +1,33 @@
+<view class="reward-container">
+  <view class="header-card">
+    <view class="total-reward">
+      <text class="label">累计打赏收入</text>
+      <view class="amount-row">
+        <text class="symbol">¥</text>
+        <text class="value">{{totalReward}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-title">打赏记录</view>
+
+  <view wx:if="{{records.length === 0}}" class="empty-state">
+    <view class="empty-icon"></view>
+    <text class="empty-text">还没有收到打赏哦~</text>
+  </view>
+
+  <scroll-view wx:else class="records-list" scroll-y>
+    <view wx:for="{{records}}" wx:key="id" class="record-item">
+      <view class="record-header">
+        <view class="reward-icon-small"></view>
+        <text class="buyer-name">{{item.buyerName || '匿名用户'}}</text>
+        <text class="reward-amount">+¥{{item.amount}}</text>
+      </view>
+      <view class="record-info">
+        <text class="order-id">订单：{{item.orderId}}</text>
+        <text class="reward-time">{{item.time}}</text>
+      </view>
+    </view>
+  </scroll-view>
+</view>
+

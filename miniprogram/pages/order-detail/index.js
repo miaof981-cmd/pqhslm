@@ -3,309 +3,209 @@ Page({
     loading: true,
     orderId: '',
     order: null,
-    isArtist: false,
-    isAdmin: false,
-    isArtistOrAdmin: false
+    userRole: 'customer', // customer 或 artist
+    
+    // 打赏选项
+    rewardOptions: [6, 10, 20, 50, 100],
+    selectedReward: 0
   },
 
   onLoad(options) {
     const { id } = options
-    if (!id) {
-      wx.showToast({ title: '订单ID不存在', icon: 'none' })
-      setTimeout(() => wx.navigateBack(), 1500)
-      return
+    if (id) {
+      this.setData({ orderId: id })
+      this.loadOrderDetail(id)
     }
     
-    this.setData({ orderId: id })
-    this.checkUserRole()
-    this.loadOrderDetail()
-  },
-
-  // 检查用户角色
-  checkUserRole() {
-    const role = wx.getStorageSync('userRole') || 'customer'
-    this.setData({
-      isArtist: role === 'artist',
-      isAdmin: role === 'admin',
-      isArtistOrAdmin: role === 'artist' || role === 'admin'
-    })
+    // 获取用户角色
+    const app = getApp()
+    const roles = app.getUserRoles()
+    const userRole = roles.includes('artist') ? 'artist' : 'customer'
+    this.setData({ userRole })
   },
 
   // 加载订单详情
-  async loadOrderDetail() {
-    this.setData({ loading: true })
+  loadOrderDetail(orderId) {
+    // 模拟从本地存储加载
+    const allOrders = wx.getStorageSync('pending_orders') || []
+    const completedOrders = wx.getStorageSync('completed_orders') || []
+    const orders = [...allOrders, ...completedOrders]
     
-    try {
-      // 模拟数据 - 实际应从云数据库获取
-      const mockOrder = {
-        _id: this.data.orderId,
-        orderNo: 'ORD202401250001',
-        productId: '1',
-        productName: '精美头像设计',
-        productImage: 'https://via.placeholder.com/400',
-        categoryName: '头像设计',
-        deliveryDays: 3,
-        amount: '88.00',
-        
-        artistId: '1',
-        artistName: '画师小A',
-        artistAvatar: 'https://via.placeholder.com/100',
-        artistLevel: 'S',
-        artistOrders: 156,
-        
-        buyerName: '张三',
-        buyerPhone: '138****1234',
-        
-        status: 'processing',
-        statusText: '制作中',
-        statusDesc: '画师正在为您精心创作',
-        statusIndex: 1,
-        
-        createTime: '2024-01-25 10:30:00',
-        payTime: '2024-01-25 10:31:00',
-        startTime: '2024-01-25 11:00:00',
-        deadline: '2024-01-28 10:30:00',
-        completeTime: '',
-        
-        isOverdue: false,
-        remark: '希望画风可爱一些，背景要简洁',
-        
-        serviceQR: 'https://via.placeholder.com/200',
-        
-        attachments: [],
-        
-        logs: [
-          {
-            action: '订单已创建',
-            time: '2024-01-25 10:30:00',
-            operator: '系统'
-          },
-          {
-            action: '支付成功',
-            time: '2024-01-25 10:31:00',
-            operator: '买家'
-          },
-          {
-            action: '画师开始制作',
-            time: '2024-01-25 11:00:00',
-            operator: '画师小A'
-          }
-        ]
-      }
-      
-      // 根据状态设置不同的信息
-      if (mockOrder.status === 'completed') {
-        mockOrder.statusText = '已完成'
-        mockOrder.statusDesc = '订单已完成，感谢您的支持'
-        mockOrder.statusIndex = 2
-        mockOrder.completeTime = '2024-01-27 15:00:00'
-        mockOrder.attachments = [
-          { type: 'image', url: 'https://via.placeholder.com/400', name: '作品1.jpg' },
-          { type: 'image', url: 'https://via.placeholder.com/400', name: '作品2.jpg' },
-          { type: 'file', url: '', name: '源文件.psd' }
-        ]
-        mockOrder.logs.push({
-          action: '订单已完成',
-          time: '2024-01-27 15:00:00',
-          operator: '画师小A'
-        })
-      }
-      
-      this.setData({ order: mockOrder })
-    } catch (error) {
-      console.error('加载订单详情失败', error)
-      wx.showToast({ title: '加载失败', icon: 'none' })
-    } finally {
-      this.setData({ loading: false })
+    // 如果本地没有，使用工作台的模拟数据
+    if (orders.length === 0) {
+      this.loadMockOrder(orderId)
+      return
     }
-  },
-
-  // 查看商品
-  viewProduct(e) {
-    const id = e.currentTarget.dataset.id
-    wx.navigateTo({
-      url: `/pages/product-detail/index?id=${id}`
-    })
-  },
-
-  // 查看画师
-  viewArtist(e) {
-    const id = e.currentTarget.dataset.id
-    wx.navigateTo({
-      url: `/pages/artist-detail/index?id=${id}`
-    })
-  },
-
-  // 联系画师
-  contactArtist() {
-    wx.showModal({
-      title: '联系画师',
-      content: '请通过专属客服二维码联系画师',
-      showCancel: false
-    })
-  },
-
-  // 复制订单号
-  copyOrderNo() {
-    wx.setClipboardData({
-      data: this.data.order.orderNo,
-      success: () => {
-        wx.showToast({ title: '已复制订单号', icon: 'success' })
-      }
-    })
-  },
-
-  // 预览附件
-  previewAttachment(e) {
-    const url = e.currentTarget.dataset.url
-    const images = this.data.order.attachments
-      .filter(a => a.type === 'image')
-      .map(a => a.url)
     
-    if (images.includes(url)) {
-      wx.previewImage({
-        current: url,
-        urls: images
+    const order = orders.find(o => o.id === orderId)
+    
+    if (order) {
+      // 计算进度步骤
+      let step = 1
+      if (order.status === 'inProgress' || order.status === 'nearDeadline' || order.status === 'overdue') {
+        step = 2
+      } else if (order.status === 'completed') {
+        step = 3
+      }
+      
+      this.setData({
+        order: { ...order, step },
+        loading: false
       })
     } else {
-      wx.showToast({ title: '暂不支持预览此文件', icon: 'none' })
+      this.loadMockOrder(orderId)
     }
   },
-
-  // 预览二维码
-  previewQR() {
-    wx.previewImage({
-      current: this.data.order.serviceQR,
-      urls: [this.data.order.serviceQR]
+  
+  // 加载模拟订单数据
+  loadMockOrder(orderId) {
+    const mockOrder = {
+      id: orderId,
+      productName: 'Q版头像定制',
+      productImage: '/assets/default-product.png',
+      spec: '大头/手机壁纸',
+      price: '88.00',
+      status: 'inProgress',
+      statusText: '进行中',
+      createTime: '2025-10-25 14:32',
+      deadline: '2025-10-30 23:59',
+      urgent: false,
+      step: 2,
+      buyerName: '用户_' + orderId.slice(-4),
+      artistName: '画师小明'
+    }
+    
+    this.setData({
+      order: mockOrder,
+      loading: false
     })
   },
 
-  // 买家操作
-  payOrder() {
+  // 选择打赏金额
+  selectReward(e) {
+    const amount = e.currentTarget.dataset.amount
+    this.setData({
+      selectedReward: amount
+    })
+  },
+
+  // 自定义打赏金额
+  showCustomReward() {
     wx.showModal({
-      title: '支付订单',
-      content: '确认支付此订单？',
+      title: '自定义打赏金额',
+      editable: true,
+      placeholderText: '请输入金额（元）',
+      success: (res) => {
+        if (res.confirm && res.content) {
+          const amount = parseFloat(res.content)
+          if (amount > 0 && amount <= 500) {
+            this.setData({
+              selectedReward: amount
+            })
+          } else {
+            wx.showToast({
+              title: '金额范围：1-500元',
+              icon: 'none'
+            })
+          }
+        }
+      }
+    })
+  },
+
+  // 确认打赏
+  confirmReward() {
+    const { selectedReward, order } = this.data
+    
+    if (!selectedReward) {
+      wx.showToast({
+        title: '请选择打赏金额',
+        icon: 'none'
+      })
+      return
+    }
+    
+    wx.showModal({
+      title: '确认打赏',
+      content: `确认打赏 ¥${selectedReward} 给画师？`,
       success: (res) => {
         if (res.confirm) {
-          wx.showLoading({ title: '支付中...' })
+          // TODO: 调用后端接口
+          wx.showLoading({ title: '处理中...' })
+          
           setTimeout(() => {
             wx.hideLoading()
-            wx.showToast({ title: '支付成功', icon: 'success' })
-            this.loadOrderDetail()
+            
+            // 保存打赏记录
+            const rewards = wx.getStorageSync('reward_records') || []
+            rewards.push({
+              id: Date.now(),
+              orderId: order.id,
+              amount: selectedReward,
+              time: new Date().toLocaleString(),
+              artistName: order.artistName
+            })
+            wx.setStorageSync('reward_records', rewards)
+            
+            wx.showToast({
+              title: '打赏成功',
+              icon: 'success'
+            })
+            
+            this.setData({
+              selectedReward: 0
+            })
           }, 1000)
         }
       }
     })
   },
 
-  applyRefund() {
-    wx.showModal({
-      title: '申请退款',
-      content: '确认申请退款？退款后订单将被取消',
-      success: (res) => {
-        if (res.confirm) {
-          wx.showToast({ title: '已提交退款申请', icon: 'success' })
-          this.loadOrderDetail()
-        }
-      }
-    })
-  },
-
-  confirmOrder() {
-    wx.showModal({
-      title: '确认收货',
-      content: '确认收到作品并满意？',
-      success: (res) => {
-        if (res.confirm) {
-          wx.showToast({ title: '确认成功', icon: 'success' })
-          this.loadOrderDetail()
-        }
-      }
-    })
-  },
-
-  deleteOrder() {
-    wx.showModal({
-      title: '删除订单',
-      content: '确认删除此订单？删除后无法恢复',
-      confirmColor: '#FF6B6B',
-      success: (res) => {
-        if (res.confirm) {
-          wx.showToast({ title: '已删除', icon: 'success' })
-          setTimeout(() => wx.navigateBack(), 1000)
-        }
-      }
-    })
-  },
-
-  // 画师操作
-  startWork() {
-    wx.showModal({
-      title: '开始制作',
-      content: '确认开始制作此订单？',
-      success: (res) => {
-        if (res.confirm) {
-          wx.showToast({ title: '已开始制作', icon: 'success' })
-          this.loadOrderDetail()
-        }
-      }
-    })
-  },
-
+  // 上传作品
   uploadWork() {
-    wx.chooseImage({
-      count: 9,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success: (res) => {
-        wx.showLoading({ title: '上传中...' })
-        // 实际应上传到云存储
-        setTimeout(() => {
-          wx.hideLoading()
-          wx.showToast({ title: '上传成功', icon: 'success' })
-        }, 1000)
-      }
+    wx.showToast({
+      title: '上传作品功能开发中',
+      icon: 'none'
     })
   },
 
-  completeOrder() {
+  // 联系买家
+  contactCustomer() {
+    wx.showToast({
+      title: '查看客服二维码',
+      icon: 'none'
+    })
+  },
+
+  // 联系画师
+  contactArtist() {
+    wx.showToast({
+      title: '查看客服二维码',
+      icon: 'none'
+    })
+  },
+
+  // 确认完成
+  confirmComplete() {
     wx.showModal({
-      title: '完成订单',
-      content: '确认完成此订单？请确保已上传所有作品',
+      title: '确认完成',
+      content: '确认订单已完成？',
       success: (res) => {
         if (res.confirm) {
-          wx.showToast({ title: '订单已完成', icon: 'success' })
-          this.loadOrderDetail()
+          const order = this.data.order
+          order.status = 'completed'
+          order.statusText = '已完成'
+          order.step = 3
+          order.completedTime = new Date().toLocaleString()
+          
+          this.setData({ order })
+          
+          wx.showToast({
+            title: '已确认完成',
+            icon: 'success'
+          })
         }
       }
     })
-  },
-
-  // 管理员操作
-  processRefund() {
-    wx.showModal({
-      title: '处理退款',
-      content: '确认退款给买家？',
-      success: (res) => {
-        if (res.confirm) {
-          wx.showToast({ title: '退款已处理', icon: 'success' })
-          this.loadOrderDetail()
-        }
-      }
-    })
-  },
-
-  editOrder() {
-    wx.showModal({
-      title: '编辑订单',
-      content: '订单编辑功能（管理员可修改订单状态、备注等）',
-      showCancel: false
-    })
-  },
-
-  // 下拉刷新
-  onPullDownRefresh() {
-    this.loadOrderDetail()
-    wx.stopPullDownRefresh()
   }
 })

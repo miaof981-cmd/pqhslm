@@ -1,202 +1,134 @@
-<view class="container">
-  <view wx:if="{{loading}}" class="loading">
-    <text>加载中...</text>
-  </view>
-
-  <view wx:else>
+<view class="order-detail-container">
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+  
+  <view wx:else class="detail-content">
     <!-- 订单状态卡片 -->
-    <view class="status-section">
-      <view class="status-card status-{{order.status}}">
-        <view class="status-icon-wrapper">
-          <view class="status-icon"></view>
-        </view>
-        <view class="status-content">
-          <text class="status-title">{{order.statusText}}</text>
-          <text class="status-desc">{{order.statusDesc}}</text>
+    <view class="status-card">
+      <view class="status-header">
+        <view class="status-icon status-{{order.status}}"></view>
+        <view class="status-info">
+          <text class="status-text">{{order.statusText}}</text>
+          <text class="order-id">订单号：{{order.id}}</text>
         </view>
       </view>
       
       <!-- 进度条 -->
       <view class="progress-bar">
-        <view class="progress-item {{order.statusIndex >= 0 ? 'active' : ''}}">
-          <view class="progress-dot"></view>
-          <text class="progress-label">已下单</text>
-          <text class="progress-time">{{order.createTime}}</text>
+        <view class="progress-step {{order.step >= 1 ? 'active' : ''}}">
+          <view class="step-dot"></view>
+          <text class="step-label">已下单</text>
         </view>
-        <view class="progress-line {{order.statusIndex >= 1 ? 'active' : ''}}"></view>
-        <view class="progress-item {{order.statusIndex >= 1 ? 'active' : ''}}">
-          <view class="progress-dot"></view>
-          <text class="progress-label">制作中</text>
-          <text class="progress-time">{{order.startTime || ''}}</text>
+        <view class="progress-line {{order.step >= 2 ? 'active' : ''}}"></view>
+        <view class="progress-step {{order.step >= 2 ? 'active' : ''}}">
+          <view class="step-dot"></view>
+          <text class="step-label">制作中</text>
         </view>
-        <view class="progress-line {{order.statusIndex >= 2 ? 'active' : ''}}"></view>
-        <view class="progress-item {{order.statusIndex >= 2 ? 'active' : ''}}">
-          <view class="progress-dot"></view>
-          <text class="progress-label">已完成</text>
-          <text class="progress-time">{{order.completeTime || ''}}</text>
+        <view class="progress-line {{order.step >= 3 ? 'active' : ''}}"></view>
+        <view class="progress-step {{order.step >= 3 ? 'active' : ''}}">
+          <view class="step-dot"></view>
+          <text class="step-label">已完成</text>
         </view>
       </view>
     </view>
 
     <!-- 商品信息 -->
     <view class="section-card">
-      <view class="section-header">
-        <text class="section-title">商品信息</text>
-      </view>
-      <view class="product-info" bindtap="viewProduct" data-id="{{order.productId}}">
-        <image class="product-image" src="{{order.productImage}}" mode="aspectFill" />
-        <view class="product-details">
+      <view class="section-title">商品信息</view>
+      <view class="product-detail">
+        <image class="product-image" src="{{order.productImage}}" mode="aspectFill"/>
+        <view class="product-info">
           <text class="product-name">{{order.productName}}</text>
-          <text class="product-category">{{order.categoryName}}</text>
-          <view class="product-meta">
-            <text class="product-delivery">{{order.deliveryDays}}天出稿</text>
-            <text class="product-price">¥{{order.amount}}</text>
-          </view>
-        </view>
-        <view class="arrow-icon"></view>
-      </view>
-    </view>
-
-    <!-- 画师信息 -->
-    <view class="section-card">
-      <view class="section-header">
-        <text class="section-title">画师信息</text>
-      </view>
-      <view class="artist-info" bindtap="viewArtist" data-id="{{order.artistId}}">
-        <image class="artist-avatar" src="{{order.artistAvatar}}" mode="aspectFill" />
-        <view class="artist-details">
-          <text class="artist-name">{{order.artistName}}</text>
-          <view class="artist-level">
-            <text class="level-badge">{{order.artistLevel}}级画师</text>
-            <text class="artist-orders">已完成{{order.artistOrders}}单</text>
-          </view>
-        </view>
-        <button class="contact-btn" catchtap="contactArtist">联系</button>
-      </view>
-    </view>
-
-    <!-- 买家信息（仅画师和管理员可见） -->
-    <view wx:if="{{isArtistOrAdmin}}" class="section-card">
-      <view class="section-header">
-        <text class="section-title">买家信息</text>
-      </view>
-      <view class="buyer-info">
-        <view class="info-row">
-          <text class="info-label">买家昵称</text>
-          <text class="info-value">{{order.buyerName}}</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">联系方式</text>
-          <text class="info-value">{{order.buyerPhone || '未提供'}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 订单信息 -->
-    <view class="section-card">
-      <view class="section-header">
-        <text class="section-title">订单信息</text>
-      </view>
-      <view class="order-info">
-        <view class="info-row">
-          <text class="info-label">订单编号</text>
-          <text class="info-value copyable" bindtap="copyOrderNo">{{order.orderNo}}</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">下单时间</text>
-          <text class="info-value">{{order.createTime}}</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">截稿时间</text>
-          <text class="info-value {{order.isOverdue ? 'overdue' : ''}}">
-            {{order.deadline}}{{order.isOverdue ? ' (已超时)' : ''}}
-          </text>
-        </view>
-        <view wx:if="{{order.payTime}}" class="info-row">
-          <text class="info-label">支付时间</text>
-          <text class="info-value">{{order.payTime}}</text>
-        </view>
-        <view wx:if="{{order.completeTime}}" class="info-row">
-          <text class="info-label">完成时间</text>
-          <text class="info-value">{{order.completeTime}}</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">订单金额</text>
-          <text class="info-value price">¥{{order.amount}}</text>
-        </view>
-        <view wx:if="{{order.remark}}" class="info-row vertical">
-          <text class="info-label">订单备注</text>
-          <text class="info-value remark">{{order.remark}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 作品附件（已完成时显示） -->
-    <view wx:if="{{order.status === 'completed' && order.attachments.length > 0}}" class="section-card">
-      <view class="section-header">
-        <text class="section-title">作品附件</text>
-        <text class="attachment-count">{{order.attachments.length}}个文件</text>
-      </view>
-      <view class="attachment-list">
-        <view wx:for="{{order.attachments}}" wx:key="*this" class="attachment-item" bindtap="previewAttachment" data-url="{{item.url}}">
-          <image wx:if="{{item.type === 'image'}}" class="attachment-thumb" src="{{item.url}}" mode="aspectFill" />
-          <view wx:else class="attachment-file">
-            <view class="file-icon"></view>
-            <text class="file-name">{{item.name}}</text>
+          <text class="product-spec">规格：{{order.spec}}</text>
+          <view class="product-price-row">
+            <text class="price-label">金额：</text>
+            <text class="price-symbol">¥</text>
+            <text class="price-value">{{order.price}}</text>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- 客服二维码 -->
+    <!-- 时间信息 -->
     <view class="section-card">
-      <view class="section-header">
-        <text class="section-title">专属客服</text>
+      <view class="section-title">时间信息</view>
+      <view class="info-row">
+        <text class="info-label">下单时间</text>
+        <text class="info-value">{{order.createTime}}</text>
       </view>
-      <view class="service-qr-wrapper">
-        <image class="service-qr" src="{{order.serviceQR}}" mode="aspectFit" bindtap="previewQR" />
-        <text class="service-hint">长按保存二维码，添加客服微信</text>
+      <view class="info-row">
+        <text class="info-label">截稿时间</text>
+        <text class="info-value {{order.urgent ? 'urgent' : ''}}">{{order.deadline}}</text>
+      </view>
+      <view wx:if="{{order.completedTime}}" class="info-row">
+        <text class="info-label">完成时间</text>
+        <text class="info-value">{{order.completedTime}}</text>
       </view>
     </view>
 
-    <!-- 操作日志 -->
-    <view class="section-card">
-      <view class="section-header">
-        <text class="section-title">操作日志</text>
+    <!-- 买家信息（画师可见） -->
+    <view wx:if="{{userRole === 'artist'}}" class="section-card">
+      <view class="section-title">买家信息</view>
+      <view class="info-row">
+        <text class="info-label">买家昵称</text>
+        <text class="info-value">{{order.buyerName || '匿名用户'}}</text>
       </view>
-      <view class="log-list">
-        <view wx:for="{{order.logs}}" wx:key="time" class="log-item">
-          <view class="log-dot"></view>
-          <view class="log-content">
-            <text class="log-text">{{item.action}}</text>
-            <text class="log-time">{{item.time}}</text>
-            <text wx:if="{{item.operator}}" class="log-operator">操作人：{{item.operator}}</text>
-          </view>
+      <view class="info-row">
+        <text class="info-label">联系方式</text>
+        <text class="info-value">查看客服二维码</text>
+      </view>
+    </view>
+
+    <!-- 画师信息（买家可见） -->
+    <view wx:if="{{userRole === 'customer'}}" class="section-card">
+      <view class="section-title">画师信息</view>
+      <view class="info-row">
+        <text class="info-label">画师昵称</text>
+        <text class="info-value">{{order.artistName}}</text>
+      </view>
+    </view>
+
+    <!-- 打赏区域 -->
+    <view wx:if="{{userRole === 'customer' && order.status === 'completed'}}" class="reward-card">
+      <view class="reward-header">
+        <view class="reward-icon"></view>
+        <text class="reward-title">对作品满意？给画师打赏吧~</text>
+      </view>
+      <view class="reward-amounts">
+        <view wx:for="{{rewardOptions}}" wx:key="*this" 
+              class="reward-option {{selectedReward === item ? 'selected' : ''}}"
+              bindtap="selectReward"
+              data-amount="{{item}}">
+          ¥{{item}}
+        </view>
+        <view class="reward-option custom" bindtap="showCustomReward">
+          自定义
         </view>
       </view>
+      <button class="reward-btn" bindtap="confirmReward" disabled="{{!selectedReward}}">
+        确认打赏
+      </button>
     </view>
 
-    <!-- 操作按钮 -->
-    <view class="action-bar">
-      <!-- 买家操作 -->
-      <view wx:if="{{!isArtistOrAdmin}}">
-        <button wx:if="{{order.status === 'unpaid'}}" class="action-btn primary" bindtap="payOrder">立即支付</button>
-        <button wx:if="{{order.status === 'paid' || order.status === 'processing'}}" class="action-btn default" bindtap="applyRefund">申请退款</button>
-        <button wx:if="{{order.status === 'completed'}}" class="action-btn primary" bindtap="confirmOrder">确认收货</button>
-        <button wx:if="{{order.status === 'completed'}}" class="action-btn default" bindtap="deleteOrder">删除订单</button>
-      </view>
-      
+    <!-- 操作按钮区 -->
+    <view class="action-buttons">
       <!-- 画师操作 -->
-      <view wx:if="{{isArtist}}">
-        <button wx:if="{{order.status === 'paid'}}" class="action-btn primary" bindtap="startWork">开始制作</button>
-        <button wx:if="{{order.status === 'processing'}}" class="action-btn primary" bindtap="uploadWork">上传作品</button>
-        <button wx:if="{{order.status === 'processing'}}" class="action-btn success" bindtap="completeOrder">完成订单</button>
+      <view wx:if="{{userRole === 'artist'}}">
+        <button wx:if="{{order.status === 'inProgress'}}" class="btn-primary" bindtap="uploadWork">
+          上传作品
+        </button>
+        <button wx:if="{{order.status === 'inProgress'}}" class="btn-secondary" bindtap="contactCustomer">
+          联系买家
+        </button>
       </view>
       
-      <!-- 管理员操作 -->
-      <view wx:if="{{isAdmin}}">
-        <button wx:if="{{order.status === 'refunding'}}" class="action-btn warning" bindtap="processRefund">处理退款</button>
-        <button class="action-btn default" bindtap="editOrder">编辑订单</button>
+      <!-- 买家操作 -->
+      <view wx:if="{{userRole === 'customer'}}">
+        <button wx:if="{{order.status === 'inProgress'}}" class="btn-primary" bindtap="confirmComplete">
+          确认完成
+        </button>
+        <button class="btn-secondary" bindtap="contactArtist">
+          联系画师
+        </button>
       </view>
     </view>
   </view>

@@ -1,0 +1,95 @@
+<view class="withdraw-container">
+  <!-- 余额卡片 -->
+  <view class="balance-card">
+    <view class="balance-info">
+      <text class="balance-label">可提现余额</text>
+      <view class="balance-amount">
+        <text class="balance-symbol">¥</text>
+        <text class="balance-value">{{balance}}</text>
+      </view>
+      <text class="balance-hint">打赏收入和订单收入可提现</text>
+    </view>
+  </view>
+
+  <!-- 提现金额输入 -->
+  <view class="section-card">
+    <view class="section-title">提现金额</view>
+    <view class="input-row">
+      <text class="input-symbol">¥</text>
+      <input class="amount-input" 
+             type="digit" 
+             placeholder="请输入提现金额" 
+             value="{{withdrawAmount}}"
+             bindinput="onAmountInput"/>
+    </view>
+    <view class="quick-amounts">
+      <view wx:for="{{quickAmounts}}" wx:key="*this"
+            class="quick-amount-btn"
+            bindtap="selectQuickAmount"
+            data-amount="{{item}}">
+        {{item}}元
+      </view>
+      <view class="quick-amount-btn all" bindtap="withdrawAll">
+        全部提现
+      </view>
+    </view>
+  </view>
+
+  <!-- 提现方式 -->
+  <view class="section-card">
+    <view class="section-title">提现方式</view>
+    <view class="withdraw-methods">
+      <view class="method-item {{withdrawMethod === 'wechat' ? 'selected' : ''}}"
+            bindtap="selectMethod"
+            data-method="wechat">
+        <view class="method-icon wechat-icon"></view>
+        <text class="method-name">微信零钱</text>
+        <view class="check-icon"></view>
+      </view>
+      <view class="method-item {{withdrawMethod === 'alipay' ? 'selected' : ''}}"
+            bindtap="selectMethod"
+            data-method="alipay">
+        <view class="method-icon alipay-icon"></view>
+        <text class="method-name">支付宝</text>
+        <view class="check-icon"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提现说明 -->
+  <view class="tips-card">
+    <view class="tips-title">提现说明</view>
+    <text class="tip-item">• 每日最多可提现3次</text>
+    <text class="tip-item">• 单笔提现金额：10-5000元</text>
+    <text class="tip-item">• 提现预计1-3个工作日到账</text>
+    <text class="tip-item">• 首次提现需要绑定收款账号</text>
+  </view>
+
+  <!-- 提现记录 -->
+  <view class="section-title-row">
+    <text class="section-title">提现记录</text>
+    <text class="view-all" bindtap="viewAllRecords">查看全部</text>
+  </view>
+
+  <view wx:if="{{withdrawRecords.length === 0}}" class="empty-records">
+    <text>暂无提现记录</text>
+  </view>
+
+  <view wx:else class="records-preview">
+    <view wx:for="{{withdrawRecords.slice(0, 3)}}" wx:key="id" class="record-item-simple">
+      <view class="record-left">
+        <text class="record-amount">-¥{{item.amount}}</text>
+        <text class="record-time">{{item.time}}</text>
+      </view>
+      <view class="record-status status-{{item.status}}">
+        {{item.statusText}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 提现按钮 -->
+  <button class="withdraw-btn" bindtap="submitWithdraw">
+    立即提现
+  </button>
+</view>
+
