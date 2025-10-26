@@ -36,6 +36,39 @@
   color: white;
 }
 
+/* 搜索栏 */
+.search-bar {
+  padding: 20rpx 30rpx;
+  background: white;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #F5F7FA;
+  border-radius: 32rpx;
+  padding: 0 24rpx;
+  height: 72rpx;
+}
+
+.search-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #2C3E50;
+}
+
+.clear-icon {
+  font-size: 48rpx;
+  color: #999;
+  line-height: 1;
+  padding: 0 8rpx;
+}
+
 /* 标签切换 */
 .tabs {
   display: flex;
@@ -293,9 +326,50 @@
   color: #2C3E50;
 }
 
+.history-realname {
+  font-size: 22rpx;
+  color: #7F8C8D;
+}
+
 .history-time {
   font-size: 22rpx;
   color: #999;
+}
+
+/* 时间信息 */
+.time-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-bottom: 16rpx;
+  padding: 16rpx;
+  background: #F5F7FA;
+  border-radius: 12rpx;
+}
+
+.time-label {
+  font-size: 22rpx;
+  color: #7F8C8D;
+}
+
+/* 查看详情提示 */
+.view-detail-hint {
+  text-align: center;
+  font-size: 24rpx;
+  color: #A8E6CF;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx dashed #E0E0E0;
+}
+
+/* 已驳回卡片特殊样式 */
+.rejected-card {
+  border-left: 4rpx solid #E74C3C;
+}
+
+/* 已通过卡片特殊样式 */
+.approved-card {
+  border-left: 4rpx solid #27AE60;
 }
 
 .status-tag {

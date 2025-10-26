@@ -31,6 +31,20 @@
     </view>
   </view>
 
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrapper">
+      <text class="search-icon">🔍</text>
+      <input 
+        class="search-input" 
+        placeholder="搜索姓名、微信昵称或用户ID"
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+        bindconfirm="onSearchConfirm" />
+      <view wx:if="{{searchKeyword}}" class="clear-icon" bindtap="clearSearch">×</view>
+    </view>
+  </view>
+
   <!-- 申请列表 -->
   <view class="content">
     <!-- 待审核 -->
@@ -98,14 +112,15 @@
     <view wx:if="{{currentTab === 'approved'}}">
       <view wx:if="{{applications.length === 0}}" class="empty-state">
         <text class="empty-icon">✅</text>
-        <text class="empty-text">暂无通过记录</text>
+        <text class="empty-text">{{searchKeyword ? '未找到相关记录' : '暂无通过记录'}}</text>
       </view>
       <view wx:else class="history-list">
-        <view wx:for="{{applications}}" wx:key="id" class="history-card" bindtap="viewDetail" data-id="{{item.id}}">
+        <view wx:for="{{applications}}" wx:key="id" class="history-card approved-card" bindtap="viewDetail" data-id="{{item.id}}">
           <view class="history-header">
             <image class="history-avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
             <view class="history-info">
               <text class="history-name">{{item.nickName}}</text>
+              <text class="history-realname">{{item.name}} · ID: {{item.userId}}</text>
               <text class="history-time">通过时间：{{item.approveTime}}</text>
             </view>
             <view class="status-tag approved">已通过</view>
@@ -118,22 +133,62 @@
     <view wx:if="{{currentTab === 'rejected'}}">
       <view wx:if="{{applications.length === 0}}" class="empty-state">
         <text class="empty-icon">❌</text>
-        <text class="empty-text">暂无驳回记录</text>
+        <text class="empty-text">{{searchKeyword ? '未找到相关记录' : '暂无驳回记录'}}</text>
       </view>
-      <view wx:else class="history-list">
-        <view wx:for="{{applications}}" wx:key="id" class="history-card" bindtap="viewDetail" data-id="{{item.id}}">
-          <view class="history-header">
-            <image class="history-avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
-            <view class="history-info">
-              <text class="history-name">{{item.nickName}}</text>
-              <text class="history-time">驳回时间：{{item.rejectTime}}</text>
+      <view wx:else class="application-list">
+        <view wx:for="{{applications}}" wx:key="id" class="application-card rejected-card" bindtap="viewDetail" data-id="{{item.id}}">
+          <!-- 申请人信息 -->
+          <view class="card-header">
+            <image class="avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
+            <view class="user-info">
+              <text class="nickname">{{item.nickName}}</text>
+              <text class="realname">{{item.name}} · {{item.age}}岁 · ID: {{item.userId}}</text>
             </view>
             <view class="status-tag rejected">已驳回</view>
           </view>
+
+          <!-- 价格信息 -->
+          <view class="price-info">
+            <view class="price-item">
+              <text class="price-label">理想稿酬</text>
+              <text class="price-value">¥{{item.idealPrice}}</text>
+            </view>
+            <view class="price-item">
+              <text class="price-label">最低价格</text>
+              <text class="price-value">¥{{item.minPrice}}</text>
+            </view>
+          </view>
+
+          <!-- 时间信息 -->
+          <view class="time-info">
+            <text class="time-label">提交时间：{{item.submitTime}}</text>
+            <text class="time-label">驳回时间：{{item.rejectTime}}</text>
+          </view>
+
+          <!-- 驳回原因 -->
           <view wx:if="{{item.rejectReason}}" class="reject-reason">
             <text class="reason-label">驳回原因：</text>
             <text class="reason-text">{{item.rejectReason}}</text>
           </view>
+
+          <!-- 作品预览 -->
+          <view class="works-preview">
+            <text class="preview-label">作品展示（{{item.finishedWorks.length}}张）</text>
+            <view class="preview-images">
+              <image 
+                wx:for="{{item.finishedWorks}}" 
+                wx:key="*this" 
+                wx:for-item="img"
+                src="{{img}}" 
+                mode="aspectFill" 
+                class="preview-img" 
+                catchtap="previewImage"
+                data-urls="{{item.finishedWorks}}"
+                data-current="{{img}}" />
+            </view>
+          </view>
+
+          <view class="view-detail-hint">点击查看完整详情 ›</view>
         </view>
       </view>
     </view>

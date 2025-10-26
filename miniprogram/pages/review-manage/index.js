@@ -2,8 +2,10 @@ Page({
   data: {
     currentTab: 'pending',
     applications: [],
+    allApplications: [], // 保存所有数据用于搜索
     pendingCount: 0,
     todayReviewCount: 0,
+    searchKeyword: '', // 搜索关键词
     
     // 驳回相关
     showRejectModal: false,
@@ -66,16 +68,41 @@ Page({
   // 加载申请列表
   loadApplications() {
     const allApplications = wx.getStorageSync('artist_applications') || []
-    const { currentTab } = this.data
+    const { currentTab, searchKeyword } = this.data
     
     let filteredApplications = []
     
+    // 根据标签筛选
     if (currentTab === 'pending') {
       filteredApplications = allApplications.filter(app => app.status === 'pending')
     } else if (currentTab === 'approved') {
       filteredApplications = allApplications.filter(app => app.status === 'approved')
     } else if (currentTab === 'rejected') {
       filteredApplications = allApplications.filter(app => app.status === 'rejected')
+    }
+    
+    // 搜索过滤
+    if (searchKeyword.trim()) {
+      const keyword = searchKeyword.trim().toLowerCase()
+      filteredApplications = filteredApplications.filter(app => {
+        // 搜索姓名
+        if (app.name && app.name.toLowerCase().includes(keyword)) {
+          return true
+        }
+        // 搜索微信昵称
+        if (app.nickName && app.nickName.toLowerCase().includes(keyword)) {
+          return true
+        }
+        // 搜索用户ID
+        if (app.userId && String(app.userId).includes(keyword)) {
+          return true
+        }
+        // 搜索微信号
+        if (app.wechat && app.wechat.toLowerCase().includes(keyword)) {
+          return true
+        }
+        return false
+      })
     }
     
     // 按时间倒序排序
@@ -90,16 +117,36 @@ Page({
     
     this.setData({
       applications: filteredApplications,
+      allApplications: allApplications,
       pendingCount: pendingCount
     })
     
-    console.log('审核列表:', currentTab, filteredApplications.length)
+    console.log('审核列表:', currentTab, '搜索:', searchKeyword, '结果:', filteredApplications.length)
   },
 
   // 切换标签
   switchTab(e) {
     const tab = e.currentTarget.dataset.tab
-    this.setData({ currentTab: tab })
+    this.setData({ 
+      currentTab: tab,
+      searchKeyword: '' // 切换标签时清空搜索
+    })
+    this.loadApplications()
+  },
+
+  // 搜索输入
+  onSearchInput(e) {
+    this.setData({ searchKeyword: e.detail.value })
+  },
+
+  // 搜索确认
+  onSearchConfirm() {
+    this.loadApplications()
+  },
+
+  // 清空搜索
+  clearSearch() {
+    this.setData({ searchKeyword: '' })
     this.loadApplications()
   },
 
