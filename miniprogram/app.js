@@ -11,10 +11,8 @@ App({
     // 初始化用户信息
     this.initUserInfo()
     
-    // 延迟请求微信授权（给用户一个缓冲时间）
-    setTimeout(() => {
-      this.checkAndRequestAuth()
-    }, 1000)
+    // 检查登录状态
+    this.checkLoginStatus()
   },
 
   // 初始化用户信息
@@ -48,41 +46,26 @@ App({
     }
   },
 
-  // 检查并请求授权
-  checkAndRequestAuth() {
+  // 检查登录状态
+  checkLoginStatus() {
     const userInfo = wx.getStorageSync('userInfo')
+    const hasLoggedIn = wx.getStorageSync('hasLoggedIn')
+    const isGuestMode = wx.getStorageSync('isGuestMode')
     
-    // 如果没有用户信息，静默请求授权
-    if (!userInfo) {
-      console.log('检测到未授权，准备请求微信授权...')
-      this.requestWxAuth()
-    }
-  },
-
-  // 请求微信授权
-  requestWxAuth() {
-    wx.getUserProfile({
-      desc: '用于完善您的个人资料',
-      success: (res) => {
-        const userInfo = res.userInfo
-        
-        // 保存用户信息到本地和全局
-        wx.setStorageSync('userInfo', userInfo)
-        this.globalData.userInfo = userInfo
-        
-        console.log('✅ 微信授权成功:', userInfo)
-        
-        wx.showToast({
-          title: '授权成功',
-          icon: 'success',
-          duration: 1500
+    if (!userInfo && !hasLoggedIn && !isGuestMode) {
+      // 未登录且不是游客模式，跳转到登录页
+      console.log('用户未登录，跳转登录页')
+      setTimeout(() => {
+        wx.redirectTo({
+          url: '/pages/login/index',
+          fail: () => {
+            console.log('跳转登录页失败，可能已在登录页')
+          }
         })
-      },
-      fail: (err) => {
-        console.log('⚠️ 用户取消授权或授权失败:', err)
-        // 用户拒绝授权，不影响使用，但部分功能受限
-      }
-    })
+      }, 500)
+    } else {
+      console.log('用户已登录或处于游客模式')
+    }
   },
 
   // 获取微信用户信息（需要用户授权）
