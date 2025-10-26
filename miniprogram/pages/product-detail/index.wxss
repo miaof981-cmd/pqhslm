@@ -592,3 +592,133 @@
   background: #E0E0E0;
   color: #999;
 }
+
+/* ===== 侧边悬浮购物车 ===== */
+.floating-cart-btn {
+  position: fixed;
+  right: 30rpx;
+  bottom: 180rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background: linear-gradient(135deg, #FFB74D 0%, #FFA726 100%);
+  border-radius: 50%;
+  box-shadow: 0 8rpx 24rpx rgba(255, 183, 77, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99;
+  transition: transform 0.3s;
+}
+
+.floating-cart-btn:active {
+  transform: scale(0.9);
+}
+
+/* 购物车图标 */
+.cart-icon {
+  width: 48rpx;
+  height: 48rpx;
+  position: relative;
+}
+
+/* 购物车车身 */
+.cart-body {
+  position: absolute;
+  width: 40rpx;
+  height: 28rpx;
+  border: 4rpx solid white;
+  border-top-left-radius: 4rpx;
+  border-top-right-radius: 4rpx;
+  border-bottom: none;
+  top: 8rpx;
+  left: 4rpx;
+}
+
+/* 购物车把手 */
+.cart-handle {
+  position: absolute;
+  width: 14rpx;
+  height: 14rpx;
+  border: 4rpx solid white;
+  border-right: none;
+  border-bottom: none;
+  border-top-left-radius: 8rpx;
+  top: 0;
+  left: 0;
+}
+
+/* 购物车轮子 */
+.cart-wheel {
+  position: absolute;
+  width: 8rpx;
+  height: 8rpx;
+  background: white;
+  border-radius: 50%;
+  bottom: 0;
+}
+
+.cart-wheel-left {
+  left: 10rpx;
+}
+
+.cart-wheel-right {
+  right: 10rpx;
+}
+
+/* 购物车角标 */
+.cart-badge {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  min-width: 36rpx;
+  height: 36rpx;
+  background: #FF4444;
+  color: white;
+  font-size: 20rpx;
+  font-weight: bold;
+  border-radius: 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8rpx;
+  border: 3rpx solid white;
+  box-shadow: 0 2rpx 8rpx rgba(255, 68, 68, 0.3);
+  animation: badge-bounce 0.5s ease-out;
+}
+
+@keyframes badge-bounce {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 飞入购物车的商品图标 */
+.cart-fly-item {
+  position: fixed;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 12rpx;
+  z-index: 1000;
+  pointer-events: none;
+  animation: fly-to-cart 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes fly-to-cart {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(100vw - 110rpx - 50%), calc(100vh - 230rpx - 50%)) scale(0.3);
+    opacity: 0.5;
+  }
+}

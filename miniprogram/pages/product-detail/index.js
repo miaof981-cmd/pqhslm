@@ -17,7 +17,12 @@ Page({
     quantity: 1, // 购买数量
     currentPrice: 0, // 当前价格
     canSubmit: false, // 是否可以提交订单
-    isAddingToCart: false // 是否为加入购物车模式
+    isAddingToCart: false, // 是否为加入购物车模式
+    
+    // 购物车相关
+    cartCount: 0, // 购物车商品数量
+    showCartAnimation: false, // 显示飞入动画
+    animationImage: '' // 动画的商品图片
   },
 
   onLoad(options) {
@@ -25,6 +30,21 @@ Page({
       productId: options.id
     })
     this.loadProduct()
+    this.loadCartCount() // 加载购物车数量
+  },
+  
+  onShow() {
+    // 页面显示时更新购物车数量
+    this.loadCartCount()
+  },
+  
+  // 加载购物车数量
+  loadCartCount() {
+    const cartItems = wx.getStorageSync('cart_items') || []
+    const totalCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
+    this.setData({
+      cartCount: totalCount
+    })
   },
 
   // 加载商品详情
@@ -302,10 +322,6 @@ Page({
     if (existingIndex !== -1) {
       // 已存在，增加数量
       cartItems[existingIndex].quantity += quantity
-      wx.showToast({
-        title: '已增加数量',
-        icon: 'success'
-      })
     } else {
       // 不存在，添加新项
       const cartItem = {
@@ -323,20 +339,45 @@ Page({
       }
       
       cartItems.push(cartItem)
-      
-      wx.showToast({
-        title: '已加入购物车',
-        icon: 'success'
-      })
     }
     
     // 保存到本地存储
     wx.setStorageSync('cart_items', cartItems)
     
+    // 播放飞入动画
+    this.playCartAnimation(product)
+    
+    // 更新购物车数量
+    this.loadCartCount()
+    
     // 关闭弹窗
     if (this.data.showBuyModal) {
       this.closeBuyModal()
     }
+  },
+  
+  // 播放购物车飞入动画
+  playCartAnimation(product) {
+    const productImage = (product.images && product.images[0]) || 'https://via.placeholder.com/150'
+    
+    this.setData({
+      showCartAnimation: true,
+      animationImage: productImage
+    })
+    
+    // 500ms后隐藏动画
+    setTimeout(() => {
+      this.setData({
+        showCartAnimation: false
+      })
+      
+      // 显示成功提示
+      wx.showToast({
+        title: '已加入购物车',
+        icon: 'success',
+        duration: 1500
+      })
+    }, 500)
   },
   
   // 打开购买弹窗
