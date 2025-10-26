@@ -318,63 +318,34 @@
         <!-- 权限开通（置顶） -->
         <view wx:if="{{!editingArtist.hasPermission}}" class="permission-section">
           <view class="section-title">开通工作台权限</view>
-          
-          <!-- 步骤1：生成画师编号 -->
-          <view wx:if="{{!editingArtist.artistNumber}}" class="step-card">
-            <view class="step-header">
-              <text class="step-number">1</text>
-              <text class="step-title">生成画师编号</text>
-            </view>
-            <button class="btn-generate-number" bindtap="generateArtistNumber">生成编号</button>
-          </view>
-          
-          <!-- 步骤2：修改企业微信ID -->
-          <view wx:else class="step-card completed">
-            <view class="step-header">
-              <text class="step-number done">✓</text>
-              <text class="step-title">画师编号已生成</text>
-            </view>
-            <view class="artist-number-display">
-              <text class="number-label">画师编号：</text>
-              <text class="number-value">{{editingArtist.artistNumber}}</text>
-            </view>
-            
-            <view class="wechat-id-section">
-              <view class="id-label">企业微信ID格式：</view>
-              <view class="id-display">
-                <text class="id-value">联盟id{{editingArtist.artistNumber}}+{{editingArtist.realName || editingArtist.name}}</text>
-                <button class="btn-copy-id" bindtap="copyWechatId" data-id="联盟id{{editingArtist.artistNumber}}+{{editingArtist.realName || editingArtist.name}}">复制</button>
-              </view>
-              <view class="id-hint">请复制此格式，在企业微信中修改该画师的昵称</view>
-            </view>
-            
-            <view class="permission-checklist">
-              <view class="checklist-item">
-                <text class="checklist-icon">✓</text>
-                <text class="checklist-text">已添加至企业微信</text>
-              </view>
-              <view class="checklist-item">
-                <text class="checklist-icon">✓</text>
-                <text class="checklist-text">已按上述格式修改企业微信ID</text>
-              </view>
-            </view>
-            
-            <button class="btn-grant-permission" bindtap="grantArtistPermission">确认修改完成，开通权限</button>
-          </view>
+          <view class="permission-hint">开通后将自动分配画师编号</view>
+          <button class="btn-grant-permission" bindtap="grantArtistPermission">开通权限</button>
         </view>
         
         <!-- 权限管理（已开通） -->
-        <view wx:else class="info-section">
-          <view class="section-title">权限管理</view>
+        <view wx:else class="permission-granted-section">
+          <view class="section-title">权限状态</view>
           
-          <view class="info-row">
-            <text class="info-label">工作台权限</text>
-            <view class="permission-status granted">
-              <text class="status-icon">✓</text>
-              <text class="status-text">已开通</text>
+          <!-- 权限状态卡片 -->
+          <view class="permission-status-card">
+            <view class="status-icon-large">✓</view>
+            <view class="status-info">
+              <text class="status-title">工作台权限已开通</text>
+              <text class="status-subtitle">画师编号：{{editingArtist.artistNumber || '未分配'}}</text>
             </view>
           </view>
           
+          <!-- 企业微信ID -->
+          <view class="wechat-id-section">
+            <view class="id-label">企业昵称：</view>
+            <view class="id-display">
+              <text class="id-value">联盟id{{editingArtist.artistNumber}}+{{editingArtist.realName || editingArtist.name}}</text>
+              <button class="btn-copy-id" bindtap="copyWechatId" data-id="联盟id{{editingArtist.artistNumber}}+{{editingArtist.realName || editingArtist.name}}">复制</button>
+            </view>
+            <view class="id-hint">用于企业微信昵称设置，方便订单分配</view>
+          </view>
+          
+          <!-- 账号状态 -->
           <view class="info-row">
             <text class="info-label">账号状态</text>
             <view class="form-switch">

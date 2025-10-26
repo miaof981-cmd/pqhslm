@@ -645,3 +645,27 @@
   color: #666;
   line-height: 40rpx;
 }
+
+/* 字段警告提示 */
+.field-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8rpx;
+  margin-top: 12rpx;
+  padding: 16rpx;
+  background: #FFF3E0;
+  border-left: 4rpx solid #FF9800;
+  border-radius: 8rpx;
+}
+
+.warning-icon {
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+
+.warning-text {
+  flex: 1;
+  font-size: 22rpx;
+  color: #E65100;
+  line-height: 1.6;
+}
