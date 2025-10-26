@@ -709,6 +709,13 @@ Page({
     })
   },
 
+  // ✅ 新增：跳转到工作人员二维码管理
+  goToStaffQRCode() {
+    wx.navigateTo({
+      url: '/pages/staff-qrcode-manage/index'
+    })
+  },
+
   goToStaff() {
     wx.navigateTo({
       url: '/pages/staff-manage/index'

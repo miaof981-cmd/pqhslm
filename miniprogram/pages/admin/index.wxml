@@ -275,6 +275,10 @@
           <view class="more-icon icon-service"></view>
           <text class="more-label">客服管理</text>
         </view>
+        <view class="more-item" bindtap="goToStaffQRCode">
+          <view class="more-icon icon-qrcode"></view>
+          <text class="more-label">工作人员二维码</text>
+        </view>
         <view class="more-item" bindtap="goToStaff">
           <view class="more-icon icon-staff"></view>
           <text class="more-label">人员管理</text>

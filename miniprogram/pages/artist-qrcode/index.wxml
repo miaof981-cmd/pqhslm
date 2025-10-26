@@ -5,6 +5,22 @@
     <view class="header-subtitle">上传您的微信二维码，方便客户联系您</view>
   </view>
 
+  <!-- ✅ 通过审核提示 + 工作人员二维码 -->
+  <view class="approval-notice">
+    <view class="notice-header">
+      <view class="notice-icon">✓</view>
+      <text class="notice-title">恭喜您，画师认证已通过！</text>
+    </view>
+    <view class="notice-content">
+      <text class="notice-text">您已过审，请联系工作人员开启工作台权限</text>
+      <view class="staff-qrcode-section">
+        <text class="qrcode-label">扫码添加工作人员</text>
+        <image class="staff-qrcode" src="{{staffQRCode}}" mode="aspectFit" />
+        <text class="qrcode-hint">添加后请说明您是新通过的画师</text>
+      </view>
+    </view>
+  </view>
+
   <view class="content-section">
     <!-- 当前二维码 -->
     <view wx:if="{{qrcodeUrl}}" class="qrcode-preview">

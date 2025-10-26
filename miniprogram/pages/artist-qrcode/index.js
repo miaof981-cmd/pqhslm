@@ -1,10 +1,12 @@
 Page({
   data: {
-    qrcodeUrl: '' // 当前二维码URL
+    qrcodeUrl: '',      // 当前画师的工作二维码
+    staffQRCode: ''     // 工作人员联系二维码
   },
 
   onLoad() {
     this.loadCurrentQRCode()
+    this.loadStaffQRCode()
   },
 
   // 加载当前二维码
@@ -20,6 +22,18 @@ Page({
     
     this.setData({
       qrcodeUrl: qrcodeUrl
+    })
+  },
+
+  // ✅ 新增：加载工作人员联系二维码
+  loadStaffQRCode() {
+    // 从本地存储读取工作人员二维码
+    const staffQRCode = wx.getStorageSync('staff_contact_qrcode') || '/assets/default-qrcode.png'
+    
+    console.log('👔 加载工作人员联系二维码:', staffQRCode)
+    
+    this.setData({
+      staffQRCode: staffQRCode
     })
   },
 

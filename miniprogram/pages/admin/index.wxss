@@ -1051,6 +1051,18 @@
   border-radius: 8rpx;
 }
 
+.icon-qrcode::before {
+  width: 36rpx;
+  height: 36rpx;
+  border: 4rpx solid white;
+  border-radius: 4rpx;
+  box-shadow: 
+    inset 8rpx 8rpx 0 white,
+    inset 20rpx 8rpx 0 white,
+    inset 8rpx 20rpx 0 white,
+    inset 20rpx 20rpx 0 white;
+}
+
 .icon-staff::before {
   width: 20rpx;
   height: 20rpx;
