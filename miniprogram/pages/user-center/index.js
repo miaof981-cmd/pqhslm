@@ -94,6 +94,7 @@ Page({
   // 加载用户角色（支持多角色）
   loadUserRole() {
     const app = getApp()
+    const userId = wx.getStorageSync('userId') || app.globalData.userId || 1001
     let roles = wx.getStorageSync('userRoles')
     
     console.log('🧾 本地读取roles:', roles)
@@ -108,6 +109,21 @@ Page({
     if (!roles || roles.length === 0) {
       console.log('⚠️ roles 为空，默认设置为 [customer]')
       roles = ['customer']
+    }
+    
+    // ⭐ 检查申请记录，如果管理员已授权，自动添加 artist 角色
+    const applications = wx.getStorageSync('artist_applications') || []
+    const userApp = applications.find(app => app.userId === userId && app.status === 'approved' && app.permissionGranted)
+    
+    if (userApp && !roles.includes('artist')) {
+      console.log('✅ 检测到管理员已授权，自动添加 artist 权限')
+      console.log('  - 画师编号:', userApp.artistNumber)
+      console.log('  - 授权时间:', userApp.permissionGrantedTime)
+      
+      roles.push('artist')
+      wx.setStorageSync('userRoles', roles)
+      
+      console.log('  - 更新后的roles:', roles)
     }
     
     console.log('✅ 最终使用的 roles:', roles)

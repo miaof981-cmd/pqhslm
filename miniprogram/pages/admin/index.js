@@ -690,7 +690,14 @@ Page({
             wx.setStorageSync('artist_applications', allApplications)
           }
           
-          // 如果是当前用户，开通权限
+          // 标记权限已开通（保存到申请记录）
+          if (appIndex !== -1) {
+            allApplications[appIndex].permissionGranted = true
+            allApplications[appIndex].permissionGrantedTime = new Date().toISOString()
+            wx.setStorageSync('artist_applications', allApplications)
+          }
+          
+          // 如果是当前用户，立即更新本地权限
           if (artist.userId === wx.getStorageSync('userId')) {
             const app = getApp()
             let userRoles = wx.getStorageSync('userRoles') || ['customer']
@@ -698,7 +705,11 @@ Page({
               userRoles.push('artist')
               wx.setStorageSync('userRoles', userRoles)
               app.globalData.roles = userRoles
+              
+              console.log('✅ 当前用户权限已更新:', userRoles)
             }
+          } else {
+            console.log('⚠️ 这是其他用户，权限已标记，待其登录时生效')
           }
           
           // 更新当前编辑的画师信息，直接刷新显示
