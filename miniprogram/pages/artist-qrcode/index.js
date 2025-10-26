@@ -259,13 +259,27 @@ Page({
       return
     }
     
-    // 模拟验证码校验
-    if (verifyCode !== '123456') {
-      wx.showToast({
-        title: '验证码错误',
-        icon: 'none'
-      })
-      return
+    // 验证码校验
+    // TODO: 接入真实短信验证接口
+    // 开发阶段：任何6位数字都通过
+    // 生产阶段：需要调用后端接口验证
+    
+    const isDev = true // 开发模式开关，上线时改为 false
+    
+    if (isDev) {
+      // 开发模式：任何6位数字都通过
+      console.log('📱 [开发模式] 验证码校验通过:', verifyCode)
+    } else {
+      // 生产模式：调用后端验证
+      // TODO: 调用云函数或后端API验证验证码
+      // const result = await wx.cloud.callFunction({
+      //   name: 'verifyCode',
+      //   data: { phone: contactPhone, code: verifyCode }
+      // })
+      // if (!result.success) {
+      //   wx.showToast({ title: '验证码错误', icon: 'none' })
+      //   return
+      // }
     }
     
     if (!contactWechat || contactWechat.length < 2) {
