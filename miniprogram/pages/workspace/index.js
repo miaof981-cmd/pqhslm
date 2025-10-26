@@ -75,6 +75,23 @@ Page({
       return
     }
     
+    // ✅ 新增：如果是画师，检查是否已设置工作二维码
+    if (roles.includes('artist')) {
+      const userId = app.globalData.userId || wx.getStorageSync('userId')
+      const artistQRCodes = wx.getStorageSync('artist_qrcodes') || {}
+      const hasQRCode = !!artistQRCodes[userId]
+      
+      console.log('📱 检查画师工作二维码:', hasQRCode ? '已设置' : '未设置')
+      
+      if (!hasQRCode) {
+        // 没有工作二维码，跳转到上传页面
+        wx.redirectTo({
+          url: '/pages/artist-qrcode/index'
+        })
+        return
+      }
+    }
+    
     // 从本地存储读取上次选择的角色
     let userRole = wx.getStorageSync('workspace_role') || availableRoles[0]
     

@@ -29,7 +29,8 @@
     "pages/role-manage/index",
     "pages/workspace/index",
     "pages/artist-application-detail/index",
-    "pages/review-manage/index"
+    "pages/review-manage/index",
+    "pages/artist-qrcode/index"
   ],
   "window": {
     "navigationBarTitleText": "画师商城",

@@ -73,16 +73,6 @@
 
     <!-- 工作台区域（有权限时显示） -->
     <view wx:if="{{shouldShowWorkspace}}" class="artist-workspace">
-      <!-- ✅ 工作二维码提示（画师且未设置二维码） -->
-      <view wx:if="{{isArtist && !hasWorkQRCode}}" class="qrcode-reminder" bindtap="goToUploadQRCode">
-        <view class="reminder-icon">📱</view>
-        <view class="reminder-content">
-          <text class="reminder-title">画师认证已通过，请添加工作二维码</text>
-          <text class="reminder-subtitle">用于客户联系您接单</text>
-        </view>
-        <view class="reminder-arrow">></view>
-      </view>
-      
       <view class="workspace-header">
         <text class="workspace-title">工作台</text>
         <view wx:if="{{memberInfo && memberInfo.isValid}}" class="member-status active">

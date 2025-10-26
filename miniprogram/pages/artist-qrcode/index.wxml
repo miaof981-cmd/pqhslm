@@ -1,0 +1,60 @@
+<view class="container">
+  <view class="header-section">
+    <view class="header-icon">📱</view>
+    <view class="header-title">设置工作二维码</view>
+    <view class="header-subtitle">上传您的微信二维码，方便客户联系您</view>
+  </view>
+
+  <view class="content-section">
+    <!-- 当前二维码 -->
+    <view wx:if="{{qrcodeUrl}}" class="qrcode-preview">
+      <text class="section-title">当前二维码</text>
+      <image class="qrcode-image" src="{{qrcodeUrl}}" mode="aspectFit" />
+      <view class="qrcode-actions">
+        <button class="action-btn secondary" bindtap="chooseQRCode">更换二维码</button>
+      </view>
+    </view>
+
+    <!-- 未上传二维码 -->
+    <view wx:else class="qrcode-upload">
+      <text class="section-title">请上传工作二维码</text>
+      <view class="upload-area" bindtap="chooseQRCode">
+        <view class="upload-icon">📸</view>
+        <text class="upload-hint">点击上传您的微信二维码</text>
+        <text class="upload-desc">建议上传清晰的二维码图片</text>
+      </view>
+    </view>
+
+    <!-- 使用说明 -->
+    <view class="instructions">
+      <text class="instructions-title">使用说明</text>
+      <view class="instruction-item">
+        <text class="instruction-number">1</text>
+        <text class="instruction-text">打开微信，点击右上角"+"</text>
+      </view>
+      <view class="instruction-item">
+        <text class="instruction-number">2</text>
+        <text class="instruction-text">选择"收付款" → "我的二维码"</text>
+      </view>
+      <view class="instruction-item">
+        <text class="instruction-number">3</text>
+        <text class="instruction-text">截图保存，然后上传到这里</text>
+      </view>
+      <view class="instruction-item">
+        <text class="instruction-number">4</text>
+        <text class="instruction-text">客户下单后会看到您的二维码，方便联系</text>
+      </view>
+    </view>
+
+    <!-- 底部按钮 -->
+    <view class="bottom-actions">
+      <button wx:if="{{qrcodeUrl}}" class="complete-btn" bindtap="completeSetup">
+        完成设置
+      </button>
+      <button wx:else class="complete-btn disabled" disabled>
+        请先上传二维码
+      </button>
+    </view>
+  </view>
+</view>
+
