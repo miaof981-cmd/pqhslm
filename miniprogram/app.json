@@ -25,7 +25,8 @@
     "pages/system-settings/index",
     "pages/product-manage/index",
     "pages/order-success/index",
-    "pages/role-manage/index"
+    "pages/role-manage/index",
+    "pages/workspace/index"
   ],
   "window": {
     "navigationBarTitleText": "画师商城",

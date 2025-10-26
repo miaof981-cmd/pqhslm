@@ -5,6 +5,7 @@ Page({
     availableRoles: [
       { id: 'customer', name: '普通用户', desc: '可以浏览和购买商品', color: '#42A5F5', icon: '👤' },
       { id: 'artist', name: '画师', desc: '可以上传作品和接单', color: '#A8E6CF', icon: '🎨' },
+      { id: 'service', name: '客服', desc: '可以查看和处理订单', color: '#FFB74D', icon: '💬' },
       { id: 'admin', name: '管理员', desc: '可以管理平台和用户', color: '#FF6B6B', icon: '⚙️' }
     ]
   },

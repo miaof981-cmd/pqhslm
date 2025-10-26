@@ -183,10 +183,10 @@ Page({
     })
   },
 
-  // 进入画师工作台
-  goToArtistDashboard() {
+  // 进入工作台（根据角色显示不同内容）
+  goToWorkspace() {
     wx.navigateTo({
-      url: '/pages/artist-dashboard/index'
+      url: '/pages/workspace/index'
     })
   },
 

@@ -77,11 +77,11 @@
       </view>
       
       <view class="workspace-actions">
-        <!-- 画师工作台按钮 -->
-        <button wx:if="{{roles.indexOf('artist') !== -1 || roles.indexOf('admin') !== -1}}" 
+        <!-- 工作台按钮（画师或客服） -->
+        <button wx:if="{{roles.indexOf('artist') !== -1 || roles.indexOf('service') !== -1 || roles.indexOf('admin') !== -1}}" 
                 class="workspace-btn primary" 
-                bindtap="goToArtistDashboard">
-          画师工作台
+                bindtap="goToWorkspace">
+          工作台
         </button>
         
         <!-- 管理后台按钮 -->

@@ -377,6 +377,11 @@
   color: white;
 }
 
+.workspace-btn.service {
+  background: linear-gradient(45deg, #FFB74D, #FFA726);
+  color: white;
+}
+
 .workspace-btn.admin {
   background: linear-gradient(45deg, #FF6B6B, #EE5A6F);
   color: white;

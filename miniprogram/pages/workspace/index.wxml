@@ -1,0 +1,137 @@
+<view class="workspace-container">
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <view wx:else class="workspace-content">
+    <!-- 角色标识 -->
+    <view class="role-badge {{userRole}}">
+      <text wx:if="{{userRole === 'artist'}}">画师</text>
+      <text wx:elif="{{userRole === 'service'}}">客服</text>
+    </view>
+
+    <!-- 今日待办 -->
+    <view class="todo-section">
+      <view class="section-title">
+        <text class="title-icon">📊</text>
+        <text class="title-text">今日待办</text>
+      </view>
+      
+      <view class="todo-grid">
+        <view class="todo-item">
+          <view class="todo-number">{{todoStats.pendingOrders}}</view>
+          <view class="todo-label">待处理订单</view>
+        </view>
+        <view class="todo-item urgent">
+          <view class="todo-number">{{todoStats.urgentOrders}}</view>
+          <view class="todo-label">紧急订单</view>
+        </view>
+        <view class="todo-item">
+          <view class="todo-number">{{todoStats.todayOrders}}</view>
+          <view class="todo-label">今日订单</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 订单列表 -->
+    <view class="orders-section">
+      <view class="section-title">
+        <text class="title-icon">📋</text>
+        <text class="title-text">订单列表</text>
+      </view>
+      
+      <!-- 订单标签 -->
+      <view class="order-tabs">
+        <view class="tab-item {{currentTab === 'all' ? 'active' : ''}}" 
+              data-tab="all" 
+              bindtap="switchTab">
+          全部
+        </view>
+        <view class="tab-item {{currentTab === 'pending' ? 'active' : ''}}" 
+              data-tab="pending" 
+              bindtap="switchTab">
+          待处理
+        </view>
+        <view class="tab-item {{currentTab === 'processing' ? 'active' : ''}}" 
+              data-tab="processing" 
+              bindtap="switchTab">
+          进行中
+        </view>
+        <view class="tab-item {{currentTab === 'completed' ? 'active' : ''}}" 
+              data-tab="completed" 
+              bindtap="switchTab">
+          已完成
+        </view>
+      </view>
+      
+      <!-- 订单卡片列表 -->
+      <view wx:if="{{orders.length > 0}}" class="order-list">
+        <view wx:for="{{orders}}" wx:key="_id" class="order-card" bindtap="viewOrderDetail" data-id="{{item._id}}">
+          <!-- 紧急标签 -->
+          <view wx:if="{{item.isUrgent}}" class="urgent-badge">紧急</view>
+          
+          <!-- 订单信息 -->
+          <view class="order-main">
+            <view class="order-title">{{item.productName}}</view>
+            <view class="order-spec">规格：{{item.spec}}</view>
+            
+            <view class="order-details">
+              <view class="detail-row">
+                <text class="detail-label">订单号：</text>
+                <text class="detail-value">{{item.orderNo}}</text>
+              </view>
+              <view wx:if="{{userRole === 'service'}}" class="detail-row">
+                <text class="detail-label">客户：</text>
+                <text class="detail-value">{{item.customerName}}</text>
+              </view>
+              <view wx:if="{{userRole === 'service'}}" class="detail-row">
+                <text class="detail-label">画师：</text>
+                <text class="detail-value">{{item.artistName}}</text>
+              </view>
+              <view class="detail-row">
+                <text class="detail-label">下单时间：</text>
+                <text class="detail-value">{{item.createTime}}</text>
+              </view>
+              <view class="detail-row">
+                <text class="detail-label">截止日期：</text>
+                <text class="detail-value deadline">{{item.deadline}}</text>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 订单底部 -->
+          <view class="order-footer">
+            <view class="order-status {{item.status}}">{{item.statusText}}</view>
+            <view class="order-amount">¥{{item.amount}}</view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 空状态 -->
+      <view wx:else class="empty-state">
+        <text class="empty-icon">📭</text>
+        <text class="empty-text">暂无订单</text>
+      </view>
+    </view>
+
+    <!-- 快捷功能 -->
+    <view class="quick-section">
+      <view class="section-title">
+        <text class="title-icon">🔧</text>
+        <text class="title-text">快捷功能</text>
+      </view>
+      
+      <view class="quick-grid">
+        <view wx:for="{{quickActions}}" wx:key="id" 
+              class="quick-item" 
+              data-action="{{item.id}}"
+              data-url="{{item.url}}"
+              bindtap="handleQuickAction">
+          <view class="quick-icon">{{item.icon}}</view>
+          <text class="quick-label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+
