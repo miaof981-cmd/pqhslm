@@ -200,7 +200,7 @@ App({
     return wx.getStorageSync('userRoles') || ['customer']
   },
 
-  // ✅ 新增：检查画师申请状态，自动赋予权限
+  // ✅ 检查画师申请状态（仅用于显示，不自动赋权）
   checkArtistApplication() {
     const userId = this.globalData.userId || wx.getStorageSync('userId')
     if (!userId) return
@@ -220,21 +220,10 @@ App({
       
       console.log('  - 最新申请状态:', latestApp.status)
       
-      // 如果申请已通过，自动添加画师权限
+      // ⚠️ 注意：申请通过后，需要管理员在后台手动开启权限
+      // 不再自动添加画师权限，避免未完成档案建立就获得权限
       if (latestApp.status === 'approved') {
-        let userRoles = wx.getStorageSync('userRoles') || ['customer']
-        
-        if (!userRoles.includes('artist')) {
-          console.log('  ✅ 申请已通过，自动添加画师权限')
-          userRoles.push('artist')
-          wx.setStorageSync('userRoles', userRoles)
-          this.globalData.roles = userRoles
-          this.globalData.role = userRoles[0]
-          
-          console.log('  - 当前角色:', userRoles)
-        } else {
-          console.log('  - 已有画师权限')
-        }
+        console.log('  ℹ️ 申请已通过，等待管理员开启权限')
       }
     } else {
       console.log('  - 无申请记录')

@@ -38,7 +38,11 @@ Page({
     const roles = app.getUserRoles ? app.getUserRoles() : (wx.getStorageSync('userRoles') || ['customer'])
     const hasArtistPermission = roles.includes('artist')
     
-    console.log('🎨 检查画师权限:', hasArtistPermission ? '已开启' : '未开启')
+    console.log('🔍 [artist-qrcode] 权限检查详情:')
+    console.log('  - 当前角色列表:', roles)
+    console.log('  - 是否包含artist:', hasArtistPermission)
+    console.log('  - 本地存储userRoles:', wx.getStorageSync('userRoles'))
+    console.log('  - app.globalData.roles:', app.globalData.roles)
     
     this.setData({
       hasArtistPermission: hasArtistPermission
