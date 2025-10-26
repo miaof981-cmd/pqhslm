@@ -32,6 +32,17 @@ Page({
     this.checkArtistPermission()
     this.loadStaffQRCode()
     this.checkExistingProfile()
+    
+    // ⭐ 如果已有权限且已完成档案，直接跳转到工作台
+    setTimeout(() => {
+      const { hasArtistPermission, isSubmitted } = this.data
+      if (hasArtistPermission && isSubmitted) {
+        console.log('✅ 权限已开启且档案已建立，自动跳转到工作台')
+        wx.redirectTo({
+          url: '/pages/workspace/index'
+        })
+      }
+    }, 500) // 延迟500ms，确保数据加载完成
   },
 
   // 检查申请状态
