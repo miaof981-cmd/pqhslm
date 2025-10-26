@@ -6,6 +6,7 @@ Page({
     staffQRCode: '',
     
     // 个人信息
+    realName: '',
     contactPhone: '',
     contactWechat: '',
     verifyCode: '',
@@ -60,8 +61,14 @@ Page({
     }
   },
 
-  // ========== 步骤1：个人信息输入 ==========
+  // ========== 个人信息输入 ==========
   
+  onRealNameInput(e) {
+    this.setData({
+      realName: e.detail.value
+    })
+  },
+
   onPhoneInput(e) {
     const phone = e.detail.value
     this.setData({
@@ -157,9 +164,17 @@ Page({
 
   // 提交档案
   submitProfile() {
-    const { contactPhone, verifyCode, contactWechat, emergencyName, emergencyRelation, emergencyPhone } = this.data
+    const { realName, contactPhone, verifyCode, contactWechat, emergencyName, emergencyRelation, emergencyPhone } = this.data
     
     // 验证个人信息
+    if (!realName || realName.length < 2) {
+      wx.showToast({
+        title: '请输入真实姓名',
+        icon: 'none'
+      })
+      return
+    }
+    
     if (!this.validatePhone(contactPhone)) {
       wx.showToast({
         title: '请输入正确的手机号',
@@ -234,6 +249,7 @@ Page({
     const profile = {
       userId: userId,
       // 个人信息
+      realName: this.data.realName,
       contactPhone: this.data.contactPhone,
       contactWechat: this.data.contactWechat,
       emergencyName: this.data.emergencyName,
@@ -255,6 +271,7 @@ Page({
       contactHistory[userId] = []
     }
     contactHistory[userId].push({
+      realName: this.data.realName,
       contactPhone: this.data.contactPhone,
       contactWechat: this.data.contactWechat,
       emergencyName: this.data.emergencyName,
@@ -266,6 +283,7 @@ Page({
     
     console.log('✅ 画师档案已保存')
     console.log('  - 用户ID:', userId)
+    console.log('  - 真实姓名:', this.data.realName)
     console.log('  - 联系电话:', this.data.contactPhone)
     console.log('  - 紧急联系人:', this.data.emergencyName, '(', this.data.emergencyRelation, ')')
     console.log('  - 联系方式历史记录数:', contactHistory[userId].length)
