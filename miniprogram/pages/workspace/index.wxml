@@ -3,6 +3,14 @@
     <text>加载中...</text>
   </view>
 
+  <!-- 无权限提示 -->
+  <view wx:elif="{{!hasPermission}}" class="no-permission">
+    <view class="no-permission-icon">🔒</view>
+    <view class="no-permission-title">暂无访问权限</view>
+    <view class="no-permission-text">您还不是画师或客服</view>
+    <view class="no-permission-hint">请先申请成为画师或联系管理员开通客服权限</view>
+  </view>
+
   <view wx:else class="workspace-content">
     <!-- 顶部切换身份标签（只显示有权限的） -->
     <view class="role-tabs" wx:if="{{availableRoles.length > 1}}">

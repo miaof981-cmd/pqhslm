@@ -1,7 +1,8 @@
 Page({
   data: {
     loading: true,
-    userRole: '', // 'artist' 或 'service' 或 'admin'
+    hasPermission: false, // 是否有权限访问
+    userRole: '', // 'artist' 或 'service'
     availableRoles: [], // 用户可以切换的角色列表
     
     // 待处理订单统计
@@ -49,12 +50,26 @@ Page({
     
     // 检查是否有权限
     if (availableRoles.length === 0) {
+      this.setData({
+        loading: false,
+        hasPermission: false
+      })
+      
       wx.showModal({
         title: '权限不足',
-        content: '您还不是画师或客服，无法访问工作台',
-        showCancel: false,
-        success: () => {
-          wx.navigateBack()
+        content: '您还不是画师或客服，无法访问工作台\n\n💡 如何成为画师？\n1. 返回首页\n2. 点击底部"画师认证"\n3. 填写申请表单\n4. 等待管理员审核',
+        showCancel: true,
+        cancelText: '返回',
+        confirmText: '去申请',
+        success: (res) => {
+          if (res.confirm) {
+            // 跳转到画师申请页面
+            wx.redirectTo({
+              url: '/pages/apply/index'
+            })
+          } else {
+            wx.navigateBack()
+          }
         }
       })
       return
@@ -69,6 +84,7 @@ Page({
     }
     
     this.setData({ 
+      hasPermission: true,
       userRole,
       availableRoles
     })
