@@ -8,15 +8,6 @@
   <view class="content-section">
     <!-- ========== 未提交状态：显示表单 ========== -->
     <view wx:if="{{!isSubmitted}}" class="step-content">
-      <!-- 权限状态提示 -->
-      <view class="permission-status {{hasArtistPermission ? 'granted' : 'pending'}}">
-        <view class="status-icon">{{hasArtistPermission ? '✓' : '⏱'}}</view>
-        <view class="status-content">
-          <text class="status-title">{{hasArtistPermission ? '权限已开启' : '等待权限开启'}}</text>
-          <text class="status-desc">{{hasArtistPermission ? '请完善个人信息后开启接单之旅' : '请先添加工作人员微信，等待权限开启'}}</text>
-        </view>
-      </view>
-
       <!-- 第一步：添加工作人员 -->
       <view class="staff-contact-section {{hasArtistPermission ? 'completed' : ''}}">
         <view class="section-header">
