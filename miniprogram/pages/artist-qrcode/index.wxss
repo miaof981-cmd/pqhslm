@@ -29,14 +29,6 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
-/* 区块副标题（申请已通过提示） */
-.section-subtitle {
-  padding: 0 32rpx 20rpx;
-  font-size: 26rpx;
-  color: #66BB6A;
-  line-height: 1.6;
-  text-align: center;
-}
 
 /* 权限状态提示（旧版，保留用于其他地方） */
 .permission-status {

@@ -17,11 +17,7 @@
           <text class="section-title">添加工作人员微信</text>
           <text wx:if="{{hasArtistPermission}}" class="completed-tag">已完成</text>
         </view>
-        
-        <!-- 申请已通过的副标题提示 -->
-        <view wx:if="{{applicationApproved && !hasArtistPermission}}" class="section-subtitle">
-          您的申请已通过，请联系工作人员开通工作台权限
-        </view>
+        <text wx:if="{{applicationApproved && !hasArtistPermission}}" class="section-hint">您的申请已通过，请联系工作人员开通工作台权限</text>
         
         <!-- 仅在无权限时显示二维码 -->
         <view wx:if="{{!hasArtistPermission}}" class="staff-qrcode-box">
