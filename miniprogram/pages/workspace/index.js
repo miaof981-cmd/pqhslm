@@ -59,6 +59,28 @@ Page({
     console.log('  - 可用工作角色:', availableRoles)
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     
+    // ✅ 如果有工作台权限，直接进入
+    if (availableRoles.length > 0) {
+      console.log('✅ 用户有工作台权限，直接进入')
+      
+      // 默认选择第一个可用角色
+      const defaultRole = availableRoles[0]
+      
+      this.setData({
+        loading: false,
+        hasPermission: true,
+        userRole: defaultRole,
+        availableRoles: availableRoles
+      })
+      
+      // 如果只有一个角色，直接初始化该角色的数据
+      if (availableRoles.length === 1) {
+        this.initRoleData(defaultRole)
+      }
+      
+      return
+    }
+    
     // ⭐ 如果没有工作台权限，检查是否申请已通过
     if (availableRoles.length === 0) {
       console.log('🔍 没有工作台权限，检查申请状态...')
