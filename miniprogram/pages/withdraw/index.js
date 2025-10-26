@@ -55,6 +55,15 @@ Page({
   startWithdraw() {
     const { balance, isVerified } = this.data
     
+    // 如果未认证，允许点击来完善认证信息
+    if (!isVerified) {
+      this.setData({
+        showVerifyModal: true
+      })
+      return
+    }
+
+    // 已认证，检查余额
     if (parseFloat(balance) <= 0) {
       wx.showToast({
         title: '暂无可提现余额',
@@ -63,17 +72,10 @@ Page({
       return
     }
 
-    // 如果未认证，先弹出认证弹窗
-    if (!isVerified) {
-      this.setData({
-        showVerifyModal: true
-      })
-    } else {
-      // 已认证，直接弹出提现弹窗
-      this.setData({
-        showWithdrawModal: true
-      })
-    }
+    // 已认证且有余额，弹出提现弹窗
+    this.setData({
+      showWithdrawModal: true
+    })
   },
 
   // 关闭提现弹窗
