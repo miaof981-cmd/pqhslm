@@ -10,6 +10,11 @@ App({
   onLaunch() {
     // 初始化用户信息
     this.initUserInfo()
+    
+    // 延迟请求微信授权（给用户一个缓冲时间）
+    setTimeout(() => {
+      this.checkAndRequestAuth()
+    }, 1000)
   },
 
   // 初始化用户信息
@@ -19,12 +24,15 @@ App({
     const userId = wx.getStorageSync('userId')
     const openid = wx.getStorageSync('openid')
     
-    if (userInfo && userId && openid) {
-      // 已有用户信息，直接使用
-      this.globalData.userInfo = userInfo
+    if (userId && openid) {
+      // 已有基础信息
       this.globalData.userId = userId
       this.globalData.openid = openid
-      console.log('用户信息已加载:', userInfo)
+      
+      if (userInfo) {
+        this.globalData.userInfo = userInfo
+        console.log('用户信息已加载:', userInfo)
+      }
     } else {
       // 没有用户信息，生成临时ID
       const tempUserId = 1001 + Math.floor(Math.random() * 1000)
@@ -38,6 +46,43 @@ App({
       
       console.log('生成临时用户ID:', tempUserId)
     }
+  },
+
+  // 检查并请求授权
+  checkAndRequestAuth() {
+    const userInfo = wx.getStorageSync('userInfo')
+    
+    // 如果没有用户信息，静默请求授权
+    if (!userInfo) {
+      console.log('检测到未授权，准备请求微信授权...')
+      this.requestWxAuth()
+    }
+  },
+
+  // 请求微信授权
+  requestWxAuth() {
+    wx.getUserProfile({
+      desc: '用于完善您的个人资料',
+      success: (res) => {
+        const userInfo = res.userInfo
+        
+        // 保存用户信息到本地和全局
+        wx.setStorageSync('userInfo', userInfo)
+        this.globalData.userInfo = userInfo
+        
+        console.log('✅ 微信授权成功:', userInfo)
+        
+        wx.showToast({
+          title: '授权成功',
+          icon: 'success',
+          duration: 1500
+        })
+      },
+      fail: (err) => {
+        console.log('⚠️ 用户取消授权或授权失败:', err)
+        // 用户拒绝授权，不影响使用，但部分功能受限
+      }
+    })
   },
 
   // 获取微信用户信息（需要用户授权）

@@ -211,47 +211,32 @@ Page({
       return
     }
 
-    try {
-      const app = getApp()
+    const app = getApp()
+    
+    // 获取用户信息（应该在启动时已授权）
+    let userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo
+    
+    if (!userInfo) {
+      // 如果还没有授权，提示并请求
+      wx.showToast({
+        title: '正在获取授权...',
+        icon: 'loading',
+        duration: 500
+      })
       
-      // 检查是否已授权微信信息
-      let userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo
-      
-      if (!userInfo) {
-        // 请求授权
-        wx.showModal({
-          title: '需要授权',
-          content: '为了完善您的申请资料，需要获取您的微信头像和昵称',
-          confirmText: '去授权',
-          success: async (res) => {
-            if (res.confirm) {
-              try {
-                userInfo = await app.getWxUserInfo()
-                // 授权成功后继续提交
-                this.doSubmitApplication(userInfo)
-              } catch (error) {
-                wx.showToast({
-                  title: '授权失败，请重试',
-                  icon: 'none'
-                })
-              }
-            }
-          }
+      try {
+        userInfo = await app.getWxUserInfo()
+      } catch (error) {
+        wx.showToast({
+          title: '需要授权才能提交',
+          icon: 'none'
         })
         return
       }
-      
-      // 已授权，直接提交
-      this.doSubmitApplication(userInfo)
-
-    } catch (error) {
-      wx.hideLoading()
-      console.error('提交申请失败', error)
-      wx.showToast({
-        title: '提交失败，请重试',
-        icon: 'none'
-      })
     }
+    
+    // 直接提交
+    this.doSubmitApplication(userInfo)
   },
 
   // 执行提交申请

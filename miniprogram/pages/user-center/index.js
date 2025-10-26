@@ -107,17 +107,25 @@ Page({
   async loadUserInfo() {
     const app = getApp()
     
+    // 获取微信用户信息
+    const wxUserInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo
+    
     // 获取用户的主要角色（第一个角色）
     const mainRole = this.data.roles.length > 0 ? this.data.roles[0] : 'customer'
+    
+    // 默认头像（使用纯色背景 + 文字）
+    const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0E4RTZDRiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7nlKg8L3RleHQ+PC9zdmc+'
     
     this.setData({ 
       userInfo: {
         openid: app.globalData.openid,
-        name: '妙妙',
-        avatar: 'https://via.placeholder.com/100x100.png?text=妙妙',
+        name: wxUserInfo ? wxUserInfo.nickName : '用户',
+        avatar: wxUserInfo ? wxUserInfo.avatarUrl : defaultAvatar,
         role: mainRole  // 使用实际的主要角色
       }
     })
+    
+    console.log('用户中心加载用户信息:', this.data.userInfo)
   },
 
   // 检查画师状态
