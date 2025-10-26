@@ -1,7 +1,7 @@
+/* 工作台容器 */
 .workspace-container {
   min-height: 100vh;
-  background: #F5F7FA;
-  padding-bottom: 40rpx;
+  background: linear-gradient(180deg, #E6FFEB 0%, #F0F9FF 100%);
 }
 
 .loading {
@@ -10,307 +10,302 @@
   justify-content: center;
   height: 100vh;
   font-size: 28rpx;
-  color: #999;
+  color: #666;
 }
 
 .workspace-content {
-  padding: 20rpx;
+  padding: 0 0 40rpx 0;
 }
 
-/* 角色标识 */
-.role-badge {
-  position: fixed;
-  top: 20rpx;
-  right: 20rpx;
-  padding: 8rpx 20rpx;
-  border-radius: 20rpx;
-  font-size: 22rpx;
-  font-weight: bold;
-  color: white;
-  z-index: 100;
+/* ========== 顶部角色切换标签 ========== */
+.role-tabs {
   display: flex;
+  background: white;
+  padding: 20rpx 30rpx;
+  gap: 30rpx;
+  border-bottom: 2rpx solid #E0E0E0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.role-tab {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 28rpx;
+  color: #666;
+  border-radius: 12rpx;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.role-tab.active {
+  color: #4CAF50;
+  font-weight: bold;
+  background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+}
+
+.role-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -20rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 6rpx;
+  background: #4CAF50;
+  border-radius: 3rpx;
+}
+
+/* ========== 待处理订单区域 ========== */
+.pending-orders-section {
+  margin: 30rpx;
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8rpx;
-  transition: transform 0.3s;
+  margin-bottom: 30rpx;
 }
 
-.role-badge.clickable {
-  cursor: pointer;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+.section-title-text {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
 }
 
-.role-badge.clickable:active {
-  transform: scale(0.95);
+.toggle-switch {
+  transform: scale(0.9);
 }
 
-.role-badge.artist {
-  background: linear-gradient(135deg, #A8E6CF, #88D4AB);
+/* 待处理订单统计 */
+.pending-stats {
+  display: flex;
+  gap: 20rpx;
+  animation: slideDown 0.3s ease-out;
 }
 
-.role-badge.service {
-  background: linear-gradient(135deg, #FFB74D, #FFA726);
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.switch-icon {
+.stat-item {
+  flex: 1;
+  background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+  border-radius: 16rpx;
+  padding: 30rpx 20rpx;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-item::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20rpx;
+  width: 120rpx;
+  height: 120rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+}
+
+.stat-item.urgent {
+  background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+}
+
+.stat-number {
+  font-size: 72rpx;
+  font-weight: bold;
+  color: #1976D2;
+  line-height: 1;
+  margin-bottom: 12rpx;
+}
+
+.stat-item.urgent .stat-number {
+  color: #D32F2F;
+}
+
+.stat-label {
   font-size: 24rpx;
-  margin-left: 4rpx;
-  animation: rotate 2s linear infinite;
+  color: #666;
 }
 
-@keyframes rotate {
-  0%, 100% {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(180deg);
-  }
+/* ========== 平台须知区域 ========== */
+.notice-section {
+  margin: 30rpx;
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
 }
 
-/* 通用区块标题 */
-.section-title {
+.notice-header {
   display: flex;
   align-items: center;
   gap: 12rpx;
   margin-bottom: 20rpx;
-  padding: 0 10rpx;
 }
 
-.title-icon {
-  font-size: 32rpx;
+.notice-icon {
+  font-size: 36rpx;
 }
 
-.title-text {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-/* 今日待办 */
-.todo-section {
-  margin-bottom: 30rpx;
-}
-
-.todo-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20rpx;
-}
-
-.todo-item {
-  background: white;
-  border-radius: 16rpx;
-  padding: 30rpx 20rpx;
-  text-align: center;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
-}
-
-.todo-item.urgent {
-  background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
-}
-
-.todo-number {
-  font-size: 48rpx;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 8rpx;
-}
-
-.todo-item.urgent .todo-number {
-  color: #F57C00;
-}
-
-.todo-label {
-  font-size: 22rpx;
-  color: #666;
-}
-
-/* 订单列表 */
-.orders-section {
-  margin-bottom: 30rpx;
-}
-
-.order-tabs {
-  display: flex;
-  gap: 16rpx;
-  margin-bottom: 20rpx;
-  padding: 0 10rpx;
-}
-
-.tab-item {
+.notice-title {
   flex: 1;
-  text-align: center;
-  padding: 16rpx 0;
-  background: white;
-  border-radius: 12rpx;
-  font-size: 26rpx;
-  color: #666;
-  transition: all 0.3s;
-}
-
-.tab-item.active {
-  background: linear-gradient(135deg, #A8E6CF, #88D4AB);
-  color: white;
-  font-weight: 600;
-}
-
-.order-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-}
-
-.order-card {
-  background: white;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
-  position: relative;
-}
-
-.urgent-badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: linear-gradient(135deg, #FF6B6B, #EE5A6F);
-  color: white;
-  padding: 6rpx 16rpx;
-  border-radius: 0 16rpx 0 16rpx;
-  font-size: 20rpx;
-  font-weight: bold;
-}
-
-.order-main {
-  margin-bottom: 20rpx;
-}
-
-.order-title {
   font-size: 30rpx;
-  font-weight: 600;
+  font-weight: bold;
   color: #333;
-  margin-bottom: 8rpx;
 }
 
-.order-spec {
+.view-more {
   font-size: 24rpx;
   color: #4CAF50;
+  padding: 8rpx 20rpx;
   background: #E8F5E9;
-  padding: 6rpx 12rpx;
-  border-radius: 8rpx;
-  display: inline-block;
-  margin-bottom: 16rpx;
+  border-radius: 20rpx;
 }
 
-.order-details {
+.notice-list {
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 16rpx;
 }
 
-.detail-row {
-  display: flex;
-  font-size: 24rpx;
+.notice-item {
+  padding: 16rpx 20rpx;
+  background: #F5F5F5;
+  border-radius: 12rpx;
+  border-left: 6rpx solid #FFA726;
 }
 
-.detail-label {
-  color: #999;
-  min-width: 140rpx;
-}
-
-.detail-value {
-  color: #666;
-  flex: 1;
-}
-
-.detail-value.deadline {
-  color: #F57C00;
-  font-weight: 600;
-}
-
-.order-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 16rpx;
-  border-top: 1rpx solid #F0F0F0;
-}
-
-.order-status {
-  padding: 6rpx 16rpx;
-  border-radius: 20rpx;
-  font-size: 22rpx;
-  font-weight: 600;
-}
-
-.order-status.pending {
-  background: #FFF3E0;
-  color: #F57C00;
-}
-
-.order-status.processing {
-  background: #E3F2FD;
-  color: #1976D2;
-}
-
-.order-status.completed {
-  background: #E8F5E9;
-  color: #388E3C;
-}
-
-.order-amount {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #FF6B6B;
-}
-
-/* 空状态 */
-.empty-state {
-  text-align: center;
-  padding: 80rpx 0;
-}
-
-.empty-icon {
-  font-size: 80rpx;
-  margin-bottom: 20rpx;
-  display: block;
-}
-
-.empty-text {
+.notice-text {
   font-size: 26rpx;
-  color: #999;
+  color: #666;
+  line-height: 1.6;
 }
 
-/* 快捷功能 */
-.quick-section {
-  margin-bottom: 30rpx;
+/* ========== 快捷功能区域 ========== */
+.quick-actions-section {
+  margin: 30rpx;
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
 }
 
 .quick-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20rpx;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30rpx;
 }
 
-.quick-item {
-  background: white;
-  border-radius: 16rpx;
-  padding: 30rpx 20rpx;
-  text-align: center;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
-  transition: transform 0.3s;
+.quick-action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
 }
 
-.quick-item:active {
+.action-icon-wrapper {
+  width: 100rpx;
+  height: 100rpx;
+  background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.2);
+}
+
+.quick-action-item:active .action-icon-wrapper {
   transform: scale(0.95);
+  box-shadow: 0 2rpx 8rpx rgba(76, 175, 80, 0.3);
 }
 
-.quick-icon {
+.action-icon {
   font-size: 48rpx;
-  margin-bottom: 12rpx;
 }
 
-.quick-label {
+.action-label {
   font-size: 24rpx;
   color: #666;
-  display: block;
+  text-align: center;
+  word-break: keep-all;
 }
 
+/* ========== 推广链接区域 ========== */
+.promo-section {
+  margin: 30rpx;
+  background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  border: 2rpx dashed #FF9800;
+}
+
+.promo-label {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 20rpx;
+  word-break: break-all;
+}
+
+.copy-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #4CAF50, #66BB6A);
+  color: white;
+  border: none;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.3);
+}
+
+.copy-btn:active {
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+
+/* ========== 聊天窗口（可选） ========== */
+.chat-section {
+  margin: 30rpx;
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  min-height: 400rpx;
+}
+
+.chat-header {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 2rpx solid #E0E0E0;
+}
+
+.chat-content {
+  min-height: 300rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 26rpx;
+}

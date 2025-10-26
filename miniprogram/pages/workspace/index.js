@@ -1,23 +1,28 @@
 Page({
   data: {
     loading: true,
-    userRole: '', // 'artist' 或 'service'
+    userRole: '', // 'artist' 或 'service' 或 'admin'
     availableRoles: [], // 用户可以切换的角色列表
-    canSwitchRole: false, // 是否可以切换角色
     
-    // 今日待办（所有角色通用）
-    todoStats: {
-      pendingOrders: 0,
-      urgentOrders: 0,
-      todayOrders: 0
+    // 待处理订单统计
+    showPendingOrders: true, // 是否显示待处理订单
+    pendingStats: {
+      nearDeadline: 5,  // 临近截稿
+      overdue: 2,       // 已拖稿
+      inProgress: 18    // 进行中
     },
     
-    // 订单列表
-    orders: [],
-    currentTab: 'all', // all, pending, processing, completed
+    // 平台须知
+    notices: [
+      { id: 1, content: '每笔订单从今日起2xx天内~~' },
+      { id: 2, content: '每笔订单从今日起2xx天内~~' }
+    ],
     
     // 快捷功能（根据角色不同）
-    quickActions: []
+    quickActions: [],
+    
+    // 推广链接
+    promoLink: 'https://teatnet.com'
   },
 
   onLoad() {
@@ -36,23 +41,20 @@ Page({
     // 收集用户可以使用的工作角色
     const availableRoles = []
     if (roles.includes('artist')) {
-      availableRoles.push({ id: 'artist', name: '画师', icon: '🎨' })
-    }
-    if (roles.includes('service')) {
-      availableRoles.push({ id: 'service', name: '客服', icon: '💬' })
+      availableRoles.push('artist')
     }
     if (roles.includes('admin')) {
-      // 管理员可以切换到客服视图
-      if (!availableRoles.find(r => r.id === 'service')) {
-        availableRoles.push({ id: 'service', name: '客服', icon: '💬' })
-      }
+      availableRoles.push('admin')
+    }
+    if (roles.includes('service')) {
+      availableRoles.push('service')
     }
     
     // 检查是否有权限
     if (availableRoles.length === 0) {
       wx.showModal({
         title: '权限不足',
-        content: '您还不是画师或客服，无法访问工作台',
+        content: '您还不是画师、店长或客服，无法访问工作台',
         showCancel: false,
         success: () => {
           wx.navigateBack()
@@ -62,17 +64,16 @@ Page({
     }
     
     // 从本地存储读取上次选择的角色
-    let userRole = wx.getStorageSync('workspace_role') || availableRoles[0].id
+    let userRole = wx.getStorageSync('workspace_role') || availableRoles[0]
     
     // 确保选择的角色在可用列表中
-    if (!availableRoles.find(r => r.id === userRole)) {
-      userRole = availableRoles[0].id
+    if (!availableRoles.includes(userRole)) {
+      userRole = availableRoles[0]
     }
     
     this.setData({ 
       userRole,
-      availableRoles,
-      canSwitchRole: availableRoles.length > 1 // 有多个角色才显示切换按钮
+      availableRoles
     })
     
     this.loadData()
@@ -82,197 +83,187 @@ Page({
   async loadData() {
     this.setData({ loading: true })
     
-    try {
-      await Promise.all([
-        this.loadTodoStats(),
-        this.loadOrders(),
-        this.loadQuickActions()
-      ])
-    } catch (error) {
-      console.error('加载数据失败', error)
-    } finally {
-      this.setData({ loading: false })
-    }
-  },
-
-  // 加载待办统计
-  async loadTodoStats() {
     const { userRole } = this.data
     
-    // 模拟数据
+    // 根据角色加载不同的快捷功能
     if (userRole === 'artist') {
-      // 画师：只看自己的订单
-      this.setData({
-        todoStats: {
-          pendingOrders: 3,
-          urgentOrders: 1,
-          todayOrders: 2
-        }
-      })
+      this.loadArtistActions()
+    } else if (userRole === 'admin') {
+      this.loadAdminActions()
     } else if (userRole === 'service') {
-      // 客服：看所有订单
-      this.setData({
-        todoStats: {
-          pendingOrders: 15,
-          urgentOrders: 5,
-          todayOrders: 8
-        }
-      })
+      this.loadServiceActions()
     }
+    
+    // 加载订单统计数据
+    this.loadPendingStats()
+    
+    this.setData({ loading: false })
   },
 
-  // 加载订单列表
-  async loadOrders() {
-    const { userRole, currentTab } = this.data
-    
-    // 模拟订单数据
-    const allOrders = [
-      {
-        _id: 'order-1',
-        orderNo: 'ORD20241026001',
-        productName: '精美头像设计',
-        customerName: '用户A',
-        artistName: '画师小明',
-        status: 'pending',
-        statusText: '待处理',
-        createTime: '2024-10-26 10:30',
-        deadline: '2024-10-29 10:30',
-        amount: 88.00,
-        spec: '半身 / 平板',
-        isUrgent: false
-      },
-      {
-        _id: 'order-2',
-        orderNo: 'ORD20241026002',
-        productName: '创意插画作品',
-        customerName: '用户B',
-        artistName: '画师小红',
-        status: 'processing',
-        statusText: '进行中',
-        createTime: '2024-10-25 14:20',
-        deadline: '2024-10-27 14:20', // 快到期
-        amount: 168.00,
-        spec: '全身 / 手机',
-        isUrgent: true
-      },
-      {
-        _id: 'order-3',
-        orderNo: 'ORD20241025003',
-        productName: 'LOGO设计',
-        customerName: '用户C',
-        artistName: '画师小李',
-        status: 'completed',
-        statusText: '已完成',
-        createTime: '2024-10-23 09:15',
-        deadline: '2024-10-26 09:15',
-        amount: 299.00,
-        spec: '标准版',
-        isUrgent: false
-      }
+  // 加载画师快捷功能
+  loadArtistActions() {
+    const quickActions = [
+      { id: 'data-stats', label: '数据统计', icon: '📊' },
+      { id: 'order-manage', label: '订单管理', icon: '📋' },
+      { id: 'rewards', label: '打赏记录', icon: '💰' },
+      { id: 'profile', label: '个人资料', icon: '👤' }
     ]
     
-    // 根据当前标签筛选订单
-    let filteredOrders = allOrders
-    if (currentTab === 'pending') {
-      filteredOrders = allOrders.filter(o => o.status === 'pending')
-    } else if (currentTab === 'processing') {
-      filteredOrders = allOrders.filter(o => o.status === 'processing')
-    } else if (currentTab === 'completed') {
-      filteredOrders = allOrders.filter(o => o.status === 'completed')
-    }
-    
-    this.setData({
-      orders: filteredOrders
-    })
+    this.setData({ quickActions })
   },
 
-  // 加载快捷功能
-  async loadQuickActions() {
+  // 加载店长（管理员）快捷功能
+  loadAdminActions() {
+    const quickActions = [
+      { id: 'data-stats', label: '数据统计', icon: '📊' },
+      { id: 'order-manage', label: '订单管理', icon: '📋' },
+      { id: 'artist-manage', label: '画师管理', icon: '👥' },
+      { id: 'product-manage', label: '商品管理', icon: '🛍️' },
+      { id: 'page-config', label: '页面配置', icon: '⚙️' },
+      { id: 'notice-manage', label: '通知管理', icon: '📢' },
+      { id: 'activity-manage', label: '动态管理', icon: '🎯' },
+      { id: 'media-lib', label: '素材库', icon: '📁' }
+    ]
+    
+    this.setData({ quickActions })
+  },
+
+  // 加载客服快捷功能
+  loadServiceActions() {
+    const quickActions = [
+      { id: 'order-manage', label: '订单管理', icon: '📋' },
+      { id: 'consultations', label: '咨询记录', icon: '💬' }
+    ]
+    
+    this.setData({ quickActions })
+  },
+
+  // 加载待处理订单统计
+  loadPendingStats() {
     const { userRole } = this.data
     
-    if (userRole === 'artist') {
-      // 画师快捷功能
-      this.setData({
-        quickActions: [
-          { id: 'products', icon: '📦', label: '商品管理', url: '/pages/product-manage/index' },
-          { id: 'rewards', icon: '💰', label: '打赏记录', url: '' },
-          { id: 'profile', icon: '👤', label: '我的资料', url: '/pages/user-center/index' }
-        ]
-      })
-    } else if (userRole === 'service') {
-      // 客服快捷功能
-      this.setData({
-        quickActions: [
-          { id: 'allOrders', icon: '📋', label: '所有订单', url: '/pages/order-list/index' },
-          { id: 'messages', icon: '💬', label: '咨询记录', url: '' },
-          { id: 'profile', icon: '👤', label: '我的资料', url: '/pages/user-center/index' }
-        ]
-      })
-    }
-  },
-
-  // 切换订单标签
-  switchTab(e) {
-    const tab = e.currentTarget.dataset.tab
-    this.setData({
-      currentTab: tab
-    })
-    this.loadOrders()
-  },
-
-  // 查看订单详情
-  viewOrderDetail(e) {
-    const orderId = e.currentTarget.dataset.id
-    wx.navigateTo({
-      url: `/pages/order-detail/index?id=${orderId}`
-    })
-  },
-
-  // 快捷操作
-  handleQuickAction(e) {
-    const action = e.currentTarget.dataset.action
-    const url = e.currentTarget.dataset.url
+    // 模拟数据 - 实际应该从后端获取
+    let pendingStats
     
-    if (url) {
-      wx.navigateTo({
-        url: url
-      })
-    } else {
+    if (userRole === 'artist') {
+      // 画师：只看自己的订单
+      pendingStats = {
+        nearDeadline: 2,
+        overdue: 1,
+        inProgress: 5
+      }
+    } else if (userRole === 'admin') {
+      // 店长：看所有订单
+      pendingStats = {
+        nearDeadline: 15,
+        overdue: 8,
+        inProgress: 45
+      }
+    } else if (userRole === 'service') {
+      // 客服：看所有订单
+      pendingStats = {
+        nearDeadline: 12,
+        overdue: 5,
+        inProgress: 38
+      }
+    }
+    
+    this.setData({ pendingStats })
+  },
+
+  // 切换角色标签
+  switchRoleTab(e) {
+    const { role } = e.currentTarget.dataset
+    const { availableRoles } = this.data
+    
+    // 检查是否有该角色权限
+    if (!availableRoles.includes(role)) {
       wx.showToast({
-        title: '功能开发中',
+        title: '您没有该角色权限',
         icon: 'none'
       })
+      return
+    }
+    
+    // 保存选择到本地存储
+    wx.setStorageSync('workspace_role', role)
+    
+    // 更新角色并重新加载数据
+    this.setData({
+      userRole: role
+    })
+    
+    this.loadData()
+  },
+
+  // 切换待处理订单显示/隐藏
+  togglePendingOrders(e) {
+    this.setData({
+      showPendingOrders: e.detail.value
+    })
+  },
+
+  // 查看通知动态
+  viewNotices() {
+    wx.showToast({
+      title: '查看通知功能开发中',
+      icon: 'none'
+    })
+  },
+
+  // 处理快捷功能点击
+  handleQuickAction(e) {
+    const { action } = e.currentTarget.dataset
+    
+    switch (action) {
+      case 'data-stats':
+        wx.navigateTo({
+          url: '/pages/admin-panel/index?tab=dashboard'
+        })
+        break
+      case 'order-manage':
+        wx.navigateTo({
+          url: '/pages/admin-panel/index?tab=orders'
+        })
+        break
+      case 'artist-manage':
+        wx.navigateTo({
+          url: '/pages/admin-panel/index?tab=artists'
+        })
+        break
+      case 'product-manage':
+        wx.navigateTo({
+          url: '/pages/product-manage/index'
+        })
+        break
+      case 'page-config':
+      case 'notice-manage':
+      case 'activity-manage':
+      case 'media-lib':
+      case 'rewards':
+      case 'profile':
+      case 'consultations':
+        wx.showToast({
+          title: '功能开发中',
+          icon: 'none'
+        })
+        break
+      default:
+        console.log('未知操作:', action)
     }
   },
 
-  // 切换角色
-  switchRole() {
-    const { availableRoles, userRole } = this.data
+  // 复制推广链接
+  copyPromoLink() {
+    const { promoLink } = this.data
     
-    // 显示角色选择菜单
-    const roleNames = availableRoles.map(r => `${r.icon} ${r.name}`)
-    
-    wx.showActionSheet({
-      itemList: roleNames,
-      success: (res) => {
-        const selectedRole = availableRoles[res.tapIndex]
-        
-        if (selectedRole.id !== userRole) {
-          // 保存选择到本地存储
-          wx.setStorageSync('workspace_role', selectedRole.id)
-          
-          // 更新角色并重新加载数据
-          this.setData({
-            userRole: selectedRole.id
-          })
-          
-          this.loadData()
-          
-          wx.showToast({
-            title: `已切换到${selectedRole.name}视图`,
-            icon: 'success'
-          })
-        }
+    wx.setClipboardData({
+      data: promoLink,
+      success: () => {
+        wx.showToast({
+          title: '链接已复制',
+          icon: 'success'
+        })
       }
     })
   },
@@ -284,4 +275,3 @@ Page({
     })
   }
 })
-
