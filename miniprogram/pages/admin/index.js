@@ -330,21 +330,15 @@ Page({
         return sum + (parseFloat(order.totalPrice) || 0)
       }, 0)
       
-      // 根据订单数量和收入评定等级
-      let level = 'C'
-      if (orderCount >= 50 && totalRevenue >= 5000) {
-        level = 'S'
-      } else if (orderCount >= 30 && totalRevenue >= 3000) {
-        level = 'A'
-      } else if (orderCount >= 10 && totalRevenue >= 1000) {
-        level = 'B'
-      }
+      // 获取用户头像和昵称（从登录信息读取）
+      const wxUserInfo = wx.getStorageSync('wxUserInfo') || {}
+      const avatar = (app.userId === wx.getStorageSync('userId')) ? wxUserInfo.avatarUrl : ''
+      const nickname = (app.userId === wx.getStorageSync('userId')) ? wxUserInfo.nickName : app.name
       
       return {
         _id: app.userId,
-        name: app.name,
-        avatar: '', // 暂无头像
-        level: level,
+        name: nickname || app.name,
+        avatar: avatar || '',
         joinTime: app.approveTime || app.submitTime,
         productCount: productCount,
         orderCount: orderCount,

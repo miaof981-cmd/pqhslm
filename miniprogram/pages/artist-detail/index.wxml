@@ -10,7 +10,6 @@
       <view class="artist-info">
         <view class="artist-name-row">
           <text class="artist-name">{{artist.name}}</text>
-          <view class="artist-level level-{{artist.level}}">{{artist.level}}级画师</view>
         </view>
         <text class="artist-intro">{{artist.intro}}</text>
         <view class="artist-stats">

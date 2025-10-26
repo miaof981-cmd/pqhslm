@@ -231,7 +231,6 @@
             <view class="artist-info">
               <view class="artist-name-row">
                 <text class="artist-name">{{item.name}}</text>
-                <view class="artist-level level-{{item.level}}">{{item.level}}级</view>
               </view>
               <text class="artist-meta">入驻：{{item.joinTime}}</text>
               <text class="artist-meta">作品：{{item.productCount}}个 | 订单：{{item.orderCount}}单</text>
