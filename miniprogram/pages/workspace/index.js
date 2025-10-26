@@ -1,28 +1,125 @@
 Page({
   data: {
     loading: true,
-    hasPermission: false, // 是否有权限访问
-    userRole: '', // 'artist' 或 'service'
-    availableRoles: [], // 用户可以切换的角色列表
+    hasPermission: false,
+    userRole: '',
+    availableRoles: [],
     
     // 待处理订单统计
     pendingStats: {
-      nearDeadline: 5,  // 临近截稿
-      overdue: 2,       // 已拖稿
-      inProgress: 18    // 进行中
+      nearDeadline: 3,
+      overdue: 1,
+      inProgress: 8
     },
     
+    // 待处理订单列表
+    pendingOrders: [
+      {
+        id: '202510260001',
+        productName: 'Q版头像定制',
+        productImage: '/assets/default-product.png',
+        spec: '大头/手机壁纸',
+        price: '88.00',
+        status: 'inProgress',
+        statusText: '进行中',
+        createTime: '10-25 14:32',
+        deadline: '10-30 23:59',
+        urgent: false
+      },
+      {
+        id: '202510260002',
+        productName: '半身人物立绘',
+        productImage: '/assets/default-product.png',
+        spec: '半身/平板壁纸',
+        price: '168.00',
+        status: 'nearDeadline',
+        statusText: '临近截稿',
+        createTime: '10-23 09:15',
+        deadline: '10-27 18:00',
+        urgent: false
+      },
+      {
+        id: '202510260003',
+        productName: '全身角色设计',
+        productImage: '/assets/default-product.png',
+        spec: '全身/桌面壁纸',
+        price: '288.00',
+        status: 'overdue',
+        statusText: '已拖稿',
+        createTime: '10-20 16:45',
+        deadline: '10-25 12:00',
+        urgent: true
+      },
+      {
+        id: '202510260004',
+        productName: '表情包定制（8个）',
+        productImage: '/assets/default-product.png',
+        spec: '可爱风格',
+        price: '128.00',
+        status: 'inProgress',
+        statusText: '进行中',
+        createTime: '10-24 11:20',
+        deadline: '10-31 23:59',
+        urgent: false
+      },
+      {
+        id: '202510260005',
+        productName: 'LOGO设计',
+        productImage: '/assets/default-product.png',
+        spec: '简约/现代',
+        price: '198.00',
+        status: 'inProgress',
+        statusText: '进行中',
+        createTime: '10-25 08:30',
+        deadline: '11-02 17:00',
+        urgent: false
+      },
+      {
+        id: '202510260006',
+        productName: '卡通形象设计',
+        productImage: '/assets/default-product.png',
+        spec: 'Q版/全身',
+        price: '258.00',
+        status: 'completed',
+        statusText: '已完成',
+        createTime: '10-18 10:20',
+        deadline: '10-23 18:00',
+        urgent: false
+      },
+      {
+        id: '202510260007',
+        productName: '微信表情包',
+        productImage: '/assets/default-product.png',
+        spec: '16个/可爱风',
+        price: '188.00',
+        status: 'completed',
+        statusText: '已完成',
+        createTime: '10-15 14:50',
+        deadline: '10-22 12:00',
+        urgent: false
+      }
+    ],
+    
+    // 搜索和筛选
+    searchKeyword: '',
+    currentFilter: 'all',
+    filteredOrders: [],
+    
     // 平台须知
-    showNotices: false, // 默认折叠
+    showNotices: false,
     notices: [
-      { id: 1, content: '每笔订单从今日起20天内未确认收货，系统将自动确认收货' },
-      { id: 2, content: '平台回收一定比例的服务费用于承担工作人员工资' },
-      { id: 3, content: '首月会员费19.9元用于评估收益，次月起29.9元' }
+      { id: 1, content: '订单超时20天自动确认收货' },
+      { id: 2, content: '首月会员19.9元，次月起29.9元' },
+      { id: 3, content: '平台服务费用于工作人员工资' }
     ]
   },
 
   onLoad() {
     this.checkPermission()
+    // 初始化显示全部订单
+    this.setData({
+      filteredOrders: this.data.pendingOrders
+    })
   },
 
   onShow() {
@@ -381,7 +478,6 @@ Page({
     
     switch (func) {
       case 'dataStats':
-        // 跳转到数据统计页面
         wx.showToast({
           title: '数据统计开发中',
           icon: 'none'
@@ -389,14 +485,12 @@ Page({
         break
         
       case 'productManage':
-        // 跳转到商品管理
         wx.navigateTo({
           url: '/pages/product-manage/index'
         })
         break
         
       case 'rewards':
-        // 跳转到打赏记录
         wx.showToast({
           title: '打赏记录开发中',
           icon: 'none'
@@ -404,7 +498,6 @@ Page({
         break
         
       case 'withdraw':
-        // 跳转到资金提现
         wx.showToast({
           title: '资金提现开发中',
           icon: 'none'
@@ -414,5 +507,75 @@ Page({
       default:
         console.log('未知功能:', func)
     }
+  },
+  
+  // 查看订单详情
+  viewOrderDetail(e) {
+    const { id } = e.currentTarget.dataset
+    console.log('查看订单详情:', id)
+    
+    wx.showToast({
+      title: '订单详情页开发中',
+      icon: 'none'
+    })
+    
+    // 后续实现：
+    // wx.navigateTo({
+    //   url: `/pages/order-detail/index?id=${id}`
+    // })
+  },
+  
+  // 筛选订单
+  filterOrders(e) {
+    const { filter } = e.currentTarget.dataset
+    console.log('筛选类型:', filter)
+    
+    this.setData({
+      currentFilter: filter
+    })
+    
+    this.applyFilter()
+  },
+  
+  // 应用筛选
+  applyFilter() {
+    const { pendingOrders, currentFilter, searchKeyword } = this.data
+    let filtered = [...pendingOrders]
+    
+    // 1. 按状态筛选
+    if (currentFilter !== 'all') {
+      filtered = filtered.filter(order => order.status === currentFilter)
+    }
+    
+    // 2. 按关键词搜索
+    if (searchKeyword) {
+      const keyword = searchKeyword.toLowerCase()
+      filtered = filtered.filter(order => {
+        return order.id.toLowerCase().includes(keyword) ||
+               order.productName.toLowerCase().includes(keyword)
+      })
+    }
+    
+    this.setData({
+      filteredOrders: filtered
+    })
+  },
+  
+  // 搜索输入
+  onSearchInput(e) {
+    this.setData({
+      searchKeyword: e.detail.value
+    })
+    
+    this.applyFilter()
+  },
+  
+  // 清除搜索
+  clearSearch() {
+    this.setData({
+      searchKeyword: ''
+    })
+    
+    this.applyFilter()
   }
 })

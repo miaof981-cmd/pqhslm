@@ -8,85 +8,141 @@
     <view class="no-permission-icon">🔒</view>
     <view class="no-permission-title">暂无访问权限</view>
     <view class="no-permission-text">您还不是画师或客服</view>
-    <view class="no-permission-hint">请先申请成为画师或联系管理员开通客服权限</view>
   </view>
 
   <view wx:else class="workspace-content">
-    <!-- 顶部角色标题 -->
-    <view class="header-bar">
-      <text class="role-title" wx:if="{{userRole === 'artist'}}">画师工作台</text>
-      <text class="role-title" wx:elif="{{userRole === 'service'}}">客服工作台</text>
-    </view>
-
-    <!-- ========== 核心区域：待处理订单 ========== -->
-    <view class="pending-orders-section">
-      <view class="section-title">待处理订单</view>
-      
-      <view class="pending-stats">
-        <view class="stat-card normal" bindtap="goToOrders" data-type="progress">
-          <view class="stat-number">{{pendingStats.inProgress || 0}}</view>
-          <view class="stat-label">进行中</view>
-        </view>
-        
-        <view class="stat-card warning" bindtap="goToOrders" data-type="nearDeadline">
-          <view class="stat-number">{{pendingStats.nearDeadline || 0}}</view>
-          <view class="stat-label">临近截稿</view>
-        </view>
-        
-        <view class="stat-card danger" bindtap="goToOrders" data-type="overdue">
-          <view class="stat-number">{{pendingStats.overdue || 0}}</view>
-          <view class="stat-label">已拖稿</view>
+    <!-- 顶部功能区（紧凑） -->
+    <view class="top-section">
+      <view class="header-row">
+        <text class="page-title">工作台</text>
+        <view class="stats-mini">
+          <view class="stat-mini-item" bindtap="filterOrders" data-filter="inProgress">
+            待处理 <text class="stat-mini-num">{{pendingStats.inProgress || 0}}</text>
+          </view>
+          <view class="stat-mini-item urgent" bindtap="filterOrders" data-filter="overdue">
+            紧急 <text class="stat-mini-num">{{pendingStats.overdue || 0}}</text>
+          </view>
         </view>
       </view>
-      
-      <!-- 快速订单管理入口 -->
-      <button class="quick-btn-primary" bindtap="goToOrderManage">
-        查看全部订单
-      </button>
-    </view>
 
-    <!-- ========== 功能模块区 ========== -->
-    <view class="functions-section">
-      <view class="function-grid">
-        <!-- 数据统计 -->
-        <view class="function-item" bindtap="handleFunction" data-func="dataStats">
-          <view class="func-icon stats-icon"></view>
-          <text class="func-label">数据统计</text>
-        </view>
-        
-        <!-- 商品管理 -->
-        <view class="function-item" bindtap="handleFunction" data-func="productManage">
+      <!-- 快捷功能（紧凑） -->
+      <view class="quick-functions">
+        <view class="func-btn" bindtap="handleFunction" data-func="productManage">
           <view class="func-icon product-icon"></view>
-          <text class="func-label">商品管理</text>
+          <text class="func-name">商品</text>
         </view>
-        
-        <!-- 打赏记录 -->
-        <view class="function-item" bindtap="handleFunction" data-func="rewards">
-          <view class="func-icon reward-icon"></view>
-          <text class="func-label">打赏记录</text>
+        <view class="func-btn" bindtap="handleFunction" data-func="dataStats">
+          <view class="func-icon stats-icon"></view>
+          <text class="func-name">统计</text>
         </view>
-        
-        <!-- 资金提现 -->
-        <view class="function-item" bindtap="handleFunction" data-func="withdraw">
+        <view class="func-btn" bindtap="handleFunction" data-func="withdraw">
           <view class="func-icon money-icon"></view>
-          <text class="func-label">资金提现</text>
+          <text class="func-name">提现</text>
+        </view>
+        <view class="func-btn" bindtap="handleFunction" data-func="rewards">
+          <view class="func-icon reward-icon"></view>
+          <text class="func-name">打赏</text>
+        </view>
+        <view class="func-btn" bindtap="toggleNotices">
+          <view class="func-icon notice-icon"></view>
+          <text class="func-name">须知</text>
+        </view>
+      </view>
+
+      <!-- 平台须知（可展开） -->
+      <view wx:if="{{showNotices}}" class="notices-compact">
+        <view wx:for="{{notices}}" wx:key="id" class="notice-line">
+          <text>• {{item.content}}</text>
         </view>
       </view>
     </view>
 
-    <!-- ========== 平台须知（可折叠）========== -->
-    <view class="notice-section">
-      <view class="notice-header" bindtap="toggleNotices">
-        <text class="notice-title">平台须知</text>
-        <text class="toggle-icon">{{showNotices ? '▲' : '▼'}}</text>
+    <!-- 订单列表区（占大半屏幕） -->
+    <view class="orders-section">
+      <view class="section-header">
+        <text class="section-title">待处理订单</text>
+        <text class="order-count">共 {{filteredOrders.length}} 单</text>
       </view>
-      
-      <view wx:if="{{showNotices}}" class="notice-content">
-        <view wx:for="{{notices}}" wx:key="id" class="notice-item">
-          <text class="notice-dot">•</text>
-          <text class="notice-text">{{item.content}}</text>
+
+      <!-- 搜索和筛选 -->
+      <view class="filter-bar">
+        <view class="search-box">
+          <view class="search-icon"></view>
+          <input class="search-input" 
+                 placeholder="搜索订单号/商品名" 
+                 value="{{searchKeyword}}"
+                 bindinput="onSearchInput"/>
+          <view wx:if="{{searchKeyword}}" class="clear-icon" bindtap="clearSearch"></view>
+        </view>
+        
+        <view class="filter-tabs">
+          <view class="filter-tab {{currentFilter === 'all' ? 'active' : ''}}" 
+                bindtap="filterOrders" 
+                data-filter="all">
+            全部
+          </view>
+          <view class="filter-tab {{currentFilter === 'inProgress' ? 'active' : ''}}" 
+                bindtap="filterOrders" 
+                data-filter="inProgress">
+            进行中
+          </view>
+          <view class="filter-tab {{currentFilter === 'nearDeadline' ? 'active' : ''}}" 
+                bindtap="filterOrders" 
+                data-filter="nearDeadline">
+            临近截稿
+          </view>
+          <view class="filter-tab {{currentFilter === 'overdue' ? 'active' : ''}}" 
+                bindtap="filterOrders" 
+                data-filter="overdue">
+            已拖稿
+          </view>
+          <view class="filter-tab {{currentFilter === 'completed' ? 'active' : ''}}" 
+                bindtap="filterOrders" 
+                data-filter="completed">
+            已完成
+          </view>
         </view>
       </view>
+
+      <scroll-view class="orders-scroll" scroll-y>
+        <view wx:if="{{filteredOrders.length === 0}}" class="empty-orders">
+          <view class="empty-icon-wrapper">
+            <view class="empty-icon"></view>
+          </view>
+          <text class="empty-text">{{searchKeyword ? '未找到相关订单' : '暂无待处理订单'}}</text>
+        </view>
+
+        <view wx:else>
+          <view wx:for="{{filteredOrders}}" wx:key="id" class="order-card" bindtap="viewOrderDetail" data-id="{{item.id}}">
+            <!-- 订单头部 -->
+            <view class="order-header">
+              <view class="order-id">订单 #{{item.id}}</view>
+              <view class="order-status status-{{item.status}}">{{item.statusText}}</view>
+            </view>
+
+            <!-- 商品信息 -->
+            <view class="order-product">
+              <image class="product-thumb" src="{{item.productImage}}" mode="aspectFill"/>
+              <view class="product-info">
+                <text class="product-name">{{item.productName}}</text>
+                <text class="product-spec">{{item.spec}}</text>
+              </view>
+              <view class="product-price">
+                <text class="price-symbol">¥</text>
+                <text class="price-value">{{item.price}}</text>
+              </view>
+            </view>
+
+            <!-- 订单底部信息 -->
+            <view class="order-footer">
+              <text class="order-time">下单：{{item.createTime}}</text>
+              <text class="order-deadline {{item.urgent ? 'urgent' : ''}}">
+                截稿：{{item.deadline}}
+              </text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
     </view>
   </view>
 </view>
