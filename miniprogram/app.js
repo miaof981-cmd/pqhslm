@@ -19,20 +19,27 @@ App({
   initUserInfo() {
     // 检查本地存储是否有用户信息
     const userInfo = wx.getStorageSync('userInfo')
+    const resetFlag = wx.getStorageSync('resetUserId')  // ✅ 新增：重置标志
     let userId = wx.getStorageSync('userId')
     let openid = wx.getStorageSync('openid')
     
-    if (userId && openid) {
-      // 已有基础信息
+    // ✅ 修改：增加重置逻辑
+    if (userId && openid && !resetFlag) {
+      // 已有基础信息，继续使用
       this.globalData.userId = userId
       this.globalData.openid = openid
       
       if (userInfo) {
         this.globalData.userInfo = userInfo
-        console.log('✅ 用户信息已加载 - ID:', userId, '昵称:', userInfo.nickName)
+        console.log('✅ 用户信息已加载')
+        console.log('  - 来源: 本地缓存')
+        console.log('  - 用户ID:', userId)
+        console.log('  - 昵称:', userInfo.nickName)
+      } else {
+        console.log('✅ 用户ID已加载:', userId, '(来源: 本地缓存)')
       }
     } else {
-      // 没有用户信息，生成新的自增ID
+      // 没有用户信息，或者需要重置，生成新的自增ID
       const newUserId = this.generateNewUserId()
       const newOpenid = `openid-${newUserId}-${Date.now()}`
       
@@ -42,7 +49,15 @@ App({
       wx.setStorageSync('userId', newUserId)
       wx.setStorageSync('openid', newOpenid)
       
-      console.log('🆕 生成新用户ID:', newUserId)
+      // ✅ 清除重置标志
+      if (resetFlag) {
+        wx.removeStorageSync('resetUserId')
+        console.log('🔄 用户ID已重置')
+      }
+      
+      console.log('🆕 生成新用户ID')
+      console.log('  - 来源:', resetFlag ? '手动重置' : '首次创建')
+      console.log('  - 新ID:', newUserId)
     }
   },
 
@@ -60,8 +75,33 @@ App({
     console.log('📊 ID生成逻辑:')
     console.log('  - 当前最大ID:', maxUserId)
     console.log('  - 新用户ID:', newUserId)
+    console.log('  - 已更新maxUserId为:', newUserId)
     
     return newUserId
+  },
+
+  // 重置用户ID（开发调试用）
+  resetUserId() {
+    console.log('⚠️ 准备重置用户ID...')
+    
+    // 设置重置标志
+    wx.setStorageSync('resetUserId', true)
+    
+    // 清除当前用户数据
+    wx.removeStorageSync('userId')
+    wx.removeStorageSync('openid')
+    wx.removeStorageSync('userInfo')
+    wx.removeStorageSync('hasLoggedIn')
+    
+    console.log('✅ 用户数据已清除，下次启动将生成新ID')
+    
+    // 重新启动小程序
+    wx.reLaunch({
+      url: '/pages/login/index',
+      success: () => {
+        console.log('✅ 已跳转到登录页')
+      }
+    })
   },
 
   // 检查登录状态

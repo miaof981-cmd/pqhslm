@@ -27,8 +27,36 @@ Page({
   },
 
   onShow() {
-    console.log('🔄 个人中心页面显示，重新加载数据...')
-    this.loadData()
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    console.log('🔄 个人中心页面 onShow 触发')
+    console.log('  - 时间:', new Date().toLocaleTimeString())
+    
+    // ✅ 新增：检查刷新标志
+    const needRefresh = wx.getStorageSync('needRefresh')
+    
+    if (needRefresh) {
+      console.log('⚡ 检测到刷新标志，执行强制刷新')
+      
+      // 清除刷新标志
+      wx.removeStorageSync('needRefresh')
+      
+      // ✅ 新增：先清空当前数据
+      this.setData({
+        roles: [],
+        roleTexts: [],
+        loading: true
+      })
+      
+      // ✅ 新增：延迟加载，确保清空生效
+      setTimeout(() => {
+        console.log('🔄 开始重新加载数据...')
+        this.loadData()
+      }, 100)
+    } else {
+      console.log('✅ 正常显示，无需刷新')
+    }
+    
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   },
 
   // 加载数据
@@ -56,6 +84,8 @@ Page({
   loadUserRole() {
     const app = getApp()
     
+    console.log('👤 开始加载用户角色...')
+    
     // 优先从app.globalData获取，确保与app.js中的初始化一致
     let userId = wx.getStorageSync('userId')
     if (!userId) {
@@ -66,13 +96,18 @@ Page({
     // 从本地存储读取用户的多个角色
     let roles = wx.getStorageSync('userRoles') || ['customer']
     
+    console.log('  - 本地存储读取:', wx.getStorageSync('userRoles'))
+    console.log('  - 全局数据读取:', app.globalData.roles)
+    
     // 确保roles是数组
     if (!Array.isArray(roles)) {
+      console.warn('⚠️ roles 不是数组，重置为 [customer]')
       roles = ['customer']
     }
     
     // 如果没有角色，默认为customer
     if (roles.length === 0) {
+      console.warn('⚠️ roles 为空数组，重置为 [customer]')
       roles = ['customer']
     }
     
@@ -91,11 +126,27 @@ Page({
     console.log('  - 用户ID:', userId)
     console.log('  - 角色列表:', roles)
     console.log('  - 角色文本:', roleTexts)
+    console.log('  - 主角色:', roles[0])
     
+    // ✅ 修改：添加回调确认
     this.setData({
       userId: userId,
       roles: roles,
       roleTexts: roleTexts
+    }, () => {
+      console.log('✅ setData 完成，当前页面 roles:', this.data.roles)
+      
+      // ✅ 新增：验证条件判断
+      const hasArtist = this.data.roles.indexOf('artist') !== -1
+      const hasAdmin = this.data.roles.indexOf('admin') !== -1
+      const shouldShowCert = !hasArtist && !hasAdmin
+      const shouldShowWorkspace = hasArtist || hasAdmin
+      
+      console.log('📊 UI 显示逻辑判断:')
+      console.log('  - 包含画师角色:', hasArtist)
+      console.log('  - 包含管理员角色:', hasAdmin)
+      console.log('  - 应显示画师认证:', shouldShowCert)
+      console.log('  - 应显示工作台:', shouldShowWorkspace)
     })
   },
 

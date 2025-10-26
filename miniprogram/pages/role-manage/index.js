@@ -100,6 +100,10 @@ Page({
     
     const roles = [...scenario.roles]
     
+    console.log('🔄 开始切换用户场景')
+    console.log('  - 目标场景:', scenario.name)
+    console.log('  - 目标角色:', roles)
+    
     // 保存到本地
     wx.setStorageSync('userRoles', roles)
     
@@ -107,6 +111,10 @@ Page({
     const app = getApp()
     app.globalData.roles = roles
     app.globalData.role = roles[0]
+    
+    // ✅ 新增：设置刷新标志
+    wx.setStorageSync('needRefresh', true)
+    console.log('✅ 已设置刷新标志 needRefresh = true')
     
     this.setData({
       roles: roles,
@@ -116,17 +124,21 @@ Page({
     wx.showToast({
       title: `已切换为${scenario.name}`,
       icon: 'success',
-      duration: 1500
+      duration: 1000  // ✅ 修改：缩短为1秒
     })
     
-    // 延迟返回上一页，让个人中心自动刷新
+    // ✅ 修改：缩短延迟时间
     setTimeout(() => {
+      console.log('🔙 准备返回个人中心...')
       wx.navigateBack({
         success: () => {
-          console.log('✅ 已返回个人中心，权限已更新')
+          console.log('✅ 已返回个人中心，等待页面刷新')
+        },
+        fail: (err) => {
+          console.error('❌ 返回失败:', err)
         }
       })
-    }, 1500)
+    }, 1000)
   },
 
   // 切换角色（手动调整）
@@ -157,6 +169,9 @@ Page({
       roles.push(roleId)
     }
     
+    console.log('🔄 手动调整角色')
+    console.log('  - 新角色列表:', roles)
+    
     // 保存到本地
     wx.setStorageSync('userRoles', roles)
     
@@ -164,6 +179,10 @@ Page({
     const app = getApp()
     app.globalData.roles = roles
     app.globalData.role = roles[0]
+    
+    // ✅ 新增：设置刷新标志
+    wx.setStorageSync('needRefresh', true)
+    console.log('✅ 已设置刷新标志 needRefresh = true')
     
     // 重新检测场景
     const currentScenario = this.detectScenario(roles)
@@ -176,17 +195,18 @@ Page({
     wx.showToast({
       title: '权限已更新',
       icon: 'success',
-      duration: 1500
+      duration: 1000  // ✅ 修改：缩短为1秒
     })
     
-    // 延迟返回上一页
+    // ✅ 修改：缩短延迟时间
     setTimeout(() => {
+      console.log('🔙 准备返回个人中心...')
       wx.navigateBack({
         success: () => {
-          console.log('✅ 已返回个人中心，权限已更新')
+          console.log('✅ 已返回个人中心，等待页面刷新')
         }
       })
-    }, 1500)
+    }, 1000)
   },
 
   // 重置用户ID为1001
