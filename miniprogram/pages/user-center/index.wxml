@@ -57,7 +57,7 @@
     </view>
 
     <!-- 画师认证/工作台 -->
-    <view wx:if="{{roles.indexOf('artist') === -1 && roles.indexOf('admin') === -1}}" class="artist-certification">
+    <view wx:if="{{shouldShowCert}}" class="artist-certification">
       <!-- 无申请记录 -->
       <view wx:if="{{!applicationStatus}}" class="cert-banner" bindtap="applyArtist">
         <view class="cert-content">
@@ -111,7 +111,7 @@
     </view>
 
     <!-- 工作台区域（有权限时显示） -->
-    <view wx:if="{{roles.indexOf('artist') !== -1 || roles.indexOf('admin') !== -1}}" class="artist-workspace">
+    <view wx:if="{{shouldShowWorkspace}}" class="artist-workspace">
       <view class="workspace-header">
         <text class="workspace-title">工作台</text>
         <view wx:if="{{memberInfo && memberInfo.isValid}}" class="member-status active">
@@ -123,15 +123,15 @@
       </view>
       
       <view class="workspace-actions">
-        <!-- 工作台按钮（画师或客服） -->
-        <button wx:if="{{roles.indexOf('artist') !== -1 || roles.indexOf('service') !== -1 || roles.indexOf('admin') !== -1}}" 
+        <!-- 工作台按钮（画师或客服或管理员） -->
+        <button wx:if="{{shouldShowWorkspace}}" 
                 class="workspace-btn primary" 
                 bindtap="goToWorkspace">
           工作台
         </button>
         
         <!-- 管理后台按钮 -->
-        <button wx:if="{{roles.indexOf('admin') !== -1}}" 
+        <button wx:if="{{isAdmin}}" 
                 class="workspace-btn admin" 
                 bindtap="goToAdmin">
           管理后台

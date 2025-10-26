@@ -14,6 +14,11 @@ Page({
     // 改为多角色支持
     roles: [], // ['customer', 'artist', 'admin']
     roleTexts: [], // ['普通用户', '画师', '管理员']
+    // ✅ 新增：预计算的布尔值，供 WXML 使用
+    isArtist: false,
+    isAdmin: false,
+    shouldShowCert: true,      // 是否显示画师认证
+    shouldShowWorkspace: false, // 是否显示工作台
     // 画师申请状态
     applicationStatus: null, // null: 未申请, 'pending': 待审核, 'rejected': 已驳回, 'approved': 已通过
     applicationTime: '',
@@ -116,25 +121,32 @@ Page({
     // 生成角色文本
     const roleTexts = roles.map(r => this.getRoleText(r))
     
-    // ✅ 更新页面
+    // ✅ 计算布尔值
+    const isArtist = roles.indexOf('artist') !== -1
+    const isAdmin = roles.indexOf('admin') !== -1
+    const shouldShowCert = !isArtist && !isAdmin
+    const shouldShowWorkspace = isArtist || isAdmin
+    
+    console.log('📊 计算UI显示逻辑:')
+    console.log('  - isArtist:', isArtist)
+    console.log('  - isAdmin:', isAdmin)
+    console.log('  - shouldShowCert:', shouldShowCert)
+    console.log('  - shouldShowWorkspace:', shouldShowWorkspace)
+    
+    // ✅ 更新页面（包含布尔值）
     this.setData({
       userId: userId,
       roles: roles,
-      roleTexts: roleTexts
+      roleTexts: roleTexts,
+      isArtist: isArtist,
+      isAdmin: isAdmin,
+      shouldShowCert: shouldShowCert,
+      shouldShowWorkspace: shouldShowWorkspace
     }, () => {
-      console.log('✅ 页面角色刷新完成:', this.data.roles)
-      
-      // 验证UI显示逻辑
-      const hasArtist = this.data.roles.indexOf('artist') !== -1
-      const hasAdmin = this.data.roles.indexOf('admin') !== -1
-      const shouldShowCert = !hasArtist && !hasAdmin
-      const shouldShowWorkspace = hasArtist || hasAdmin
-      
-      console.log('📊 UI 显示逻辑判断:')
-      console.log('  - 包含画师角色:', hasArtist)
-      console.log('  - 包含管理员角色:', hasAdmin)
-      console.log('  - 应显示画师认证:', shouldShowCert)
-      console.log('  - 应显示工作台:', shouldShowWorkspace)
+      console.log('✅ 页面角色刷新完成')
+      console.log('  - roles:', this.data.roles)
+      console.log('  - shouldShowCert:', this.data.shouldShowCert)
+      console.log('  - shouldShowWorkspace:', this.data.shouldShowWorkspace)
     })
   },
 
