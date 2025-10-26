@@ -447,6 +447,7 @@
           </button>
         </view>
       </view>
+      </view>
       
       <view class="modal-footer">
         <button class="modal-btn cancel-btn" bindtap="closeEditArtistModal">取消</button>
