@@ -717,7 +717,7 @@ Page({
     
     wx.showModal({
       title: '确认撤销权限',
-      content: `确认撤销画师"${artist.name}"的工作台权限？\n\n撤销后该画师将无法访问工作台，但画师编号会保留。`,
+      content: `确认撤销画师"${artist.name}"的工作台权限？\n\n撤销后：\n• 该画师变为普通用户\n• 无法访问工作台\n• 可以重新提交画师申请\n• 画师编号会保留`,
       confirmText: '确认撤销',
       confirmColor: '#FF6B6B',
       success: (res) => {
@@ -726,15 +726,20 @@ Page({
           if (artist.userId === wx.getStorageSync('userId')) {
             const app = getApp()
             let userRoles = wx.getStorageSync('userRoles') || []
+            // 移除 artist 角色，保留其他角色（如 admin）
             userRoles = userRoles.filter(role => role !== 'artist')
-            if (userRoles.length === 0) userRoles = ['customer']
+            // 如果没有其他角色，设置为普通用户
+            if (userRoles.length === 0 || !userRoles.includes('customer')) {
+              userRoles.push('customer')
+            }
             wx.setStorageSync('userRoles', userRoles)
             app.globalData.roles = userRoles
           }
           
           wx.showToast({
-            title: '已撤销权限',
-            icon: 'success'
+            title: '已撤销权限，已变为普通用户',
+            icon: 'none',
+            duration: 2000
           })
           
           // 关闭弹窗并刷新
@@ -766,66 +771,49 @@ Page({
     })
   },
   
-  // 强制下架全部商品
-  offlineAllProducts() {
+  // 切换商品销售状态
+  toggleProductsStatus(e) {
+    const checked = e.detail.value // true=正常销售, false=全部下架
     const artist = this.data.editingArtist
+    const isOffline = !checked
     
-    wx.showModal({
-      title: '确认强制下架',
-      content: `确认强制下架画师"${artist.name}"的全部商品？\n\n下架后：\n• 商品不会显示在商城\n• 无法被购买（包括购物车中的）\n• 画师仍可处理现有订单\n\n此操作通常用于惩罚违规画师`,
-      confirmText: '确认下架',
-      confirmColor: '#FF6B6B',
-      success: (res) => {
-        if (res.confirm) {
-          // 更新状态
-          this.setData({
-            'editingArtist.allProductsOffline': true
-          })
-          
-          // TODO: 调用后端API批量下架商品
-          // 1. 更新所有商品状态为 offline
-          // 2. 标记商品为"强制下架"，即使在购物车中也无法购买
-          
-          wx.showToast({
-            title: '已强制下架全部商品',
-            icon: 'success',
-            duration: 2000
-          })
-          
-          // 刷新画师列表
-          this.loadArtists()
+    if (isOffline) {
+      // 关闭开关 -> 下架全部商品
+      wx.showModal({
+        title: '确认下架全部商品',
+        content: `确认下架画师"${artist.name}"的全部商品？\n\n下架后：\n• 商品不会显示在商城\n• 无法被购买（包括购物车中的）\n• 画师仍可处理现有订单\n\n此操作通常用于惩罚违规画师`,
+        confirmText: '确认下架',
+        confirmColor: '#FF6B6B',
+        success: (res) => {
+          if (res.confirm) {
+            this.setData({ 'editingArtist.allProductsOffline': true })
+            // TODO: 调用后端API批量下架商品
+            wx.showToast({ title: '已下架全部商品', icon: 'success' })
+            this.loadArtists()
+          } else {
+            // 取消操作，恢复开关状态
+            this.setData({ 'editingArtist.allProductsOffline': false })
+          }
         }
-      }
-    })
-  },
-  
-  // 恢复商品上架
-  restoreAllProducts() {
-    const artist = this.data.editingArtist
-    
-    wx.showModal({
-      title: '确认恢复上架',
-      content: `确认恢复画师"${artist.name}"的商品上架权限？\n\n恢复后，画师可以重新上架商品`,
-      success: (res) => {
-        if (res.confirm) {
-          // 更新状态
-          this.setData({
-            'editingArtist.allProductsOffline': false
-          })
-          
-          // TODO: 调用后端API恢复商品上架权限
-          
-          wx.showToast({
-            title: '已恢复上架权限',
-            icon: 'success',
-            duration: 2000
-          })
-          
-          // 刷新画师列表
-          this.loadArtists()
+      })
+    } else {
+      // 打开开关 -> 恢复销售
+      wx.showModal({
+        title: '确认恢复销售',
+        content: `确认恢复画师"${artist.name}"的商品销售？\n\n恢复后，画师可以重新上架商品`,
+        success: (res) => {
+          if (res.confirm) {
+            this.setData({ 'editingArtist.allProductsOffline': false })
+            // TODO: 调用后端API恢复商品销售
+            wx.showToast({ title: '已恢复销售', icon: 'success' })
+            this.loadArtists()
+          } else {
+            // 取消操作，恢复开关状态
+            this.setData({ 'editingArtist.allProductsOffline': true })
+          }
         }
-      }
-    })
+      })
+    }
   },
   
   saveArtistEdit() {

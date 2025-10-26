@@ -402,37 +402,26 @@
           <view class="section-title">商品管理</view>
           
           <!-- 查看商品 -->
-          <button class="action-btn-primary" bindtap="manageArtistProducts">
+          <button class="action-btn-view-products" bindtap="manageArtistProducts">
             <text class="btn-icon">📦</text>
-            <text>查看该画师的所有商品</text>
+            <text class="btn-text">查看该画师的所有商品</text>
             <text class="btn-arrow">›</text>
           </button>
           
-          <!-- 商品状态提示 -->
-          <view class="product-status-hint">
-            <text class="hint-label">商品状态：</text>
-            <text class="hint-value {{editingArtist.allProductsOffline ? 'status-offline' : 'status-online'}}">
-              {{editingArtist.allProductsOffline ? '全部已下架（惩罚中）' : '正常销售中'}}
-            </text>
+          <!-- 商品状态开关 -->
+          <view class="info-row" style="align-items: center; margin-top: 24rpx;">
+            <text class="info-label">商品销售状态</text>
+            <view class="status-switch-group">
+              <switch checked="{{!editingArtist.allProductsOffline}}" bindchange="toggleProductsStatus" color="#66BB6A"/>
+              <text class="status-text {{editingArtist.allProductsOffline ? 'status-offline' : 'status-online'}}">
+                {{editingArtist.allProductsOffline ? '全部已下架' : '正常销售中'}}
+              </text>
+            </view>
           </view>
-          
-          <!-- 下架全部商品按钮 -->
-          <button wx:if="{{!editingArtist.allProductsOffline}}" 
-                  class="btn-offline-all" 
-                  bindtap="offlineAllProducts">
-            强制下架全部商品
-          </button>
-          
-          <!-- 恢复上架按钮 -->
-          <button wx:else 
-                  class="btn-restore-products" 
-                  bindtap="restoreAllProducts">
-            恢复商品上架
-          </button>
           
           <view class="offline-hint">
             <text class="hint-icon">⚠️</text>
-            <text class="hint-text">下架后，商品不会显示在商城，已加入购物车的也无法购买，但画师仍可处理现有订单</text>
+            <text class="hint-text">关闭后，商品将不显示在商城，已加入购物车的也无法购买，但画师仍可处理现有订单</text>
           </view>
         </view>
         
