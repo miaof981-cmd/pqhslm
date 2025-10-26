@@ -103,12 +103,43 @@ Page({
     })
   },
 
+  // 更新用户信息（手动授权）
+  async updateUserInfo() {
+    const app = getApp()
+    
+    wx.showLoading({ title: '获取授权...' })
+    
+    try {
+      const userInfo = await app.getWxUserInfo()
+      
+      // 重新加载用户信息
+      await this.loadUserInfo()
+      
+      wx.hideLoading()
+      wx.showToast({
+        title: '更新成功',
+        icon: 'success'
+      })
+    } catch (error) {
+      wx.hideLoading()
+      wx.showToast({
+        title: '授权失败',
+        icon: 'none'
+      })
+    }
+  },
+
   // 加载用户信息
   async loadUserInfo() {
     const app = getApp()
     
-    // 获取微信用户信息
-    const wxUserInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo
+    // 获取微信用户信息（优先从本地存储，其次从全局）
+    let wxUserInfo = wx.getStorageSync('userInfo')
+    if (!wxUserInfo) {
+      wxUserInfo = app.globalData.userInfo
+    }
+    
+    console.log('📱 读取微信用户信息:', wxUserInfo)
     
     // 获取用户的主要角色（第一个角色）
     const mainRole = this.data.roles.length > 0 ? this.data.roles[0] : 'customer'
@@ -116,16 +147,16 @@ Page({
     // 默认头像（使用纯色背景 + 文字）
     const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0E4RTZDRiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7nlKg8L3RleHQ+PC9zdmc+'
     
-    this.setData({ 
-      userInfo: {
-        openid: app.globalData.openid,
-        name: wxUserInfo ? wxUserInfo.nickName : '用户',
-        avatar: wxUserInfo ? wxUserInfo.avatarUrl : defaultAvatar,
-        role: mainRole  // 使用实际的主要角色
-      }
-    })
+    const userInfo = {
+      openid: app.globalData.openid,
+      name: wxUserInfo ? wxUserInfo.nickName : '微信用户',
+      avatar: wxUserInfo ? wxUserInfo.avatarUrl : defaultAvatar,
+      role: mainRole  // 使用实际的主要角色
+    }
     
-    console.log('用户中心加载用户信息:', this.data.userInfo)
+    this.setData({ userInfo })
+    
+    console.log('✅ 用户中心显示信息:', userInfo)
   },
 
   // 检查画师状态
