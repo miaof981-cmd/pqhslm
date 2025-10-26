@@ -356,10 +356,16 @@ Page({
   },
 
   // 申请成为画师
-  applyArtist() {
+  // ✅ 新方法：跳转到画师认证页面（会自动显示申请状态）
+  goToArtistCertification() {
     wx.navigateTo({
       url: '/pages/apply/index'
     })
+  },
+
+  // 保留旧方法以兼容其他地方的调用
+  applyArtist() {
+    this.goToArtistCertification()
   },
 
   // 进入工作台（根据角色显示不同内容）

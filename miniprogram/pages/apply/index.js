@@ -11,7 +11,49 @@ Page({
     },
     agreedToTerms: false,     // 是否同意条款
     showTermsDetail: false,   // 是否显示详细条款
-    uploading: false
+    uploading: false,
+    // ✅ 新增：申请状态
+    applicationStatus: null,  // null: 无申请, 'pending': 待审核, 'rejected': 已驳回
+    applicationTime: '',
+    rejectTime: '',
+    rejectReason: ''
+  },
+
+  onLoad() {
+    // ✅ 加载申请状态
+    this.loadApplicationStatus()
+  },
+
+  // ✅ 加载申请状态
+  loadApplicationStatus() {
+    const app = getApp()
+    const userId = app.globalData.userId || wx.getStorageSync('userId')
+    
+    // 从本地存储读取申请记录
+    const applications = wx.getStorageSync('artist_applications') || []
+    
+    // 查找当前用户的最新申请
+    const userApplications = applications.filter(app => app.userId === userId)
+    
+    if (userApplications.length > 0) {
+      // 按时间排序，取最新的
+      userApplications.sort((a, b) => new Date(b.submitTime) - new Date(a.submitTime))
+      const latestApp = userApplications[0]
+      
+      // 如果已通过，不显示状态
+      if (latestApp.status === 'approved') {
+        return
+      }
+      
+      console.log('📋 加载到申请状态:', latestApp.status)
+      
+      this.setData({
+        applicationStatus: latestApp.status,
+        applicationTime: latestApp.submitTime,
+        rejectTime: latestApp.rejectTime || '',
+        rejectReason: latestApp.rejectReason || ''
+      })
+    }
   },
 
   // 输入姓名
