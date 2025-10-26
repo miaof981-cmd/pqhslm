@@ -28,33 +28,76 @@ Page({
   // 加载画师信息
   loadArtistInfo() {
     const artistId = this.data.artistId
+    const currentUserId = wx.getStorageSync('userId')
+    
+    console.log('=== 画师商品管理页 - 加载画师信息 ===')
+    console.log('artistId:', artistId, typeof artistId)
+    console.log('currentUserId:', currentUserId, typeof currentUserId)
     
     // 从本地存储读取画师信息
     const allApplications = wx.getStorageSync('artist_applications') || []
-    const artistApp = allApplications.find(app => app.userId == artistId && app.status === 'approved')
+    console.log('所有画师申请:', allApplications)
     
-    if (artistApp) {
-      let avatar = '/assets/default-avatar.png'
-      let name = artistApp.name
-      
-      // 如果是当前用户，读取微信头像
-      if (artistId == wx.getStorageSync('userId')) {
-        const wxUserInfo = wx.getStorageSync('wxUserInfo')
-        if (wxUserInfo) {
-          avatar = wxUserInfo.avatarUrl
-          name = wxUserInfo.nickName || artistApp.name
-        }
-      }
-      
-      this.setData({
-        artistInfo: {
-          userId: artistApp.userId,
-          artistNumber: artistApp.artistNumber || '未分配',
-          name: name,
-          avatar: avatar
-        }
-      })
+    const artistApp = allApplications.find(app => {
+      const match = app.userId == artistId && app.status === 'approved'
+      console.log(`检查 userId=${app.userId}, status=${app.status}, 匹配=${match}`)
+      return match
+    })
+    
+    if (!artistApp) {
+      console.error('未找到画师信息！artistId:', artistId)
+      wx.showToast({ title: '未找到画师信息', icon: 'none' })
+      return
     }
+    
+    console.log('找到画师申请:', artistApp)
+    
+    let avatar = ''
+    let name = artistApp.name
+    
+    // 检查是否是当前用户
+    const isCurrentUser = String(artistId) === String(currentUserId)
+    console.log('是否为当前用户:', isCurrentUser)
+    
+    if (isCurrentUser) {
+      // 是当前用户，读取微信头像
+      const wxUserInfo = wx.getStorageSync('wxUserInfo')
+      console.log('微信用户信息:', wxUserInfo)
+      
+      if (wxUserInfo && wxUserInfo.avatarUrl) {
+        avatar = wxUserInfo.avatarUrl
+        name = wxUserInfo.nickName || artistApp.name
+        console.log('使用微信头像:', avatar)
+      } else {
+        console.warn('当前用户未设置微信头像')
+      }
+    } else {
+      // 不是当前用户，尝试从申请记录读取
+      if (artistApp.avatar) {
+        avatar = artistApp.avatar
+        console.log('使用申请记录中的头像:', avatar)
+      }
+    }
+    
+    // 如果还是没有头像，使用SVG默认头像
+    if (!avatar) {
+      avatar = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0E4RTZDRiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7nlLo8L3RleHQ+PC9zdmc+'
+      console.log('使用默认SVG头像')
+    }
+    
+    console.log('最终设置的头像:', avatar)
+    console.log('最终设置的昵称:', name)
+    
+    this.setData({
+      artistInfo: {
+        userId: artistApp.userId,
+        artistNumber: artistApp.artistNumber || '未分配',
+        name: name,
+        avatar: avatar
+      }
+    })
+    
+    console.log('=== 画师信息加载完成 ===')
   },
 
   // 加载商品列表

@@ -330,10 +330,31 @@ Page({
         return sum + (parseFloat(order.totalPrice) || 0)
       }, 0)
       
-      // 获取用户头像和昵称（从登录信息读取）
-      const wxUserInfo = wx.getStorageSync('wxUserInfo') || {}
-      const avatar = (app.userId === wx.getStorageSync('userId')) ? wxUserInfo.avatarUrl : ''
-      const nickname = (app.userId === wx.getStorageSync('userId')) ? wxUserInfo.nickName : app.name
+      // 获取用户头像和昵称
+      const currentUserId = wx.getStorageSync('userId')
+      let avatar = ''
+      let nickname = app.name
+      
+      // 如果是当前用户，优先使用微信头像
+      if (String(app.userId) === String(currentUserId)) {
+        const wxUserInfo = wx.getStorageSync('wxUserInfo') || {}
+        if (wxUserInfo.avatarUrl) {
+          avatar = wxUserInfo.avatarUrl
+          nickname = wxUserInfo.nickName || app.name
+        }
+      } else {
+        // 其他画师，尝试从申请记录读取头像
+        if (app.avatar) {
+          avatar = app.avatar
+        }
+        // 使用申请时填写的姓名
+        nickname = app.name
+      }
+      
+      // 如果还是没有头像，使用默认SVG头像
+      if (!avatar) {
+        avatar = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0E4RTZDRiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7nlLo8L3RleHQ+PC9zdmc+'
+      }
       
       // 检查是否已有画师编号
       let artistNumber = app.artistNumber
@@ -354,8 +375,9 @@ Page({
       
       return {
         _id: app.userId,
-        name: nickname || app.name,
-        avatar: avatar || '',
+        name: nickname,
+        avatar: avatar,
+        realName: app.realName || app.name,
         artistNumber: artistNumber,
         joinTime: app.approveTime || app.submitTime,
         productCount: productCount,
