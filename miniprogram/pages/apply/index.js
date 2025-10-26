@@ -288,49 +288,40 @@ Page({
       }).replace(/\//g, '-')
     }
 
-      // 保存到本地存储
-      let applications = wx.getStorageSync('artist_applications') || []
-      applications.unshift(application) // 新申请放在最前面
-      wx.setStorageSync('artist_applications', applications)
+    // 保存到本地存储
+    let applications = wx.getStorageSync('artist_applications') || []
+    applications.unshift(application) // 新申请放在最前面
+    wx.setStorageSync('artist_applications', applications)
 
-      console.log('申请已保存:', application)
+    console.log('申请已保存:', application)
 
-      setTimeout(() => {
-        wx.hideLoading()
-        
-        wx.showModal({
-          title: '申请提交成功',
-          content: '您的申请已提交，我们会在1-3个工作日内审核并通过微信通知您审核结果。\n\n审核通过后，您需要缴纳会员费才能开始接单。',
-          showCancel: false,
-          confirmText: '我知道了',
-          success: () => {
-            // 清空表单
-            this.setData({
-              formData: {
-                name: '',
-                age: '',
-                wechat: '',
-                idealPrice: '',
-                minPrice: '',
-                finishedWorks: [],
-                processImages: []
-              },
-              agreedToTerms: false
-            })
-
-            // 返回上一页
-            wx.navigateBack()
-          }
-        })
-      }, 1000)
-
-    } catch (error) {
+    setTimeout(() => {
       wx.hideLoading()
-      console.error('提交申请失败', error)
-      wx.showToast({
-        title: '提交失败，请重试',
-        icon: 'none'
+      
+      wx.showModal({
+        title: '申请提交成功',
+        content: '您的申请已提交，我们会在1-3个工作日内审核并通过微信通知您审核结果。\n\n审核通过后，您需要缴纳会员费才能开始接单。',
+        showCancel: false,
+        confirmText: '我知道了',
+        success: () => {
+          // 清空表单
+          this.setData({
+            formData: {
+              name: '',
+              age: '',
+              wechat: '',
+              idealPrice: '',
+              minPrice: '',
+              finishedWorks: [],
+              processImages: []
+            },
+            agreedToTerms: false
+          })
+
+          // 返回上一页
+          wx.navigateBack()
+        }
       })
-    }
+    }, 1000)
   }
 })
