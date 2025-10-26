@@ -429,6 +429,28 @@
   color: #999;
 }
 
+.selected-specs {
+  margin-top: 8rpx;
+  padding: 8rpx 16rpx;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  display: flex;
+  align-items: center;
+}
+
+.specs-label {
+  color: #4CAF50;
+  font-weight: bold;
+  margin-right: 8rpx;
+}
+
+.specs-text {
+  color: #2E7D32;
+  font-weight: 500;
+  flex: 1;
+}
+
 .buy-modal-close {
   width: 48rpx;
   height: 48rpx;
@@ -586,11 +608,32 @@
   border-radius: 44rpx;
   border: none;
   line-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .confirm-buy-btn.disabled {
   background: #E0E0E0;
   color: #999;
+}
+
+.btn-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  line-height: 1.5;
+}
+
+.btn-spec {
+  padding: 4rpx 12rpx;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: normal;
+  border: 1rpx solid rgba(255, 255, 255, 0.5);
 }
 
 /* ===== 侧边悬浮购物车 ===== */

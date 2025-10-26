@@ -22,7 +22,10 @@ Page({
     // 购物车相关
     cartCount: 0, // 购物车商品数量
     showCartAnimation: false, // 显示飞入动画
-    animationImage: '' // 动画的商品图片
+    animationImage: '', // 动画的商品图片
+    
+    // 已选规格文本
+    selectedSpecText: ''
   },
 
   onLoad(options) {
@@ -442,6 +445,7 @@ Page({
     const { product, selectedSpec1, selectedSpec2 } = this.data
     let price = parseFloat(product.basePrice) || 0
     let canSubmit = true
+    let specText = ''
     
     if (product.specs && product.specs.length > 0) {
       // 有规格的情况
@@ -451,6 +455,7 @@ Page({
         const spec1 = product.specs[0]
         if (spec1.values && spec1.values[selectedSpec1]) {
           price = parseFloat(spec1.values[selectedSpec1].addPrice) || 0
+          specText = spec1.values[selectedSpec1].name
           
           // 如果有二级规格
           if (product.specs.length > 1) {
@@ -460,6 +465,7 @@ Page({
               const spec2 = product.specs[1]
               if (spec2.values && spec2.values[selectedSpec2]) {
                 price += parseFloat(spec2.values[selectedSpec2].addPrice) || 0
+                specText += ' / ' + spec2.values[selectedSpec2].name
               }
             }
           }
@@ -469,7 +475,8 @@ Page({
     
     this.setData({
       currentPrice: price,
-      canSubmit: canSubmit
+      canSubmit: canSubmit,
+      selectedSpecText: specText
     })
   },
   

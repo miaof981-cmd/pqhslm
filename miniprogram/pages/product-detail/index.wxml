@@ -137,6 +137,11 @@
         <view class="buy-modal-info">
           <view class="buy-modal-price">¥{{currentPrice}}</view>
           <view class="buy-modal-stock">库存：{{product.stock === 0 ? '♾️' : product.stock}}</view>
+          <!-- 已选规格显示 -->
+          <view class="selected-specs" wx:if="{{selectedSpecText}}">
+            <text class="specs-label">已选：</text>
+            <text class="specs-text">{{selectedSpecText}}</text>
+          </view>
         </view>
         <view class="buy-modal-close" catchtap="closeBuyModal">×</view>
       </view>
@@ -193,7 +198,12 @@
           <text class="total-value">¥{{currentPrice * quantity}}</text>
         </view>
         <button class="confirm-buy-btn {{canSubmit ? '' : 'disabled'}}" catchtap="confirmOrder">
-          确认购买
+          <view wx:if="{{!canSubmit}}" class="btn-text">请选择规格</view>
+          <view wx:else class="btn-text">
+            <text>确认</text>
+            <text wx:if="{{selectedSpecText}}" class="btn-spec">{{selectedSpecText}}</text>
+            <text> × {{quantity}}</text>
+          </view>
         </button>
       </view>
     </view>
