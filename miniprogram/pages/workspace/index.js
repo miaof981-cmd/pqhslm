@@ -63,13 +63,39 @@ Page({
         
         console.log('📋 最新申请状态:', latestApp.status)
         
-        // 如果申请已通过，跳转到建立档案页面
+        // 如果申请已通过，检查是否已建立档案
         if (latestApp.status === 'approved') {
-          console.log('✅ 申请已通过，跳转到建立档案页面')
-          wx.redirectTo({
-            url: '/pages/artist-qrcode/index'
-          })
-          return
+          const profiles = wx.getStorageSync('artist_profiles') || {}
+          const hasProfile = !!profiles[userId]
+          
+          console.log('📝 是否已建立档案:', hasProfile)
+          
+          // 只有在档案未建立时才跳转
+          if (!hasProfile) {
+            console.log('✅ 申请已通过但档案未建立，跳转到建立档案页面')
+            wx.redirectTo({
+              url: '/pages/artist-qrcode/index'
+            })
+            return
+          } else {
+            console.log('⚠️ 申请已通过且档案已建立，但权限未激活')
+            // 档案已建立但权限未激活，显示提示
+            this.setData({
+              loading: false,
+              hasPermission: false
+            })
+            
+            wx.showModal({
+              title: '权限待激活',
+              content: '您的档案已建立，但工作台权限尚未激活。\n\n请联系管理员开通权限。',
+              showCancel: false,
+              confirmText: '我知道了',
+              success: () => {
+                wx.navigateBack()
+              }
+            })
+            return
+          }
         }
       }
       
