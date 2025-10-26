@@ -40,15 +40,16 @@ page {
 .upload-btn {
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  padding: 16rpx 28rpx;
-  background: white;
+  gap: 6rpx;
+  padding: 12rpx 24rpx;
+  background: rgba(255, 255, 255, 0.95);
   color: #66BB6A;
-  border-radius: 24rpx;
-  font-size: 26rpx;
+  border-radius: 16rpx;
+  font-size: 24rpx;
   font-weight: 600;
   border: none;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  margin-left: auto;
 }
 
 .upload-btn::after {
@@ -56,7 +57,7 @@ page {
 }
 
 .upload-icon {
-  font-size: 28rpx;
+  font-size: 26rpx;
   line-height: 1;
   font-weight: 700;
 }
