@@ -335,22 +335,47 @@ Page({
       const avatar = (app.userId === wx.getStorageSync('userId')) ? wxUserInfo.avatarUrl : ''
       const nickname = (app.userId === wx.getStorageSync('userId')) ? wxUserInfo.nickName : app.name
       
+      // 检查是否已有画师编号
+      let artistNumber = app.artistNumber
+      if (!artistNumber) {
+        // 自动分配画师编号（基于申请通过的顺序）
+        const approvedApps = approvedApplications.filter(a => a.artistNumber)
+        const maxNumber = approvedApps.length > 0 ? Math.max(...approvedApps.map(a => parseInt(a.artistNumber) || 0)) : 0
+        artistNumber = null // 未开通权限前不分配编号
+      }
+      
+      // 读取画师档案（联系方式）
+      const artistProfiles = wx.getStorageSync('artist_profiles') || {}
+      const profile = artistProfiles[app.userId] || {}
+      
+      // 检查是否已开通工作台权限
+      const userRoles = wx.getStorageSync('userRoles') || []
+      const hasPermission = (app.userId === wx.getStorageSync('userId')) && userRoles.includes('artist')
+      
       return {
         _id: app.userId,
         name: nickname || app.name,
         avatar: avatar || '',
+        artistNumber: artistNumber,
         joinTime: app.approveTime || app.submitTime,
         productCount: productCount,
         orderCount: orderCount,
         totalRevenue: totalRevenue.toFixed(2),
         status: 'active',
         statusText: '正常',
-        wechat: app.wechat,
+        // 联系方式
+        contactPhone: profile.contactPhone,
+        wechat: profile.contactWechat || app.wechat,
+        emergencyName: profile.emergencyName,
+        emergencyRelation: profile.emergencyRelation,
+        emergencyPhone: profile.emergencyPhone,
+        // 其他信息
         age: app.age,
         idealPrice: app.idealPrice,
         minPrice: app.minPrice,
         userId: app.userId,
-        openid: app.openid
+        openid: app.openid,
+        hasPermission: hasPermission
       }
     })
     
@@ -613,6 +638,87 @@ Page({
         editingArtist: { ...artist }
       })
     }
+  },
+  
+  // 开通画师权限
+  grantArtistPermission() {
+    const artist = this.data.editingArtist
+    
+    wx.showModal({
+      title: '确认开通权限',
+      content: `确认为画师"${artist.name}"开通工作台权限？\n\n请确保：\n1. 已添加至企业微信\n2. 已按格式修改企业微信ID`,
+      success: (res) => {
+        if (res.confirm) {
+          // 分配画师编号
+          const allApplications = wx.getStorageSync('artist_applications') || []
+          const approvedApps = allApplications.filter(app => app.status === 'approved' && app.artistNumber)
+          const maxNumber = approvedApps.length > 0 ? Math.max(...approvedApps.map(a => parseInt(a.artistNumber) || 0)) : 0
+          const newArtistNumber = maxNumber + 1
+          
+          // 更新申请记录中的画师编号
+          const appIndex = allApplications.findIndex(app => app.userId === artist.userId)
+          if (appIndex !== -1) {
+            allApplications[appIndex].artistNumber = newArtistNumber.toString()
+            wx.setStorageSync('artist_applications', allApplications)
+          }
+          
+          // 如果是当前用户，开通权限
+          if (artist.userId === wx.getStorageSync('userId')) {
+            const app = getApp()
+            let userRoles = wx.getStorageSync('userRoles') || ['customer']
+            if (!userRoles.includes('artist')) {
+              userRoles.push('artist')
+              wx.setStorageSync('userRoles', userRoles)
+              app.globalData.roles = userRoles
+            }
+          }
+          
+          wx.showToast({
+            title: `已开通权限\n画师编号：${newArtistNumber}`,
+            icon: 'none',
+            duration: 2000
+          })
+          
+          // 关闭弹窗并刷新
+          this.closeEditArtistModal()
+          this.loadArtists()
+        }
+      }
+    })
+  },
+  
+  // 撤销画师权限
+  revokeArtistPermission() {
+    const artist = this.data.editingArtist
+    
+    wx.showModal({
+      title: '确认撤销权限',
+      content: `确认撤销画师"${artist.name}"的工作台权限？\n\n撤销后该画师将无法访问工作台，但画师编号会保留。`,
+      confirmText: '确认撤销',
+      confirmColor: '#FF6B6B',
+      success: (res) => {
+        if (res.confirm) {
+          // 如果是当前用户，撤销权限
+          if (artist.userId === wx.getStorageSync('userId')) {
+            const app = getApp()
+            let userRoles = wx.getStorageSync('userRoles') || []
+            userRoles = userRoles.filter(role => role !== 'artist')
+            if (userRoles.length === 0) userRoles = ['customer']
+            wx.setStorageSync('userRoles', userRoles)
+            app.globalData.roles = userRoles
+          }
+          
+          wx.showToast({
+            title: '已撤销权限',
+            icon: 'success'
+          })
+          
+          // 关闭弹窗并刷新
+          this.closeEditArtistModal()
+          this.loadArtists()
+        }
+      }
+    })
   },
   
   closeEditArtistModal() {

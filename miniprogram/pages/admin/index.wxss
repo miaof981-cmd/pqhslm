@@ -1165,9 +1165,125 @@
 }
 
 .modal-body {
-  max-height: 60vh;
+  max-height: 70vh;
   overflow-y: auto;
-  padding: 20rpx 30rpx;
+  padding: 0;
+}
+
+/* 信息区块 */
+.info-section {
+  padding: 30rpx;
+  border-bottom: 20rpx solid #F8F8F8;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+  padding-left: 16rpx;
+  border-left: 6rpx solid #A8E6CF;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #F5F5F5;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.info-value {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+  max-width: 60%;
+  text-align: right;
+}
+
+/* 权限开通区块 */
+.permission-section {
+  padding: 30rpx;
+  background: linear-gradient(135deg, #F0F9FF 0%, #E6FFEB 100%);
+}
+
+.permission-checklist {
+  margin: 20rpx 0 30rpx;
+  padding: 20rpx;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12rpx;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 12rpx 0;
+}
+
+.checklist-icon {
+  width: 40rpx;
+  height: 40rpx;
+  background: #66BB6A;
+  border-radius: 50%;
+  color: white;
+  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checklist-text {
+  font-size: 26rpx;
+  color: #555;
+}
+
+.btn-grant-permission {
+  width: 100%;
+  height: 88rpx;
+  background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
+  color: white;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 12rpx;
+  border: none;
+}
+
+.btn-revoke-permission {
+  width: 100%;
+  height: 80rpx;
+  background: #FFF;
+  color: #FF6B6B;
+  font-size: 28rpx;
+  border: 2rpx solid #FF6B6B;
+  border-radius: 12rpx;
+  margin-top: 20rpx;
+}
+
+.permission-status {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.permission-status.granted .status-icon {
+  color: #66BB6A;
+  font-size: 28rpx;
+}
+
+.permission-status.granted .status-text {
+  color: #66BB6A;
+  font-size: 26rpx;
+  font-weight: 600;
 }
 
 .form-item {

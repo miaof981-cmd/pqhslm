@@ -310,53 +310,126 @@
   <view wx:if="{{showEditArtistModal}}" class="modal-overlay" bindtap="closeEditArtistModal">
     <view class="modal-content" catchtap="{{null}}">
       <view class="modal-header">
-        <text class="modal-title">编辑画师</text>
+        <text class="modal-title">画师信息</text>
         <view class="modal-close" bindtap="closeEditArtistModal">×</view>
       </view>
       
       <view class="modal-body">
-        <view class="form-item">
-          <text class="form-label">画师姓名</text>
-          <text class="form-value">{{editingArtist.name}}</text>
-        </view>
-        
-        <view class="form-item">
-          <text class="form-label">入驻时间</text>
-          <text class="form-value">{{editingArtist.joinTime}}</text>
-        </view>
-        
-        <view class="form-item">
-          <text class="form-label">作品数量</text>
-          <text class="form-value">{{editingArtist.productCount}}个</text>
-        </view>
-        
-        <view class="form-item">
-          <text class="form-label">订单数量</text>
-          <text class="form-value">{{editingArtist.orderCount}}单</text>
-        </view>
-        
-        <view class="form-item">
-          <text class="form-label">总收入</text>
-          <text class="form-value">¥{{editingArtist.totalRevenue}}</text>
-        </view>
-        
-        <view class="form-divider"></view>
-        
-        <view class="form-item">
-          <text class="form-label">账号状态</text>
-          <view class="form-switch">
-            <text class="status-text {{editingArtist.status === 'normal' ? 'status-normal' : 'status-disabled'}}">
-              {{editingArtist.statusText}}
-            </text>
-            <switch checked="{{editingArtist.status === 'normal'}}" bindchange="toggleArtistStatus" color="#A8E6CF"/>
+        <!-- 基础信息 -->
+        <view class="info-section">
+          <view class="section-title">基础信息</view>
+          
+          <view class="info-row">
+            <text class="info-label">用户ID</text>
+            <text class="info-value">{{editingArtist.userId}}</text>
+          </view>
+          
+          <view class="info-row">
+            <text class="info-label">画师编号</text>
+            <text class="info-value">{{editingArtist.artistNumber || '未分配'}}</text>
+          </view>
+          
+          <view class="info-row">
+            <text class="info-label">画师昵称</text>
+            <text class="info-value">{{editingArtist.name}}</text>
+          </view>
+          
+          <view class="info-row">
+            <text class="info-label">入驻时间</text>
+            <text class="info-value">{{editingArtist.joinTime}}</text>
           </view>
         </view>
         
-        <view class="form-divider"></view>
+        <!-- 联系方式 -->
+        <view class="info-section">
+          <view class="section-title">联系方式</view>
+          
+          <view class="info-row">
+            <text class="info-label">联系电话</text>
+            <text class="info-value">{{editingArtist.contactPhone || '未填写'}}</text>
+          </view>
+          
+          <view class="info-row">
+            <text class="info-label">联系微信</text>
+            <text class="info-value">{{editingArtist.wechat || '未填写'}}</text>
+          </view>
+          
+          <view class="info-row">
+            <text class="info-label">紧急联系人</text>
+            <text class="info-value">{{editingArtist.emergencyName || '未填写'}} ({{editingArtist.emergencyRelation || '-'}})</text>
+          </view>
+          
+          <view class="info-row">
+            <text class="info-label">紧急联系电话</text>
+            <text class="info-value">{{editingArtist.emergencyPhone || '未填写'}}</text>
+          </view>
+        </view>
         
-        <view class="form-section-title">商品管理</view>
+        <!-- 业绩数据 -->
+        <view class="info-section">
+          <view class="section-title">业绩数据</view>
+          
+          <view class="info-row">
+            <text class="info-label">作品数量</text>
+            <text class="info-value">{{editingArtist.productCount}}个</text>
+          </view>
+          
+          <view class="info-row">
+            <text class="info-label">订单数量</text>
+            <text class="info-value">{{editingArtist.orderCount}}单</text>
+          </view>
+          
+          <view class="info-row">
+            <text class="info-label">总收入</text>
+            <text class="info-value">¥{{editingArtist.totalRevenue}}</text>
+          </view>
+        </view>
         
-        <view class="form-action-group">
+        <!-- 权限开通 -->
+        <view wx:if="{{!editingArtist.hasPermission}}" class="permission-section">
+          <view class="section-title">开通工作台权限</view>
+          <view class="permission-checklist">
+            <view class="checklist-item">
+              <text class="checklist-icon">✓</text>
+              <text class="checklist-text">已添加至企业微信</text>
+            </view>
+            <view class="checklist-item">
+              <text class="checklist-icon">✓</text>
+              <text class="checklist-text">已按格式修改企业微信ID</text>
+            </view>
+          </view>
+          <button class="btn-grant-permission" bindtap="grantArtistPermission">确认并开通权限</button>
+        </view>
+        
+        <!-- 权限管理 -->
+        <view wx:else class="info-section">
+          <view class="section-title">权限管理</view>
+          
+          <view class="info-row">
+            <text class="info-label">工作台权限</text>
+            <view class="permission-status granted">
+              <text class="status-icon">✓</text>
+              <text class="status-text">已开通</text>
+            </view>
+          </view>
+          
+          <view class="info-row">
+            <text class="info-label">账号状态</text>
+            <view class="form-switch">
+              <text class="status-text {{editingArtist.status === 'normal' ? 'status-normal' : 'status-disabled'}}">
+                {{editingArtist.statusText}}
+              </text>
+              <switch checked="{{editingArtist.status === 'normal'}}" bindchange="toggleArtistStatus" color="#A8E6CF"/>
+            </view>
+          </view>
+          
+          <button class="btn-revoke-permission" bindtap="revokeArtistPermission">撤销权限</button>
+        </view>
+        
+        <!-- 商品管理 -->
+        <view class="info-section">
+          <view class="section-title">商品管理</view>
+          <view class="form-action-group">
           <button class="action-btn-outline" bindtap="manageArtistProducts">
             <text class="btn-icon">📦</text>
             <text>商品管理</text>
