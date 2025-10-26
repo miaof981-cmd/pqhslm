@@ -16,7 +16,8 @@ Page({
     selectedSpec2: null, // 选中的二级规格
     quantity: 1, // 购买数量
     currentPrice: 0, // 当前价格
-    canSubmit: false // 是否可以提交订单
+    canSubmit: false, // 是否可以提交订单
+    isAddingToCart: false // 是否为加入购物车模式
   },
 
   onLoad(options) {
@@ -260,6 +261,84 @@ Page({
     // 什么都不做，只是阻止事件冒泡
   },
 
+  // 加入购物车
+  addToCart() {
+    if (!this.data.product) return
+    
+    const { product } = this.data
+    
+    // 如果有规格，打开购买弹窗让用户选择
+    if (product.specs && product.specs.length > 0) {
+      this.setData({
+        showBuyModal: true,
+        selectedSpec1: null,
+        selectedSpec2: null,
+        quantity: 1,
+        currentPrice: parseFloat(product.basePrice) || parseFloat(product.price) || 0,
+        canSubmit: false,
+        isAddingToCart: true // 标记为加入购物车模式
+      })
+    } else {
+      // 没有规格，直接加入购物车
+      this.addToCartDirect(product, '', '', 1, parseFloat(product.basePrice) || parseFloat(product.price) || 0)
+    }
+  },
+  
+  // 直接加入购物车
+  addToCartDirect(product, spec1Name, spec2Name, quantity, price) {
+    // 从本地存储读取购物车
+    let cartItems = wx.getStorageSync('cart_items') || []
+    
+    // 生成购物车项ID
+    const cartItemId = `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    
+    // 检查是否已存在相同商品和规格
+    const existingIndex = cartItems.findIndex(item => 
+      item.productId === product.id && 
+      item.spec1 === spec1Name && 
+      item.spec2 === spec2Name
+    )
+    
+    if (existingIndex !== -1) {
+      // 已存在，增加数量
+      cartItems[existingIndex].quantity += quantity
+      wx.showToast({
+        title: '已增加数量',
+        icon: 'success'
+      })
+    } else {
+      // 不存在，添加新项
+      const cartItem = {
+        _id: cartItemId,
+        productId: product.id,
+        productName: product.name,
+        productImage: (product.images && product.images[0]) || 'https://via.placeholder.com/150',
+        artistName: product.artistName || '画师',
+        price: price.toFixed(2),
+        quantity: quantity,
+        spec1: spec1Name,
+        spec2: spec2Name,
+        selected: false,
+        addTime: new Date().toISOString()
+      }
+      
+      cartItems.push(cartItem)
+      
+      wx.showToast({
+        title: '已加入购物车',
+        icon: 'success'
+      })
+    }
+    
+    // 保存到本地存储
+    wx.setStorageSync('cart_items', cartItems)
+    
+    // 关闭弹窗
+    if (this.data.showBuyModal) {
+      this.closeBuyModal()
+    }
+  },
+  
   // 打开购买弹窗
   buyProduct() {
     if (!this.data.product) return
@@ -281,7 +360,8 @@ Page({
       selectedSpec2: null,
       quantity: 1,
       currentPrice: initialPrice,
-      canSubmit: canSubmit
+      canSubmit: canSubmit,
+      isAddingToCart: false // 标记为立即购买模式
     })
   },
   
@@ -388,7 +468,7 @@ Page({
       return
     }
     
-    const { product, selectedSpec1, selectedSpec2, quantity, currentPrice } = this.data
+    const { product, selectedSpec1, selectedSpec2, quantity, currentPrice, isAddingToCart } = this.data
     
     // 获取规格名称
     let spec1Name = ''
@@ -409,25 +489,33 @@ Page({
     console.log('数量:', quantity)
     console.log('单价:', currentPrice)
     console.log('总价:', currentPrice * quantity)
+    console.log('模式:', isAddingToCart ? '加入购物车' : '立即购买')
     
-    // 关闭购买弹窗
-    this.closeBuyModal()
-    
-    // 显示加载中
-    wx.showLoading({
-      title: '创建订单中...',
-      mask: true
-    })
-    
-    // 模拟订单创建延迟
-    setTimeout(() => {
-      wx.hideLoading()
+    // 判断是加入购物车还是立即购买
+    if (isAddingToCart) {
+      // 加入购物车
+      this.addToCartDirect(product, spec1Name, spec2Name, quantity, currentPrice)
+    } else {
+      // 立即购买
+      // 关闭购买弹窗
+      this.closeBuyModal()
       
-      // 跳转到订单成功页面
-      wx.redirectTo({
-        url: `/pages/order-success/index?productName=${encodeURIComponent(product.name)}&spec1=${encodeURIComponent(spec1Name)}&spec2=${encodeURIComponent(spec2Name)}&quantity=${quantity}&price=${currentPrice}&totalAmount=${currentPrice * quantity}`
+      // 显示加载中
+      wx.showLoading({
+        title: '创建订单中...',
+        mask: true
       })
-    }, 1000)
+      
+      // 模拟订单创建延迟
+      setTimeout(() => {
+        wx.hideLoading()
+        
+        // 跳转到订单成功页面
+        wx.redirectTo({
+          url: `/pages/order-success/index?productName=${encodeURIComponent(product.name)}&spec1=${encodeURIComponent(spec1Name)}&spec2=${encodeURIComponent(spec2Name)}&quantity=${quantity}&price=${currentPrice}&totalAmount=${currentPrice * quantity}`
+        })
+      }, 1000)
+    }
     
     // 云开发版本（需要先开通云开发）
     // try {

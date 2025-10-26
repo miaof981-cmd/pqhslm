@@ -87,8 +87,9 @@
           <view class="bubble-dot"></view>
         </view>
       </view>
-      <text class="service-text">联系客服</text>
+      <text class="service-text">客服</text>
     </view>
+    <button class="cart-btn" bindtap="addToCart">加入购物车</button>
     <button class="buy-btn" bindtap="buyProduct">立即购买</button>
   </view>
 

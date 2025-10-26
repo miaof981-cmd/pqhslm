@@ -22,46 +22,37 @@ Page({
     this.setData({ loading: true })
     
     try {
-      // 模拟加载购物车数据
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // 从本地存储读取购物车数据
+      let cartItems = wx.getStorageSync('cart_items') || []
       
-      const mockCartItems = [
-        {
-          _id: 'cart-1',
-          productId: '1',
-          productName: '精美头像设计',
-          productImage: 'https://via.placeholder.com/150',
-          artistName: '画师小A',
-          price: '88.00',
-          quantity: 1,
-          spec: '小尺寸',
-          selected: false
-        },
-        {
-          _id: 'cart-2',
-          productId: '2',
-          productName: '创意插画作品',
-          productImage: 'https://via.placeholder.com/150',
-          artistName: '画师小B',
-          price: '168.00',
-          quantity: 2,
-          spec: '',
-          selected: false
-        },
-        {
-          _id: 'cart-3',
-          productId: '3',
-          productName: 'LOGO设计',
-          productImage: 'https://via.placeholder.com/150',
-          artistName: '画师小C',
-          price: '299.00',
-          quantity: 1,
-          spec: '标准版',
-          selected: false
+      // 确保是数组
+      if (!Array.isArray(cartItems)) {
+        cartItems = []
+      }
+      
+      // 获取所有商品数据，用于补充商品信息
+      const allProducts = wx.getStorageSync('mock_products') || []
+      
+      // 补充商品信息（图片、名称等）
+      cartItems = cartItems.map(cartItem => {
+        const product = allProducts.find(p => p.id === cartItem.productId)
+        if (product) {
+          return {
+            ...cartItem,
+            productName: product.name || cartItem.productName,
+            productImage: (product.images && product.images[0]) || cartItem.productImage || 'https://via.placeholder.com/150',
+            artistName: product.artistName || '画师',
+            // 如果购物车中没有价格，从商品中获取
+            price: cartItem.price || this.getProductPrice(product, cartItem.spec1, cartItem.spec2)
+          }
         }
-      ]
-
-      this.setData({ cartItems: mockCartItems })
+        return cartItem
+      })
+      
+      // 保存更新后的购物车
+      wx.setStorageSync('cart_items', cartItems)
+      
+      this.setData({ cartItems })
       this.calculateTotal()
     } catch (error) {
       console.error('加载购物车失败', error)
@@ -70,38 +61,81 @@ Page({
       this.setData({ loading: false })
     }
   },
+  
+  // 获取商品价格（根据规格）
+  getProductPrice(product, spec1Name, spec2Name) {
+    if (!product.specs || product.specs.length === 0) {
+      return product.basePrice || product.price || '0.00'
+    }
+    
+    // 查找匹配的规格价格
+    let price = parseFloat(product.basePrice || product.price || 0)
+    
+    if (spec1Name && product.specs[0]) {
+      const spec1 = product.specs[0].values.find(v => v.name === spec1Name)
+      if (spec1) {
+        price = parseFloat(spec1.addPrice || 0)
+      }
+    }
+    
+    if (spec2Name && product.specs[1]) {
+      const spec2 = product.specs[1].values.find(v => v.name === spec2Name)
+      if (spec2) {
+        price += parseFloat(spec2.addPrice || 0)
+      }
+    }
+    
+    return price.toFixed(2)
+  },
 
   // 加载推荐商品
   async loadRecommend() {
     try {
-      const mockRecommend = [
-        {
-          _id: '101',
-          name: '可爱头像',
-          image: 'https://via.placeholder.com/200',
-          price: '58.00'
-        },
-        {
-          _id: '102',
-          name: '简约LOGO',
-          image: 'https://via.placeholder.com/200',
-          price: '188.00'
-        },
-        {
-          _id: '103',
-          name: '海报设计',
-          image: 'https://via.placeholder.com/200',
-          price: '128.00'
-        },
-        {
-          _id: '104',
-          name: '表情包',
-          image: 'https://via.placeholder.com/200',
-          price: '48.00'
+      // 从本地存储读取商品数据
+      const allProducts = wx.getStorageSync('mock_products') || []
+      
+      // 过滤出上架的商品
+      let onSaleProducts = allProducts.filter(p => p.isOnSale)
+      
+      // 随机排序
+      onSaleProducts = onSaleProducts.sort(() => Math.random() - 0.5)
+      
+      // 取前4个作为推荐
+      const recommendProducts = onSaleProducts.slice(0, 4).map(product => {
+        // 计算显示价格
+        let displayPrice = product.basePrice || product.price || '0.00'
+        
+        if (product.specs && product.specs.length > 0) {
+          // 如果有规格，显示最低价格
+          const prices = []
+          
+          if (product.specs[0]) {
+            product.specs[0].values.forEach(spec1 => {
+              if (product.specs[1]) {
+                product.specs[1].values.forEach(spec2 => {
+                  const price = parseFloat(spec1.addPrice || 0) + parseFloat(spec2.addPrice || 0)
+                  prices.push(price)
+                })
+              } else {
+                prices.push(parseFloat(spec1.addPrice || 0))
+              }
+            })
+          }
+          
+          if (prices.length > 0) {
+            displayPrice = Math.min(...prices).toFixed(2)
+          }
         }
-      ]
-
-      this.setData({ recommendProducts: mockRecommend })
+        
+        return {
+          _id: product.id,
+          name: product.name,
+          image: (product.images && product.images[0]) || 'https://via.placeholder.com/200',
+          price: displayPrice
+        }
+      })
+      
+      this.setData({ recommendProducts })
     } catch (error) {
       console.error('加载推荐失败', error)
     }
@@ -160,6 +194,9 @@ Page({
       return item
     })
 
+    // 保存到本地存储
+    wx.setStorageSync('cart_items', cartItems)
+    
     this.setData({ cartItems })
     this.calculateTotal()
   },
@@ -174,6 +211,9 @@ Page({
       return item
     })
 
+    // 保存到本地存储
+    wx.setStorageSync('cart_items', cartItems)
+    
     this.setData({ cartItems })
     this.calculateTotal()
   },
@@ -187,6 +227,10 @@ Page({
       success: (res) => {
         if (res.confirm) {
           const cartItems = this.data.cartItems.filter(item => item._id !== id)
+          
+          // 保存到本地存储
+          wx.setStorageSync('cart_items', cartItems)
+          
           this.setData({ cartItems })
           this.calculateTotal()
           wx.showToast({ title: '已删除', icon: 'success' })
@@ -219,32 +263,50 @@ Page({
 
     const selectedItems = this.data.cartItems.filter(item => item.selected)
     
-    // 模拟结算
-    wx.showModal({
-      title: '确认结算',
-      content: `共${selectedItems.length}件商品，合计¥${this.data.totalPrice}`,
-      confirmText: '去支付',
-      success: (res) => {
-        if (res.confirm) {
-          wx.showLoading({ title: '创建订单中...' })
-          setTimeout(() => {
-            wx.hideLoading()
-            wx.showToast({ title: '订单创建成功', icon: 'success' })
-            // 移除已结算商品
-            const cartItems = this.data.cartItems.filter(item => !item.selected)
-            this.setData({ cartItems })
-            this.calculateTotal()
-            
-            // 跳转到订单列表
+    // 如果只有一件商品，直接跳转到订单成功页
+    if (selectedItems.length === 1) {
+      const item = selectedItems[0]
+      
+      wx.showLoading({ title: '创建订单中...', mask: true })
+      
+      setTimeout(() => {
+        wx.hideLoading()
+        
+        // 移除已结算商品
+        const remainingItems = this.data.cartItems.filter(i => !i.selected)
+        wx.setStorageSync('cart_items', remainingItems)
+        
+        // 跳转到订单成功页面
+        wx.redirectTo({
+          url: `/pages/order-success/index?productName=${encodeURIComponent(item.productName)}&spec1=${encodeURIComponent(item.spec1 || '')}&spec2=${encodeURIComponent(item.spec2 || '')}&quantity=${item.quantity}&price=${item.price}&totalAmount=${parseFloat(item.price) * item.quantity}`
+        })
+      }, 1000)
+    } else {
+      // 多件商品，显示确认对话框
+      wx.showModal({
+        title: '确认结算',
+        content: `共${selectedItems.length}件商品，合计¥${this.data.totalPrice}`,
+        confirmText: '去支付',
+        success: (res) => {
+          if (res.confirm) {
+            wx.showLoading({ title: '创建订单中...' })
             setTimeout(() => {
-              wx.navigateTo({
-                url: '/pages/order-list/index?status=unpaid'
+              wx.hideLoading()
+              
+              // 移除已结算商品
+              const remainingItems = this.data.cartItems.filter(item => !item.selected)
+              wx.setStorageSync('cart_items', remainingItems)
+              
+              // 跳转到订单成功页面（使用第一件商品的信息）
+              const firstItem = selectedItems[0]
+              wx.redirectTo({
+                url: `/pages/order-success/index?productName=${encodeURIComponent(firstItem.productName + ' 等' + selectedItems.length + '件商品')}&spec1=&spec2=&quantity=${selectedItems.reduce((sum, item) => sum + item.quantity, 0)}&price=${this.data.totalPrice}&totalAmount=${this.data.totalPrice}`
               })
-            }, 1500)
-          }, 1000)
+            }, 1000)
+          }
         }
-      }
-    })
+      })
+    }
   },
 
   // 下拉刷新

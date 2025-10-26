@@ -279,6 +279,21 @@
   font-weight: 500;
 }
 
+.cart-btn {
+  flex: 1;
+  height: 88rpx;
+  background: linear-gradient(135deg, #FFB74D 0%, #FFA726 100%);
+  color: white;
+  font-size: 28rpx;
+  font-weight: bold;
+  border-radius: 44rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
 .buy-btn {
   flex: 1;
   height: 88rpx;
