@@ -674,19 +674,22 @@ Page({
             }
           }
           
-          const wechatId = `联盟id${newArtistNumber}+${artist.realName || artist.name}`
-          
-          wx.showModal({
-            title: '权限开通成功',
-            content: `画师编号：${newArtistNumber}\n企业昵称：${wechatId}\n\n请在企业微信中设置该昵称`,
-            showCancel: false,
-            confirmText: '知道了',
-            success: () => {
-              // 关闭弹窗并刷新
-              this.closeEditArtistModal()
-              this.loadArtists()
-            }
+          // 更新当前编辑的画师信息，直接刷新显示
+          this.setData({
+            'editingArtist.artistNumber': newArtistNumber,
+            'editingArtist.hasPermission': (artist.userId === wx.getStorageSync('userId'))
           })
+          
+          // 显示简短提示
+          const wechatId = `联盟id${newArtistNumber}+${artist.realName || artist.name}`
+          wx.showToast({
+            title: `权限已开通\n画师编号：${newArtistNumber}`,
+            icon: 'none',
+            duration: 2000
+          })
+          
+          // 刷新画师列表（不关闭弹窗）
+          this.loadArtists()
         }
       }
     })
