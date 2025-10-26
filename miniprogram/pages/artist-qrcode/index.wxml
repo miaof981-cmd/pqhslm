@@ -17,25 +17,35 @@
         </view>
       </view>
 
-      <!-- 第一步：添加工作人员（仅在无权限时显示） -->
-      <view wx:if="{{!hasArtistPermission}}" class="staff-contact-section">
+      <!-- 第一步：添加工作人员 -->
+      <view class="staff-contact-section {{hasArtistPermission ? 'completed' : ''}}">
         <view class="section-header">
-          <view class="step-badge">第一步</view>
+          <view class="step-badge {{hasArtistPermission ? 'completed' : ''}}">
+            {{hasArtistPermission ? '✓' : '第一步'}}
+          </view>
           <text class="section-title">添加工作人员微信</text>
+          <text wx:if="{{hasArtistPermission}}" class="completed-tag">已完成</text>
         </view>
         
-        <view class="staff-qrcode-box">
+        <!-- 仅在无权限时显示二维码 -->
+        <view wx:if="{{!hasArtistPermission}}" class="staff-qrcode-box">
           <image class="staff-qrcode" src="{{staffQRCode}}" mode="aspectFit" />
           <text class="qrcode-label">长按识别二维码</text>
           <text class="qrcode-hint">添加后请说明您是新通过的画师</text>
         </view>
+        
+        <!-- 已完成时显示简化信息 -->
+        <view wx:if="{{hasArtistPermission}}" class="completed-info">
+          <text class="completed-text">工作人员已确认并开启权限</text>
+        </view>
       </view>
 
       <!-- 第二步：填写个人信息 -->
-      <view class="form-section">
+      <view class="form-section {{hasArtistPermission ? 'active' : ''}}">
         <view class="section-header">
-          <view class="step-badge">{{hasArtistPermission ? '第一步' : '第二步'}}</view>
+          <view class="step-badge">第二步</view>
           <text class="section-title">完善个人信息</text>
+          <text wx:if="{{hasArtistPermission}}" class="current-tag">进行中</text>
         </view>
         <text class="section-hint">用于内部联系，不会公开在主页</text>
 

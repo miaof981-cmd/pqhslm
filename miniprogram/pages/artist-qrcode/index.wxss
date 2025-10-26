@@ -97,6 +97,13 @@
   padding: 40rpx;
   margin-bottom: 30rpx;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+/* 已完成状态 */
+.staff-contact-section.completed {
+  background: #F9F9F9;
+  opacity: 0.85;
 }
 
 .section-header {
@@ -113,6 +120,60 @@
   font-size: 24rpx;
   font-weight: bold;
   border-radius: 24rpx;
+  transition: all 0.3s ease;
+}
+
+/* 已完成徽章 */
+.step-badge.completed {
+  background: #66BB6A;
+  padding: 8rpx 16rpx;
+}
+
+/* 已完成标签 */
+.completed-tag {
+  margin-left: auto;
+  padding: 6rpx 16rpx;
+  background: #E8F5E9;
+  color: #66BB6A;
+  font-size: 22rpx;
+  border-radius: 16rpx;
+  font-weight: 500;
+}
+
+/* 进行中标签 */
+.current-tag {
+  margin-left: auto;
+  padding: 6rpx 16rpx;
+  background: #FFF9E6;
+  color: #FFA000;
+  font-size: 22rpx;
+  border-radius: 16rpx;
+  font-weight: 500;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* 已完成信息 */
+.completed-info {
+  padding: 24rpx;
+  background: #E8F5E9;
+  border-radius: 12rpx;
+  text-align: center;
+  margin-top: 20rpx;
+}
+
+.completed-text {
+  font-size: 26rpx;
+  color: #66BB6A;
+  font-weight: 500;
 }
 
 .staff-qrcode-box {
@@ -193,6 +254,13 @@
   padding: 40rpx;
   margin-bottom: 30rpx;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+/* 激活状态 - 高亮显示 */
+.form-section.active {
+  box-shadow: 0 8rpx 24rpx rgba(168, 230, 207, 0.3);
+  border: 2rpx solid #A8E6CF;
 }
 
 .section-title {
