@@ -1415,3 +1415,128 @@
   background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
   color: white;
 }
+
+/* 步骤卡片 */
+.step-card {
+  padding: 30rpx;
+  background: white;
+  border-radius: 16rpx;
+  margin-top: 20rpx;
+}
+
+.step-card.completed {
+  background: linear-gradient(135deg, #F0F9FF 0%, #E6FFEB 100%);
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.step-number {
+  width: 48rpx;
+  height: 48rpx;
+  background: #A8E6CF;
+  border-radius: 50%;
+  color: white;
+  font-size: 24rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-number.done {
+  background: #66BB6A;
+}
+
+.step-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.btn-generate-number {
+  width: 100%;
+  height: 88rpx;
+  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
+  color: white;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 12rpx;
+  border: none;
+  margin-top: 10rpx;
+}
+
+/* 画师编号显示 */
+.artist-number-display {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 20rpx;
+  background: white;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.number-label {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.number-value {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #66BB6A;
+}
+
+/* 企业微信ID区块 */
+.wechat-id-section {
+  padding: 24rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12rpx;
+  border: 2rpx dashed #A8E6CF;
+  margin-bottom: 20rpx;
+}
+
+.id-label {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+}
+
+.id-display {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx;
+  background: #F5F5F5;
+  border-radius: 8rpx;
+  margin-bottom: 12rpx;
+}
+
+.id-value {
+  flex: 1;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  word-break: break-all;
+}
+
+.btn-copy-id {
+  padding: 8rpx 24rpx;
+  background: #A8E6CF;
+  color: white;
+  font-size: 24rpx;
+  border-radius: 8rpx;
+  border: none;
+  white-space: nowrap;
+}
+
+.id-hint {
+  font-size: 22rpx;
+  color: #999;
+  line-height: 1.6;
+}

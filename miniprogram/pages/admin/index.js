@@ -641,27 +641,71 @@ Page({
   },
   
   // 开通画师权限
+  // 生成画师编号（步骤1）
+  generateArtistNumber() {
+    const artist = this.data.editingArtist
+    
+    // 查找已分配的最大编号
+    const allApplications = wx.getStorageSync('artist_applications') || []
+    const approvedApps = allApplications.filter(app => app.status === 'approved' && app.artistNumber)
+    const maxNumber = approvedApps.length > 0 ? 
+      Math.max(...approvedApps.map(a => parseInt(a.artistNumber) || 0)) : 0
+    const newArtistNumber = (maxNumber + 1).toString()
+    
+    // 保存画师编号到申请记录
+    const appIndex = allApplications.findIndex(app => app.userId === artist.userId)
+    if (appIndex !== -1) {
+      allApplications[appIndex].artistNumber = newArtistNumber
+      wx.setStorageSync('artist_applications', allApplications)
+      
+      // 更新当前编辑的画师信息
+      this.setData({
+        'editingArtist.artistNumber': newArtistNumber
+      })
+      
+      wx.showToast({
+        title: `编号已生成：${newArtistNumber}`,
+        icon: 'success',
+        duration: 2000
+      })
+    }
+  },
+  
+  // 复制企业微信ID格式
+  copyWechatId(e) {
+    const wechatId = e.currentTarget.dataset.id
+    
+    wx.setClipboardData({
+      data: wechatId,
+      success: () => {
+        wx.showToast({
+          title: '已复制到剪贴板',
+          icon: 'success',
+          duration: 1500
+        })
+      }
+    })
+  },
+  
+  // 开通画师权限（步骤2）
   grantArtistPermission() {
     const artist = this.data.editingArtist
     
+    if (!artist.artistNumber) {
+      wx.showToast({
+        title: '请先生成画师编号',
+        icon: 'none'
+      })
+      return
+    }
+    
+    const wechatId = `联盟id${artist.artistNumber}+${artist.realName || artist.name}`
+    
     wx.showModal({
       title: '确认开通权限',
-      content: `确认为画师"${artist.name}"开通工作台权限？\n\n请确保：\n1. 已添加至企业微信\n2. 已按格式修改企业微信ID`,
+      content: `确认为画师"${artist.name}"开通工作台权限？\n\n画师编号：${artist.artistNumber}\n企业微信ID：${wechatId}\n\n请确保已在企业微信中完成ID修改`,
       success: (res) => {
         if (res.confirm) {
-          // 分配画师编号
-          const allApplications = wx.getStorageSync('artist_applications') || []
-          const approvedApps = allApplications.filter(app => app.status === 'approved' && app.artistNumber)
-          const maxNumber = approvedApps.length > 0 ? Math.max(...approvedApps.map(a => parseInt(a.artistNumber) || 0)) : 0
-          const newArtistNumber = maxNumber + 1
-          
-          // 更新申请记录中的画师编号
-          const appIndex = allApplications.findIndex(app => app.userId === artist.userId)
-          if (appIndex !== -1) {
-            allApplications[appIndex].artistNumber = newArtistNumber.toString()
-            wx.setStorageSync('artist_applications', allApplications)
-          }
-          
           // 如果是当前用户，开通权限
           if (artist.userId === wx.getStorageSync('userId')) {
             const app = getApp()
@@ -674,8 +718,8 @@ Page({
           }
           
           wx.showToast({
-            title: `已开通权限\n画师编号：${newArtistNumber}`,
-            icon: 'none',
+            title: '权限已开通',
+            icon: 'success',
             duration: 2000
           })
           
