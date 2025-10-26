@@ -64,17 +64,23 @@ Page({
       const wxUserInfo = wx.getStorageSync('wxUserInfo')
       console.log('微信用户信息:', wxUserInfo)
       
-      if (wxUserInfo && wxUserInfo.avatarUrl) {
-        avatar = wxUserInfo.avatarUrl
-        name = wxUserInfo.nickName || artistApp.name
+      if (wxUserInfo && (wxUserInfo.avatarUrl || wxUserInfo.avatar)) {
+        avatar = wxUserInfo.avatarUrl || wxUserInfo.avatar
+        name = wxUserInfo.nickName || wxUserInfo.nickname || artistApp.name
         console.log('使用微信头像:', avatar)
       } else {
-        console.warn('当前用户未设置微信头像')
+        console.warn('当前用户未设置微信头像，尝试从申请记录读取')
+        // wxUserInfo 为空时，尝试从申请记录读取
+        if (artistApp.avatar || artistApp.avatarUrl) {
+          avatar = artistApp.avatar || artistApp.avatarUrl
+          console.log('使用申请记录中的头像:', avatar)
+        }
       }
     } else {
       // 不是当前用户，尝试从申请记录读取
-      if (artistApp.avatar) {
-        avatar = artistApp.avatar
+      // 兼容两种字段名：avatar 和 avatarUrl
+      if (artistApp.avatar || artistApp.avatarUrl) {
+        avatar = artistApp.avatar || artistApp.avatarUrl
         console.log('使用申请记录中的头像:', avatar)
       }
     }

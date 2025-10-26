@@ -338,18 +338,23 @@ Page({
       // 如果是当前用户，优先使用微信头像
       if (String(app.userId) === String(currentUserId)) {
         const wxUserInfo = wx.getStorageSync('wxUserInfo') || {}
-        if (wxUserInfo.avatarUrl) {
-          avatar = wxUserInfo.avatarUrl
-          nickname = wxUserInfo.nickName || app.name
+        if (wxUserInfo.avatarUrl || wxUserInfo.avatar) {
+          avatar = wxUserInfo.avatarUrl || wxUserInfo.avatar
+          nickname = wxUserInfo.nickName || wxUserInfo.nickname || app.name
+        }
+        // 如果 wxUserInfo 为空，尝试从申请记录读取
+        if (!avatar && (app.avatar || app.avatarUrl)) {
+          avatar = app.avatar || app.avatarUrl
         }
       } else {
-        // 其他画师，尝试从申请记录读取头像
-        if (app.avatar) {
-          avatar = app.avatar
-        }
-        // 使用申请时填写的姓名
-        nickname = app.name
-      }
+  // 其他画师，尝试从申请记录读取头像
+  // 兼容两种字段名：avatar 和 avatarUrl
+  if (app.avatar || app.avatarUrl) {
+    avatar = app.avatar || app.avatarUrl
+  }
+  // 使用申请时填写的姓名
+  nickname = app.name
+}
       
       // 如果还是没有头像，使用默认SVG头像（绿色背景 + "画"字）
       if (!avatar) {
