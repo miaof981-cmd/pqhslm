@@ -9,7 +9,8 @@ Page({
       finishedWorks: [],  // 满意的作品
       processImages: []   // 绘画过程
     },
-    agreedToTerms: false, // 是否同意条款
+    agreedToTerms: false,     // 是否同意条款
+    showTermsDetail: false,   // 是否显示详细条款
     uploading: false
   },
 
@@ -52,6 +53,13 @@ Page({
   toggleAgreement() {
     this.setData({
       agreedToTerms: !this.data.agreedToTerms
+    })
+  },
+
+  // 切换详细条款显示
+  toggleTermsDetail() {
+    this.setData({
+      showTermsDetail: !this.data.showTermsDetail
     })
   },
 

@@ -145,12 +145,26 @@
         <text class="title-text">会员制说明</text>
       </view>
       
-      <view class="agreement-content">
-        <view class="agreement-title">联盟会员制度</view>
+      <view class="agreement-summary">
+        <view class="summary-title">联盟会员制度</view>
+        <view class="summary-highlight">
+          会员费首月19.9元用于评估收益，次月起29.9元/月
+        </view>
+        <view class="summary-desc">
+          联盟采用会员制运营模式，画师需缴纳会员费后方可接单。会员有效期内可自由上架商品、接收订单。
+        </view>
+        <view class="expand-btn" bindtap="toggleTermsDetail">
+          <text class="expand-text">{{showTermsDetail ? '收起详情' : '查看详细条款'}}</text>
+          <view class="expand-icon {{showTermsDetail ? 'expanded' : ''}}"></view>
+        </view>
+      </view>
+
+      <view wx:if="{{showTermsDetail}}" class="agreement-detail">
+        <view class="detail-title">详细条款</view>
         <view class="agreement-text">
           1. 联盟采用会员制运营模式，画师需缴纳会员费后方可接单。
         </view>
-        <view class="agreement-text highlight">
+        <view class="agreement-text">
           2. 会员费首月19.9元用于评估收益，次月起29.9元/月，不可退还。
         </view>
         <view class="agreement-text">
@@ -165,7 +179,7 @@
         <view class="agreement-text">
           6. 画师需按时交稿，如有延期需提前与客户沟通。
         </view>
-        <view class="agreement-text highlight">
+        <view class="agreement-text">
           7. 平台会收取一定比例的服务费用于承担工作人员工资。
         </view>
         <view class="agreement-text">
@@ -177,7 +191,7 @@
         <view class="checkbox {{agreedToTerms ? 'checked' : ''}}">
           <view wx:if="{{agreedToTerms}}" class="checkbox-icon"></view>
         </view>
-        <text class="checkbox-text">我已阅读并同意以上会员制条款</text>
+        <text class="checkbox-text">我已阅读并同意会员制条款</text>
       </view>
     </view>
 

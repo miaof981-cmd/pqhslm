@@ -1,319 +1,186 @@
 Page({
   data: {
-    loading: true,
-    users: [],
-    allUsers: [],
-    totalUsers: 0,
     searchKeyword: '',
-    statusFilter: 'all',
-    userStats: {
-      all: 0,
-      normal: 0,
-      blocked: 0
-    },
-    hasMore: true,
-    loadingMore: false,
-    page: 1,
-    pageSize: 20,
-    
-    // 弹窗相关
-    showPhoneModal: false,
-    showDetailModal: false,
     currentUser: null,
-    newPhone: ''
+    originalRoles: [],
+    allRoles: [
+      { id: 'customer', name: '普通用户' },
+      { id: 'artist', name: '画师' },
+      { id: 'service', name: '客服' },
+      { id: 'admin', name: '管理员' }
+    ],
+    recentLogs: []
   },
 
   onLoad() {
-    this.checkPermission()
-    this.loadUsers()
+    this.loadRecentLogs()
   },
 
-  // 检查管理员权限
-  checkPermission() {
-    const role = wx.getStorageSync('userRole') || 'customer'
-    if (role !== 'admin') {
-      wx.showModal({
-        title: '权限不足',
-        content: '您不是管理员，无法访问此页面',
-        showCancel: false,
-        success: () => {
-          wx.navigateBack()
-        }
-      })
-      return false
-    }
-    return true
+  // 搜索输入
+  onSearchInput(e) {
+    this.setData({
+      searchKeyword: e.detail.value
+    })
   },
 
-  // 加载用户列表
-  async loadUsers() {
-    this.setData({ loading: true })
+  // 搜索用户
+  searchUser() {
+    const { searchKeyword } = this.data
     
-    try {
-      // 模拟数据 - 实际应从云数据库获取
-      const mockUsers = [
-        {
-          _id: '1',
-          userId: 10001,
-          openid: 'oXXXX1234567890',
-          nickname: '张三',
-          avatar: 'https://via.placeholder.com/100',
-          phone: '138****1234',
-          orderCount: 15,
-          totalAmount: '1,580.00',
-          registerTime: '2024-01-10 10:30',
-          lastLoginTime: '2小时前',
-          status: 'normal'
-        },
-        {
-          _id: '2',
-          userId: 10002,
-          openid: 'oXXXX0987654321',
-          nickname: '李四',
-          avatar: 'https://via.placeholder.com/100',
-          phone: '139****5678',
-          orderCount: 8,
-          totalAmount: '680.00',
-          registerTime: '2024-01-15 14:20',
-          lastLoginTime: '1天前',
-          status: 'normal'
-        },
-        {
-          _id: '3',
-          userId: 10003,
-          openid: 'oXXXX1122334455',
-          nickname: '王五',
-          avatar: 'https://via.placeholder.com/100',
-          phone: '',
-          orderCount: 23,
-          totalAmount: '2,360.00',
-          registerTime: '2023-12-20 09:15',
-          lastLoginTime: '3小时前',
-          status: 'normal'
-        },
-        {
-          _id: '4',
-          userId: 10004,
-          openid: 'oXXXX5544332211',
-          nickname: '赵六',
-          avatar: 'https://via.placeholder.com/100',
-          phone: '137****9012',
-          orderCount: 0,
-          totalAmount: '0.00',
-          registerTime: '2024-01-20 16:45',
-          lastLoginTime: '刚刚',
-          status: 'blocked'
-        },
-        {
-          _id: '5',
-          userId: 10005,
-          openid: 'oXXXX6677889900',
-          nickname: '钱七',
-          avatar: 'https://via.placeholder.com/100',
-          phone: '136****3456',
-          orderCount: 12,
-          totalAmount: '1,120.00',
-          registerTime: '2024-01-05 11:00',
-          lastLoginTime: '5小时前',
-          status: 'normal'
-        }
-      ]
-      
-      // 计算统计数据
-      const userStats = {
-        all: mockUsers.length,
-        normal: mockUsers.filter(u => u.status === 'normal').length,
-        blocked: mockUsers.filter(u => u.status === 'blocked').length
-      }
-      
-      this.setData({
-        allUsers: mockUsers,
-        users: mockUsers,
-        totalUsers: mockUsers.length,
-        userStats: userStats,
-        hasMore: false
+    if (!searchKeyword.trim()) {
+      wx.showToast({
+        title: '请输入搜索关键词',
+        icon: 'none'
       })
-    } catch (error) {
-      console.error('加载用户失败', error)
-      wx.showToast({ title: '加载失败', icon: 'none' })
-    } finally {
-      this.setData({ loading: false })
-    }
-  },
-
-  // 搜索
-  onSearch(e) {
-    const keyword = e.detail.value.toLowerCase()
-    this.setData({ searchKeyword: keyword })
-    
-    if (!keyword) {
-      this.setData({ users: this.data.allUsers })
       return
     }
-    
-    const filtered = this.data.allUsers.filter(user => 
-      user.nickname.toLowerCase().includes(keyword) ||
-      user.userId.toString().includes(keyword) ||
-      (user.phone && user.phone.includes(keyword))
-    )
-    
-    this.setData({ users: filtered })
-  },
 
-  // 清除搜索
-  clearSearch() {
-    this.setData({ 
-      searchKeyword: '',
-      users: this.data.allUsers 
-    })
-  },
+    wx.showLoading({ title: '搜索中...' })
 
-  // 按状态筛选
-  filterByStatus(e) {
-    const filter = e.currentTarget.dataset.filter
-    this.setData({ statusFilter: filter })
-    
-    if (filter === 'all') {
-      this.setData({ users: this.data.allUsers })
-    } else {
-      const filtered = this.data.allUsers.filter(u => u.status === filter)
-      this.setData({ users: filtered })
-    }
-  },
-
-  // 查看用户详情
-  viewUserDetail(e) {
-    const id = e.currentTarget.dataset.id
-    const user = this.data.allUsers.find(u => u._id === id)
-    
-    if (user) {
-      this.setData({
-        currentUser: user,
-        showDetailModal: true
-      })
-    }
-  },
-
-  // 拉黑用户
-  blockUser(e) {
-    const id = e.currentTarget.dataset.id
-    const user = this.data.allUsers.find(u => u._id === id)
-    
-    wx.showModal({
-      title: '拉黑用户',
-      content: `确认拉黑用户"${user.nickname}"？拉黑后该用户将无法登录和下单`,
-      confirmColor: '#FF6B6B',
-      success: (res) => {
-        if (res.confirm) {
-          // 实际应调用云函数
-          wx.showToast({ title: '已拉黑', icon: 'success' })
-          this.loadUsers()
-        }
-      }
-    })
-  },
-
-  // 解封用户
-  unblockUser(e) {
-    const id = e.currentTarget.dataset.id
-    const user = this.data.allUsers.find(u => u._id === id)
-    
-    wx.showModal({
-      title: '解封用户',
-      content: `确认解封用户"${user.nickname}"？`,
-      success: (res) => {
-        if (res.confirm) {
-          // 实际应调用云函数
-          wx.showToast({ title: '已解封', icon: 'success' })
-          this.loadUsers()
-        }
-      }
-    })
-  },
-
-  // 修改手机号
-  editPhone(e) {
-    const id = e.currentTarget.dataset.id
-    const user = this.data.allUsers.find(u => u._id === id)
-    
-    if (user) {
-      this.setData({
-        currentUser: user,
-        newPhone: '',
-        showPhoneModal: true
-      })
-    }
-  },
-
-  onPhoneInput(e) {
-    this.setData({ newPhone: e.detail.value })
-  },
-
-  savePhone() {
-    const { newPhone } = this.data
-    
-    // 验证手机号
-    if (!/^1[3-9]\d{9}$/.test(newPhone)) {
-      wx.showToast({ title: '请输入正确的手机号', icon: 'none' })
-      return
-    }
-    
-    wx.showModal({
-      title: '确认修改',
-      content: `确认将手机号修改为 ${newPhone}？`,
-      success: (res) => {
-        if (res.confirm) {
-          // 实际应调用云函数
-          wx.showLoading({ title: '保存中...' })
-          setTimeout(() => {
-            wx.hideLoading()
-            wx.showToast({ title: '修改成功', icon: 'success' })
-            this.closePhoneModal()
-            this.loadUsers()
-          }, 500)
-        }
-      }
-    })
-  },
-
-  closePhoneModal() {
-    this.setData({ showPhoneModal: false })
-  },
-
-  closeDetailModal() {
-    this.setData({ showDetailModal: false })
-  },
-
-  // 查看用户订单
-  viewUserOrders() {
-    const userId = this.data.currentUser.userId
-    this.closeDetailModal()
-    wx.navigateTo({
-      url: `/pages/order-list/index?userId=${userId}`
-    })
-  },
-
-  // 加载更多
-  loadMore() {
-    if (this.data.loadingMore) return
-    
-    this.setData({ loadingMore: true })
-    
-    // 模拟加载
+    // 模拟搜索 - 实际应该调用云函数
     setTimeout(() => {
-      this.setData({ 
-        loadingMore: false,
-        hasMore: false
+      // 模拟用户数据
+      const mockUser = {
+        userId: searchKeyword,
+        name: '张三',
+        wechat: 'zhangsan123',
+        roles: ['customer'],
+        createTime: '2024-10-26 12:00:00'
+      }
+
+      this.setData({
+        currentUser: mockUser,
+        originalRoles: [...mockUser.roles]
       })
-    }, 1000)
+
+      wx.hideLoading()
+      wx.showToast({
+        title: '搜索成功',
+        icon: 'success'
+      })
+    }, 500)
   },
 
-  // 返回
-  goBack() {
-    wx.navigateBack()
+  // 切换角色
+  toggleRole(e) {
+    const { role } = e.currentTarget.dataset
+    const { currentUser } = this.data
+    
+    if (!currentUser) return
+
+    const roles = [...currentUser.roles]
+    const index = roles.indexOf(role)
+
+    if (index > -1) {
+      // 移除角色
+      roles.splice(index, 1)
+    } else {
+      // 添加角色
+      roles.push(role)
+    }
+
+    // 确保至少保留customer角色
+    if (roles.length === 0) {
+      roles.push('customer')
+    }
+
+    this.setData({
+      'currentUser.roles': roles
+    })
   },
 
-  // 阻止冒泡
-  stopPropagation() {}
+  // 保存权限
+  savePermissions() {
+    const { currentUser, originalRoles } = this.data
+
+    if (!currentUser) {
+      wx.showToast({
+        title: '请先搜索用户',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 检查是否有变化
+    const hasChanged = JSON.stringify(currentUser.roles.sort()) !== JSON.stringify(originalRoles.sort())
+    
+    if (!hasChanged) {
+      wx.showToast({
+        title: '权限未变化',
+        icon: 'none'
+      })
+      return
+    }
+
+    wx.showModal({
+      title: '确认保存',
+      content: `确定要修改用户 ${currentUser.name}(ID:${currentUser.userId}) 的权限吗？`,
+      success: (res) => {
+        if (res.confirm) {
+          this.doSavePermissions()
+        }
+      }
+    })
+  },
+
+  // 执行保存
+  doSavePermissions() {
+    const { currentUser } = this.data
+
+    wx.showLoading({ title: '保存中...' })
+
+    // 模拟保存 - 实际应该调用云函数
+    setTimeout(() => {
+      // 更新本地存储（测试用）
+      if (currentUser.userId === wx.getStorageSync('userId')) {
+        wx.setStorageSync('userRoles', currentUser.roles)
+      }
+
+      // 添加操作记录
+      const log = {
+        id: Date.now(),
+        time: new Date().toLocaleString(),
+        content: `修改用户 ${currentUser.name}(ID:${currentUser.userId}) 的权限为：${currentUser.roles.map(r => this.getRoleName(r)).join('、')}`
+      }
+
+      const logs = [log, ...this.data.recentLogs].slice(0, 10)
+      this.setData({
+        recentLogs: logs,
+        originalRoles: [...currentUser.roles]
+      })
+
+      wx.hideLoading()
+      wx.showToast({
+        title: '保存成功',
+        icon: 'success'
+      })
+    }, 500)
+  },
+
+  // 重置权限
+  resetPermissions() {
+    const { originalRoles } = this.data
+
+    this.setData({
+      'currentUser.roles': [...originalRoles]
+    })
+
+    wx.showToast({
+      title: '已重置',
+      icon: 'success'
+    })
+  },
+
+  // 获取角色名称
+  getRoleName(roleId) {
+    const role = this.data.allRoles.find(r => r.id === roleId)
+    return role ? role.name : roleId
+  },
+
+  // 加载最近操作记录
+  loadRecentLogs() {
+    // 模拟数据 - 实际应该从云数据库读取
+    const logs = []
+    this.setData({ recentLogs: logs })
+  }
 })
-
