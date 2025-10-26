@@ -376,3 +376,25 @@
   font-size: 28rpx;
   color: #999;
 }
+
+/* 管理员提示 */
+.admin-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #FFF9E6 0%, #FFE6F0 100%);
+  border-radius: 16rpx;
+  margin: 20rpx 30rpx;
+}
+
+.hint-icon {
+  font-size: 32rpx;
+}
+
+.hint-text {
+  font-size: 24rpx;
+  color: #FF9800;
+  font-weight: 600;
+}

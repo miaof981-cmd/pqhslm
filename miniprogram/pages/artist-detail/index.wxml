@@ -34,11 +34,15 @@
     </view>
 
     <!-- 操作按钮 -->
-    <view class="action-bar">
+    <view wx:if="{{!isAdmin}}" class="action-bar">
       <button class="action-btn follow-btn {{artist.isFollowed ? 'followed' : ''}}" bindtap="toggleFollow">
         {{artist.isFollowed ? '已关注' : '+ 关注'}}
       </button>
       <button class="action-btn contact-btn" bindtap="contactArtist">联系画师</button>
+    </view>
+    <view wx:else class="admin-hint">
+      <text class="hint-icon">🔧</text>
+      <text class="hint-text">管理员模式：查看该画师的所有商品</text>
     </view>
 
     <!-- Tab切换 -->

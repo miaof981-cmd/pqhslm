@@ -1598,3 +1598,63 @@
   margin: 12rpx 0 20rpx;
   text-align: center;
 }
+
+/* 状态开关组 */
+.status-switch-group {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.status-text {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.status-text.status-normal {
+  color: #66BB6A;
+}
+
+.status-text.status-disabled {
+  color: #999;
+}
+
+/* 主要操作按钮 */
+.action-btn-primary {
+  width: 100%;
+  height: 88rpx;
+  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
+  color: white;
+  font-size: 28rpx;
+  font-weight: 600;
+  border-radius: 12rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.3);
+}
+
+.action-btn-primary .btn-icon {
+  font-size: 32rpx;
+}
+
+.action-btn-primary .btn-arrow {
+  margin-left: auto;
+  font-size: 36rpx;
+  font-weight: 300;
+}
+
+/* 危险操作区 */
+.danger-section {
+  padding: 30rpx;
+  background: #FFF5F5;
+  border-radius: 16rpx;
+  border: 2rpx dashed #FFE6E6;
+  margin-top: 20rpx;
+}
+
+.danger-section .btn-revoke-permission {
+  margin-top: 20rpx;
+}

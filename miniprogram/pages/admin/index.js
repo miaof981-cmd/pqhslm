@@ -768,38 +768,41 @@ Page({
   
   // 管理画师的商品
   manageArtistProducts() {
-    const artistId = this.data.editingArtist._id
-    const artistName = this.data.editingArtist.name
-    this.closeEditArtistModal()
-    // 跳转到商品管理页，并筛选该画师的商品
+    const artist = this.data.editingArtist
+    // 跳转到画师详情页，传递管理员标识
     wx.navigateTo({
-      url: `/pages/product-manage/index?artistId=${artistId}&artistName=${artistName}`
+      url: `/pages/artist-detail/index?artistId=${artist.userId}&isAdmin=true`
     })
   },
   
-  // 全部上架/下架
-  toggleAllProducts(e) {
-    const action = e.currentTarget.dataset.action
-    const actionText = action === 'online' ? '上架' : '下架'
-    const artistName = this.data.editingArtist.name
+  // 批量上下架商品（开关切换）
+  toggleAllProductsSwitch(e) {
+    const checked = e.detail.value
+    const artist = this.data.editingArtist
+    const actionText = checked ? '上架' : '下架'
     
     wx.showModal({
-      title: `确认${actionText}`,
-      content: `确认将 ${artistName} 的所有商品${actionText}？`,
+      title: `确认${actionText}全部商品`,
+      content: `确认将画师"${artist.name}"的全部商品${actionText}？`,
       success: (res) => {
         if (res.confirm) {
-          // 实际应调用后端API批量更新商品状态
-          wx.showToast({
-            title: `已全部${actionText}`,
-            icon: 'success'
+          // 更新状态
+          this.setData({
+            'editingArtist.allProductsOnline': checked
           })
           
-          // 更新画师的商品数量统计
-          if (action === 'offline') {
-            this.setData({
-              'editingArtist.productCount': 0
-            })
-          }
+          // TODO: 实际操作需要调用后端API批量更新商品状态
+          
+          wx.showToast({
+            title: `已${actionText}全部商品`,
+            icon: 'success',
+            duration: 1500
+          })
+        } else {
+          // 取消操作，恢复开关状态
+          this.setData({
+            'editingArtist.allProductsOnline': !checked
+          })
         }
       }
     })

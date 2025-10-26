@@ -346,17 +346,15 @@
           </view>
           
           <!-- 账号状态 -->
-          <view class="info-row">
+          <view class="info-row" style="align-items: center;">
             <text class="info-label">账号状态</text>
-            <view class="form-switch">
-              <text class="status-text {{editingArtist.status === 'normal' ? 'status-normal' : 'status-disabled'}}">
-                {{editingArtist.statusText}}
-              </text>
+            <view class="status-switch-group">
               <switch checked="{{editingArtist.status === 'normal'}}" bindchange="toggleArtistStatus" color="#A8E6CF"/>
+              <text class="status-text {{editingArtist.status === 'normal' ? 'status-normal' : 'status-disabled'}}">
+                {{editingArtist.status === 'normal' ? '正常' : '已禁用'}}
+              </text>
             </view>
           </view>
-          
-          <button class="btn-revoke-permission" bindtap="revokeArtistPermission">撤销权限</button>
         </view>
         
         <!-- 基础信息 -->
@@ -409,6 +407,27 @@
           </view>
         </view>
         
+        <!-- 商品管理 -->
+        <view class="info-section">
+          <view class="section-title">商品管理</view>
+          
+          <!-- 查看商品 -->
+          <button class="action-btn-primary" bindtap="manageArtistProducts">
+            <text class="btn-icon">📦</text>
+            <text>查看该画师的所有商品</text>
+            <text class="btn-arrow">›</text>
+          </button>
+          
+          <!-- 全部商品上下架 -->
+          <view class="info-row" style="align-items: center; margin-top: 20rpx;">
+            <text class="info-label">全部商品上架</text>
+            <view class="status-switch-group">
+              <switch checked="{{editingArtist.allProductsOnline}}" bindchange="toggleAllProductsSwitch" color="#A8E6CF"/>
+              <text class="status-text">{{editingArtist.allProductsOnline ? '已上架' : '已下架'}}</text>
+            </view>
+          </view>
+        </view>
+        
         <!-- 业绩数据 -->
         <view class="info-section">
           <view class="section-title">业绩数据</view>
@@ -429,27 +448,11 @@
           </view>
         </view>
         
-        <!-- 商品管理 -->
-        <view class="info-section">
-          <view class="section-title">商品管理</view>
-          <view class="form-action-group">
-          <button class="action-btn-outline" bindtap="manageArtistProducts">
-            <text class="btn-icon">📦</text>
-            <text>商品管理</text>
-            <text class="btn-arrow">›</text>
-          </button>
-          
-          <button class="action-btn-outline" bindtap="toggleAllProducts" data-action="online">
-            <text class="btn-icon">✓</text>
-            <text>全部上架</text>
-          </button>
-          
-          <button class="action-btn-outline" bindtap="toggleAllProducts" data-action="offline">
-            <text class="btn-icon">✕</text>
-            <text>全部下架</text>
-          </button>
+        <!-- 危险操作区 -->
+        <view class="danger-section">
+          <view class="section-title" style="color: #FF6B6B;">危险操作</view>
+          <button class="btn-revoke-permission" bindtap="revokeArtistPermission">撤销工作台权限</button>
         </view>
-      </view>
       </view>
       
       <view class="modal-footer">

@@ -2,6 +2,7 @@ Page({
   data: {
     loading: true,
     artistId: '',
+    isAdmin: false, // 是否为管理员视图
     currentTab: 'products',
     tabs: [
       { label: '作品', value: 'products' },
@@ -15,8 +16,13 @@ Page({
   },
 
   onLoad(options) {
-    if (options.id) {
-      this.setData({ artistId: options.id })
+    // 检查是否为管理员模式
+    if (options.isAdmin === 'true') {
+      this.setData({ isAdmin: true })
+    }
+    
+    if (options.id || options.artistId) {
+      this.setData({ artistId: options.id || options.artistId })
       this.loadArtistInfo()
       this.loadProducts()
     } else {
