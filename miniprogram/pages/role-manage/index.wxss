@@ -47,22 +47,78 @@
   box-shadow: 0 8rpx 24rpx rgba(168, 230, 207, 0.3);
 }
 
+.info-row {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
 .info-label {
   font-size: 24rpx;
   color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 8rpx;
 }
 
 .info-value {
   font-size: 48rpx;
   font-weight: bold;
   color: white;
-  margin-bottom: 16rpx;
 }
 
 .info-hint {
   font-size: 26rpx;
   color: rgba(255, 255, 255, 0.9);
+}
+
+/* 快速切换区域 */
+.quick-switch-section {
+  margin: 0 30rpx 30rpx;
+}
+
+.user-scenarios {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+  margin-top: 20rpx;
+}
+
+.scenario-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+  border: 3rpx solid transparent;
+}
+
+.scenario-card:active {
+  transform: scale(0.95);
+}
+
+.scenario-card.active {
+  border-color: #A8E6CF;
+  background: linear-gradient(135deg, #F0FFF4 0%, #E6F9F0 100%);
+  box-shadow: 0 8rpx 24rpx rgba(168, 230, 207, 0.3);
+}
+
+.scenario-icon {
+  font-size: 56rpx;
+  margin-bottom: 8rpx;
+}
+
+.scenario-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.scenario-roles {
+  font-size: 22rpx;
+  color: #999;
 }
 
 /* 安全警告卡片 */

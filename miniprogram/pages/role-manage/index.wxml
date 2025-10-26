@@ -10,9 +10,26 @@
 
   <!-- 用户信息 -->
   <view class="user-info-card">
-    <view class="info-label">用户ID</view>
-    <view class="info-value">{{userId}}</view>
+    <view class="info-row">
+      <view class="info-label">用户ID</view>
+      <view class="info-value">{{userId}}</view>
+    </view>
     <view class="info-hint">当前拥有 {{roles.length}} 个身份</view>
+  </view>
+
+  <!-- 快速切换用户视角 -->
+  <view class="quick-switch-section">
+    <view class="section-title">快速切换用户视角</view>
+    <view class="user-scenarios">
+      <view wx:for="{{userScenarios}}" wx:key="id"
+            class="scenario-card {{currentScenario === item.id ? 'active' : ''}}"
+            data-scenario="{{item.id}}"
+            bindtap="switchScenario">
+        <view class="scenario-icon">{{item.icon}}</view>
+        <view class="scenario-name">{{item.name}}</view>
+        <view class="scenario-roles">{{item.rolesText}}</view>
+      </view>
+    </view>
   </view>
 
   <!-- 安全警告 -->
@@ -54,14 +71,9 @@
     </view>
   </view>
 
-  <!-- 底部操作 -->
-  <view class="bottom-actions">
-    <button class="reset-btn" bindtap="resetToCustomer">重置为普通用户</button>
-  </view>
-
   <!-- 提示信息 -->
   <view class="bottom-tips">
-    <text>提示：这是开发测试功能，正式环境中权限由管理员在后台分配</text>
+    <text>💡 提示：这是开发测试功能，可快速切换不同用户视角进行测试</text>
   </view>
 </view>
 

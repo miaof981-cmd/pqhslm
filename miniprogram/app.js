@@ -19,8 +19,8 @@ App({
   initUserInfo() {
     // 检查本地存储是否有用户信息
     const userInfo = wx.getStorageSync('userInfo')
-    const userId = wx.getStorageSync('userId')
-    const openid = wx.getStorageSync('openid')
+    let userId = wx.getStorageSync('userId')
+    let openid = wx.getStorageSync('openid')
     
     if (userId && openid) {
       // 已有基础信息
@@ -32,9 +32,9 @@ App({
         console.log('用户信息已加载:', userInfo)
       }
     } else {
-      // 没有用户信息，生成临时ID
-      const tempUserId = 1001 + Math.floor(Math.random() * 1000)
-      const tempOpenid = 'dev-openid-' + Date.now()
+      // 没有用户信息，使用固定的开发测试ID
+      const tempUserId = 1001  // 固定ID，不再随机
+      const tempOpenid = 'dev-openid-1001'
       
       this.globalData.userId = tempUserId
       this.globalData.openid = tempOpenid
@@ -42,7 +42,7 @@ App({
       wx.setStorageSync('userId', tempUserId)
       wx.setStorageSync('openid', tempOpenid)
       
-      console.log('生成临时用户ID:', tempUserId)
+      console.log('使用固定开发测试ID:', tempUserId)
     }
   },
 
