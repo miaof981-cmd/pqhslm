@@ -21,12 +21,34 @@
       <text class="welcome-desc">发现优秀画师，定制专属作品</text>
     </view>
 
+    <!-- 头像昵称填写区域 -->
+    <view class="profile-section">
+      <!-- 头像选择 -->
+      <view class="avatar-wrapper">
+        <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+          <image class="avatar-preview" src="{{avatarUrl}}" mode="aspectFill" />
+          <view class="avatar-tip">点击选择头像</view>
+        </button>
+      </view>
+
+      <!-- 昵称输入 -->
+      <view class="nickname-wrapper">
+        <input 
+          class="nickname-input" 
+          type="nickname" 
+          placeholder="请输入昵称"
+          value="{{nickName}}"
+          bindblur="onNicknameInput"
+          placeholder-class="nickname-placeholder" />
+      </view>
+    </view>
+
     <!-- 登录按钮 -->
     <view class="login-section">
       <button class="login-btn" bindtap="handleLogin">
         <view class="btn-content">
-          <text class="btn-icon">👤</text>
-          <text class="btn-text">微信授权登录</text>
+          <text class="btn-icon">✓</text>
+          <text class="btn-text">完成并登录</text>
         </view>
       </button>
       

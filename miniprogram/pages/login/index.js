@@ -2,12 +2,32 @@ const app = getApp()
 
 Page({
   data: {
-    isLoading: false
+    isLoading: false,
+    avatarUrl: 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0',  // 默认头像
+    nickName: ''  // 用户昵称
   },
 
   onLoad(options) {
     // 检查是否已经登录
     this.checkLoginStatus()
+  },
+
+  // 选择头像
+  onChooseAvatar(e) {
+    const { avatarUrl } = e.detail
+    console.log('📷 用户选择头像:', avatarUrl)
+    this.setData({
+      avatarUrl: avatarUrl
+    })
+  },
+
+  // 输入昵称
+  onNicknameInput(e) {
+    const nickName = e.detail.value
+    console.log('✏️ 用户输入昵称:', nickName)
+    this.setData({
+      nickName: nickName
+    })
   },
 
   // 检查登录状态
@@ -26,6 +46,17 @@ Page({
   async handleLogin() {
     if (this.data.isLoading) return
     
+    const { avatarUrl, nickName } = this.data
+    
+    // 验证必填项
+    if (!nickName || nickName.trim() === '') {
+      wx.showToast({
+        title: '请输入昵称',
+        icon: 'none'
+      })
+      return
+    }
+    
     this.setData({ isLoading: true })
     
     wx.showLoading({
@@ -34,10 +65,18 @@ Page({
     })
 
     try {
-      // 请求微信授权
-      const userInfo = await this.getUserProfile()
+      // 构建用户信息
+      const userInfo = {
+        nickName: nickName.trim(),
+        avatarUrl: avatarUrl,
+        gender: 0,
+        country: '',
+        province: '',
+        city: '',
+        language: ''
+      }
       
-      console.log('📱 获取到的微信用户信息:', userInfo)
+      console.log('📱 用户填写的信息:', userInfo)
       console.log('  - 昵称:', userInfo.nickName)
       console.log('  - 头像:', userInfo.avatarUrl)
       
@@ -73,20 +112,11 @@ Page({
       wx.hideLoading()
       this.setData({ isLoading: false })
       
-      console.log('⚠️ 用户取消授权或授权失败:', error)
+      console.error('⚠️ 登录失败:', error)
       
-      wx.showModal({
-        title: '授权失败',
-        content: '需要授权才能使用完整功能，您可以选择"暂不登录"先浏览商品',
-        confirmText: '重新授权',
-        cancelText: '暂不登录',
-        success: (res) => {
-          if (res.confirm) {
-            this.handleLogin()
-          } else {
-            this.skipLogin()
-          }
-        }
+      wx.showToast({
+        title: '登录失败，请重试',
+        icon: 'none'
       })
     }
   },
