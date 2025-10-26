@@ -13,7 +13,13 @@ Page({
     userId: 0,
     // 改为多角色支持
     roles: [], // ['customer', 'artist', 'admin']
-    roleTexts: [] // ['普通用户', '画师', '管理员']
+    roleTexts: [], // ['普通用户', '画师', '管理员']
+    // 画师申请状态
+    applicationStatus: null, // null: 未申请, 'pending': 待审核, 'rejected': 已驳回, 'approved': 已通过
+    applicationTime: '',
+    rejectTime: '',
+    rejectReason: '',
+    applicationId: ''
   },
 
   onLoad(options) {
@@ -35,7 +41,8 @@ Page({
       await Promise.all([
         this.loadUserInfo(),
         this.loadOrders(),
-        this.checkArtistStatus()
+        this.checkArtistStatus(),
+        this.loadApplicationStatus() // 加载申请状态
       ])
     } catch (error) {
       console.error('加载数据失败', error)
@@ -347,6 +354,80 @@ Page({
           console.log('❌ 用户取消重新登录')
         }
       }
+    })
+  },
+
+  // 加载画师申请状态
+  async loadApplicationStatus() {
+    const userId = this.data.userId
+    console.log('🔍 加载用户申请状态, userId:', userId)
+    
+    // 从本地存储读取所有申请记录
+    const applications = wx.getStorageSync('artist_applications') || []
+    console.log('📦 本地申请记录总数:', applications.length)
+    
+    // 查找当前用户的申请记录（按提交时间倒序，取最新的）
+    const userApplications = applications.filter(app => app.userId === userId)
+    console.log('👤 当前用户的申请记录:', userApplications.length)
+    
+    if (userApplications.length === 0) {
+      console.log('ℹ️ 用户未提交过申请')
+      this.setData({
+        applicationStatus: null
+      })
+      return
+    }
+    
+    // 按提交时间排序，取最新的
+    userApplications.sort((a, b) => new Date(b.submitTime) - new Date(a.submitTime))
+    const latestApplication = userApplications[0]
+    
+    console.log('📋 最新申请状态:', latestApplication.status)
+    
+    // 如果已通过，不显示申请状态（因为已经有画师权限了）
+    if (latestApplication.status === 'approved') {
+      console.log('✅ 申请已通过，不显示申请卡片')
+      this.setData({
+        applicationStatus: null
+      })
+      return
+    }
+    
+    // 格式化时间
+    const formatTime = (timeStr) => {
+      if (!timeStr) return ''
+      const date = new Date(timeStr)
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+    }
+    
+    // 设置申请状态
+    this.setData({
+      applicationStatus: latestApplication.status, // 'pending' 或 'rejected'
+      applicationTime: formatTime(latestApplication.submitTime),
+      rejectTime: formatTime(latestApplication.rejectTime),
+      rejectReason: latestApplication.rejectReason || '未填写驳回原因',
+      applicationId: latestApplication._id
+    })
+    
+    console.log('✅ 申请状态加载完成:', {
+      status: latestApplication.status,
+      time: this.data.applicationTime
+    })
+  },
+
+  // 查看申请详情
+  viewApplicationDetail() {
+    const applicationId = this.data.applicationId
+    if (!applicationId) {
+      wx.showToast({
+        title: '申请记录不存在',
+        icon: 'none'
+      })
+      return
+    }
+    
+    wx.navigateTo({
+      url: `/pages/artist-application-detail/index?id=${applicationId}`
     })
   }
 })

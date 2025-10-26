@@ -251,6 +251,152 @@
   margin: 20rpx 30rpx;
 }
 
+/* 申请状态卡片 */
+.application-status-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+/* 待审核状态 */
+.status-pending {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.status-header {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.status-icon {
+  font-size: 48rpx;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pending-icon {
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rejected-icon {
+  opacity: 0.8;
+}
+
+.status-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.status-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2C3E50;
+}
+
+.status-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.status-desc {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.6;
+  padding: 20rpx;
+  background: #F8F9FA;
+  border-radius: 12rpx;
+}
+
+/* 已驳回状态 */
+.status-rejected {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.reject-reason {
+  padding: 20rpx;
+  background: #FFF5F5;
+  border-left: 4rpx solid #E74C3C;
+  border-radius: 8rpx;
+}
+
+.reason-label {
+  font-size: 26rpx;
+  color: #E74C3C;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.reason-text {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* 状态操作按钮 */
+.status-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 10rpx;
+}
+
+.status-btn {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+}
+
+.status-btn::after {
+  border: none;
+}
+
+.status-btn.primary {
+  background: linear-gradient(135deg, #A8E6CF 0%, #88D4AB 100%);
+  color: white;
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.3);
+}
+
+.status-btn.primary:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.status-btn.secondary {
+  background: white;
+  color: #A8E6CF;
+  border: 2rpx solid #A8E6CF;
+}
+
+.status-btn.secondary:active {
+  background: #F8F9FA;
+}
+
 .cert-banner {
   background: linear-gradient(135deg, #FFF3CD 0%, #FFEAA7 100%);
   border: 2rpx dashed #F39C12;

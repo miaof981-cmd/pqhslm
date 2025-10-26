@@ -52,8 +52,9 @@
     </view>
 
     <!-- 画师认证/工作台 -->
-    <view wx:if="{{roles.indexOf('artist') === -1 && roles.indexOf('admin') === -1}}" class="artist-certification" bindtap="applyArtist">
-      <view class="cert-banner">
+    <view wx:if="{{roles.indexOf('artist') === -1 && roles.indexOf('admin') === -1}}" class="artist-certification">
+      <!-- 无申请记录 -->
+      <view wx:if="{{!applicationStatus}}" class="cert-banner" bindtap="applyArtist">
         <view class="cert-content">
           <text class="cert-title">画师认证</text>
           <text class="cert-subtitle">点此进入画师认证开始工作吧！</text>
@@ -61,6 +62,45 @@
         <view class="cert-illustration">
           <view class="cert-icon-circle"></view>
           <text class="cert-action-hint">点击认证 ></text>
+        </view>
+      </view>
+
+      <!-- 有申请记录 - 显示状态 -->
+      <view wx:else class="application-status-card">
+        <!-- 待审核状态 -->
+        <view wx:if="{{applicationStatus === 'pending'}}" class="status-pending">
+          <view class="status-header">
+            <view class="status-icon pending-icon">⏳</view>
+            <view class="status-info">
+              <text class="status-title">画师申请审核中</text>
+              <text class="status-time">提交时间：{{applicationTime}}</text>
+            </view>
+          </view>
+          <view class="status-desc">
+            您的画师认证申请正在审核中，请耐心等待...
+          </view>
+          <view class="status-actions">
+            <button class="status-btn secondary" bindtap="viewApplicationDetail">查看申请详情</button>
+          </view>
+        </view>
+
+        <!-- 已驳回状态 -->
+        <view wx:elif="{{applicationStatus === 'rejected'}}" class="status-rejected">
+          <view class="status-header">
+            <view class="status-icon rejected-icon">❌</view>
+            <view class="status-info">
+              <text class="status-title">申请未通过</text>
+              <text class="status-time">驳回时间：{{rejectTime}}</text>
+            </view>
+          </view>
+          <view class="reject-reason">
+            <text class="reason-label">驳回原因：</text>
+            <text class="reason-text">{{rejectReason}}</text>
+          </view>
+          <view class="status-actions">
+            <button class="status-btn secondary" bindtap="viewApplicationDetail">查看申请详情</button>
+            <button class="status-btn primary" bindtap="applyArtist">重新申请</button>
+          </view>
         </view>
       </view>
     </view>
