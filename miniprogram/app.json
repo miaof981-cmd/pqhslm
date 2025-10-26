@@ -31,7 +31,8 @@
     "pages/artist-application-detail/index",
     "pages/review-manage/index",
     "pages/artist-qrcode/index",
-    "pages/staff-qrcode-manage/index"
+    "pages/staff-qrcode-manage/index",
+    "pages/artist-products-manage/index"
   ],
   "window": {
     "navigationBarTitleText": "画师商城",

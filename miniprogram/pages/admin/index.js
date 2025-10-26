@@ -765,9 +765,9 @@ Page({
   // 管理画师的商品
   manageArtistProducts() {
     const artist = this.data.editingArtist
-    // 跳转到画师详情页，传递管理员标识
+    // 跳转到画师商品管理页面
     wx.navigateTo({
-      url: `/pages/artist-detail/index?artistId=${artist.userId}&isAdmin=true`
+      url: `/pages/artist-products-manage/index?artistId=${artist.userId}`
     })
   },
   
