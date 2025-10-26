@@ -1,5 +1,5 @@
 <view class="withdraw-container">
-  <!-- 余额卡片 - 简约版 -->
+  <!-- 余额卡片 -->
   <view class="balance-card">
     <text class="balance-label">可提现余额</text>
     <view class="balance-amount">
@@ -7,66 +7,6 @@
       <text class="value">{{balance}}</text>
     </view>
     <text class="balance-hint">打赏收入和订单收入可提现</text>
-  </view>
-
-  <!-- 提现金额 -->
-  <view class="input-section">
-    <view class="section-label">提现金额</view>
-    <view class="amount-input-row">
-      <text class="input-symbol">¥</text>
-      <input class="amount-input" 
-             type="digit" 
-             placeholder="请输入提现金额" 
-             value="{{withdrawAmount}}"
-             bindinput="onAmountInput"/>
-    </view>
-    <view class="quick-select">
-      <text wx:for="{{[100, 200, 500, 1000]}}" wx:key="*this"
-            class="quick-btn"
-            bindtap="selectQuickAmount"
-            data-amount="{{item}}">
-        {{item}}元
-      </text>
-      <text class="quick-btn" bindtap="withdrawAll">全部提现</text>
-    </view>
-  </view>
-
-  <!-- 实名认证信息 -->
-  <view wx:if="{{!isVerified}}" class="verify-section">
-    <view class="section-label">实名认证</view>
-    <view class="input-item">
-      <text class="item-label">真实姓名</text>
-      <input class="item-input" placeholder="请输入真实姓名" value="{{realName}}" bindinput="onRealNameInput"/>
-    </view>
-    <view class="input-item">
-      <text class="item-label">身份证号</text>
-      <input class="item-input" placeholder="请输入身份证号" value="{{idCard}}" bindinput="onIdCardInput"/>
-    </view>
-  </view>
-
-  <!-- 银行卡信息 -->
-  <view class="bank-section">
-    <view class="section-label">银行卡信息</view>
-    <view class="input-item">
-      <text class="item-label">开户银行</text>
-      <input class="item-input" placeholder="如：中国工商银行" value="{{bankName}}" bindinput="onBankNameInput"/>
-    </view>
-    <view class="input-item">
-      <text class="item-label">银行卡号</text>
-      <input class="item-input" type="digit" placeholder="请输入银行卡号" value="{{bankCard}}" bindinput="onBankCardInput"/>
-    </view>
-    <view class="input-item">
-      <text class="item-label">开户支行</text>
-      <input class="item-input" placeholder="如：XX支行" value="{{bankBranch}}" bindinput="onBankBranchInput"/>
-    </view>
-  </view>
-
-  <!-- 提现说明 -->
-  <view class="tips-section">
-    <text class="tip-line">• 每日最多可提现3次</text>
-    <text class="tip-line">• 单笔提现金额：10-5000元</text>
-    <text class="tip-line">• 提现预计1-3个工作日到账</text>
-    <text class="tip-line">• 首次提现需要提供实名信息</text>
   </view>
 
   <!-- 查看记录入口 -->
@@ -87,6 +27,85 @@
     </view>
   </view>
 
+  <!-- 提现说明 -->
+  <view class="tips-section">
+    <text class="tip-line">• 每日最多可提现3次</text>
+    <text class="tip-line">• 单笔提现金额：10-5000元</text>
+    <text class="tip-line">• 提现预计1-3个工作日到账</text>
+    <text class="tip-line">• 首次提现需要实名认证</text>
+  </view>
+
   <!-- 提现按钮 -->
-  <button class="submit-btn" bindtap="submitWithdraw">立即提现</button>
+  <button class="withdraw-btn" bindtap="startWithdraw">提现</button>
+</view>
+
+<!-- 提现弹窗 -->
+<view wx:if="{{showWithdrawModal}}" class="modal-mask" bindtap="closeModal">
+  <view class="modal-content" catchtap="stopPropagation">
+    <view class="modal-header">
+      <text class="modal-title">提现</text>
+      <text class="modal-close" bindtap="closeModal">×</text>
+    </view>
+
+    <!-- 提现金额输入 -->
+    <view class="modal-section">
+      <text class="section-label">提现金额</text>
+      <view class="amount-input-row">
+        <text class="input-symbol">¥</text>
+        <input class="amount-input" 
+               type="digit" 
+               placeholder="请输入提现金额" 
+               value="{{withdrawAmount}}"
+               bindinput="onAmountInput"/>
+      </view>
+      <view class="balance-tip">可提现余额 ¥{{balance}}</view>
+    </view>
+
+    <!-- 提现按钮 -->
+    <button class="modal-submit-btn" bindtap="submitWithdraw">确认提现</button>
+  </view>
+</view>
+
+<!-- 实名认证弹窗 -->
+<view wx:if="{{showVerifyModal}}" class="modal-mask" bindtap="closeVerifyModal">
+  <view class="modal-content" catchtap="stopPropagation">
+    <view class="modal-header">
+      <text class="modal-title">实名认证</text>
+      <text class="modal-close" bindtap="closeVerifyModal">×</text>
+    </view>
+
+    <view class="verify-hint">首次提现需要完成实名认证</view>
+
+    <!-- 实名信息 -->
+    <view class="modal-section">
+      <view class="input-item">
+        <text class="item-label">真实姓名</text>
+        <input class="item-input" placeholder="请输入真实姓名" value="{{realName}}" bindinput="onRealNameInput"/>
+      </view>
+      <view class="input-item">
+        <text class="item-label">身份证号</text>
+        <input class="item-input" placeholder="请输入身份证号" value="{{idCard}}" bindinput="onIdCardInput"/>
+      </view>
+    </view>
+
+    <!-- 银行卡信息 -->
+    <view class="modal-section">
+      <text class="section-label">银行卡信息</text>
+      <view class="input-item">
+        <text class="item-label">开户银行</text>
+        <input class="item-input" placeholder="如：中国工商银行" value="{{bankName}}" bindinput="onBankNameInput"/>
+      </view>
+      <view class="input-item">
+        <text class="item-label">银行卡号</text>
+        <input class="item-input" type="digit" placeholder="请输入银行卡号" value="{{bankCard}}" bindinput="onBankCardInput"/>
+      </view>
+      <view class="input-item">
+        <text class="item-label">开户支行</text>
+        <input class="item-input" placeholder="如：XX支行（可选）" value="{{bankBranch}}" bindinput="onBankBranchInput"/>
+      </view>
+    </view>
+
+    <!-- 提交按钮 -->
+    <button class="modal-submit-btn" bindtap="submitVerify">完成认证</button>
+  </view>
 </view>

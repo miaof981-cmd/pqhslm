@@ -1,20 +1,24 @@
 Page({
   data: {
     balance: 0,
+    showWithdrawModal: false,
+    showVerifyModal: false,
     withdrawAmount: '',
-    isVerified: false, // 是否已实名认证
+    isVerified: false,
     realName: '',
     idCard: '',
     bankName: '',
     bankCard: '',
-    bankBranch: '',
-    withdrawRecords: []
+    bankBranch: ''
   },
 
   onLoad() {
     this.loadBalance()
-    this.loadWithdrawRecords()
     this.loadUserInfo()
+  },
+
+  onShow() {
+    this.loadBalance()
   },
 
   // 加载余额
@@ -22,24 +26,15 @@ Page({
     const rewardRecords = wx.getStorageSync('reward_records') || []
     const withdrawRecords = wx.getStorageSync('withdraw_records') || []
     
-    // 计算打赏总收入
     const totalReward = rewardRecords.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
-    
-    // 计算已提现金额（只计算成功的）
     const totalWithdrawn = withdrawRecords
       .filter(r => r.status === 'success')
       .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
     
-    // 可提现余额 = 打赏收入 - 已提现
     const balance = totalReward - totalWithdrawn
     
-    console.log('=== 余额计算 ===')
-    console.log('打赏总收入:', totalReward)
-    console.log('已提现:', totalWithdrawn)
-    console.log('可提现余额:', balance)
-    
     this.setData({
-      balance: Math.max(0, balance).toFixed(2) // 确保不为负数
+      balance: Math.max(0, balance).toFixed(2)
     })
   },
 
@@ -56,31 +51,53 @@ Page({
     })
   },
 
-  // 加载提现记录
-  loadWithdrawRecords() {
-    const records = wx.getStorageSync('withdraw_records') || []
-    this.setData({ withdrawRecords: records })
+  // 开始提现
+  startWithdraw() {
+    const { balance, isVerified } = this.data
+    
+    if (parseFloat(balance) <= 0) {
+      wx.showToast({
+        title: '暂无可提现余额',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 如果未认证，先弹出认证弹窗
+    if (!isVerified) {
+      this.setData({
+        showVerifyModal: true
+      })
+    } else {
+      // 已认证，直接弹出提现弹窗
+      this.setData({
+        showWithdrawModal: true
+      })
+    }
   },
+
+  // 关闭提现弹窗
+  closeModal() {
+    this.setData({
+      showWithdrawModal: false,
+      withdrawAmount: ''
+    })
+  },
+
+  // 关闭认证弹窗
+  closeVerifyModal() {
+    this.setData({
+      showVerifyModal: false
+    })
+  },
+
+  // 阻止冒泡
+  stopPropagation() {},
 
   // 金额输入
   onAmountInput(e) {
     this.setData({
       withdrawAmount: e.detail.value
-    })
-  },
-
-  // 快速选择金额
-  selectQuickAmount(e) {
-    const amount = e.currentTarget.dataset.amount
-    this.setData({
-      withdrawAmount: amount.toString()
-    })
-  },
-
-  // 全部提现
-  withdrawAll() {
-    this.setData({
-      withdrawAmount: this.data.balance
     })
   },
 
@@ -106,11 +123,71 @@ Page({
     this.setData({ bankBranch: e.detail.value })
   },
 
+  // 提交认证
+  submitVerify() {
+    const { realName, idCard, bankName, bankCard } = this.data
+    
+    // 验证实名信息
+    if (!realName || !idCard) {
+      wx.showToast({
+        title: '请完善实名信息',
+        icon: 'none'
+      })
+      return
+    }
+
+    if (idCard.length !== 18) {
+      wx.showToast({
+        title: '身份证号格式错误',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 验证银行卡信息
+    if (!bankName || !bankCard) {
+      wx.showToast({
+        title: '请完善银行卡信息',
+        icon: 'none'
+      })
+      return
+    }
+
+    if (bankCard.length < 16) {
+      wx.showToast({
+        title: '银行卡号格式错误',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 保存认证信息
+    wx.setStorageSync('user_verify_info', {
+      isVerified: true,
+      realName: this.data.realName,
+      idCard: this.data.idCard,
+      bankName: this.data.bankName,
+      bankCard: this.data.bankCard,
+      bankBranch: this.data.bankBranch
+    })
+
+    wx.showToast({
+      title: '认证成功',
+      icon: 'success'
+    })
+
+    // 关闭认证弹窗，打开提现弹窗
+    this.setData({
+      isVerified: true,
+      showVerifyModal: false,
+      showWithdrawModal: true
+    })
+  },
+
   // 提交提现
   submitWithdraw() {
-    const { withdrawAmount, balance, isVerified, realName, idCard, bankName, bankCard } = this.data
+    const { withdrawAmount, balance } = this.data
     
-    // 验证金额
     if (!withdrawAmount || parseFloat(withdrawAmount) <= 0) {
       wx.showToast({
         title: '请输入提现金额',
@@ -145,43 +222,8 @@ Page({
       return
     }
 
-    // 验证实名信息
-    if (!isVerified) {
-      if (!realName || !idCard) {
-        wx.showToast({
-          title: '请完善实名信息',
-          icon: 'none'
-        })
-        return
-      }
-
-      // 简单验证身份证格式
-      if (idCard.length !== 18) {
-        wx.showToast({
-          title: '身份证号格式错误',
-          icon: 'none'
-        })
-        return
-      }
-    }
-
-    // 验证银行卡信息
-    if (!bankName || !bankCard) {
-      wx.showToast({
-        title: '请完善银行卡信息',
-        icon: 'none'
-      })
-      return
-    }
-
-    if (bankCard.length < 16) {
-      wx.showToast({
-        title: '银行卡号格式错误',
-        icon: 'none'
-      })
-      return
-    }
-
+    const { bankName, bankCard } = this.data
+    
     wx.showModal({
       title: '确认提现',
       content: `提现金额：¥${amount}\n到账银行卡：${bankName}(${bankCard.slice(-4)})`,
@@ -197,19 +239,6 @@ Page({
   processWithdraw(amount) {
     wx.showLoading({ title: '提交中...' })
 
-    // 保存实名信息
-    if (!this.data.isVerified) {
-      wx.setStorageSync('user_verify_info', {
-        isVerified: true,
-        realName: this.data.realName,
-        idCard: this.data.idCard,
-        bankName: this.data.bankName,
-        bankCard: this.data.bankCard,
-        bankBranch: this.data.bankBranch
-      })
-    }
-
-    // 模拟提现
     setTimeout(() => {
       wx.hideLoading()
 
@@ -237,11 +266,10 @@ Page({
         icon: 'success'
       })
 
-      // 刷新数据
+      // 关闭弹窗并刷新
       this.setData({
-        withdrawAmount: '',
-        isVerified: true,
-        withdrawRecords: records
+        showWithdrawModal: false,
+        withdrawAmount: ''
       })
       
       this.loadBalance()

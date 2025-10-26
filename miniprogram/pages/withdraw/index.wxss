@@ -5,13 +5,16 @@ page {
 
 .withdraw-container {
   padding: 30rpx;
+  min-height: calc(100vh - 200rpx);
+  display: flex;
+  flex-direction: column;
 }
 
-/* 余额卡片 - 简约版 */
+/* 余额卡片 */
 .balance-card {
   background: #fff;
   border-radius: 16rpx;
-  padding: 50rpx 40rpx;
+  padding: 60rpx 40rpx;
   margin-bottom: 30rpx;
   text-align: center;
 }
@@ -47,97 +50,6 @@ page {
   display: block;
   font-size: 24rpx;
   color: #999;
-}
-
-/* 提现金额 */
-.input-section, .verify-section, .bank-section {
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 40rpx;
-  margin-bottom: 30rpx;
-}
-
-.section-label {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 24rpx;
-}
-
-.amount-input-row {
-  display: flex;
-  align-items: center;
-  padding: 24rpx 0;
-  border-bottom: 2rpx solid #E0E0E0;
-  margin-bottom: 24rpx;
-}
-
-.input-symbol {
-  font-size: 40rpx;
-  color: #333;
-  margin-right: 12rpx;
-}
-
-.amount-input {
-  flex: 1;
-  font-size: 48rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.quick-select {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
-}
-
-.quick-btn {
-  padding: 16rpx 32rpx;
-  background: #F5F5F5;
-  border-radius: 8rpx;
-  font-size: 26rpx;
-  color: #666;
-}
-
-/* 输入项 */
-.input-item {
-  display: flex;
-  align-items: center;
-  padding: 24rpx 0;
-  border-bottom: 1rpx solid #F0F0F0;
-}
-
-.input-item:last-child {
-  border-bottom: none;
-}
-
-.item-label {
-  width: 160rpx;
-  font-size: 28rpx;
-  color: #666;
-  flex-shrink: 0;
-}
-
-.item-input {
-  flex: 1;
-  font-size: 28rpx;
-  color: #333;
-  text-align: right;
-}
-
-/* 提示信息 */
-.tips-section {
-  background: #F9F9F9;
-  border-radius: 12rpx;
-  padding: 32rpx;
-  margin-bottom: 30rpx;
-}
-
-.tip-line {
-  display: block;
-  font-size: 24rpx;
-  color: #999;
-  line-height: 2;
 }
 
 /* 查看记录入口 */
@@ -183,8 +95,23 @@ page {
   line-height: 1;
 }
 
+/* 提示信息 */
+.tips-section {
+  background: #F9F9F9;
+  border-radius: 12rpx;
+  padding: 32rpx;
+  margin-bottom: auto;
+}
+
+.tip-line {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+  line-height: 2;
+}
+
 /* 提现按钮 */
-.submit-btn {
+.withdraw-btn {
   width: 100%;
   height: 96rpx;
   background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
@@ -196,6 +123,141 @@ page {
   margin-top: 40rpx;
 }
 
-.submit-btn::after {
+.withdraw-btn::after {
+  border: none;
+}
+
+/* 弹窗遮罩 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx;
+}
+
+.modal-content {
+  width: 100%;
+  max-height: 80vh;
+  background: #fff;
+  border-radius: 20rpx;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 40rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 60rpx;
+  color: #999;
+  line-height: 1;
+  padding: 0 10rpx;
+}
+
+/* 弹窗内容 */
+.modal-section {
+  padding: 40rpx;
+}
+
+.section-label {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 24rpx;
+}
+
+.verify-hint {
+  padding: 20rpx 40rpx;
+  font-size: 24rpx;
+  color: #F57C00;
+  background: #FFF3E0;
+  text-align: center;
+}
+
+/* 金额输入 */
+.amount-input-row {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 2rpx solid #E0E0E0;
+}
+
+.input-symbol {
+  font-size: 40rpx;
+  color: #333;
+  margin-right: 12rpx;
+}
+
+.amount-input {
+  flex: 1;
+  font-size: 48rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.balance-tip {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 16rpx;
+}
+
+/* 输入项 */
+.input-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.input-item:last-child {
+  border-bottom: none;
+}
+
+.item-label {
+  width: 160rpx;
+  font-size: 28rpx;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.item-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  text-align: right;
+}
+
+/* 弹窗提交按钮 */
+.modal-submit-btn {
+  width: calc(100% - 80rpx);
+  height: 88rpx;
+  background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #fff;
+  border: none;
+  margin: 0 40rpx 40rpx;
+}
+
+.modal-submit-btn::after {
   border: none;
 }
