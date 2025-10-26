@@ -203,6 +203,37 @@
   padding: 20rpx;
 }
 
+/* 开发调试 */
+.debug-section {
+  margin-top: 60rpx;
+  padding: 30rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20rpx;
+  border: 2rpx dashed rgba(255, 255, 255, 0.3);
+}
+
+.debug-title {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 16rpx;
+  text-align: center;
+}
+
+.debug-btn {
+  width: 100%;
+  height: 70rpx;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 26rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+}
+
+.debug-btn::after {
+  border: none;
+}
+
 /* 底部 */
 .footer {
   padding: 40rpx;

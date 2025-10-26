@@ -42,6 +42,12 @@
     <view class="quick-browse">
       <text class="browse-text" bindtap="skipLogin">暂不登录，先逛逛</text>
     </view>
+
+    <!-- 开发调试 -->
+    <view class="debug-section" wx:if="{{true}}">
+      <text class="debug-title">开发调试</text>
+      <button class="debug-btn" bindtap="testGetUserProfile">测试获取用户信息</button>
+    </view>
   </view>
 
   <!-- 底部装饰 -->
