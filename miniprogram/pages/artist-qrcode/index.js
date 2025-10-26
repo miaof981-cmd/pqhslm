@@ -412,8 +412,29 @@ Page({
 
   // 进入工作台
   goToWorkspace() {
+    console.log('🚀 [artist-qrcode] 点击了"进入工作台"按钮')
+    console.log('  - 当前用户ID:', wx.getStorageSync('userId'))
+    console.log('  - 当前角色:', wx.getStorageSync('userRoles'))
+    console.log('  - 准备跳转到 /pages/workspace/index')
+    
     wx.redirectTo({
-      url: '/pages/workspace/index'
+      url: '/pages/workspace/index',
+      success: () => {
+        console.log('✅ 跳转成功')
+      },
+      fail: (err) => {
+        console.error('❌ 跳转失败:', err)
+        // 如果 redirectTo 失败，尝试 navigateTo
+        wx.navigateTo({
+          url: '/pages/workspace/index',
+          success: () => {
+            console.log('✅ navigateTo 跳转成功')
+          },
+          fail: (err2) => {
+            console.error('❌ navigateTo 也失败了:', err2)
+          }
+        })
+      }
     })
   }
 })
