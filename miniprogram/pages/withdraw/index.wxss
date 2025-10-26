@@ -150,6 +150,11 @@ page {
   overflow-y: auto;
 }
 
+.verify-modal {
+  width: 90%;
+  max-width: 640rpx;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -236,6 +241,14 @@ page {
   font-size: 28rpx;
   color: #666;
   flex-shrink: 0;
+  position: relative;
+}
+
+.item-label.required::after {
+  content: '*';
+  color: #FF6B6B;
+  margin-left: 4rpx;
+  font-size: 28rpx;
 }
 
 .item-input {
@@ -260,4 +273,37 @@ page {
 
 .modal-submit-btn::after {
   border: none;
+}
+
+/* 验证码相关 */
+.verify-code-item {
+  display: flex;
+  align-items: center;
+}
+
+.verify-code-input {
+  flex: 1;
+  margin-right: 20rpx;
+}
+
+.send-code-btn {
+  width: 180rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  padding: 0;
+  background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
+  color: #fff;
+  font-size: 24rpx;
+  border-radius: 8rpx;
+  border: none;
+  flex-shrink: 0;
+}
+
+.send-code-btn::after {
+  border: none;
+}
+
+.send-code-btn.disabled {
+  background: #E0E0E0;
+  color: #999;
 }

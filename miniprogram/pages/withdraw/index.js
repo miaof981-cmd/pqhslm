@@ -7,9 +7,13 @@ Page({
     isVerified: false,
     realName: '',
     idCard: '',
+    phoneNumber: '',
+    verifyCode: '',
     bankName: '',
     bankCard: '',
-    bankBranch: ''
+    bankBranch: '',
+    countdown: 0,
+    codeSending: false
   },
 
   onLoad() {
@@ -45,6 +49,7 @@ Page({
       isVerified: !!userInfo.isVerified,
       realName: userInfo.realName || '',
       idCard: userInfo.idCard || '',
+      phoneNumber: userInfo.phoneNumber || '',
       bankName: userInfo.bankName || '',
       bankCard: userInfo.bankCard || '',
       bankBranch: userInfo.bankBranch || ''
@@ -112,6 +117,66 @@ Page({
     this.setData({ idCard: e.detail.value })
   },
 
+  onPhoneInput(e) {
+    this.setData({ phoneNumber: e.detail.value })
+  },
+
+  onVerifyCodeInput(e) {
+    this.setData({ verifyCode: e.detail.value })
+  },
+
+  // 发送验证码
+  sendVerifyCode() {
+    const { phoneNumber } = this.data
+    
+    if (!phoneNumber) {
+      wx.showToast({
+        title: '请输入手机号',
+        icon: 'none'
+      })
+      return
+    }
+
+    if (!/^1[3-9]\d{9}$/.test(phoneNumber)) {
+      wx.showToast({
+        title: '手机号格式错误',
+        icon: 'none'
+      })
+      return
+    }
+
+    this.setData({ codeSending: true })
+
+    // 模拟发送验证码
+    setTimeout(() => {
+      this.setData({ 
+        codeSending: false,
+        countdown: 60
+      })
+
+      wx.showToast({
+        title: '验证码已发送',
+        icon: 'success'
+      })
+
+      // 开始倒计时
+      this.startCountdown()
+    }, 500)
+  },
+
+  // 倒计时
+  startCountdown() {
+    const timer = setInterval(() => {
+      const countdown = this.data.countdown - 1
+      if (countdown <= 0) {
+        clearInterval(timer)
+        this.setData({ countdown: 0 })
+      } else {
+        this.setData({ countdown })
+      }
+    }, 1000)
+  },
+
   // 银行卡信息输入
   onBankNameInput(e) {
     this.setData({ bankName: e.detail.value })
@@ -127,12 +192,21 @@ Page({
 
   // 提交认证
   submitVerify() {
-    const { realName, idCard, bankName, bankCard } = this.data
+    const { realName, idCard, phoneNumber, verifyCode, bankName, bankCard } = this.data
     
-    // 验证实名信息
-    if (!realName || !idCard) {
+    // 验证真实姓名
+    if (!realName || realName.trim() === '') {
       wx.showToast({
-        title: '请完善实名信息',
+        title: '请输入真实姓名',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 验证身份证号
+    if (!idCard || idCard.trim() === '') {
+      wx.showToast({
+        title: '请输入身份证号',
         icon: 'none'
       })
       return
@@ -146,10 +220,53 @@ Page({
       return
     }
 
-    // 验证银行卡信息
-    if (!bankName || !bankCard) {
+    // 验证手机号
+    if (!phoneNumber || phoneNumber.trim() === '') {
       wx.showToast({
-        title: '请完善银行卡信息',
+        title: '请输入手机号',
+        icon: 'none'
+      })
+      return
+    }
+
+    if (!/^1[3-9]\d{9}$/.test(phoneNumber)) {
+      wx.showToast({
+        title: '手机号格式错误',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 验证验证码
+    if (!verifyCode || verifyCode.trim() === '') {
+      wx.showToast({
+        title: '请输入验证码',
+        icon: 'none'
+      })
+      return
+    }
+
+    if (verifyCode.length !== 6) {
+      wx.showToast({
+        title: '验证码格式错误',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 验证开户银行
+    if (!bankName || bankName.trim() === '') {
+      wx.showToast({
+        title: '请输入开户银行',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 验证银行卡号
+    if (!bankCard || bankCard.trim() === '') {
+      wx.showToast({
+        title: '请输入银行卡号',
         icon: 'none'
       })
       return
@@ -168,6 +285,7 @@ Page({
       isVerified: true,
       realName: this.data.realName,
       idCard: this.data.idCard,
+      phoneNumber: this.data.phoneNumber,
       bankName: this.data.bankName,
       bankCard: this.data.bankCard,
       bankBranch: this.data.bankBranch
@@ -182,7 +300,9 @@ Page({
     this.setData({
       isVerified: true,
       showVerifyModal: false,
-      showWithdrawModal: true
+      showWithdrawModal: true,
+      verifyCode: '', // 清空验证码
+      countdown: 0 // 重置倒计时
     })
   },
 

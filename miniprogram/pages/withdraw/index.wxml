@@ -68,7 +68,7 @@
 
 <!-- 实名认证弹窗 -->
 <view wx:if="{{showVerifyModal}}" class="modal-mask" bindtap="closeVerifyModal">
-  <view class="modal-content" catchtap="stopPropagation">
+  <view class="modal-content verify-modal" catchtap="stopPropagation">
     <view class="modal-header">
       <text class="modal-title">实名认证</text>
       <text class="modal-close" bindtap="closeVerifyModal">×</text>
@@ -79,12 +79,25 @@
     <!-- 实名信息 -->
     <view class="modal-section">
       <view class="input-item">
-        <text class="item-label">真实姓名</text>
+        <text class="item-label required">真实姓名</text>
         <input class="item-input" placeholder="请输入真实姓名" value="{{realName}}" bindinput="onRealNameInput"/>
       </view>
       <view class="input-item">
-        <text class="item-label">身份证号</text>
+        <text class="item-label required">身份证号</text>
         <input class="item-input" placeholder="请输入身份证号" value="{{idCard}}" bindinput="onIdCardInput"/>
+      </view>
+      <view class="input-item">
+        <text class="item-label required">手机号码</text>
+        <input class="item-input" type="number" placeholder="银行预留手机号" value="{{phoneNumber}}" bindinput="onPhoneInput"/>
+      </view>
+      <view class="input-item verify-code-item">
+        <text class="item-label required">验证码</text>
+        <input class="item-input verify-code-input" type="number" placeholder="请输入验证码" value="{{verifyCode}}" bindinput="onVerifyCodeInput"/>
+        <button class="send-code-btn {{codeSending || countdown > 0 ? 'disabled' : ''}}" 
+                bindtap="sendVerifyCode"
+                disabled="{{codeSending || countdown > 0}}">
+          {{countdown > 0 ? countdown + 's' : '获取验证码'}}
+        </button>
       </view>
     </view>
 
@@ -92,11 +105,11 @@
     <view class="modal-section">
       <text class="section-label">银行卡信息</text>
       <view class="input-item">
-        <text class="item-label">开户银行</text>
+        <text class="item-label required">开户银行</text>
         <input class="item-input" placeholder="如：中国工商银行" value="{{bankName}}" bindinput="onBankNameInput"/>
       </view>
       <view class="input-item">
-        <text class="item-label">银行卡号</text>
+        <text class="item-label required">银行卡号</text>
         <input class="item-input" type="digit" placeholder="请输入银行卡号" value="{{bankCard}}" bindinput="onBankCardInput"/>
       </view>
       <view class="input-item">
