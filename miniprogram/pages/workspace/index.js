@@ -2,6 +2,8 @@ Page({
   data: {
     loading: true,
     userRole: '', // 'artist' 或 'service'
+    availableRoles: [], // 用户可以切换的角色列表
+    canSwitchRole: false, // 是否可以切换角色
     
     // 今日待办（所有角色通用）
     todoStats: {
@@ -31,17 +33,23 @@ Page({
     const app = getApp()
     const roles = app.getUserRoles()
     
-    // 确定主要工作角色（优先级：admin > service > artist）
-    let userRole = 'customer'
+    // 收集用户可以使用的工作角色
+    const availableRoles = []
+    if (roles.includes('artist')) {
+      availableRoles.push({ id: 'artist', name: '画师', icon: '🎨' })
+    }
+    if (roles.includes('service')) {
+      availableRoles.push({ id: 'service', name: '客服', icon: '💬' })
+    }
     if (roles.includes('admin')) {
-      userRole = 'service' // 管理员默认显示客服视图（可以看所有订单）
-    } else if (roles.includes('service')) {
-      userRole = 'service'
-    } else if (roles.includes('artist')) {
-      userRole = 'artist'
+      // 管理员可以切换到客服视图
+      if (!availableRoles.find(r => r.id === 'service')) {
+        availableRoles.push({ id: 'service', name: '客服', icon: '💬' })
+      }
     }
     
-    if (userRole === 'customer') {
+    // 检查是否有权限
+    if (availableRoles.length === 0) {
       wx.showModal({
         title: '权限不足',
         content: '您还不是画师或客服，无法访问工作台',
@@ -53,7 +61,20 @@ Page({
       return
     }
     
-    this.setData({ userRole })
+    // 从本地存储读取上次选择的角色
+    let userRole = wx.getStorageSync('workspace_role') || availableRoles[0].id
+    
+    // 确保选择的角色在可用列表中
+    if (!availableRoles.find(r => r.id === userRole)) {
+      userRole = availableRoles[0].id
+    }
+    
+    this.setData({ 
+      userRole,
+      availableRoles,
+      canSwitchRole: availableRoles.length > 1 // 有多个角色才显示切换按钮
+    })
+    
     this.loadData()
   },
 
@@ -222,6 +243,38 @@ Page({
         icon: 'none'
       })
     }
+  },
+
+  // 切换角色
+  switchRole() {
+    const { availableRoles, userRole } = this.data
+    
+    // 显示角色选择菜单
+    const roleNames = availableRoles.map(r => `${r.icon} ${r.name}`)
+    
+    wx.showActionSheet({
+      itemList: roleNames,
+      success: (res) => {
+        const selectedRole = availableRoles[res.tapIndex]
+        
+        if (selectedRole.id !== userRole) {
+          // 保存选择到本地存储
+          wx.setStorageSync('workspace_role', selectedRole.id)
+          
+          // 更新角色并重新加载数据
+          this.setData({
+            userRole: selectedRole.id
+          })
+          
+          this.loadData()
+          
+          wx.showToast({
+            title: `已切换到${selectedRole.name}视图`,
+            icon: 'success'
+          })
+        }
+      }
+    })
   },
 
   // 下拉刷新

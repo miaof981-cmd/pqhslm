@@ -28,6 +28,19 @@
   font-weight: bold;
   color: white;
   z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  transition: transform 0.3s;
+}
+
+.role-badge.clickable {
+  cursor: pointer;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+}
+
+.role-badge.clickable:active {
+  transform: scale(0.95);
 }
 
 .role-badge.artist {
@@ -36,6 +49,21 @@
 
 .role-badge.service {
   background: linear-gradient(135deg, #FFB74D, #FFA726);
+}
+
+.switch-icon {
+  font-size: 24rpx;
+  margin-left: 4rpx;
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
 }
 
 /* 通用区块标题 */

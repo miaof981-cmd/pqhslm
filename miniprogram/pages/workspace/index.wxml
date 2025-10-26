@@ -4,10 +4,12 @@
   </view>
 
   <view wx:else class="workspace-content">
-    <!-- 角色标识 -->
-    <view class="role-badge {{userRole}}">
-      <text wx:if="{{userRole === 'artist'}}">画师</text>
-      <text wx:elif="{{userRole === 'service'}}">客服</text>
+    <!-- 角色标识（可点击切换） -->
+    <view class="role-badge {{userRole}} {{canSwitchRole ? 'clickable' : ''}}" 
+          bindtap="{{canSwitchRole ? 'switchRole' : ''}}">
+      <text wx:if="{{userRole === 'artist'}}">🎨 画师</text>
+      <text wx:elif="{{userRole === 'service'}}">💬 客服</text>
+      <text wx:if="{{canSwitchRole}}" class="switch-icon">⇄</text>
     </view>
 
     <!-- 今日待办 -->
