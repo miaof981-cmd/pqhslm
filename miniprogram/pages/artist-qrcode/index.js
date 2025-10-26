@@ -64,11 +64,31 @@ Page({
   // 检查是否有画师权限
   checkArtistPermission() {
     const app = getApp()
-    const roles = app.getUserRoles ? app.getUserRoles() : (wx.getStorageSync('userRoles') || ['customer'])
-    const hasArtistPermission = roles.includes('artist')
+    const userId = app.globalData.userId || wx.getStorageSync('userId')
+    let roles = wx.getStorageSync('userRoles') || ['customer']
     
     console.log('🔍 [artist-qrcode] 权限检查详情:')
+    console.log('  - 当前用户ID:', userId)
     console.log('  - 当前角色列表:', roles)
+    
+    // ⭐ 检查申请记录，如果管理员已授权，自动添加 artist 角色
+    const applications = wx.getStorageSync('artist_applications') || []
+    const userApp = applications.find(app => app.userId == userId && app.status === 'approved' && app.permissionGranted)
+    
+    if (userApp && !roles.includes('artist')) {
+      console.log('✅ 检测到管理员已授权，自动添加 artist 权限')
+      console.log('  - 画师编号:', userApp.artistNumber)
+      console.log('  - 授权时间:', userApp.permissionGrantedTime)
+      
+      roles.push('artist')
+      wx.setStorageSync('userRoles', roles)
+      app.globalData.roles = roles
+      
+      console.log('  - 更新后的roles:', roles)
+    }
+    
+    const hasArtistPermission = roles.includes('artist')
+    
     console.log('  - 是否包含artist:', hasArtistPermission)
     console.log('  - 本地存储userRoles:', wx.getStorageSync('userRoles'))
     console.log('  - app.globalData.roles:', app.globalData.roles)
