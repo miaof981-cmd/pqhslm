@@ -1,0 +1,115 @@
+page {
+  background: linear-gradient(180deg, #E8F5E9 0%, #F1F8E9 100%);
+  min-height: 100vh;
+}
+
+.records-container {
+  padding: 30rpx;
+}
+
+/* 统计卡片 */
+.stats-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 40rpx;
+  margin-bottom: 30rpx;
+  display: flex;
+  align-items: center;
+}
+
+.stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.stat-divider {
+  width: 1rpx;
+  height: 60rpx;
+  background: #E0E0E0;
+}
+
+/* 空状态 */
+.empty-state {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 120rpx 0;
+  text-align: center;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 记录列表 */
+.records-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.record-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 32rpx;
+}
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.record-amount {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #333;
+}
+
+.record-status {
+  font-size: 26rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 6rpx;
+}
+
+.status-pending {
+  background: #FFF3E0;
+  color: #F57C00;
+}
+
+.status-success {
+  background: #E8F5E9;
+  color: #66BB6A;
+}
+
+.status-failed {
+  background: #FFEBEE;
+  color: #E57373;
+}
+
+.record-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.info-item {
+  font-size: 24rpx;
+  color: #999;
+}
+

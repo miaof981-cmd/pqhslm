@@ -69,15 +69,21 @@
     <text class="tip-line">• 首次提现需要提供实名信息</text>
   </view>
 
-  <!-- 提现记录 -->
-  <view wx:if="{{withdrawRecords.length > 0}}" class="records-section">
-    <view class="section-label">最近提现</view>
-    <view wx:for="{{withdrawRecords.slice(0, 3)}}" wx:key="id" class="record-item">
-      <view class="record-left">
-        <text class="record-amount">-¥{{item.amount}}</text>
-        <text class="record-time">{{item.time}}</text>
+  <!-- 查看记录入口 -->
+  <view class="view-records">
+    <view class="record-entry" bindtap="viewIncomeDetail">
+      <text class="entry-label">资金明细</text>
+      <view class="entry-right">
+        <text class="entry-hint">查看收入记录</text>
+        <text class="entry-arrow">›</text>
       </view>
-      <text class="record-status status-{{item.status}}">{{item.statusText}}</text>
+    </view>
+    <view class="record-entry" bindtap="viewWithdrawRecords">
+      <text class="entry-label">提现记录</text>
+      <view class="entry-right">
+        <text class="entry-hint">查看提现历史</text>
+        <text class="entry-arrow">›</text>
+      </view>
     </view>
   </view>
 

@@ -35,6 +35,7 @@
     "pages/artist-products-manage/index",
     "pages/reward-records/index",
     "pages/withdraw/index",
+    "pages/withdraw-records/index",
     "pages/data-stats/index"
   ],
   "window": {

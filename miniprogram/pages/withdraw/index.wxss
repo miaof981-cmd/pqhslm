@@ -140,62 +140,47 @@ page {
   line-height: 2;
 }
 
-/* 提现记录 */
-.records-section {
+/* 查看记录入口 */
+.view-records {
   background: #fff;
   border-radius: 16rpx;
-  padding: 40rpx;
+  padding: 0 40rpx;
   margin-bottom: 30rpx;
 }
 
-.record-item {
+.record-entry {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24rpx 0;
+  padding: 32rpx 0;
   border-bottom: 1rpx solid #F0F0F0;
 }
 
-.record-item:last-child {
+.record-entry:last-child {
   border-bottom: none;
 }
 
-.record-left {
-  display: flex;
-  flex-direction: column;
-}
-
-.record-amount {
-  font-size: 32rpx;
-  font-weight: 600;
+.entry-label {
+  font-size: 28rpx;
   color: #333;
-  margin-bottom: 8rpx;
+  font-weight: 500;
 }
 
-.record-time {
+.entry-right {
+  display: flex;
+  align-items: center;
+}
+
+.entry-hint {
   font-size: 24rpx;
   color: #999;
+  margin-right: 8rpx;
 }
 
-.record-status {
-  font-size: 26rpx;
-  padding: 8rpx 20rpx;
-  border-radius: 6rpx;
-}
-
-.status-pending {
-  background: #FFF3E0;
-  color: #F57C00;
-}
-
-.status-success {
-  background: #E8F5E9;
-  color: #66BB6A;
-}
-
-.status-failed {
-  background: #FFEBEE;
-  color: #E57373;
+.entry-arrow {
+  font-size: 40rpx;
+  color: #999;
+  line-height: 1;
 }
 
 /* 提现按钮 */

@@ -22,13 +22,24 @@ Page({
     const rewardRecords = wx.getStorageSync('reward_records') || []
     const withdrawRecords = wx.getStorageSync('withdraw_records') || []
     
-    const totalReward = rewardRecords.reduce((sum, r) => sum + (r.amount || 0), 0)
+    // 计算打赏总收入
+    const totalReward = rewardRecords.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
+    
+    // 计算已提现金额（只计算成功的）
     const totalWithdrawn = withdrawRecords
       .filter(r => r.status === 'success')
-      .reduce((sum, r) => sum + (r.amount || 0), 0)
+      .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
+    
+    // 可提现余额 = 打赏收入 - 已提现
+    const balance = totalReward - totalWithdrawn
+    
+    console.log('=== 余额计算 ===')
+    console.log('打赏总收入:', totalReward)
+    console.log('已提现:', totalWithdrawn)
+    console.log('可提现余额:', balance)
     
     this.setData({
-      balance: (totalReward - totalWithdrawn).toFixed(2)
+      balance: Math.max(0, balance).toFixed(2) // 确保不为负数
     })
   },
 
@@ -48,30 +59,7 @@ Page({
   // 加载提现记录
   loadWithdrawRecords() {
     const records = wx.getStorageSync('withdraw_records') || []
-    
-    // 生成模拟数据（首次）
-    if (records.length === 0) {
-      const mockRecords = [
-        {
-          id: Date.now() - 86400000,
-          amount: 200,
-          status: 'success',
-          statusText: '已到账',
-          time: '2025-10-20 14:30'
-        },
-        {
-          id: Date.now() - 172800000,
-          amount: 150,
-          status: 'success',
-          statusText: '已到账',
-          time: '2025-10-18 09:15'
-        }
-      ]
-      wx.setStorageSync('withdraw_records', mockRecords)
-      this.setData({ withdrawRecords: mockRecords })
-    } else {
-      this.setData({ withdrawRecords: records })
-    }
+    this.setData({ withdrawRecords: records })
   },
 
   // 金额输入
@@ -258,5 +246,19 @@ Page({
       
       this.loadBalance()
     }, 1000)
+  },
+
+  // 查看资金明细
+  viewIncomeDetail() {
+    wx.navigateTo({
+      url: '/pages/reward-records/index'
+    })
+  },
+
+  // 查看提现记录
+  viewWithdrawRecords() {
+    wx.navigateTo({
+      url: '/pages/withdraw-records/index'
+    })
   }
 })
