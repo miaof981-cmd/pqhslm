@@ -330,10 +330,23 @@ Page({
     })
   },
 
-  // 更新用户信息
-  updateUserInfo() {
-    wx.navigateTo({
-      url: '/pages/user-edit/index'
+  // 提示重新登录以更新头像昵称
+  promptRelogin() {
+    console.log('🔄 用户点击头像，提示重新登录')
+    
+    wx.showModal({
+      title: '更新头像和昵称',
+      content: '重新登录即可更新您的头像和昵称',
+      confirmText: '立即登录',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          console.log('✅ 用户确认重新登录')
+          this.doLogout()
+        } else {
+          console.log('❌ 用户取消重新登录')
+        }
+      }
     })
   }
 })

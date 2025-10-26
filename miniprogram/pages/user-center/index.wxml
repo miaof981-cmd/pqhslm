@@ -7,14 +7,14 @@
     <!-- 用户信息卡片 -->
     <view class="user-card">
       <view class="user-main-info">
-        <image class="user-avatar" src="{{userInfo.avatar}}" mode="aspectFill" bindtap="updateUserInfo" />
+        <image class="user-avatar" src="{{userInfo.avatar}}" mode="aspectFill" bindtap="promptRelogin" />
         <view class="user-details">
           <view class="user-name">{{userInfo.name}}</view>
           <view class="user-id">ID: {{userId}}</view>
           <view class="user-roles">
             <text wx:for="{{roleTexts}}" wx:key="*this" class="role-tag">{{item}}</text>
           </view>
-          <text wx:if="{{userInfo.name === '微信用户'}}" class="auth-hint" bindtap="updateUserInfo">点击头像更新信息</text>
+          <text class="auth-hint" bindtap="promptRelogin">点击头像重新登录</text>
         </view>
       </view>
       <view class="role-manage-btn" bindtap="goToRoleManage">权限</view>
