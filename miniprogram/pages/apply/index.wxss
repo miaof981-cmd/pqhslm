@@ -328,6 +328,23 @@
   border-radius: 50%;
 }
 
+.agreement-text.highlight {
+  color: #333;
+  font-weight: 500;
+  background: rgba(255, 167, 38, 0.1);
+  padding: 12rpx 20rpx 12rpx 32rpx;
+  margin-left: -12rpx;
+  margin-right: -12rpx;
+  border-radius: 8rpx;
+}
+
+.agreement-text.highlight::before {
+  background: #FF5722;
+  width: 10rpx;
+  height: 10rpx;
+  left: 12rpx;
+}
+
 /* 同意条款复选框 */
 .agreement-checkbox {
   display: flex;

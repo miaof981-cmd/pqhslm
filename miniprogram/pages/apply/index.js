@@ -154,9 +154,17 @@ Page({
       return false
     }
 
-    if (finishedWorks.length === 0) {
+    if (finishedWorks.length < 4) {
       wx.showToast({
-        title: '请至少上传1张满意的作品',
+        title: '请至少上传4张满意的作品',
+        icon: 'none'
+      })
+      return false
+    }
+
+    if (finishedWorks.length > 9) {
+      wx.showToast({
+        title: '满意的作品最多上传9张',
         icon: 'none'
       })
       return false
@@ -164,7 +172,15 @@ Page({
 
     if (processImages.length === 0) {
       wx.showToast({
-        title: '请至少上传1张绘画过程图',
+        title: '请至少上传1张图层截图',
+        icon: 'none'
+      })
+      return false
+    }
+
+    if (processImages.length > 9) {
+      wx.showToast({
+        title: '图层截图最多上传9张',
         icon: 'none'
       })
       return false

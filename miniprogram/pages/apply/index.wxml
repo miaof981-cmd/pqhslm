@@ -94,7 +94,7 @@
           <text class="label-text">满意的作品</text>
           <text class="required">*</text>
         </view>
-        <view class="upload-hint-top">请上传您最满意的作品，展示您的绘画风格和水平</view>
+        <view class="upload-hint-top">请上传您最满意的作品，展示您的绘画风格和水平（至少4张，最多9张）</view>
         <view class="image-grid">
           <view wx:for="{{formData.finishedWorks}}" wx:key="*this" class="image-item">
             <image src="{{item}}" mode="aspectFill" />
@@ -115,10 +115,10 @@
 
       <view class="upload-group">
         <view class="upload-label">
-          <text class="label-text">绘画过程</text>
+          <text class="label-text">绘画过程（图层截图）</text>
           <text class="required">*</text>
         </view>
-        <view class="upload-hint-top">请上传绘画过程图（草稿、线稿、上色等），证明作品原创性</view>
+        <view class="upload-hint-top">请直接截图画面图层，证明作品原创性（至少1张，最多9张）</view>
         <view class="image-grid">
           <view wx:for="{{formData.processImages}}" wx:key="*this" class="image-item">
             <image src="{{item}}" mode="aspectFill" />
@@ -131,7 +131,7 @@
                 data-type="processImages"
                 bindtap="chooseImages">
             <view class="upload-icon"></view>
-            <text class="upload-text">添加过程图</text>
+            <text class="upload-text">添加图层截图</text>
             <text class="upload-count">{{formData.processImages.length}}/9</text>
           </view>
         </view>
@@ -150,8 +150,8 @@
         <view class="agreement-text">
           1. 联盟采用会员制运营模式，画师需缴纳会员费后方可接单。
         </view>
-        <view class="agreement-text">
-          2. 会员费用于平台运营、推广和技术维护，不可退还。
+        <view class="agreement-text highlight">
+          2. 会员费首月19.9元用于评估收益，次月起29.9元/月，不可退还。
         </view>
         <view class="agreement-text">
           3. 会员有效期内，画师可自由上架商品、接收订单。
@@ -165,8 +165,8 @@
         <view class="agreement-text">
           6. 画师需按时交稿，如有延期需提前与客户沟通。
         </view>
-        <view class="agreement-text">
-          7. 平台会收取一定比例的服务费用于运营和推广。
+        <view class="agreement-text highlight">
+          7. 平台会收取一定比例的服务费用于承担工作人员工资。
         </view>
         <view class="agreement-text">
           8. 违反规定的画师将被取消会员资格，不予退费。
