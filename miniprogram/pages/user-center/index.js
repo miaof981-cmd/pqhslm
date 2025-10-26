@@ -96,6 +96,64 @@ Page({
     return this.data.roles.includes(role)
   },
 
+  // 退出登录
+  handleLogout() {
+    wx.showModal({
+      title: '退出登录',
+      content: '确定要退出登录吗？',
+      confirmText: '退出',
+      confirmColor: '#E74C3C',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          this.doLogout()
+        }
+      }
+    })
+  },
+
+  // 执行退出登录
+  doLogout() {
+    wx.showLoading({ title: '退出中...' })
+
+    try {
+      // 清除用户信息
+      wx.removeStorageSync('userInfo')
+      wx.removeStorageSync('hasLoggedIn')
+      wx.removeStorageSync('isGuestMode')
+      
+      // 清除全局数据
+      const app = getApp()
+      app.globalData.userInfo = null
+      
+      console.log('✅ 已清除登录信息')
+      
+      wx.hideLoading()
+      
+      wx.showToast({
+        title: '已退出登录',
+        icon: 'success',
+        duration: 1500
+      })
+      
+      // 延迟跳转到登录页
+      setTimeout(() => {
+        wx.reLaunch({
+          url: '/pages/login/index'
+        })
+      }, 1500)
+      
+    } catch (error) {
+      wx.hideLoading()
+      console.error('退出登录失败:', error)
+      
+      wx.showToast({
+        title: '退出失败，请重试',
+        icon: 'none'
+      })
+    }
+  },
+
   // 进入权限管理页面
   goToRoleManage() {
     wx.navigateTo({

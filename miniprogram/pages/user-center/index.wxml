@@ -129,6 +129,14 @@
       </view>
     </view>
 
+    <!-- 退出登录 -->
+    <view class="logout-section">
+      <button class="logout-btn" bindtap="handleLogout">
+        <text class="logout-icon">🚪</text>
+        <text class="logout-text">退出登录</text>
+      </button>
+    </view>
+
     <!-- 版权信息 -->
     <view class="copyright">
       <text class="copyright-text">画师商城版权所有©2024</text>
