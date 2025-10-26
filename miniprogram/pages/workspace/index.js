@@ -38,13 +38,10 @@ Page({
     const app = getApp()
     const roles = app.getUserRoles()
     
-    // 收集用户可以使用的工作角色
+    // 收集用户可以使用的工作角色（只有画师和客服）
     const availableRoles = []
     if (roles.includes('artist')) {
       availableRoles.push('artist')
-    }
-    if (roles.includes('admin')) {
-      availableRoles.push('admin')
     }
     if (roles.includes('service')) {
       availableRoles.push('service')
@@ -54,7 +51,7 @@ Page({
     if (availableRoles.length === 0) {
       wx.showModal({
         title: '权限不足',
-        content: '您还不是画师、店长或客服，无法访问工作台',
+        content: '您还不是画师或客服，无法访问工作台',
         showCancel: false,
         success: () => {
           wx.navigateBack()
@@ -88,8 +85,6 @@ Page({
     // 根据角色加载不同的快捷功能
     if (userRole === 'artist') {
       this.loadArtistActions()
-    } else if (userRole === 'admin') {
-      this.loadAdminActions()
     } else if (userRole === 'service') {
       this.loadServiceActions()
     }
@@ -103,26 +98,10 @@ Page({
   // 加载画师快捷功能
   loadArtistActions() {
     const quickActions = [
-      { id: 'data-stats', label: '数据统计', icon: '📊' },
-      { id: 'order-manage', label: '订单管理', icon: '📋' },
-      { id: 'rewards', label: '打赏记录', icon: '💰' },
-      { id: 'profile', label: '个人资料', icon: '👤' }
-    ]
-    
-    this.setData({ quickActions })
-  },
-
-  // 加载店长（管理员）快捷功能
-  loadAdminActions() {
-    const quickActions = [
-      { id: 'data-stats', label: '数据统计', icon: '📊' },
-      { id: 'order-manage', label: '订单管理', icon: '📋' },
-      { id: 'artist-manage', label: '画师管理', icon: '👥' },
-      { id: 'product-manage', label: '商品管理', icon: '🛍️' },
-      { id: 'page-config', label: '页面配置', icon: '⚙️' },
-      { id: 'notice-manage', label: '通知管理', icon: '📢' },
-      { id: 'activity-manage', label: '动态管理', icon: '🎯' },
-      { id: 'media-lib', label: '素材库', icon: '📁' }
+      { id: 'data-stats', label: '数据统计', iconClass: 'icon-chart' },
+      { id: 'order-manage', label: '订单管理', iconClass: 'icon-order' },
+      { id: 'product-manage', label: '商品管理', iconClass: 'icon-product' },
+      { id: 'rewards', label: '打赏记录', iconClass: 'icon-money' }
     ]
     
     this.setData({ quickActions })
@@ -131,8 +110,8 @@ Page({
   // 加载客服快捷功能
   loadServiceActions() {
     const quickActions = [
-      { id: 'order-manage', label: '订单管理', icon: '📋' },
-      { id: 'consultations', label: '咨询记录', icon: '💬' }
+      { id: 'order-manage', label: '订单管理', iconClass: 'icon-order' },
+      { id: 'consultations', label: '咨询记录', iconClass: 'icon-chat' }
     ]
     
     this.setData({ quickActions })
@@ -151,13 +130,6 @@ Page({
         nearDeadline: 2,
         overdue: 1,
         inProgress: 5
-      }
-    } else if (userRole === 'admin') {
-      // 店长：看所有订单
-      pendingStats = {
-        nearDeadline: 15,
-        overdue: 8,
-        inProgress: 45
       }
     } else if (userRole === 'service') {
       // 客服：看所有订单
@@ -226,22 +198,12 @@ Page({
           url: '/pages/admin-panel/index?tab=orders'
         })
         break
-      case 'artist-manage':
-        wx.navigateTo({
-          url: '/pages/admin-panel/index?tab=artists'
-        })
-        break
       case 'product-manage':
         wx.navigateTo({
           url: '/pages/product-manage/index'
         })
         break
-      case 'page-config':
-      case 'notice-manage':
-      case 'activity-manage':
-      case 'media-lib':
       case 'rewards':
-      case 'profile':
       case 'consultations':
         wx.showToast({
           title: '功能开发中',

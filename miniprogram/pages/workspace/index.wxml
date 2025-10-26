@@ -4,23 +4,26 @@
   </view>
 
   <view wx:else class="workspace-content">
-    <!-- 顶部切换身份标签 -->
-    <view class="role-tabs">
-      <view class="role-tab {{userRole === 'artist' ? 'active' : ''}}" 
+    <!-- 顶部切换身份标签（只显示有权限的） -->
+    <view class="role-tabs" wx:if="{{availableRoles.length > 1}}">
+      <view wx:if="{{availableRoles.indexOf('artist') !== -1}}" 
+            class="role-tab {{userRole === 'artist' ? 'active' : ''}}" 
             data-role="artist" 
             bindtap="switchRoleTab">
-        画师
+        画师工作台
       </view>
-      <view class="role-tab {{userRole === 'admin' ? 'active' : ''}}" 
-            data-role="admin" 
-            bindtap="switchRoleTab">
-        店长
-      </view>
-      <view class="role-tab {{userRole === 'service' ? 'active' : ''}}" 
+      <view wx:if="{{availableRoles.indexOf('service') !== -1}}" 
+            class="role-tab {{userRole === 'service' ? 'active' : ''}}" 
             data-role="service" 
             bindtap="switchRoleTab">
-        客服
+        客服工作台
       </view>
+    </view>
+    
+    <!-- 单一角色时显示标题 -->
+    <view class="single-role-header" wx:else>
+      <text class="role-title" wx:if="{{userRole === 'artist'}}">画师工作台</text>
+      <text class="role-title" wx:elif="{{userRole === 'service'}}">客服工作台</text>
     </view>
 
     <!-- 待处理订单（大数字区域） -->
@@ -49,7 +52,9 @@
     <!-- 平台须知 -->
     <view class="notice-section">
       <view class="notice-header">
-        <text class="notice-icon">⚠️</text>
+        <view class="notice-icon-wrapper">
+          <view class="notice-icon"></view>
+        </view>
         <text class="notice-title">平台须知</text>
         <text class="view-more" bindtap="viewNotices">查看动态</text>
       </view>
@@ -68,15 +73,15 @@
               data-action="{{item.id}}"
               bindtap="handleQuickAction">
           <view class="action-icon-wrapper">
-            <text class="action-icon">{{item.icon}}</text>
+            <view class="action-icon {{item.iconClass}}"></view>
           </view>
           <text class="action-label">{{item.label}}</text>
         </view>
       </view>
     </view>
 
-    <!-- 推广链接（仅画师和店长） -->
-    <view wx:if="{{userRole === 'artist' || userRole === 'admin'}}" class="promo-section">
+    <!-- 推广链接（仅画师） -->
+    <view wx:if="{{userRole === 'artist'}}" class="promo-section">
       <view class="promo-label">推广链接：{{promoLink}}</view>
       <button class="copy-btn" bindtap="copyPromoLink">复制推广链接</button>
     </view>

@@ -58,6 +58,24 @@
   border-radius: 3rpx;
 }
 
+/* 单一角色标题 */
+.single-role-header {
+  background: white;
+  padding: 30rpx;
+  border-bottom: 2rpx solid #E0E0E0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.role-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  display: block;
+  text-align: center;
+}
+
 /* ========== 待处理订单区域 ========== */
 .pending-orders-section {
   margin: 30rpx;
@@ -160,8 +178,31 @@
   margin-bottom: 20rpx;
 }
 
+.notice-icon-wrapper {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .notice-icon {
-  font-size: 36rpx;
+  width: 0;
+  height: 0;
+  border-left: 18rpx solid transparent;
+  border-right: 18rpx solid transparent;
+  border-bottom: 32rpx solid #FFA726;
+  position: relative;
+}
+
+.notice-icon::after {
+  content: '!';
+  position: absolute;
+  top: 8rpx;
+  left: -6rpx;
+  color: white;
+  font-size: 20rpx;
+  font-weight: bold;
 }
 
 .notice-title {
@@ -238,7 +279,122 @@
 }
 
 .action-icon {
-  font-size: 48rpx;
+  width: 48rpx;
+  height: 48rpx;
+  position: relative;
+}
+
+/* 图表图标 */
+.icon-chart {
+  border-left: 6rpx solid #4CAF50;
+  border-bottom: 6rpx solid #4CAF50;
+  border-radius: 4rpx;
+}
+
+.icon-chart::before {
+  content: '';
+  position: absolute;
+  bottom: 6rpx;
+  left: 8rpx;
+  width: 8rpx;
+  height: 20rpx;
+  background: #4CAF50;
+  border-radius: 2rpx;
+}
+
+.icon-chart::after {
+  content: '';
+  position: absolute;
+  bottom: 6rpx;
+  right: 8rpx;
+  width: 8rpx;
+  height: 32rpx;
+  background: #4CAF50;
+  border-radius: 2rpx;
+}
+
+/* 订单图标 */
+.icon-order {
+  border: 4rpx solid #4CAF50;
+  border-radius: 8rpx;
+}
+
+.icon-order::before {
+  content: '';
+  position: absolute;
+  top: 12rpx;
+  left: 8rpx;
+  right: 8rpx;
+  height: 4rpx;
+  background: #4CAF50;
+  border-radius: 2rpx;
+}
+
+.icon-order::after {
+  content: '';
+  position: absolute;
+  top: 24rpx;
+  left: 8rpx;
+  right: 8rpx;
+  height: 4rpx;
+  background: #4CAF50;
+  border-radius: 2rpx;
+}
+
+/* 商品图标 */
+.icon-product {
+  border: 4rpx solid #4CAF50;
+  border-radius: 8rpx;
+  background: linear-gradient(135deg, transparent 40%, #4CAF50 40%, #4CAF50 60%, transparent 60%);
+}
+
+.icon-product::before {
+  content: '';
+  position: absolute;
+  top: -8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20rpx;
+  height: 8rpx;
+  background: #4CAF50;
+  border-radius: 4rpx 4rpx 0 0;
+}
+
+/* 金钱图标 */
+.icon-money {
+  border: 4rpx solid #4CAF50;
+  border-radius: 50%;
+}
+
+.icon-money::before {
+  content: '¥';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #4CAF50;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+/* 聊天图标 */
+.icon-chat {
+  border: 4rpx solid #4CAF50;
+  border-radius: 12rpx;
+  width: 40rpx;
+  height: 32rpx;
+}
+
+.icon-chat::after {
+  content: '';
+  position: absolute;
+  bottom: -8rpx;
+  left: 8rpx;
+  width: 0;
+  height: 0;
+  border-left: 8rpx solid transparent;
+  border-right: 8rpx solid transparent;
+  border-top: 8rpx solid #4CAF50;
 }
 
 .action-label {
