@@ -11,14 +11,7 @@
     <!-- Logo区域 -->
     <view class="logo-section">
       <view class="logo-icon">🎨</view>
-      <text class="app-name">画师联盟</text>
-      <text class="app-slogan">连接创作者与梦想</text>
-    </view>
-
-    <!-- 欢迎文字 -->
-    <view class="welcome-section">
-      <text class="welcome-title">欢迎来到画师联盟</text>
-      <text class="welcome-desc">发现优秀画师，定制专属作品</text>
+      <text class="app-name">贫穷画师联盟</text>
     </view>
 
     <!-- 头像昵称填写区域 -->
@@ -27,8 +20,8 @@
       <view class="avatar-wrapper">
         <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
           <image class="avatar-preview" src="{{avatarUrl}}" mode="aspectFill" />
-          <view class="avatar-tip">点击选择头像</view>
         </button>
+        <text class="avatar-tip">点击选择头像</text>
       </view>
 
       <!-- 昵称输入 -->
@@ -38,7 +31,7 @@
           type="nickname" 
           placeholder="请输入昵称"
           value="{{nickName}}"
-          bindblur="onNicknameInput"
+          bindinput="onNicknameInput"
           placeholder-class="nickname-placeholder" />
       </view>
     </view>
@@ -46,29 +39,8 @@
     <!-- 登录按钮 -->
     <view class="login-section">
       <button class="login-btn" bindtap="handleLogin">
-        <view class="btn-content">
-          <text class="btn-icon">✓</text>
-          <text class="btn-text">完成并登录</text>
-        </view>
+        <text class="btn-text">完成并登录</text>
       </button>
-      
-      <view class="tips">
-        <text class="tip-text">登录即表示同意</text>
-        <text class="tip-link" bindtap="showAgreement">《用户协议》</text>
-        <text class="tip-text">和</text>
-        <text class="tip-link" bindtap="showPrivacy">《隐私政策》</text>
-      </view>
-    </view>
-
-    <!-- 快速浏览 -->
-    <view class="quick-browse">
-      <text class="browse-text" bindtap="skipLogin">暂不登录，先逛逛</text>
-    </view>
-
-    <!-- 开发调试 -->
-    <view class="debug-section" wx:if="{{true}}">
-      <text class="debug-title">开发调试</text>
-      <button class="debug-btn" bindtap="testGetUserProfile">测试获取用户信息</button>
     </view>
   </view>
 

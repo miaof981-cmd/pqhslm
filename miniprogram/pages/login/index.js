@@ -21,7 +21,7 @@ Page({
     })
   },
 
-  // 输入昵称
+  // 输入昵称（实时更新）
   onNicknameInput(e) {
     const nickName = e.detail.value
     console.log('✏️ 用户输入昵称:', nickName)
