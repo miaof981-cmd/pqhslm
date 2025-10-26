@@ -115,8 +115,18 @@ Page({
     
     wx.showToast({
       title: `已切换为${scenario.name}`,
-      icon: 'success'
+      icon: 'success',
+      duration: 1500
     })
+    
+    // 延迟返回上一页，让个人中心自动刷新
+    setTimeout(() => {
+      wx.navigateBack({
+        success: () => {
+          console.log('✅ 已返回个人中心，权限已更新')
+        }
+      })
+    }, 1500)
   },
 
   // 切换角色（手动调整）
@@ -165,8 +175,18 @@ Page({
     
     wx.showToast({
       title: '权限已更新',
-      icon: 'success'
+      icon: 'success',
+      duration: 1500
     })
+    
+    // 延迟返回上一页
+    setTimeout(() => {
+      wx.navigateBack({
+        success: () => {
+          console.log('✅ 已返回个人中心，权限已更新')
+        }
+      })
+    }, 1500)
   },
 
   // 重置用户ID为1001
