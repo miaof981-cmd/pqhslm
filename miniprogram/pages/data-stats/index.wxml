@@ -1,0 +1,133 @@
+<view class="stats-container">
+  <!-- 时间筛选 -->
+  <view class="time-filter">
+    <view wx:for="{{timeRanges}}" wx:key="*this"
+          class="time-tab {{currentRange === item.key ? 'active' : ''}}"
+          bindtap="switchTimeRange"
+          data-range="{{item.key}}">
+      {{item.label}}
+    </view>
+  </view>
+
+  <!-- 核心数据卡片 -->
+  <view class="stats-cards">
+    <view class="stat-card card-blue">
+      <text class="card-label">订单总数</text>
+      <text class="card-value">{{stats.totalOrders}}</text>
+      <text class="card-unit">单</text>
+    </view>
+    
+    <view class="stat-card card-green">
+      <text class="card-label">总收入</text>
+      <text class="card-value">{{stats.totalIncome}}</text>
+      <text class="card-unit">元</text>
+    </view>
+    
+    <view class="stat-card card-orange">
+      <text class="card-label">打赏收入</text>
+      <text class="card-value">{{stats.rewardIncome}}</text>
+      <text class="card-unit">元</text>
+    </view>
+    
+    <view class="stat-card card-purple">
+      <text class="card-label">完成率</text>
+      <text class="card-value">{{stats.completeRate}}</text>
+      <text class="card-unit">%</text>
+    </view>
+  </view>
+
+  <!-- 订单状态统计 -->
+  <view class="section-card">
+    <view class="section-title">订单状态</view>
+    <view class="order-status-stats">
+      <view class="status-item">
+        <view class="status-ring ring-green">
+          <text class="status-count">{{stats.inProgress}}</text>
+        </view>
+        <text class="status-label">进行中</text>
+      </view>
+      <view class="status-item">
+        <view class="status-ring ring-yellow">
+          <text class="status-count">{{stats.nearDeadline}}</text>
+        </view>
+        <text class="status-label">临近截稿</text>
+      </view>
+      <view class="status-item">
+        <view class="status-ring ring-red">
+          <text class="status-count">{{stats.overdue}}</text>
+        </view>
+        <text class="status-label">已拖稿</text>
+      </view>
+      <view class="status-item">
+        <view class="status-ring ring-purple">
+          <text class="status-count">{{stats.completed}}</text>
+        </view>
+        <text class="status-label">已完成</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 收入趋势 -->
+  <view class="section-card">
+    <view class="section-title">收入趋势</view>
+    <view class="income-trend">
+      <view class="trend-row">
+        <text class="trend-label">订单收入</text>
+        <view class="trend-bar">
+          <view class="trend-fill fill-green" style="width: {{stats.orderIncomePercent}}%"></view>
+        </view>
+        <text class="trend-value">¥{{stats.orderIncome}}</text>
+      </view>
+      <view class="trend-row">
+        <text class="trend-label">打赏收入</text>
+        <view class="trend-bar">
+          <view class="trend-fill fill-orange" style="width: {{stats.rewardIncomePercent}}%"></view>
+        </view>
+        <text class="trend-value">¥{{stats.rewardIncome}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 热门商品 -->
+  <view class="section-card">
+    <view class="section-title">热门商品 TOP 3</view>
+    <view wx:if="{{hotProducts.length === 0}}" class="empty-data">
+      <text>暂无数据</text>
+    </view>
+    <view wx:else class="hot-products">
+      <view wx:for="{{hotProducts}}" wx:key="id" class="product-rank-item">
+        <view class="rank-badge rank-{{index + 1}}">{{index + 1}}</view>
+        <image class="product-thumb-small" src="{{item.image}}" mode="aspectFill"/>
+        <view class="product-rank-info">
+          <text class="product-rank-name">{{item.name}}</text>
+          <text class="product-rank-sales">销量 {{item.sales}}单</text>
+        </view>
+        <text class="product-rank-income">¥{{item.income}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 详细数据 -->
+  <view class="section-card">
+    <view class="section-title">详细数据</view>
+    <view class="detail-rows">
+      <view class="detail-row">
+        <text class="detail-label">平均订单金额</text>
+        <text class="detail-value">¥{{stats.avgOrderAmount}}</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">平均完成时长</text>
+        <text class="detail-value">{{stats.avgCompleteTime}}天</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">好评率</text>
+        <text class="detail-value">{{stats.goodReviewRate}}%</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">复购率</text>
+        <text class="detail-value">{{stats.repurchaseRate}}%</text>
+      </view>
+    </view>
+  </view>
+</view>
+

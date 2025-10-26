@@ -478,9 +478,8 @@ Page({
     
     switch (func) {
       case 'dataStats':
-        wx.showToast({
-          title: '数据统计开发中',
-          icon: 'none'
+        wx.navigateTo({
+          url: '/pages/data-stats/index'
         })
         break
         

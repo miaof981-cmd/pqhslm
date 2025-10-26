@@ -1,0 +1,364 @@
+page {
+  background: linear-gradient(180deg, #A8E6CF 0%, #E6FFEB 100%);
+  min-height: 100vh;
+}
+
+.stats-container {
+  padding: 20rpx 30rpx;
+}
+
+/* 时间筛选 */
+.time-filter {
+  display: flex;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 8rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(102, 187, 106, 0.08);
+}
+
+.time-tab {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 26rpx;
+  color: #666;
+  border-radius: 16rpx;
+  transition: all 0.2s;
+}
+
+.time-tab.active {
+  background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 4rpx 12rpx rgba(102, 187, 106, 0.3);
+}
+
+/* 核心数据卡片 */
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 32rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  opacity: 0.1;
+  border-radius: 50%;
+}
+
+.stat-card.card-blue::before {
+  background: linear-gradient(135deg, #B3E5FC 0%, #81D4FA 100%);
+}
+
+.stat-card.card-green::before {
+  background: linear-gradient(135deg, #A8E6CF 0%, #81C784 100%);
+}
+
+.stat-card.card-orange::before {
+  background: linear-gradient(135deg, #FFCCBC 0%, #FFAB91 100%);
+}
+
+.stat-card.card-purple::before {
+  background: linear-gradient(135deg, #E1BEE7 0%, #CE93D8 100%);
+}
+
+.card-label {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 16rpx;
+  z-index: 1;
+}
+
+.card-value {
+  font-size: 56rpx;
+  font-weight: 800;
+  color: #333;
+  line-height: 1;
+  margin-bottom: 8rpx;
+  z-index: 1;
+}
+
+.card-unit {
+  font-size: 22rpx;
+  color: #666;
+  z-index: 1;
+}
+
+/* 通用卡片 */
+.section-card {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(102, 187, 106, 0.08);
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #2D5C3F;
+  margin-bottom: 24rpx;
+  padding-left: 16rpx;
+  position: relative;
+}
+
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6rpx;
+  height: 28rpx;
+  background: linear-gradient(180deg, #66BB6A 0%, #4CAF50 100%);
+  border-radius: 3rpx;
+}
+
+/* 订单状态统计 */
+.order-status-stats {
+  display: flex;
+  justify-content: space-around;
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.status-ring {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12rpx;
+  position: relative;
+}
+
+.status-ring::before {
+  content: '';
+  position: absolute;
+  inset: 12rpx;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.ring-green {
+  background: linear-gradient(135deg, #A8E6CF 0%, #81C784 100%);
+}
+
+.ring-yellow {
+  background: linear-gradient(135deg, #FFE0B2 0%, #FFCC80 100%);
+}
+
+.ring-red {
+  background: linear-gradient(135deg, #FFCDD2 0%, #E57373 100%);
+}
+
+.ring-purple {
+  background: linear-gradient(135deg, #E1BEE7 0%, #CE93D8 100%);
+}
+
+.status-count {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #333;
+  z-index: 1;
+}
+
+.status-label {
+  font-size: 22rpx;
+  color: #666;
+}
+
+/* 收入趋势 */
+.income-trend {
+  padding: 8rpx 0;
+}
+
+.trend-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 32rpx;
+}
+
+.trend-row:last-child {
+  margin-bottom: 0;
+}
+
+.trend-label {
+  width: 140rpx;
+  font-size: 26rpx;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.trend-bar {
+  flex: 1;
+  height: 32rpx;
+  background: #F5F5F5;
+  border-radius: 16rpx;
+  overflow: hidden;
+  margin: 0 20rpx;
+}
+
+.trend-fill {
+  height: 100%;
+  border-radius: 16rpx;
+  transition: width 0.5s ease;
+}
+
+.trend-fill.fill-green {
+  background: linear-gradient(90deg, #A8E6CF 0%, #66BB6A 100%);
+}
+
+.trend-fill.fill-orange {
+  background: linear-gradient(90deg, #FFCCBC 0%, #FFAB91 100%);
+}
+
+.trend-value {
+  width: 140rpx;
+  text-align: right;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #333;
+  flex-shrink: 0;
+}
+
+/* 热门商品 */
+.empty-data {
+  text-align: center;
+  padding: 60rpx 0;
+  font-size: 26rpx;
+  color: #999;
+}
+
+.hot-products {
+  padding: 8rpx 0;
+}
+
+.product-rank-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.product-rank-item:last-child {
+  border-bottom: none;
+}
+
+.rank-badge {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #fff;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.rank-badge.rank-1 {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%);
+}
+
+.rank-badge.rank-2 {
+  background: linear-gradient(135deg, #E0E0E0 0%, #9E9E9E 100%);
+}
+
+.rank-badge.rank-3 {
+  background: linear-gradient(135deg, #FFCC80 0%, #FF9800 100%);
+}
+
+.product-thumb-small {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 12rpx;
+  background: #F5F5F5;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.product-rank-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.product-rank-name {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-rank-sales {
+  display: block;
+  font-size: 22rpx;
+  color: #999;
+}
+
+.product-rank-income {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #66BB6A;
+  margin-left: 20rpx;
+  flex-shrink: 0;
+}
+
+/* 详细数据 */
+.detail-rows {
+  padding: 8rpx 0;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.detail-value {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 600;
+}
+

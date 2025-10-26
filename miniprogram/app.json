@@ -34,7 +34,8 @@
     "pages/staff-qrcode-manage/index",
     "pages/artist-products-manage/index",
     "pages/reward-records/index",
-    "pages/withdraw/index"
+    "pages/withdraw/index",
+    "pages/data-stats/index"
   ],
   "window": {
     "navigationBarTitleText": "画师商城",
