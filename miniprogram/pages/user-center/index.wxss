@@ -487,6 +487,47 @@
   box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.08);
 }
 
+/* ✅ 工作二维码提示 */
+.qrcode-reminder {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  background: linear-gradient(135deg, #FFE082 0%, #FFD54F 100%);
+  border-radius: 16rpx;
+  border-left: 6rpx solid #FFA000;
+}
+
+.reminder-icon {
+  font-size: 48rpx;
+  line-height: 1;
+}
+
+.reminder-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.reminder-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.reminder-subtitle {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.reminder-arrow {
+  font-size: 32rpx;
+  color: #FFA000;
+  font-weight: bold;
+}
+
 .workspace-header {
   display: flex;
   justify-content: space-between;

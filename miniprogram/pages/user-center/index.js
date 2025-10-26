@@ -19,6 +19,7 @@ Page({
     isAdmin: false,
     shouldShowCert: true,      // 是否显示画师认证
     shouldShowWorkspace: false, // 是否显示工作台
+    hasWorkQRCode: false,      // 是否已设置工作二维码
     // 画师申请状态
     applicationStatus: null, // null: 未申请, 'pending': 待审核, 'rejected': 已驳回, 'approved': 已通过
     applicationTime: '',
@@ -80,7 +81,8 @@ Page({
         this.loadUserInfo(),
         this.loadOrders(),
         this.checkArtistStatus(),
-        this.loadApplicationStatus() // 加载申请状态
+        this.loadApplicationStatus(), // 加载申请状态
+        this.checkWorkQRCode()  // ✅ 新增：检查工作二维码
       ])
     } catch (error) {
       console.error('加载数据失败', error)
@@ -366,6 +368,29 @@ Page({
   // 保留旧方法以兼容其他地方的调用
   applyArtist() {
     this.goToArtistCertification()
+  },
+
+  // ✅ 新增：检查是否已设置工作二维码
+  checkWorkQRCode() {
+    const app = getApp()
+    const userId = app.globalData.userId || wx.getStorageSync('userId')
+    
+    // 从本地存储读取画师工作二维码
+    const artistQRCodes = wx.getStorageSync('artist_qrcodes') || {}
+    const hasQRCode = !!artistQRCodes[userId]
+    
+    console.log('📱 检查工作二维码:', hasQRCode ? '已设置' : '未设置')
+    
+    this.setData({
+      hasWorkQRCode: hasQRCode
+    })
+  },
+
+  // ✅ 新增：跳转到上传工作二维码页面
+  goToUploadQRCode() {
+    wx.navigateTo({
+      url: '/pages/artist-qrcode/index'
+    })
   },
 
   // 进入工作台（根据角色显示不同内容）

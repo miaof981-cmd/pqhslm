@@ -26,6 +26,9 @@ App({
     // 初始化用户信息
     this.initUserInfo()
     
+    // ✅ 新增：检查画师申请状态，自动赋予权限
+    this.checkArtistApplication()
+    
     // 检查登录状态
     this.checkLoginStatus()
   },
@@ -195,5 +198,46 @@ App({
   // 获取用户所有角色
   getUserRoles() {
     return wx.getStorageSync('userRoles') || ['customer']
+  },
+
+  // ✅ 新增：检查画师申请状态，自动赋予权限
+  checkArtistApplication() {
+    const userId = this.globalData.userId || wx.getStorageSync('userId')
+    if (!userId) return
+
+    console.log('🎨 检查画师申请状态...')
+
+    // 读取所有申请记录
+    const allApplications = wx.getStorageSync('artist_applications') || []
+    
+    // 查找当前用户的申请
+    const userApplications = allApplications.filter(app => app.userId === userId)
+    
+    if (userApplications.length > 0) {
+      // 按时间排序，取最新的
+      userApplications.sort((a, b) => new Date(b.submitTime) - new Date(a.submitTime))
+      const latestApp = userApplications[0]
+      
+      console.log('  - 最新申请状态:', latestApp.status)
+      
+      // 如果申请已通过，自动添加画师权限
+      if (latestApp.status === 'approved') {
+        let userRoles = wx.getStorageSync('userRoles') || ['customer']
+        
+        if (!userRoles.includes('artist')) {
+          console.log('  ✅ 申请已通过，自动添加画师权限')
+          userRoles.push('artist')
+          wx.setStorageSync('userRoles', userRoles)
+          this.globalData.roles = userRoles
+          this.globalData.role = userRoles[0]
+          
+          console.log('  - 当前角色:', userRoles)
+        } else {
+          console.log('  - 已有画师权限')
+        }
+      }
+    } else {
+      console.log('  - 无申请记录')
+    }
   }
 })
