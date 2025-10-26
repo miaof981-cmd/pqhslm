@@ -1750,12 +1750,16 @@
   justify-content: space-between;
   padding: 24rpx 0;
   margin-top: 20rpx;
+  min-height: 80rpx;
 }
 
 .status-title {
   font-size: 28rpx;
   font-weight: 600;
   flex: 1;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
 }
 
 .status-title.status-online {
