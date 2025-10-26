@@ -391,7 +391,8 @@ Page({
       
       wx.showToast({
         title: '档案建立成功',
-        icon: 'success'
+        icon: 'success',
+        duration: 2000
       })
       
       // 滚动到顶部
@@ -399,6 +400,24 @@ Page({
         scrollTop: 0,
         duration: 300
       })
+      
+      // ⭐ 3秒后自动跳转到工作台
+      setTimeout(() => {
+        console.log('📍 档案建立完成，3秒后跳转到工作台')
+        wx.redirectTo({
+          url: '/pages/workspace/index',
+          success: () => {
+            console.log('✅ 跳转成功')
+          },
+          fail: (err) => {
+            console.error('❌ 跳转失败:', err)
+            // 如果跳转失败，尝试用 navigateTo
+            wx.navigateTo({
+              url: '/pages/workspace/index'
+            })
+          }
+        })
+      }, 3000)
     }, 1000)
   },
 
