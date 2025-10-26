@@ -6,7 +6,6 @@ Page({
     availableRoles: [], // 用户可以切换的角色列表
     
     // 待处理订单统计
-    showPendingOrders: true, // 是否显示待处理订单
     pendingStats: {
       nearDeadline: 5,  // 临近截稿
       overdue: 2,       // 已拖稿
@@ -14,16 +13,12 @@ Page({
     },
     
     // 平台须知
+    showNotices: false, // 默认折叠
     notices: [
-      { id: 1, content: '每笔订单从今日起2xx天内~~' },
-      { id: 2, content: '每笔订单从今日起2xx天内~~' }
-    ],
-    
-    // 快捷功能（根据角色不同）
-    quickActions: [],
-    
-    // 推广链接
-    promoLink: 'https://teatnet.com'
+      { id: 1, content: '每笔订单从今日起20天内未确认收货，系统将自动确认收货' },
+      { id: 2, content: '平台回收一定比例的服务费用于承担工作人员工资' },
+      { id: 3, content: '首月会员费19.9元用于评估收益，次月起29.9元' }
+    ]
   },
 
   onLoad() {
@@ -73,10 +68,8 @@ Page({
         availableRoles: availableRoles
       })
       
-      // 如果只有一个角色，直接初始化该角色的数据
-      if (availableRoles.length === 1) {
-        this.initRoleData(defaultRole)
-      }
+      // 加载工作台数据
+      this.loadData()
       
       return
     }
@@ -354,5 +347,72 @@ Page({
     this.loadData().then(() => {
       wx.stopPullDownRefresh()
     })
+  },
+  
+  // 切换平台须知显示/隐藏
+  toggleNotices() {
+    this.setData({
+      showNotices: !this.data.showNotices
+    })
+  },
+  
+  // 跳转到订单管理
+  goToOrderManage() {
+    console.log('跳转到订单管理页面')
+    wx.navigateTo({
+      url: '/pages/order-list/index'
+    })
+  },
+  
+  // 跳转到特定类型的订单
+  goToOrders(e) {
+    const { type } = e.currentTarget.dataset
+    console.log('查看订单类型:', type)
+    wx.navigateTo({
+      url: `/pages/order-list/index?type=${type}`
+    })
+  },
+  
+  // 处理功能点击
+  handleFunction(e) {
+    const { func } = e.currentTarget.dataset
+    
+    console.log('点击功能:', func)
+    
+    switch (func) {
+      case 'dataStats':
+        // 跳转到数据统计页面
+        wx.showToast({
+          title: '数据统计开发中',
+          icon: 'none'
+        })
+        break
+        
+      case 'productManage':
+        // 跳转到商品管理
+        wx.navigateTo({
+          url: '/pages/product-manage/index'
+        })
+        break
+        
+      case 'rewards':
+        // 跳转到打赏记录
+        wx.showToast({
+          title: '打赏记录开发中',
+          icon: 'none'
+        })
+        break
+        
+      case 'withdraw':
+        // 跳转到资金提现
+        wx.showToast({
+          title: '资金提现开发中',
+          icon: 'none'
+        })
+        break
+        
+      default:
+        console.log('未知功能:', func)
+    }
   }
 })

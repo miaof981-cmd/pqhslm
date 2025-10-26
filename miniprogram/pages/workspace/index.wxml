@@ -12,97 +12,81 @@
   </view>
 
   <view wx:else class="workspace-content">
-    <!-- 顶部切换身份标签（只显示有权限的） -->
-    <view class="role-tabs" wx:if="{{availableRoles.length > 1}}">
-      <view wx:if="{{availableRoles.indexOf('artist') !== -1}}" 
-            class="role-tab {{userRole === 'artist' ? 'active' : ''}}" 
-            data-role="artist" 
-            bindtap="switchRoleTab">
-        画师工作台
-      </view>
-      <view wx:if="{{availableRoles.indexOf('service') !== -1}}" 
-            class="role-tab {{userRole === 'service' ? 'active' : ''}}" 
-            data-role="service" 
-            bindtap="switchRoleTab">
-        客服工作台
-      </view>
-    </view>
-    
-    <!-- 单一角色时显示标题 -->
-    <view class="single-role-header" wx:else>
+    <!-- 顶部角色标题 -->
+    <view class="header-bar">
       <text class="role-title" wx:if="{{userRole === 'artist'}}">画师工作台</text>
       <text class="role-title" wx:elif="{{userRole === 'service'}}">客服工作台</text>
     </view>
 
-    <!-- 待处理订单（大数字区域） -->
+    <!-- ========== 核心区域：待处理订单 ========== -->
     <view class="pending-orders-section">
-      <view class="section-header">
-        <text class="section-title-text">待处理订单</text>
-        <switch class="toggle-switch" checked="{{showPendingOrders}}" bindchange="togglePendingOrders"/>
-      </view>
+      <view class="section-title">待处理订单</view>
       
-      <view wx:if="{{showPendingOrders}}" class="pending-stats">
-        <view class="stat-item">
-          <view class="stat-number">{{pendingStats.nearDeadline}}</view>
+      <view class="pending-stats">
+        <view class="stat-card normal" bindtap="goToOrders" data-type="progress">
+          <view class="stat-number">{{pendingStats.inProgress || 0}}</view>
+          <view class="stat-label">进行中</view>
+        </view>
+        
+        <view class="stat-card warning" bindtap="goToOrders" data-type="nearDeadline">
+          <view class="stat-number">{{pendingStats.nearDeadline || 0}}</view>
           <view class="stat-label">临近截稿</view>
         </view>
-        <view class="stat-item urgent">
-          <view class="stat-number">{{pendingStats.overdue}}</view>
+        
+        <view class="stat-card danger" bindtap="goToOrders" data-type="overdue">
+          <view class="stat-number">{{pendingStats.overdue || 0}}</view>
           <view class="stat-label">已拖稿</view>
         </view>
-        <view class="stat-item">
-          <view class="stat-number">{{pendingStats.inProgress}}</view>
-          <view class="stat-label">进行中</view>
+      </view>
+      
+      <!-- 快速订单管理入口 -->
+      <button class="quick-btn-primary" bindtap="goToOrderManage">
+        查看全部订单
+      </button>
+    </view>
+
+    <!-- ========== 功能模块区 ========== -->
+    <view class="functions-section">
+      <view class="function-grid">
+        <!-- 数据统计 -->
+        <view class="function-item" bindtap="handleFunction" data-func="dataStats">
+          <view class="func-icon stats-icon"></view>
+          <text class="func-label">数据统计</text>
+        </view>
+        
+        <!-- 商品管理 -->
+        <view class="function-item" bindtap="handleFunction" data-func="productManage">
+          <view class="func-icon product-icon"></view>
+          <text class="func-label">商品管理</text>
+        </view>
+        
+        <!-- 打赏记录 -->
+        <view class="function-item" bindtap="handleFunction" data-func="rewards">
+          <view class="func-icon reward-icon"></view>
+          <text class="func-label">打赏记录</text>
+        </view>
+        
+        <!-- 资金提现 -->
+        <view class="function-item" bindtap="handleFunction" data-func="withdraw">
+          <view class="func-icon money-icon"></view>
+          <text class="func-label">资金提现</text>
         </view>
       </view>
     </view>
 
-    <!-- 平台须知 -->
+    <!-- ========== 平台须知（可折叠）========== -->
     <view class="notice-section">
-      <view class="notice-header">
-        <view class="notice-icon-wrapper">
-          <view class="notice-icon"></view>
-        </view>
+      <view class="notice-header" bindtap="toggleNotices">
         <text class="notice-title">平台须知</text>
-        <text class="view-more" bindtap="viewNotices">查看动态</text>
+        <text class="toggle-icon">{{showNotices ? '▲' : '▼'}}</text>
       </view>
-      <view class="notice-list">
+      
+      <view wx:if="{{showNotices}}" class="notice-content">
         <view wx:for="{{notices}}" wx:key="id" class="notice-item">
+          <text class="notice-dot">•</text>
           <text class="notice-text">{{item.content}}</text>
         </view>
       </view>
     </view>
-
-    <!-- 快捷功能 -->
-    <view class="quick-actions-section">
-      <view class="quick-grid">
-        <view wx:for="{{quickActions}}" wx:key="id" 
-              class="quick-action-item" 
-              data-action="{{item.id}}"
-              bindtap="handleQuickAction">
-          <view class="action-icon-wrapper">
-            <view class="action-icon {{item.iconClass}}"></view>
-          </view>
-          <text class="action-label">{{item.label}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 推广链接（仅画师） -->
-    <view wx:if="{{userRole === 'artist'}}" class="promo-section">
-      <view class="promo-label">推广链接：{{promoLink}}</view>
-      <button class="copy-btn" bindtap="copyPromoLink">复制推广链接</button>
-    </view>
-
-    <!-- 聊天窗口（可选，暂时隐藏） -->
-    <view wx:if="{{false}}" class="chat-section">
-      <view class="chat-header">
-        <text>聊天窗口</text>
-      </view>
-      <view class="chat-content">
-        <!-- 聊天内容 -->
-      </view>
-    </view>
   </view>
 </view>
-
