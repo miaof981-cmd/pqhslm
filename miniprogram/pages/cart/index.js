@@ -37,13 +37,24 @@ Page({
       cartItems = cartItems.map(cartItem => {
         const product = allProducts.find(p => p.id === cartItem.productId)
         if (product) {
+          // 生成规格文本
+          let specText = ''
+          if (cartItem.spec1) {
+            specText = cartItem.spec1
+            if (cartItem.spec2) {
+              specText += ' / ' + cartItem.spec2
+            }
+          }
+          
           return {
             ...cartItem,
             productName: product.name || cartItem.productName,
             productImage: (product.images && product.images[0]) || cartItem.productImage || 'https://via.placeholder.com/150',
             artistName: product.artistName || '画师',
             // 如果购物车中没有价格，从商品中获取
-            price: cartItem.price || this.getProductPrice(product, cartItem.spec1, cartItem.spec2)
+            price: cartItem.price || this.getProductPrice(product, cartItem.spec1, cartItem.spec2),
+            // 规格文本
+            specText: specText
           }
         }
         return cartItem

@@ -17,8 +17,11 @@
           <image class="product-image" src="{{item.productImage}}" mode="aspectFill" />
           <view class="product-info">
             <text class="product-name">{{item.productName}}</text>
-            <text class="product-artist">画师：{{item.artistName}}</text>
-            <view wx:if="{{item.spec}}" class="product-spec">规格：{{item.spec}}</view>
+            <!-- 规格信息 -->
+            <view wx:if="{{item.specText}}" class="product-spec">
+              <text class="spec-label">规格：</text>
+              <text class="spec-value">{{item.specText}}</text>
+            </view>
             <view class="product-footer">
               <text class="product-price">¥{{item.price}}</text>
               <view class="quantity-control">

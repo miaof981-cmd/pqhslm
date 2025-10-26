@@ -105,11 +105,26 @@
 }
 
 .product-spec {
-  font-size: 22rpx;
-  color: #666;
-  padding: 4rpx 12rpx;
-  background: #F5F5F5;
+  display: flex;
+  align-items: center;
+  padding: 8rpx 16rpx;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
   border-radius: 8rpx;
+  margin-top: 4rpx;
+  align-self: flex-start;
+}
+
+.spec-label {
+  font-size: 22rpx;
+  color: #4CAF50;
+  font-weight: bold;
+  margin-right: 8rpx;
+}
+
+.spec-value {
+  font-size: 22rpx;
+  color: #2E7D32;
+  font-weight: 500;
   align-self: flex-start;
 }
 
