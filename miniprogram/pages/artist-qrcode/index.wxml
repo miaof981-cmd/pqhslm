@@ -18,12 +18,16 @@
           <text wx:if="{{hasArtistPermission}}" class="completed-tag">已完成</text>
         </view>
         
+        <!-- 申请已通过的副标题提示 -->
+        <view wx:if="{{applicationApproved && !hasArtistPermission}}" class="section-subtitle">
+          您的申请已通过，请联系工作人员开通工作台权限
+        </view>
+        
         <!-- 仅在无权限时显示二维码 -->
         <view wx:if="{{!hasArtistPermission}}" class="staff-qrcode-box">
           <image class="staff-qrcode" src="{{staffQRCode}}" mode="aspectFit" />
           <text class="qrcode-label">长按识别二维码</text>
-          <text wx:if="{{applicationApproved}}" class="qrcode-hint approved">您的申请已通过，请联系工作人员开通工作台权限</text>
-          <text wx:else class="qrcode-hint">添加后请说明您是新通过的画师</text>
+          <text class="qrcode-hint">添加后请说明您是新通过的画师</text>
         </view>
         
         <!-- 已完成时显示简化信息 -->
