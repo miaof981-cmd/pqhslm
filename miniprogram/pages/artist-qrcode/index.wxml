@@ -159,10 +159,6 @@
         </view>
         <view class="notice-item">
           <text class="notice-dot">•</text>
-          <text class="notice-text">历史联系方式将被永久保留，无法删除</text>
-        </view>
-        <view class="notice-item">
-          <text class="notice-dot">•</text>
           <text class="notice-text">请确保信息真实有效，便于平台联系</text>
         </view>
       </view>
