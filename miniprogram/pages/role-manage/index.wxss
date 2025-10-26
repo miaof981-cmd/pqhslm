@@ -49,7 +49,7 @@
 
 .info-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 16rpx;
   margin-bottom: 16rpx;
 }
@@ -63,6 +63,26 @@
   font-size: 48rpx;
   font-weight: bold;
   color: white;
+  flex: 1;
+}
+
+.reset-id-btn {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 22rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  border: 2rpx solid rgba(255, 255, 255, 0.5);
+  height: auto;
+  line-height: 1.5;
+}
+
+.reset-id-btn::after {
+  border: none;
+}
+
+.reset-id-btn:active {
+  background: rgba(255, 255, 255, 0.4);
 }
 
 .info-hint {

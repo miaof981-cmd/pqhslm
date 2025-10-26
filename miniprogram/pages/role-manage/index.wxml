@@ -13,6 +13,7 @@
     <view class="info-row">
       <view class="info-label">用户ID</view>
       <view class="info-value">{{userId}}</view>
+      <button wx:if="{{userId !== 1001}}" class="reset-id-btn" bindtap="resetUserId">重置为1001</button>
     </view>
     <view class="info-hint">当前拥有 {{roles.length}} 个身份</view>
   </view>

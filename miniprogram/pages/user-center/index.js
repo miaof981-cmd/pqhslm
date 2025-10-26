@@ -54,7 +54,13 @@ Page({
   // 加载用户角色（支持多角色）
   loadUserRole() {
     const app = getApp()
-    const userId = wx.getStorageSync('userId') || 10001
+    
+    // 优先从app.globalData获取，确保与app.js中的初始化一致
+    let userId = wx.getStorageSync('userId')
+    if (!userId) {
+      userId = app.globalData.userId || 1001
+      wx.setStorageSync('userId', userId)
+    }
     
     // 从本地存储读取用户的多个角色
     let roles = wx.getStorageSync('userRoles') || ['customer']
@@ -69,8 +75,7 @@ Page({
       roles = ['customer']
     }
     
-    // 保存到本地
-    wx.setStorageSync('userId', userId)
+    // 保存角色到本地（不再重复保存userId）
     wx.setStorageSync('userRoles', roles)
     
     // 更新全局数据（主角色为第一个）
