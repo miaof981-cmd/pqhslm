@@ -19,8 +19,8 @@
           <view class="stat-mini-item" bindtap="filterOrders" data-filter="inProgress">
             待处理 <text class="stat-mini-num">{{pendingStats.inProgress || 0}}</text>
           </view>
-          <view class="stat-mini-item urgent" bindtap="filterOrders" data-filter="overdue">
-            紧急 <text class="stat-mini-num">{{pendingStats.overdue || 0}}</text>
+          <view class="stat-mini-item urgent" bindtap="filterOrders" data-filter="urgent">
+            紧急 <text class="stat-mini-num">{{(pendingStats.overdue || 0) + (pendingStats.nearDeadline || 0)}}</text>
           </view>
         </view>
       </view>
@@ -81,20 +81,15 @@
                 data-filter="all">
             全部
           </view>
+          <view class="filter-tab {{currentFilter === 'urgent' ? 'active' : ''}}" 
+                bindtap="filterOrders" 
+                data-filter="urgent">
+            紧急
+          </view>
           <view class="filter-tab {{currentFilter === 'inProgress' ? 'active' : ''}}" 
                 bindtap="filterOrders" 
                 data-filter="inProgress">
             进行中
-          </view>
-          <view class="filter-tab {{currentFilter === 'nearDeadline' ? 'active' : ''}}" 
-                bindtap="filterOrders" 
-                data-filter="nearDeadline">
-            临近截稿
-          </view>
-          <view class="filter-tab {{currentFilter === 'overdue' ? 'active' : ''}}" 
-                bindtap="filterOrders" 
-                data-filter="overdue">
-            已拖稿
           </view>
           <view class="filter-tab {{currentFilter === 'completed' ? 'active' : ''}}" 
                 bindtap="filterOrders" 

@@ -543,7 +543,18 @@ Page({
     let filtered = [...pendingOrders]
     
     // 1. 按状态筛选
-    if (currentFilter !== 'all') {
+    if (currentFilter === 'urgent') {
+      // 紧急：包含已拖稿和临近截稿，优先显示已拖稿
+      filtered = filtered.filter(order => 
+        order.status === 'overdue' || order.status === 'nearDeadline'
+      )
+      // 排序：已拖稿在前
+      filtered.sort((a, b) => {
+        if (a.status === 'overdue' && b.status !== 'overdue') return -1
+        if (a.status !== 'overdue' && b.status === 'overdue') return 1
+        return 0
+      })
+    } else if (currentFilter !== 'all') {
       filtered = filtered.filter(order => order.status === currentFilter)
     }
     
