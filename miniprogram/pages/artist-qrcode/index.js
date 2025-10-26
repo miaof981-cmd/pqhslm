@@ -1,6 +1,7 @@
 Page({
   data: {
     isSubmitted: false, // 是否已提交
+    hasArtistPermission: false, // 是否已有画师权限
     
     // 工作人员二维码
     staffQRCode: '',
@@ -26,8 +27,22 @@ Page({
   },
 
   onLoad() {
+    this.checkArtistPermission()
     this.loadStaffQRCode()
     this.checkExistingProfile()
+  },
+
+  // 检查是否有画师权限
+  checkArtistPermission() {
+    const app = getApp()
+    const roles = app.getUserRoles ? app.getUserRoles() : (wx.getStorageSync('userRoles') || ['customer'])
+    const hasArtistPermission = roles.includes('artist')
+    
+    console.log('🎨 检查画师权限:', hasArtistPermission ? '已开启' : '未开启')
+    
+    this.setData({
+      hasArtistPermission: hasArtistPermission
+    })
   },
 
   // 加载工作人员二维码
@@ -54,8 +69,8 @@ Page({
       // 已有档案，直接显示完成状态
       this.setData({
         isSubmitted: true,
-        artistName: profile.artistName,
         contactPhone: profile.contactPhone,
+        contactWechat: profile.contactWechat,
         createTime: profile.createTime
       })
     }

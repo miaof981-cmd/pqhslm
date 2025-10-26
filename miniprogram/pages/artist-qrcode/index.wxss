@@ -29,6 +29,67 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+/* 权限状态提示 */
+.permission-status {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 30rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+}
+
+.permission-status.pending {
+  background: linear-gradient(135deg, #FFF9E6 0%, #FFFBF0 100%);
+  border-left: 6rpx solid #FFA000;
+}
+
+.permission-status.granted {
+  background: linear-gradient(135deg, #E8F5E9 0%, #F1F8F4 100%);
+  border-left: 6rpx solid #66BB6A;
+}
+
+.status-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  flex-shrink: 0;
+}
+
+.permission-status.pending .status-icon {
+  background: #FFA000;
+  color: white;
+}
+
+.permission-status.granted .status-icon {
+  background: #66BB6A;
+  color: white;
+}
+
+.status-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.status-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.status-desc {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.5;
+}
+
 /* 工作人员联系区域 */
 .staff-contact-section {
   background: white;
