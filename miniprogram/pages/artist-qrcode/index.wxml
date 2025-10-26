@@ -50,10 +50,6 @@
             value="{{realName}}"
             bindinput="onRealNameInput"
           />
-          <view class="field-warning">
-            <text class="warning-icon">⚠️</text>
-            <text class="warning-text">修改接单昵称时，请确保企业微信昵称同步修改，否则会有订单误派风险</text>
-          </view>
         </view>
 
         <!-- 联系手机号 + 验证码组 -->
