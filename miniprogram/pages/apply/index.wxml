@@ -140,27 +140,19 @@
 
     <!-- 会员制条款 -->
     <view class="section-card agreement-card">
-      <view class="section-title">
-        <view class="title-icon warning"></view>
-        <text class="title-text">会员制说明</text>
+      <view class="agreement-checkbox" bindtap="toggleAgreement">
+        <view class="checkbox {{agreedToTerms ? 'checked' : ''}}">
+          <view wx:if="{{agreedToTerms}}" class="checkbox-icon"></view>
+        </view>
+        <text class="checkbox-text">我已知悉联盟是会员制</text>
       </view>
-      
-      <view class="agreement-summary">
-        <view class="summary-title">联盟会员制度</view>
-        <view class="summary-highlight">
-          会员费首月19.9元用于评估收益，次月起29.9元/月
-        </view>
-        <view class="summary-desc">
-          联盟采用会员制运营模式，画师需缴纳会员费后方可接单。会员有效期内可自由上架商品、接收订单。
-        </view>
-        <view class="expand-btn" bindtap="toggleTermsDetail">
-          <text class="expand-text">{{showTermsDetail ? '收起详情' : '查看详细条款'}}</text>
-          <view class="expand-icon {{showTermsDetail ? 'expanded' : ''}}"></view>
-        </view>
+
+      <view class="expand-btn" bindtap="toggleTermsDetail">
+        <text class="expand-text">{{showTermsDetail ? '收起详情' : '查看详细条款'}}</text>
+        <view class="expand-icon {{showTermsDetail ? 'expanded' : ''}}"></view>
       </view>
 
       <view wx:if="{{showTermsDetail}}" class="agreement-detail">
-        <view class="detail-title">详细条款</view>
         <view class="agreement-text">
           1. 联盟采用会员制运营模式，画师需缴纳会员费后方可接单。
         </view>
@@ -185,13 +177,9 @@
         <view class="agreement-text">
           8. 违反规定的画师将被取消会员资格，不予退费。
         </view>
-      </view>
-
-      <view class="agreement-checkbox" bindtap="toggleAgreement">
-        <view class="checkbox {{agreedToTerms ? 'checked' : ''}}">
-          <view wx:if="{{agreedToTerms}}" class="checkbox-icon"></view>
+        <view class="agreement-text final">
+          如不同意管理制度请勿投递，直接退出即可。
         </view>
-        <text class="checkbox-text">我已阅读并同意会员制条款</text>
       </view>
     </view>
 
