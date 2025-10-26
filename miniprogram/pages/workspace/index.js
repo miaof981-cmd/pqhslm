@@ -179,7 +179,11 @@ Page({
     const { userRole } = this.data
     
     // 模拟数据 - 实际应该从后端获取
-    let pendingStats
+    let pendingStats = {
+      nearDeadline: 0,
+      overdue: 0,
+      inProgress: 0
+    }
     
     if (userRole === 'artist') {
       // 画师：只看自己的订单
