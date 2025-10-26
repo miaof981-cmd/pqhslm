@@ -123,15 +123,32 @@ Page({
     // 生成角色文本
     const roleTexts = roles.map(r => this.getRoleText(r))
     
+    // ✅ 检查申请状态（用于判断是否显示工作台入口）
+    const applications = wx.getStorageSync('artist_applications') || []
+    const userApplications = applications.filter(app => app.userId === userId)
+    let applicationApproved = false
+    
+    if (userApplications.length > 0) {
+      userApplications.sort((a, b) => new Date(b.submitTime) - new Date(a.submitTime))
+      const latestApp = userApplications[0]
+      applicationApproved = (latestApp.status === 'approved')
+      console.log('📋 最新申请状态:', latestApp.status, '→ applicationApproved:', applicationApproved)
+    }
+    
     // ✅ 计算布尔值
     const isArtist = roles.indexOf('artist') !== -1
     const isAdmin = roles.indexOf('admin') !== -1
-    const shouldShowCert = !isArtist && !isAdmin
-    const shouldShowWorkspace = isArtist || isAdmin
+    
+    // ⭐ 关键逻辑：
+    // 1. 如果申请已通过（即使没有artist权限），也显示"工作台"入口
+    // 2. 点击后会跳转到建立档案页面（由 workspace/index.js 处理）
+    const shouldShowCert = !isArtist && !isAdmin && !applicationApproved
+    const shouldShowWorkspace = isArtist || isAdmin || applicationApproved
     
     console.log('📊 计算UI显示逻辑:')
     console.log('  - isArtist:', isArtist)
     console.log('  - isAdmin:', isAdmin)
+    console.log('  - applicationApproved:', applicationApproved)
     console.log('  - shouldShowCert:', shouldShowCert)
     console.log('  - shouldShowWorkspace:', shouldShowWorkspace)
     
