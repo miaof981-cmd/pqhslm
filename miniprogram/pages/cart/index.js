@@ -289,7 +289,7 @@ Page({
         
         // 跳转到订单成功页面
         wx.redirectTo({
-          url: `/pages/order-success/index?productId=${item.productId || ''}&productName=${encodeURIComponent(item.productName)}&productImage=${encodeURIComponent(item.productImage || '/assets/default-product.png')}&spec1=${encodeURIComponent(item.spec1 || '')}&spec2=${encodeURIComponent(item.spec2 || '')}&quantity=${item.quantity}&price=${item.price}&totalAmount=${parseFloat(item.price) * item.quantity}&deliveryDays=${item.deliveryDays || 7}&artistName=${encodeURIComponent(item.artistName || '画师')}`
+          url: `/pages/order-success/index?productId=${item.productId || ''}&productName=${encodeURIComponent(item.productName)}&productImage=${encodeURIComponent(item.productImage || '')}&spec1=${encodeURIComponent(item.spec1 || '')}&spec2=${encodeURIComponent(item.spec2 || '')}&quantity=${item.quantity}&price=${item.price}&totalAmount=${parseFloat(item.price) * item.quantity}&deliveryDays=${item.deliveryDays || 7}&artistName=${encodeURIComponent(item.artistName || '画师')}`
         })
       }, 1000)
     } else {
