@@ -28,40 +28,6 @@ page {
   flex-shrink: 0;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  margin-left: auto;
-}
-
-.fix-btn {
-  display: flex;
-  align-items: center;
-  gap: 4rpx;
-  padding: 8rpx 16rpx;
-  background: rgba(255, 152, 0, 0.1);
-  color: #FF9800;
-  border-radius: 14rpx;
-  font-size: 22rpx;
-  font-weight: 500;
-  border: none;
-  box-shadow: 0 2rpx 6rpx rgba(255, 152, 0, 0.1);
-  flex-shrink: 0;
-  margin: 0 !important;
-  line-height: normal;
-  width: auto;
-}
-
-.fix-btn::after {
-  border: none !important;
-}
-
-.fix-icon {
-  font-size: 22rpx;
-  line-height: 1;
-}
-
 .upload-btn {
   display: flex;
   align-items: center;
@@ -76,6 +42,9 @@ page {
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
   margin: 0 !important;
+  margin-left: auto !important;
+  padding-left: 20rpx !important;
+  padding-right: 20rpx !important;
   line-height: normal;
   width: auto;
 }

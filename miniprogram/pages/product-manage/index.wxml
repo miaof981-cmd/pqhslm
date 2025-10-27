@@ -3,16 +3,10 @@
   <view class="header-section">
     <view class="header-content">
       <text class="page-title">我的商品</text>
-      <view class="header-actions">
-        <button class="fix-btn" bindtap="fixProductData">
-          <text class="fix-icon">🔧</text>
-          修复
-        </button>
-        <button class="upload-btn" bindtap="addProduct">
-          <text class="upload-icon">+</text>
-          上传商品
-        </button>
-      </view>
+      <button class="upload-btn" bindtap="addProduct">
+        <text class="upload-icon">+</text>
+        上传商品
+      </button>
     </view>
   </view>
 
