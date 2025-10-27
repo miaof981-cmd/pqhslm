@@ -245,17 +245,40 @@ Page({
 
   // 加载订单列表
   async loadOrders() {
-    // 从本地存储读取真实订单数据
-    const allOrders = wx.getStorageSync('orders') || []
+    // 🔧 同时读取两个存储源
+    const ordersFromOrders = wx.getStorageSync('orders') || []
+    const ordersFromPending = wx.getStorageSync('pending_orders') || []
+    
+    // 合并订单（去重，优先使用 orders 中的数据）
+    const orderMap = new Map()
+    
+    // 先加载 pending_orders
+    ordersFromPending.forEach(order => {
+      if (order.id) {
+        orderMap.set(order.id, order)
+      }
+    })
+    
+    // 再加载 orders（覆盖同ID的订单）
+    ordersFromOrders.forEach(order => {
+      if (order.id) {
+        orderMap.set(order.id, order)
+      }
+    })
+    
+    // 转换为数组
+    const allOrders = Array.from(orderMap.values())
     
     console.log('━━━━━━━━━━━━━━━━━━━━━━')
     console.log('📦 [管理后台] 加载订单列表')
-    console.log('  - 订单总数:', allOrders.length)
+    console.log('  - orders 数量:', ordersFromOrders.length)
+    console.log('  - pending_orders 数量:', ordersFromPending.length)
+    console.log('  - 合并后总数:', allOrders.length)
     if (allOrders.length > 0) {
       console.log('  - 订单详情:')
       allOrders.forEach((order, index) => {
         console.log(`    ${index + 1}. ${order.productName || '商品'}`)
-        console.log(`       订单号: ${order.orderNumber}`)
+        console.log(`       订单号: ${order.orderNumber || order.id}`)
         console.log(`       状态: ${order.status}`)
         console.log(`       客服: ${order.serviceName || '未分配'}`)
       })
