@@ -10,13 +10,26 @@ Page({
     orders: [],
     allOrders: [],
     loading: true,
-    emptyText: '暂无订单'
+    emptyText: '暂无订单',
+    showServiceQR: false,
+    showComplaintQR: false,
+    serviceQRCode: '',
+    complaintQRCode: ''
   },
 
   onLoad(options) {
     if (options.status) {
       this.setData({ currentTab: options.status })
     }
+    
+    // 初始化默认二维码（如果本地没有的话）
+    if (!wx.getStorageSync('service_qrcode')) {
+      wx.setStorageSync('service_qrcode', '/assets/default-service-qr.png')
+    }
+    if (!wx.getStorageSync('complaint_qrcode')) {
+      wx.setStorageSync('complaint_qrcode', '/assets/default-complaint-qr.png')
+    }
+    
     this.loadOrders()
   },
 
@@ -248,14 +261,40 @@ Page({
 
   // 联系客服
   contactService(e) {
-    const id = e.currentTarget.dataset.id
-    wx.navigateTo({
-      url: `/pages/order-detail/index?id=${id}`
+    // 从本地存储读取客服二维码
+    const serviceQRCode = wx.getStorageSync('service_qrcode') || '/assets/default-service-qr.png'
+    
+    this.setData({
+      serviceQRCode: serviceQRCode,
+      showServiceQR: true
     })
-    wx.showToast({ title: '请在订单详情页查看客服二维码', icon: 'none', duration: 2000 })
   },
 
-  // 申请退款
+  // 投诉
+  showComplaint(e) {
+    // 从本地存储读取投诉二维码
+    const complaintQRCode = wx.getStorageSync('complaint_qrcode') || '/assets/default-complaint-qr.png'
+    
+    this.setData({
+      complaintQRCode: complaintQRCode,
+      showComplaintQR: true
+    })
+  },
+
+  // 隐藏二维码弹窗
+  hideQRModal() {
+    this.setData({
+      showServiceQR: false,
+      showComplaintQR: false
+    })
+  },
+
+  // 阻止事件冒泡
+  stopPropagation() {
+    // 空函数，用于阻止点击弹窗内容时关闭
+  },
+
+  // 申请退款（已废弃，替换为投诉）
   applyRefund(e) {
     const id = e.currentTarget.dataset.id
     wx.showModal({

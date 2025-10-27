@@ -85,7 +85,7 @@
         <!-- 已支付/制作中 -->
         <block wx:elif="{{item.status === 'paid' || item.status === 'processing'}}">
           <button class="action-btn default" bindtap="contactService" data-id="{{item._id}}">联系客服</button>
-          <button class="action-btn warning" bindtap="applyRefund" data-id="{{item._id}}">申请退款</button>
+          <button class="action-btn default" bindtap="showComplaint" data-id="{{item._id}}">投诉</button>
         </block>
 
         <!-- 已完成 -->
@@ -114,5 +114,34 @@
     <view class="empty-icon"></view>
     <text class="empty-text">{{emptyText}}</text>
     <button wx:if="{{currentTab === 'all'}}" class="go-shopping-btn" bindtap="goShopping">去逛逛</button>
+  </view>
+</view>
+
+<!-- 客服二维码弹窗 -->
+<view wx:if="{{showServiceQR}}" class="qr-modal" bindtap="hideQRModal">
+  <view class="qr-modal-content" catchtap="stopPropagation">
+    <view class="qr-modal-header">
+      <text class="qr-modal-title">联系客服</text>
+      <view class="qr-modal-close" catchtap="hideQRModal">✕</view>
+    </view>
+    <view class="qr-modal-body">
+      <image class="qr-modal-image" src="{{serviceQRCode}}" mode="aspectFit"/>
+      <text class="qr-modal-hint">长按识别二维码添加客服微信</text>
+    </view>
+  </view>
+</view>
+
+<!-- 投诉二维码弹窗 -->
+<view wx:if="{{showComplaintQR}}" class="qr-modal" bindtap="hideQRModal">
+  <view class="qr-modal-content" catchtap="stopPropagation">
+    <view class="qr-modal-header">
+      <text class="qr-modal-title">投诉通道</text>
+      <view class="qr-modal-close" catchtap="hideQRModal">✕</view>
+    </view>
+    <view class="qr-modal-body">
+      <image class="qr-modal-image" src="{{complaintQRCode}}" mode="aspectFit"/>
+      <text class="qr-modal-hint">长按识别二维码联系投诉专员</text>
+      <text class="qr-modal-desc">我们会认真处理每一条投诉</text>
+    </view>
   </view>
 </view>
