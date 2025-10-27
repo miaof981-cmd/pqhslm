@@ -125,9 +125,9 @@
 .progress-bar-fill {
   height: 100%;
   background: linear-gradient(90deg, 
-    #4CAF50 0%, 
+    #A5D6A7 0%, 
     #66BB6A 50%, 
-    #81C784 100%
+    #4CAF50 100%
   );
   border-radius: 16rpx;
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -146,26 +146,26 @@
   border-radius: 16rpx 16rpx 0 0;
 }
 
-/* 临近截稿状态 - 橙色进度条（静态渐变） */
+/* 临近截稿状态 - 橙色进度条（静态渐变，左浅右深） */
 .progress-bar-fill.near-deadline {
   background: linear-gradient(90deg, 
-    #FF9800 0%, 
+    #FFCC80 0%, 
     #FFA726 50%, 
-    #FFB74D 100%
+    #FF9800 100%
   );
 }
 
-/* 脱稿状态 - 红色进度条（静态渐变） */
+/* 脱稿状态 - 红色进度条（静态渐变，左浅右深） */
 .progress-bar-fill.overdue {
   background: linear-gradient(90deg, 
-    #E53935 0%, 
+    #FFAB91 0%, 
     #FF6B6B 50%, 
-    #FF8A80 100%
+    #E53935 100%
   );
 }
 
-/* 已完成状态 - 紫色进度条（静态渐变） */
+/* 已完成状态 - 紫色进度条（静态渐变，左浅右深） */
 .progress-bar-fill.completed {
-  background: linear-gradient(90deg, #9C27B0 0%, #BA68C8 50%, #CE93D8 100%);
+  background: linear-gradient(90deg, #CE93D8 0%, #BA68C8 50%, #9C27B0 100%);
 }
 
