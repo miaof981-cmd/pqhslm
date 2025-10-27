@@ -300,14 +300,26 @@ Page({
     const formattedOrders = allOrders.map(order => {
       // 判断是否逾期
       let isOverdue = false
-      if (order.deadline && (order.status === 'processing' || order.status === 'paid')) {
+      let businessStatus = ''  // 业务状态：waitingConfirm/overdue/nearDeadline
+      
+      if (order.deadline && (order.status === 'processing' || order.status === 'paid' || order.status === 'waitingConfirm')) {
         const deadline = new Date(order.deadline)
-        isOverdue = deadline < now
+        const diffTime = deadline - now
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+        
+        if (diffTime < 0) {
+          isOverdue = true
+          businessStatus = '已逾期'
+        } else if (diffDays <= 2) {
+          businessStatus = '临近截稿'
+        } else if (order.status === 'waitingConfirm') {
+          businessStatus = '待客户确认'
+        }
       }
       
       return {
         _id: order.id,
-        orderNo: order.orderNumber || order.orderNo,
+        orderNo: order.orderNumber || order.orderNo || order.id,
         productName: order.productName,
         productImage: order.productImage || '',
         userName: order.buyerName || order.buyer || '未知用户',
@@ -317,6 +329,7 @@ Page({
         amount: parseFloat(order.price || order.totalPrice || 0).toFixed(2),
         status: order.status || 'created',
         statusText: statusTextMap[order.status] || order.status || '待处理',
+        businessStatus: businessStatus,  // 业务状态中文
         createTime: order.createdAt || order.createTime,
         deadline: order.deadline,
         isOverdue: isOverdue,
@@ -698,25 +711,39 @@ Page({
 
   // 执行更换客服
   doChangeService(orderId, service) {
-    let orders = wx.getStorageSync('orders') || []
-    const orderIndex = orders.findIndex(o => o.id === orderId)
+    // 同时从两个存储源读取
+    let ordersFromOrders = wx.getStorageSync('orders') || []
+    let ordersFromPending = wx.getStorageSync('pending_orders') || []
+    
+    // 先在 pending_orders 中查找
+    const pendingIndex = ordersFromPending.findIndex(o => o.id === orderId)
+    if (pendingIndex !== -1) {
+      ordersFromPending[pendingIndex].serviceId = service.userId
+      ordersFromPending[pendingIndex].serviceName = service.name
+      ordersFromPending[pendingIndex].serviceAvatar = service.avatar
+      ordersFromPending[pendingIndex].serviceQrcodeUrl = service.qrcodeUrl
+      ordersFromPending[pendingIndex].serviceQrcodeNumber = service.qrcodeNumber
+      wx.setStorageSync('pending_orders', ordersFromPending)
+    }
+    
+    // 再在 orders 中查找（如果存在）
+    const orderIndex = ordersFromOrders.findIndex(o => o.id === orderId)
+    if (orderIndex !== -1) {
+      ordersFromOrders[orderIndex].serviceId = service.userId
+      ordersFromOrders[orderIndex].serviceName = service.name
+      ordersFromOrders[orderIndex].serviceAvatar = service.avatar
+      ordersFromOrders[orderIndex].serviceQrcodeUrl = service.qrcodeUrl
+      ordersFromOrders[orderIndex].serviceQrcodeNumber = service.qrcodeNumber
+      wx.setStorageSync('orders', ordersFromOrders)
+    }
 
-    if (orderIndex === -1) {
+    if (pendingIndex === -1 && orderIndex === -1) {
       wx.showToast({
         title: '订单不存在',
         icon: 'none'
       })
       return
     }
-
-    // 更新订单的客服信息
-    orders[orderIndex].serviceId = service.userId
-    orders[orderIndex].serviceName = service.name
-    orders[orderIndex].serviceAvatar = service.avatar
-    orders[orderIndex].serviceQrcodeUrl = service.qrcodeUrl
-    orders[orderIndex].serviceQrcodeNumber = service.qrcodeNumber
-
-    wx.setStorageSync('orders', orders)
 
     console.log('✅ 订单客服已更换:')
     console.log('  - 订单ID:', orderId)
@@ -725,6 +752,66 @@ Page({
 
     wx.showToast({
       title: `已分配给${service.name}`,
+      icon: 'success'
+    })
+
+    // 刷新订单列表
+    this.loadOrders()
+  },
+
+  // 发起退款（管理员/客服）
+  initiateRefund(e) {
+    const orderId = e.currentTarget.dataset.id
+    
+    wx.showModal({
+      title: '确认退款',
+      content: '确认对此订单进行退款操作？\n\n退款后订单状态将变为"已退款"，此操作不可撤销。',
+      confirmText: '确认退款',
+      confirmColor: '#FF6B6B',
+      success: (res) => {
+        if (res.confirm) {
+          this.doRefund(orderId)
+        }
+      }
+    })
+  },
+
+  // 执行退款
+  doRefund(orderId) {
+    // 同时从两个存储源读取
+    let ordersFromOrders = wx.getStorageSync('orders') || []
+    let ordersFromPending = wx.getStorageSync('pending_orders') || []
+    
+    // 先在 pending_orders 中查找
+    const pendingIndex = ordersFromPending.findIndex(o => o.id === orderId)
+    if (pendingIndex !== -1) {
+      ordersFromPending[pendingIndex].status = 'refunded'
+      ordersFromPending[pendingIndex].refundTime = new Date().toISOString()
+      wx.setStorageSync('pending_orders', ordersFromPending)
+    }
+    
+    // 再在 orders 中查找（如果存在）
+    const orderIndex = ordersFromOrders.findIndex(o => o.id === orderId)
+    if (orderIndex !== -1) {
+      ordersFromOrders[orderIndex].status = 'refunded'
+      ordersFromOrders[orderIndex].refundTime = new Date().toISOString()
+      wx.setStorageSync('orders', ordersFromOrders)
+    }
+
+    if (pendingIndex === -1 && orderIndex === -1) {
+      wx.showToast({
+        title: '订单不存在',
+        icon: 'none'
+      })
+      return
+    }
+
+    console.log('✅ 订单已退款:')
+    console.log('  - 订单ID:', orderId)
+    console.log('  - 退款时间:', new Date().toLocaleString())
+
+    wx.showToast({
+      title: '退款成功',
       icon: 'success'
     })
 

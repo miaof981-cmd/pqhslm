@@ -221,31 +221,66 @@
 
       <!-- 订单列表 -->
       <view class="order-list">
-        <view wx:for="{{orders}}" wx:key="_id" class="order-item" bindtap="viewOrderDetail" data-id="{{item._id}}">
-          <view class="order-header">
-            <text class="order-no">{{item.orderNo}}</text>
-            <view class="order-status status-{{item.status}}">{{item.statusText}}</view>
-          </view>
-          <view class="order-content">
-            <image class="order-image" src="{{item.productImage}}" mode="aspectFill" />
-            <view class="order-info">
-              <text class="order-product">{{item.productName}}</text>
-              <text class="order-user">买家：{{item.userName}}</text>
-              <text class="order-artist">画师：{{item.artistName}}</text>
-              <text class="order-time">下单：{{item.createTime}}</text>
-              <text wx:if="{{item.deadline}}" class="order-deadline {{item.isOverdue ? 'overdue' : ''}}">
-                截稿：{{item.deadline}} {{item.isOverdue ? '(已超时)' : ''}}
-              </text>
+        <view wx:for="{{orders}}" wx:key="_id" class="order-card">
+          <!-- 订单头部 -->
+          <view class="order-card-header">
+            <view class="order-no-section">
+              <text class="order-no-label">订单号</text>
+              <text class="order-no-value">{{item.orderNo}}</text>
+            </view>
+            <view class="order-status-badge status-{{item.status}}">
+              <text class="status-text">{{item.statusText}}</text>
+              <text wx:if="{{item.businessStatus}}" class="business-status">{{item.businessStatus}}</text>
             </view>
           </view>
-          <view class="order-footer">
-            <text class="order-amount">¥{{item.amount}}</text>
-            <view class="order-actions">
-              <button class="action-btn primary" data-id="{{item._id}}" catchtap="changeService">换客服</button>
-              <button wx:if="{{item.status === 'refunding'}}" class="action-btn warning" data-id="{{item._id}}" catchtap="processRefund">处理退款</button>
-              <button class="action-btn default" data-id="{{item._id}}" catchtap="viewOrderDetail">详情</button>
+
+          <!-- 订单内容 -->
+          <view class="order-card-body">
+            <image class="order-product-image" src="{{item.productImage}}" mode="aspectFill" />
+            <view class="order-details">
+              <text class="product-name">{{item.productName}}</text>
+              <view class="order-meta-grid">
+                <view class="meta-item">
+                  <text class="meta-label">买家</text>
+                  <text class="meta-value">{{item.userName}}</text>
+                </view>
+                <view class="meta-item">
+                  <text class="meta-label">画师</text>
+                  <text class="meta-value">{{item.artistName}}</text>
+                </view>
+                <view class="meta-item">
+                  <text class="meta-label">客服</text>
+                  <text class="meta-value">{{item.serviceName}}</text>
+                </view>
+                <view class="meta-item">
+                  <text class="meta-label">下单时间</text>
+                  <text class="meta-value">{{item.createTime}}</text>
+                </view>
+                <view wx:if="{{item.deadline}}" class="meta-item deadline-item {{item.isOverdue ? 'overdue' : ''}}">
+                  <text class="meta-label">截稿时间</text>
+                  <text class="meta-value">{{item.deadline}} {{item.isOverdue ? '⚠️已超时' : ''}}</text>
+                </view>
+              </view>
             </view>
           </view>
+
+          <!-- 订单底部 -->
+          <view class="order-card-footer">
+            <view class="order-amount-section">
+              <text class="amount-label">订单金额</text>
+              <text class="amount-value">¥{{item.amount}}</text>
+            </view>
+            <view class="order-action-buttons">
+              <button class="action-btn-new btn-change-service" data-id="{{item._id}}" catchtap="changeService">换客服</button>
+              <button wx:if="{{item.status !== 'completed' && item.status !== 'refunded'}}" class="action-btn-new btn-refund" data-id="{{item._id}}" catchtap="initiateRefund">退款</button>
+              <button class="action-btn-new btn-detail" data-id="{{item._id}}" catchtap="viewOrderDetail">详情</button>
+            </view>
+          </view>
+        </view>
+
+        <!-- 空状态 -->
+        <view wx:if="{{orders.length === 0}}" class="empty-order-state">
+          <text class="empty-text">暂无订单</text>
         </view>
       </view>
     </view>

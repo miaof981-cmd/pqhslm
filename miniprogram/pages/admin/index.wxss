@@ -552,28 +552,43 @@
 .order-list {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
-}
-
-.order-item {
-  background: white;
-  border-radius: 16rpx;
+  gap: 24rpx;
   padding: 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
 }
 
-.order-header {
+/* 新版订单卡片 */
+.order-card {
+  background: white;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.08);
+}
+
+.order-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15rpx;
-  padding-bottom: 15rpx;
-  border-bottom: 1rpx solid #F0F0F0;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #F8F9FA 0%, #F0F4F8 100%);
+  border-bottom: 2rpx solid #E8EEF3;
 }
 
-.order-no {
-  font-size: 24rpx;
-  color: #666;
+.order-no-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.order-no-label {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.order-no-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  font-family: 'Courier New', monospace;
 }
 
 .order-status {
@@ -610,6 +625,192 @@
 .order-status.status-refunded {
   background: #F8D7DA;
   color: #721C24;
+}
+
+/* 新版状态徽章 */
+.order-status-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6rpx;
+}
+
+.order-status-badge .status-text {
+  font-size: 26rpx;
+  font-weight: 600;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+}
+
+.order-status-badge.status-unpaid .status-text {
+  background: #F5F5F5;
+  color: #999;
+}
+
+.order-status-badge.status-processing .status-text {
+  background: linear-gradient(135deg, #D1ECF1 0%, #BEE5EB 100%);
+  color: #0C5460;
+}
+
+.order-status-badge.status-waitingConfirm .status-text {
+  background: linear-gradient(135deg, #FFF3CD 0%, #FFE69C 100%);
+  color: #856404;
+}
+
+.order-status-badge.status-completed .status-text {
+  background: linear-gradient(135deg, #D4EDDA 0%, #C3E6CB 100%);
+  color: #155724;
+}
+
+.order-status-badge.status-refunded .status-text {
+  background: linear-gradient(135deg, #F8D7DA 0%, #F5C6CB 100%);
+  color: #721C24;
+}
+
+.business-status {
+  font-size: 22rpx;
+  color: #666;
+  padding: 4rpx 12rpx;
+  background: rgba(255,255,255,0.8);
+  border-radius: 12rpx;
+}
+
+/* 订单卡片主体 */
+.order-card-body {
+  display: flex;
+  gap: 20rpx;
+  padding: 24rpx;
+}
+
+.order-product-image {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 16rpx;
+  background: #F5F5F5;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.order-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.product-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.order-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.meta-label {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.meta-value {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.deadline-item {
+  grid-column: 1 / -1;
+}
+
+.deadline-item.overdue .meta-value {
+  color: #FF6B6B;
+  font-weight: 700;
+}
+
+/* 订单卡片底部 */
+.order-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  background: #FAFBFC;
+  border-top: 2rpx solid #E8EEF3;
+}
+
+.order-amount-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.amount-label {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.amount-value {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #E53935;
+}
+
+.order-action-buttons {
+  display: flex;
+  gap: 12rpx;
+}
+
+.action-btn-new {
+  padding: 12rpx 24rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  border: none;
+  line-height: 1.5;
+  transition: all 0.2s;
+}
+
+.btn-change-service {
+  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
+  color: white;
+}
+
+.btn-refund {
+  background: linear-gradient(135deg, #FFB6B6 0%, #FFC9C9 100%);
+  color: #721C24;
+}
+
+.btn-detail {
+  background: white;
+  color: #666;
+  border: 2rpx solid #E0E0E0;
+}
+
+/* 空状态 */
+.empty-order-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 100rpx 0;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
 }
 
 .order-content {
