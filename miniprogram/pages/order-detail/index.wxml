@@ -137,9 +137,13 @@
     <view class="action-buttons">
       <!-- 画师操作 -->
       <view wx:if="{{userRole === 'artist'}}" class="button-group">
-        <button wx:if="{{order.status !== 'completed'}}" class="btn-primary btn-full" bindtap="markComplete">
+        <button wx:if="{{order.status !== 'completed' && order.status !== 'waitingConfirm'}}" class="btn-primary btn-full" bindtap="markComplete">
           标记已完成
         </button>
+        <view wx:elif="{{order.status === 'waitingConfirm'}}" class="completion-tip">
+          <text class="tip-icon">✓</text>
+          <text class="tip-text">已标记完成，等待客户确认</text>
+        </view>
       </view>
       
       <!-- 买家操作 -->

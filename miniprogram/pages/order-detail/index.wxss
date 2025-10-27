@@ -444,6 +444,29 @@ page {
   gap: 20rpx;
 }
 
+/* 完成提示 */
+.completion-tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 32rpx;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  border-radius: 16rpx;
+  gap: 12rpx;
+}
+
+.tip-icon {
+  font-size: 40rpx;
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.tip-text {
+  font-size: 28rpx;
+  color: #2E7D32;
+  font-weight: 600;
+}
+
 .btn-primary,
 .btn-secondary {
   flex: 1;
