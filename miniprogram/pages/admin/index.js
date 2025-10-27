@@ -630,6 +630,70 @@ Page({
     })
   },
 
+  // 更换客服
+  changeService(e) {
+    const orderId = e.currentTarget.dataset.id
+    const serviceList = wx.getStorageSync('service_list') || []
+    const activeServices = serviceList.filter(s => s.isActive)
+
+    if (activeServices.length === 0) {
+      wx.showToast({
+        title: '暂无可用客服',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 准备客服列表
+    const itemList = activeServices.map(s => 
+      `${s.serviceNumber}号 - ${s.name}`
+    )
+
+    wx.showActionSheet({
+      itemList: itemList,
+      success: (res) => {
+        const selectedService = activeServices[res.tapIndex]
+        this.doChangeService(orderId, selectedService)
+      }
+    })
+  },
+
+  // 执行更换客服
+  doChangeService(orderId, service) {
+    let orders = wx.getStorageSync('orders') || []
+    const orderIndex = orders.findIndex(o => o.id === orderId)
+
+    if (orderIndex === -1) {
+      wx.showToast({
+        title: '订单不存在',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 更新订单的客服信息
+    orders[orderIndex].serviceId = service.userId
+    orders[orderIndex].serviceName = service.name
+    orders[orderIndex].serviceAvatar = service.avatar
+    orders[orderIndex].serviceQrcodeUrl = service.qrcodeUrl
+    orders[orderIndex].serviceQrcodeNumber = service.qrcodeNumber
+
+    wx.setStorageSync('orders', orders)
+
+    console.log('✅ 订单客服已更换:')
+    console.log('  - 订单ID:', orderId)
+    console.log('  - 新客服:', service.name)
+    console.log('  - 客服编号:', service.serviceNumber)
+
+    wx.showToast({
+      title: `已分配给${service.name}`,
+      icon: 'success'
+    })
+
+    // 刷新订单列表
+    this.loadOrders()
+  },
+
   processRefund(e) {
     const id = e.currentTarget.dataset.id
     wx.showModal({

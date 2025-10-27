@@ -241,6 +241,7 @@
           <view class="order-footer">
             <text class="order-amount">¥{{item.amount}}</text>
             <view class="order-actions">
+              <button class="action-btn primary" data-id="{{item._id}}" catchtap="changeService">换客服</button>
               <button wx:if="{{item.status === 'refunding'}}" class="action-btn warning" data-id="{{item._id}}" catchtap="processRefund">处理退款</button>
               <button class="action-btn default" data-id="{{item._id}}" catchtap="viewOrderDetail">详情</button>
             </view>
