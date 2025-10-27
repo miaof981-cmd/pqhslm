@@ -291,6 +291,26 @@
   border-top: 12rpx solid #999;
 }
 
+/* ===== 滑动条样式 ===== */
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx 0;
+}
+
+.delivery-slider {
+  flex: 1;
+  margin: 0;
+}
+
+.slider-unit {
+  font-size: 28rpx;
+  color: #666;
+  font-weight: 500;
+  min-width: 50rpx;
+}
+
 /* ===== 标签选择 ===== */
 .tag-grid {
   display: flex;
@@ -312,6 +332,18 @@
   background: #E6FFEB;
   color: #A8E6CF;
   border-color: #A8E6CF;
+}
+
+.tag-item.readonly {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.empty-hint {
+  padding: 20rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: #999;
 }
 
 /* ===== 价格输入 ===== */

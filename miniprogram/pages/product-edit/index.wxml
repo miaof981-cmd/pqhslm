@@ -80,28 +80,32 @@
       <!-- 出稿天数 -->
       <view class="form-group">
         <view class="group-label">出稿天数 <text class="required">*</text></view>
-        <picker mode="selector" 
-                range="{{deliveryOptions}}" 
-                value="{{deliveryIndex}}"
-                bindchange="onDeliveryOptionChange">
-          <view class="picker-display">
-            <text>{{deliveryOptions[deliveryIndex]}}天</text>
-            <view class="arrow-icon"></view>
-          </view>
-        </picker>
+        <view class="slider-container">
+          <slider class="delivery-slider" 
+                  min="1" 
+                  max="30" 
+                  value="{{deliveryDays}}" 
+                  activeColor="#66BB6A"
+                  backgroundColor="#E0E0E0"
+                  block-size="24"
+                  bindchange="onDeliveryDaysChange"
+                  bindchanging="onDeliveryDaysChanging"
+                  show-value/>
+          <text class="slider-unit">天</text>
+        </view>
       </view>
 
-      <!-- 商品标签 -->
+      <!-- 商品标签（仅显示） -->
       <view class="form-group">
-        <view class="group-label">商品标签 <text class="label-hint">（最多3个）</text></view>
-        <view class="tag-grid">
-          <view wx:for="{{tagOptions}}" wx:key="*this"
-                class="tag-item {{formData.tags.includes(item) ? 'active' : ''}}"
-                data-tag="{{item}}"
-                bindtap="toggleTag">
+        <view class="group-label">商品标签 <text class="label-hint">（由管理员设置）</text></view>
+        <view wx:if="{{formData.tags.length > 0}}" class="tag-grid">
+          <view wx:for="{{formData.tags}}" 
+                wx:key="index" 
+                class="tag-item active readonly">
             {{item}}
           </view>
         </view>
+        <view wx:else class="empty-hint">暂无标签，请联系管理员添加</view>
       </view>
 
       <!-- 自动保存提示 -->
@@ -454,7 +458,7 @@
         
         <view class="confirm-item">
           <text class="confirm-label">出稿天数：</text>
-          <text class="confirm-value">{{deliveryOptions[deliveryIndex]}}天</text>
+          <text class="confirm-value">{{deliveryDays}}天</text>
         </view>
         
         <!-- 规格信息 -->

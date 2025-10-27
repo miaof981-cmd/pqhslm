@@ -31,6 +31,10 @@ Page({
     selectionEnd: -1, // 选区结束位置
     cursorPosition: 0, // 当前光标位置（用于插入）
     
+    // 防抖 timer
+    saveDraftTimer: null,
+    draftSaved: false,
+    
     // 第一步：基础信息
     categories: [
       { id: 'portrait', name: '头像设计' },
@@ -44,8 +48,7 @@ Page({
     ],
     categoryIndex: -1,
     categoryName: '请选择分类',
-    deliveryOptions: [3, 5, 7, 10, 15, 30],
-    deliveryIndex: 0,
+    deliveryDays: 7, // 默认7天
     tagOptions: ['热销', '推荐', '特价', '精品', '原创', '限量', '包修改', '专业', '创意', '高质量', '现代', '可爱', '实用'],
     
     // 第二步：规格与定价
@@ -99,8 +102,8 @@ Page({
       const categoryIndex = this.data.categories.findIndex(c => c.id === product.category)
       const categoryName = categoryIndex >= 0 ? this.data.categories[categoryIndex].name : '请选择分类'
       
-      // 找到出稿天数索引
-      const deliveryIndex = this.data.deliveryOptions.findIndex(d => d === product.deliveryDays)
+      // 恢复出稿天数
+      const deliveryDays = product.deliveryDays || 7
       
       // 恢复表单数据
       this.setData({
@@ -118,7 +121,7 @@ Page({
         },
         categoryIndex: categoryIndex >= 0 ? categoryIndex : -1,
         categoryName,
-        deliveryIndex: deliveryIndex >= 0 ? deliveryIndex : 0,
+        deliveryDays,
         enableStockLimit: product.stock > 0
       })
       
@@ -209,7 +212,7 @@ Page({
 
   // 验证当前步骤
   validateStep() {
-    const { currentStep, formData, categoryIndex, deliveryIndex } = this.data
+    const { currentStep, formData, categoryIndex, deliveryDays } = this.data
     
     if (currentStep === 1) {
       if (!formData.name.trim()) {
@@ -229,8 +232,16 @@ Page({
         return false
       }
     } else if (currentStep === 2) {
-      if (!formData.basePrice || parseFloat(formData.basePrice) <= 0) {
-        wx.showToast({ title: '请输入基础价格', icon: 'none' })
+      // 价格验证：基础价格和规格价格二选一
+      const hasBasePrice = formData.basePrice && parseFloat(formData.basePrice) > 0
+      const hasValidSpecs = this.hasValidSpecPrices()
+      
+      if (!hasBasePrice && !hasValidSpecs) {
+        wx.showToast({ 
+          title: '请设置基础价格或规格价格', 
+          icon: 'none',
+          duration: 2500
+        })
         return false
       }
     }
@@ -238,15 +249,51 @@ Page({
     return true
   },
 
-  // 保存草稿
+  // 检查是否有有效的规格价格
+  hasValidSpecPrices() {
+    // 检查一级规格
+    if (this.data.spec1Selected && this.data.spec1Values.length > 0) {
+      const hasValidSpec1 = this.data.spec1Values.some(v => 
+        v.name && v.name.trim() && v.addPrice && parseFloat(v.addPrice) >= 0
+      )
+      if (hasValidSpec1) return true
+    }
+    
+    // 检查二级规格
+    if (this.data.spec2Selected && this.data.spec2Values.length > 0) {
+      const hasValidSpec2 = this.data.spec2Values.some(v => 
+        v.name && v.name.trim() && v.addPrice && parseFloat(v.addPrice) >= 0
+      )
+      if (hasValidSpec2) return true
+    }
+    
+    return false
+  },
+
+  // 保存草稿（防抖版本）
   saveDraft() {
+    // 清除之前的定时器
+    if (this.data.saveDraftTimer) {
+      clearTimeout(this.data.saveDraftTimer)
+    }
+    
+    // 设置新的定时器，500ms 后执行保存
+    const timer = setTimeout(() => {
+      this._performSaveDraft()
+    }, 500)
+    
+    this.setData({ saveDraftTimer: timer })
+  },
+  
+  // 实际执行保存
+  _performSaveDraft() {
     const draftData = {
       currentStep: this.data.currentStep,
       progress: this.data.progress,
       formData: JSON.parse(JSON.stringify(this.data.formData)), // 深拷贝
       categoryIndex: this.data.categoryIndex,
       categoryName: this.data.categoryName,
-      deliveryIndex: this.data.deliveryIndex,
+      deliveryDays: this.data.deliveryDays,
       enableStockLimit: this.data.enableStockLimit,
       spec1Selected: this.data.spec1Selected,
       spec1Name: this.data.spec1Name,
@@ -294,7 +341,7 @@ Page({
                   formData: draft.formData || this.data.formData,
                   categoryIndex: draft.categoryIndex >= 0 ? draft.categoryIndex : -1,
                   categoryName: draft.categoryName || '请选择分类',
-                  deliveryIndex: draft.deliveryIndex || 0,
+                  deliveryDays: draft.deliveryDays || 7,
                   enableStockLimit: draft.enableStockLimit || false,
                   spec1Selected: draft.spec1Selected || false,
                   spec1Name: draft.spec1Name || '',
@@ -416,33 +463,22 @@ Page({
   },
 
   // 选择出稿天数
-  onDeliveryOptionChange(e) {
+  // 出稿天数滑动中
+  onDeliveryDaysChanging(e) {
     this.setData({
-      deliveryIndex: parseInt(e.detail.value)
+      deliveryDays: e.detail.value
     })
+  },
+  
+  // 出稿天数滑动完成
+  onDeliveryDaysChange(e) {
+    this.setData({
+      deliveryDays: e.detail.value
+    })
+    this.saveDraft()
   },
 
-  // 切换标签
-  toggleTag(e) {
-    const tag = e.currentTarget.dataset.tag
-    const tags = [...this.data.formData.tags]
-    const index = tags.indexOf(tag)
-    
-    if (index > -1) {
-      tags.splice(index, 1)
-    } else {
-      if (tags.length < 3) {
-        tags.push(tag)
-      } else {
-        wx.showToast({ title: '最多选择3个标签', icon: 'none' })
-        return
-      }
-    }
-    
-    this.setData({
-      'formData.tags': tags
-    })
-  },
+  // 标签由管理员控制，画师不可编辑
 
   // ===== 第二步：规格与定价 =====
 
@@ -1016,7 +1052,7 @@ Page({
         ...this.data.formData,
         price: finalPrice, // 最终显示价格（最低价）
         basePrice: this.data.formData.basePrice, // 保留基础价格
-        deliveryDays: this.data.deliveryOptions[this.data.deliveryIndex],
+        deliveryDays: this.data.deliveryDays,
         specs: []
       }
       
@@ -1203,7 +1239,7 @@ Page({
       },
       categoryIndex: -1,
       categoryName: '请选择分类',
-      deliveryIndex: 0,
+      deliveryDays: 7,
       spec1Selected: false,
       spec1Name: '',
       spec1Values: [],
