@@ -441,40 +441,21 @@
   display: block;
 }
 
-/* 出稿时间标签 */
-.delivery-badge {
-  position: absolute;
-  top: 16rpx;
-  right: 16rpx;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8rpx);
-  color: white;
+/* 出稿时间标签（在商品信息区） */
+.product-delivery {
+  background: #F0F0F0;
+  color: #666;
   font-size: 22rpx;
-  font-weight: 600;
-  padding: 8rpx 16rpx;
-  border-radius: 20rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 60rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
-  z-index: 2;
+  padding: 6rpx 12rpx;
+  border-radius: 8rpx;
+  white-space: nowrap;
 }
 
-/* 极速出稿标签 - 特殊样式 */
-.delivery-badge.fast {
+/* 极速出稿 - 特殊样式 */
+.product-delivery.fast {
   background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 107, 0.4);
-  animation: pulse-badge 2s ease-in-out infinite;
-}
-
-@keyframes pulse-badge {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+  color: white;
+  font-weight: 600;
 }
 
 /* 商品信息 */
@@ -509,18 +490,4 @@
   font-weight: 700;
   line-height: 1;
   flex-shrink: 0;
-}
-
-/* 画师信息 - 灰色块+文字 */
-.product-artist {
-  padding: 4rpx 12rpx;
-  background: #F0F0F0;
-  border-radius: 8rpx;
-  font-size: 20rpx;
-  color: #666;
-  line-height: 1.4;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 120rpx;
 }

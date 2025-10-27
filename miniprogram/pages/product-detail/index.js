@@ -565,9 +565,19 @@ Page({
         // 获取商品图片（使用 base64 或空字符串）
         const productImage = (product.images && product.images[0]) || ''
         
+        // 获取画师完整信息
+        const artistName = product.artistName || '画师'
+        const artistId = product.artistId || ''
+        const artistAvatar = product.artistAvatar || '/assets/default-avatar.png'
+        
+        console.log('=== 创建订单传递画师信息 ===')
+        console.log('artistId:', artistId)
+        console.log('artistName:', artistName)
+        console.log('artistAvatar:', artistAvatar)
+        
         // 跳转到订单成功页面
         wx.redirectTo({
-          url: `/pages/order-success/index?productId=${product.id || ''}&productName=${encodeURIComponent(product.name)}&productImage=${encodeURIComponent(productImage)}&spec1=${encodeURIComponent(spec1Name)}&spec2=${encodeURIComponent(spec2Name)}&quantity=${quantity}&price=${currentPrice}&totalAmount=${currentPrice * quantity}&deliveryDays=${product.deliveryDays || 7}&artistName=${encodeURIComponent(product.artistName || '画师')}`
+          url: `/pages/order-success/index?productId=${product.id || ''}&productName=${encodeURIComponent(product.name)}&productImage=${encodeURIComponent(productImage)}&spec1=${encodeURIComponent(spec1Name)}&spec2=${encodeURIComponent(spec2Name)}&quantity=${quantity}&price=${currentPrice}&totalAmount=${currentPrice * quantity}&deliveryDays=${product.deliveryDays || 7}&artistId=${artistId}&artistName=${encodeURIComponent(artistName)}&artistAvatar=${encodeURIComponent(artistAvatar)}`
         })
       }, 1000)
     }

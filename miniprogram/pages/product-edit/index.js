@@ -1261,15 +1261,20 @@ Page({
             id: this.data.productId, // 保持原ID
             artistName: userInfo.nickName || products[index].artistName || '画师',
             artistId: wx.getStorageSync('userId') || products[index].artistId || '',
+            artistAvatar: userInfo.avatarUrl || products[index].artistAvatar || '/assets/default-avatar.png',
             updateTime: Date.now()
           }
           console.log('✓ 更新现有商品成功', products[index])
         } else {
           // 没找到，说明是旧数据首次保存，作为新增处理
           console.log('⚠️ 未找到商品，作为新增处理（旧数据迁移）')
+          const userInfo = wx.getStorageSync('userInfo') || {}
           const newProduct = {
             id: this.data.productId, // 保持原ID（如 '1', '2'）
             ...productData,
+            artistName: userInfo.nickName || '画师',
+            artistId: wx.getStorageSync('userId') || '',
+            artistAvatar: userInfo.avatarUrl || '/assets/default-avatar.png',
             createTime: Date.now(),
             updateTime: Date.now()
           }
@@ -1284,6 +1289,7 @@ Page({
           ...productData,
           artistName: userInfo.nickName || '画师',
           artistId: wx.getStorageSync('userId') || '',
+          artistAvatar: userInfo.avatarUrl || '/assets/default-avatar.png',
           createTime: Date.now(),
           updateTime: Date.now()
         }

@@ -45,18 +45,16 @@
         <!-- 商品图片（正方形） -->
         <view class="product-image-wrapper">
           <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
-          <!-- 出稿时间标签 -->
-          <view class="delivery-badge {{item.deliveryDays === 1 ? 'fast' : ''}}">
-            <text wx:if="{{item.deliveryDays === 1}}">极速</text>
-            <text wx:else>{{item.deliveryDays}}天</text>
-          </view>
         </view>
         <!-- 商品信息 -->
         <view class="product-info">
           <view class="product-name">{{item.name}}</view>
           <view class="product-meta">
             <view class="product-price">¥{{item.price}}</view>
-            <view wx:if="{{item.artistName && item.artistName !== '画师'}}" class="product-artist">{{item.artistName}}</view>
+            <view class="product-delivery {{item.deliveryDays === 1 ? 'fast' : ''}}">
+              <text wx:if="{{item.deliveryDays === 1}}">极速出稿</text>
+              <text wx:else>{{item.deliveryDays}}天出稿</text>
+            </view>
           </view>
         </view>
       </view>
