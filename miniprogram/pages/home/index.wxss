@@ -484,14 +484,11 @@
   color: #333;
   line-height: 1.4;
   margin-bottom: 8rpx;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: normal;
+  white-space: nowrap;
   font-weight: 500;
-  /* 移除 min-height，让高度自适应 */
+  /* 单行显示，超出部分省略号 */
 }
 
 /* 价格和画师信息容器 */
