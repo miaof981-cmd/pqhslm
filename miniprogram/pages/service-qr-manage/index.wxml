@@ -3,10 +3,10 @@
   <view class="header-section">
     <view class="header-content">
       <text class="page-title">客服管理</text>
-      <button class="add-btn" bindtap="showAddServiceModal">
+      <view class="add-btn" bindtap="showAddServiceModal">
         <text class="add-icon">+</text>
-        添加客服
-      </button>
+        <text class="add-text">添加客服</text>
+      </view>
     </view>
   </view>
 
@@ -31,13 +31,15 @@
 
       <!-- 右侧：操作按钮组 -->
       <view class="card-right">
-        <button 
-          class="status-toggle-btn {{item.isActive ? 'btn-active' : 'btn-inactive'}}" 
-          catchtap="toggleServiceStatus" 
-          data-id="{{item.id}}" 
-          data-active="{{item.isActive}}">
-          {{item.isActive ? '在线' : '离线'}}
-        </button>
+        <view class="status-switch-wrap">
+          <text class="status-label">{{item.isActive ? '在线' : '离线'}}</text>
+          <switch 
+            class="status-switch" 
+            checked="{{item.isActive}}" 
+            bindchange="toggleServiceStatus" 
+            data-id="{{item.id}}" 
+            color="#66BB6A" />
+        </view>
         <button 
           class="edit-btn" 
           catchtap="viewServiceDetail" 

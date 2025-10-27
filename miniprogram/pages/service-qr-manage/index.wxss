@@ -39,20 +39,24 @@ page {
   border-radius: 25rpx;
   font-size: 24rpx;
   font-weight: 600;
-  border: none;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
-  margin-left: auto;
+  cursor: pointer;
 }
 
-.add-btn::after {
-  border: none;
+.add-btn:active {
+  transform: scale(0.95);
+  opacity: 0.9;
 }
 
 .add-icon {
   font-size: 26rpx;
   font-weight: 700;
   line-height: 1;
+}
+
+.add-text {
+  white-space: nowrap;
 }
 
 /* 客服列表 - 名片式横向布局 */
@@ -175,44 +179,31 @@ page {
 /* 右侧：操作按钮组 */
 .card-right {
   flex-shrink: 0;
-  width: 200rpx;
+  width: 220rpx;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10rpx;
+  gap: 12rpx;
 }
 
-.status-toggle-btn {
-  width: 90rpx;
-  height: 56rpx;
-  line-height: 56rpx;
-  padding: 0;
-  border-radius: 28rpx;
-  font-size: 24rpx;
+/* 状态开关组 */
+.status-switch-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.status-label {
+  font-size: 20rpx;
+  color: #666;
   font-weight: 600;
-  border: none;
-  text-align: center;
-  transition: all 0.3s;
+  white-space: nowrap;
 }
 
-.status-toggle-btn::after {
-  border: none;
-}
-
-.status-toggle-btn.btn-active {
-  background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
-  color: white;
-  box-shadow: 0 2rpx 8rpx rgba(102, 187, 106, 0.3);
-}
-
-.status-toggle-btn.btn-inactive {
-  background: #F5F5F5;
-  color: #999;
-  border: 1rpx solid #E0E0E0;
-}
-
-.status-toggle-btn:active {
-  transform: scale(0.95);
+.status-switch {
+  transform: scale(0.85);
+  margin: 0;
 }
 
 .edit-btn {

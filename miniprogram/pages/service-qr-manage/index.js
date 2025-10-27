@@ -322,24 +322,31 @@ Page({
     })
   },
 
-  // 切换客服状态
+  // 切换客服状态（Switch 开关）
   toggleServiceStatus(e) {
     const serviceId = e.currentTarget.dataset.id
-    const isActive = e.currentTarget.dataset.active
+    const newStatus = e.detail.value  // Switch 返回的新状态
     
     let services = wx.getStorageSync('service_list') || []
     const serviceIndex = services.findIndex(s => s.id === serviceId)
     
     if (serviceIndex !== -1) {
-      services[serviceIndex].isActive = !isActive
+      services[serviceIndex].isActive = newStatus
       wx.setStorageSync('service_list', services)
       
       wx.showToast({
-        title: isActive ? '已设为离线' : '已设为在线',
-        icon: 'success'
+        title: newStatus ? '已设为在线' : '已设为离线',
+        icon: 'success',
+        duration: 1500
       })
       
       this.loadServiceList()
+      
+      console.log('客服状态已切换:', {
+        serviceId: serviceId,
+        serviceName: services[serviceIndex].name,
+        newStatus: newStatus ? '在线' : '离线'
+      })
     }
   },
 
