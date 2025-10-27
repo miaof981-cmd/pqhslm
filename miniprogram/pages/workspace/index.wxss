@@ -703,11 +703,8 @@ page {
 
 /* ========== 订单卡片优化样式 ========== */
 
-/* 时间信息区 - 清晰的时间线 */
-.order-timeline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* 时间进度条区 */
+.order-progress-section {
   padding: 20rpx 24rpx;
   margin: 16rpx 0;
   background: linear-gradient(135deg, #F8FFF9 0%, #F0F9F1 100%);
@@ -715,84 +712,106 @@ page {
   border-left: 6rpx solid #66BB6A;
 }
 
-.timeline-item {
-  flex: 1;
+.progress-header {
   display: flex;
-  flex-direction: column;
-  gap: 6rpx;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
 }
 
-.timeline-label {
+.progress-label {
   font-size: 22rpx;
-  color: #999;
+  color: #666;
   font-weight: 500;
 }
 
-.timeline-value {
-  font-size: 24rpx;
-  color: #333;
+.deadline-label {
   font-weight: 600;
-  line-height: 1.4;
 }
 
-.timeline-value.urgent-text {
+.deadline-label.overdue {
   color: #FF6B6B;
 }
 
-.timeline-arrow {
-  font-size: 28rpx;
-  color: #66BB6A;
-  padding: 0 16rpx;
-  flex-shrink: 0;
-  font-weight: 600;
+.progress-bar-bg {
+  width: 100%;
+  height: 12rpx;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12rpx;
+  overflow: hidden;
+  box-shadow: inset 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
 }
 
-/* 人员信息区 - 清晰标注 */
-.order-people-section {
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #66BB6A 0%, #81C784 100%);
+  border-radius: 12rpx;
+  transition: width 0.3s ease, background 0.3s ease;
+  position: relative;
+}
+
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20rpx;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 100%);
+}
+
+.progress-bar-fill.overdue {
+  background: linear-gradient(90deg, #FF6B6B 0%, #FF8A80 100%);
+}
+
+/* 人员信息区（紧凑单行） */
+.order-people-compact {
   display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-  padding: 20rpx 24rpx;
+  align-items: center;
+  justify-content: space-around;
+  padding: 16rpx 24rpx;
   margin: 16rpx 0;
   background: linear-gradient(135deg, #FAFAFA 0%, #F5F5F5 100%);
   border-radius: 12rpx;
 }
 
-.people-row {
+.people-item-compact {
   display: flex;
   align-items: center;
-  gap: 20rpx;
+  gap: 10rpx;
 }
 
-.people-label {
-  width: 80rpx;
-  font-size: 24rpx;
-  color: #666;
-  font-weight: 600;
-  flex-shrink: 0;
+.people-label-small {
+  font-size: 22rpx;
+  color: #999;
+  font-weight: 500;
 }
 
-.people-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.people-avatar {
-  width: 56rpx;
-  height: 56rpx;
+.people-avatar-small {
+  width: 48rpx;
+  height: 48rpx;
   border-radius: 50%;
-  border: 3rpx solid #fff;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
-  flex-shrink: 0;
+  border: 2rpx solid #fff;
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.08);
   background: #E0E0E0;
+  flex-shrink: 0;
 }
 
-.people-name {
-  font-size: 26rpx;
+.people-name-compact {
+  font-size: 24rpx;
   color: #333;
   font-weight: 500;
+  max-width: 120rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.people-divider-compact {
+  width: 2rpx;
+  height: 40rpx;
+  background: #E0E0E0;
+  flex-shrink: 0;
 }
 
 /* 操作按钮区 - 右对齐且醒目 */

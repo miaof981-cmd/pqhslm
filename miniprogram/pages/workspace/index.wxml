@@ -153,34 +153,32 @@
               </view>
             </view>
 
-            <!-- 时间信息区 -->
-            <view class="order-timeline">
-              <view class="timeline-item">
-                <view class="timeline-label">下单时间</view>
-                <view class="timeline-value">{{item.createTime}}</view>
+            <!-- 时间进度条 -->
+            <view class="order-progress-section">
+              <view class="progress-header">
+                <text class="progress-label">下单：{{item.createTime}}</text>
+                <text class="progress-label deadline-label {{item.status === 'overdue' ? 'overdue' : ''}}">
+                  截稿：{{item.deadline}}
+                </text>
               </view>
-              <view class="timeline-arrow">→</view>
-              <view class="timeline-item">
-                <view class="timeline-label">截稿时间</view>
-                <view class="timeline-value {{item.urgent ? 'urgent-text' : ''}}">{{item.deadline}}</view>
+              <view class="progress-bar-bg">
+                <view class="progress-bar-fill {{item.status === 'overdue' ? 'overdue' : ''}}" 
+                      style="width: {{item.progressPercent || 50}}%;"></view>
               </view>
             </view>
 
-            <!-- 人员信息区 -->
-            <view class="order-people-section">
-              <view class="people-row">
-                <view class="people-label">客户</view>
-                <view class="people-content">
-                  <image class="people-avatar" src="{{item.buyerAvatar || '/assets/default-avatar.png'}}" mode="aspectFill"/>
-                  <text class="people-name">{{item.buyerName || '客户'}}</text>
-                </view>
+            <!-- 人员信息区（单行） -->
+            <view class="order-people-compact">
+              <view class="people-item-compact">
+                <text class="people-label-small">客户</text>
+                <image class="people-avatar-small" src="{{item.buyerAvatar || '/assets/default-avatar.png'}}" mode="aspectFill"/>
+                <text class="people-name-compact">{{item.buyerName || '客户'}}</text>
               </view>
-              <view class="people-row">
-                <view class="people-label">客服</view>
-                <view class="people-content">
-                  <image class="people-avatar" src="{{item.serviceAvatar || '/assets/default-avatar.png'}}" mode="aspectFill"/>
-                  <text class="people-name">{{item.serviceName || '待分配'}}</text>
-                </view>
+              <view class="people-divider-compact"></view>
+              <view class="people-item-compact">
+                <text class="people-label-small">客服</text>
+                <image class="people-avatar-small" src="{{item.serviceAvatar || '/assets/default-avatar.png'}}" mode="aspectFill"/>
+                <text class="people-name-compact">{{item.serviceName || '待分配'}}</text>
               </view>
             </view>
 

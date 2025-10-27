@@ -369,8 +369,14 @@ Page({
       console.log('📊 管理员视角: 显示所有订单', allOrders.length)
     }
     
-    // 自动计算订单的状态
+    // 自动计算订单的状态和进度
     myOrders = orderStatusUtil.calculateOrdersStatus(myOrders)
+    
+    // 为每个订单计算进度百分比
+    myOrders = myOrders.map(order => {
+      const progressPercent = this.calculateProgressPercent(order)
+      return { ...order, progressPercent }
+    })
     
     // 保存更新后的订单状态（更新全部订单）
     wx.setStorageSync('pending_orders', allOrders)
@@ -837,6 +843,37 @@ Page({
     })
     
     this.applyFilter()
+  },
+  
+  // 计算订单进度百分比
+  calculateProgressPercent(order) {
+    if (order.status === 'completed') {
+      return 100
+    }
+    
+    try {
+      const createTime = new Date(order.createTime).getTime()
+      const deadline = new Date(order.deadline).getTime()
+      const now = Date.now()
+      
+      if (isNaN(createTime) || isNaN(deadline)) {
+        return 50 // 默认值
+      }
+      
+      const totalTime = deadline - createTime
+      const elapsedTime = now - createTime
+      
+      let percent = Math.round((elapsedTime / totalTime) * 100)
+      
+      // 限制范围在 0-100%
+      if (percent < 0) percent = 0
+      if (percent > 100) percent = 100
+      
+      return percent
+    } catch (error) {
+      console.error('计算进度百分比失败:', error)
+      return 50
+    }
   },
   
   // 清除搜索
