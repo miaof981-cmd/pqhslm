@@ -317,9 +317,24 @@ Page({
         }
       }
       
+      // 格式化订单号：统一显示后6位
+      const rawOrderNo = order.orderNumber || order.orderNo || order.id || ''
+      const displayOrderNo = rawOrderNo.length > 6 ? '...' + rawOrderNo.slice(-6) : rawOrderNo
+      
+      // 格式化时间：只显示日期和时分
+      const formatTime = (timestamp) => {
+        if (!timestamp) return ''
+        const date = new Date(timestamp)
+        const month = (date.getMonth() + 1).toString().padStart(2, '0')
+        const day = date.getDate().toString().padStart(2, '0')
+        const hour = date.getHours().toString().padStart(2, '0')
+        const minute = date.getMinutes().toString().padStart(2, '0')
+        return `${month}-${day} ${hour}:${minute}`
+      }
+      
       return {
         _id: order.id,
-        orderNo: order.orderNumber || order.orderNo || order.id,
+        orderNo: displayOrderNo,
         productName: order.productName,
         productImage: order.productImage || '',
         userName: order.buyerName || order.buyer || '未知用户',
@@ -330,8 +345,8 @@ Page({
         status: order.status || 'created',
         statusText: statusTextMap[order.status] || order.status || '待处理',
         businessStatus: businessStatus,  // 业务状态中文
-        createTime: order.createdAt || order.createTime,
-        deadline: order.deadline,
+        createTime: formatTime(order.createdAt || order.createTime),
+        deadline: order.deadline ? formatTime(order.deadline) : '',
         isOverdue: isOverdue,
         buyerId: order.buyerId,
         productId: order.productId,

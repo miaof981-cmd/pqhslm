@@ -191,9 +191,9 @@
     <view wx:if="{{currentTab === 'order'}}" class="tab-content">
       <!-- 顶部操作栏 -->
       <view class="order-header-bar">
-        <text class="section-title">订单管理</text>
-        <view class="header-actions">
-          <input class="search-input-inline" placeholder="搜索订单" bindinput="searchOrders" />
+        <text class="section-title-inline">订单管理</text>
+        <view class="header-actions-inline">
+          <input class="search-input-inline" placeholder="搜索订单号/买家" bindinput="searchOrders" value="{{searchKeyword}}" />
           <button class="export-btn-small" bindtap="exportOrders">导出</button>
         </view>
       </view>
@@ -221,60 +221,46 @@
 
       <!-- 订单列表 -->
       <view class="order-list">
-        <view wx:for="{{orders}}" wx:key="_id" class="order-card">
-          <!-- 订单头部 -->
-          <view class="order-card-header">
-            <view class="order-no-section">
-              <text class="order-no-label">订单号</text>
-              <text class="order-no-value">{{item.orderNo}}</text>
-            </view>
-            <view class="order-status-badge status-{{item.status}}">
-              <text class="status-text">{{item.statusText}}</text>
-              <text wx:if="{{item.businessStatus}}" class="business-status">{{item.businessStatus}}</text>
-            </view>
-          </view>
-
-          <!-- 订单内容 -->
-          <view class="order-card-body">
-            <image class="order-product-image" src="{{item.productImage}}" mode="aspectFill" />
-            <view class="order-details">
-              <text class="product-name">{{item.productName}}</text>
-              <view class="order-meta-grid">
-                <view class="meta-item">
-                  <text class="meta-label">买家</text>
-                  <text class="meta-value">{{item.userName}}</text>
-                </view>
-                <view class="meta-item">
-                  <text class="meta-label">画师</text>
-                  <text class="meta-value">{{item.artistName}}</text>
-                </view>
-                <view class="meta-item">
-                  <text class="meta-label">客服</text>
-                  <text class="meta-value">{{item.serviceName}}</text>
-                </view>
-                <view class="meta-item">
-                  <text class="meta-label">下单时间</text>
-                  <text class="meta-value">{{item.createTime}}</text>
-                </view>
-                <view wx:if="{{item.deadline}}" class="meta-item deadline-item {{item.isOverdue ? 'overdue' : ''}}">
-                  <text class="meta-label">截稿时间</text>
-                  <text class="meta-value">{{item.deadline}} {{item.isOverdue ? '⚠️已超时' : ''}}</text>
-                </view>
+        <view wx:for="{{orders}}" wx:key="_id" class="order-card-compact">
+          <!-- 左侧商品图 -->
+          <image class="order-img-compact" src="{{item.productImage}}" mode="aspectFill" />
+          
+          <!-- 中间信息区 -->
+          <view class="order-info-compact">
+            <!-- 第一行：商品名 + 状态 -->
+            <view class="order-row-1">
+              <text class="product-name-compact">{{item.productName}}</text>
+              <view class="status-badge-compact status-{{item.status}}">
+                {{item.statusText}}
+                <text wx:if="{{item.businessStatus}}" class="sub-status">{{item.businessStatus}}</text>
               </view>
             </view>
+            
+            <!-- 第二行：关键信息 -->
+            <view class="order-row-2">
+              <text class="info-text">订单 {{item.orderNo}}</text>
+              <text class="info-text">买家 {{item.userName}}</text>
+              <text class="info-text">画师 {{item.artistName}}</text>
+            </view>
+            
+            <!-- 第三行：时间 + 金额 -->
+            <view class="order-row-3">
+              <text class="time-text">{{item.createTime}}</text>
+              <text wx:if="{{item.deadline}}" class="deadline-text {{item.isOverdue ? 'overdue' : ''}}">
+                截稿 {{item.deadline}}
+              </text>
+              <text class="price-compact">¥{{item.amount}}</text>
+            </view>
           </view>
-
-          <!-- 订单底部 -->
-          <view class="order-card-footer">
-            <view class="order-amount-section">
-              <text class="amount-label">订单金额</text>
-              <text class="amount-value">¥{{item.amount}}</text>
-            </view>
-            <view class="order-action-buttons">
-              <button class="action-btn-new btn-change-service" data-id="{{item._id}}" catchtap="changeService">换客服</button>
-              <button wx:if="{{item.status !== 'completed' && item.status !== 'refunded'}}" class="action-btn-new btn-refund" data-id="{{item._id}}" catchtap="initiateRefund">退款</button>
-              <button class="action-btn-new btn-detail" data-id="{{item._id}}" catchtap="viewOrderDetail">详情</button>
-            </view>
+          
+          <!-- 右侧操作区 -->
+          <view class="order-actions-compact">
+            <button class="btn-icon btn-service" data-id="{{item._id}}" catchtap="changeService">换客服</button>
+            <button wx:if="{{item.status !== 'completed' && item.status !== 'refunded'}}" 
+                    class="btn-icon btn-refund" 
+                    data-id="{{item._id}}" 
+                    catchtap="initiateRefund">退款</button>
+            <button class="btn-icon btn-more" data-id="{{item._id}}" catchtap="viewOrderDetail">详情</button>
           </view>
         </view>
 
