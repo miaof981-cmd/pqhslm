@@ -329,12 +329,20 @@ Page({
         // 草稿有效期：24小时
         const isValid = Date.now() - draft.timestamp < 24 * 60 * 60 * 1000
         if (isValid) {
+          // 生成草稿摘要
+          const productName = draft.formData?.name || '(未命名)'
+          const imageCount = draft.formData?.images?.length || 0
+          const stepName = draft.currentStep === 1 ? '基础信息' : draft.currentStep === 2 ? '规格定价' : '详情发布'
+          const draftSummary = `商品: ${productName}\n已上传 ${imageCount} 张图片\n进度: ${stepName}`
+          
           wx.showModal({
             title: '发现未完成的草稿',
-            content: '是否继续编辑？',
+            content: draftSummary + '\n\n是否继续编辑？\n（取消将清除草稿）',
+            confirmText: '继续编辑',
+            cancelText: '放弃草稿',
             success: (res) => {
               if (res.confirm) {
-                console.log('恢复草稿', draft)
+                console.log('✅ 恢复草稿', draft)
                 this.setData({
                   currentStep: draft.currentStep || 1,
                   progress: draft.progress || 33,
@@ -351,19 +359,28 @@ Page({
                   spec2Values: draft.spec2Values || [],
                   pricePreviewTable: draft.pricePreviewTable || []
                 })
+                
+                wx.showToast({
+                  title: '草稿已恢复',
+                  icon: 'success'
+                })
               } else {
-                // 用户选择不恢复，清除草稿
+                // 用户选择放弃草稿
                 wx.removeStorageSync('product_draft')
+                console.log('❌ 用户放弃草稿')
               }
             }
           })
         } else {
           // 草稿过期，清除
           wx.removeStorageSync('product_draft')
+          console.log('⏰ 草稿已过期（>24小时）')
         }
+      } else {
+        console.log('ℹ️ 无草稿数据')
       }
     } catch (error) {
-      console.error('加载草稿失败', error)
+      console.error('❌ 加载草稿失败', error)
     }
   },
 
@@ -1238,13 +1255,29 @@ Page({
       }
       
       // 保存到本地存储
-      wx.setStorageSync('mock_products', products)
-      console.log('商品列表已保存', products)
+      try {
+        wx.setStorageSync('mock_products', products)
+        console.log('✅ 商品列表已保存', products)
+        
+        // 只有保存成功后才清除草稿
+        wx.removeStorageSync('product_draft')
+        console.log('✅ 草稿已清除')
+        
+      } catch (storageError) {
+        // 存储失败（比如超出10MB限制）
+        wx.hideLoading()
+        console.error('❌ 存储失败:', storageError)
+        
+        // 保留草稿，允许用户修改后重试
+        wx.showModal({
+          title: '保存失败',
+          content: '可能是图片过多导致存储超限。请尝试：\n1. 减少图片数量\n2. 删除部分规格图片\n\n草稿已保留，可稍后继续编辑。',
+          showCancel: false
+        })
+        return // 提前返回，不执行后续操作
+      }
 
       wx.hideLoading()
-      
-      // 清除草稿
-      wx.removeStorageSync('product_draft')
       
       // 成功提示
       wx.showToast({
