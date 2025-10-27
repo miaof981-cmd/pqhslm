@@ -10,8 +10,8 @@
     </view>
     <view class="stats-row">
       <view class="stat-item">
-        <text class="stat-value">{{products.length}}</text>
-        <text class="stat-label">商品总数</text>
+        <text class="stat-value">{{filteredProducts.length}}</text>
+        <text class="stat-label">当前显示</text>
       </view>
       <view class="stat-item">
         <text class="stat-value">{{onlineCount}}</text>

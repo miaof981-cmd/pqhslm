@@ -175,9 +175,15 @@ Page({
       filtered = products.filter(p => p.isOnSale === false)
     }
     
-    console.log('筛选结果 - 当前标签:', currentTab, '商品数量:', filtered.length)
+    console.log('=== 筛选商品 ===')
+    console.log('当前标签:', currentTab)
+    console.log('全部商品数量 (products):', products.length)
+    console.log('筛选后商品数量 (filtered):', filtered.length)
+    console.log('渲染前商品列表:', filtered.map(x => ({ name: x.name, isOnSale: x.isOnSale, price: x.price })))
     
-    this.setData({ filteredProducts: filtered })
+    this.setData({ filteredProducts: filtered }, () => {
+      console.log('setData 完成，filteredProducts.length:', this.data.filteredProducts.length)
+    })
   },
 
   // 编辑商品
