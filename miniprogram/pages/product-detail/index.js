@@ -337,6 +337,7 @@ Page({
         quantity: quantity,
         spec1: spec1Name,
         spec2: spec2Name,
+        deliveryDays: product.deliveryDays || 7,
         selected: false,
         addTime: new Date().toISOString()
       }
