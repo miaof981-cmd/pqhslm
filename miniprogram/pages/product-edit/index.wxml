@@ -65,50 +65,44 @@
         <view class="char-count">{{formData.name.length}}/50</view>
       </view>
 
-      <!-- 商品分类 -->
+      <!-- 商品分类（卡片式点选） -->
       <view class="form-group">
         <view class="group-label">商品分类 <text class="required">*</text></view>
-        <picker mode="selector" 
-                range="{{categories}}" 
-                range-key="name"
-                value="{{categoryIndex}}"
-                bindchange="onCategoryChange">
-          <view class="picker-display">
-            <text class="{{categoryName === '请选择分类' ? 'placeholder' : ''}}">{{categoryName}}</text>
-            <view class="arrow-icon"></view>
+        <view class="category-grid">
+          <view wx:for="{{categories}}" 
+                wx:key="id"
+                class="category-card {{categoryIndex === index ? 'active' : ''}}"
+                data-index="{{index}}"
+                bindtap="onCategorySelect">
+            <view class="category-icon">{{item.icon || '🎨'}}</view>
+            <text class="category-name">{{item.name}}</text>
+            <view wx:if="{{categoryIndex === index}}" class="category-check">✓</view>
           </view>
-        </picker>
+        </view>
       </view>
 
       <!-- 出稿天数 -->
       <view class="form-group">
         <view class="group-label">出稿天数 <text class="required">*</text></view>
-        <view class="slider-container">
+        <view class="slider-wrapper">
+          <view class="slider-value-display">
+            <text class="value-number">{{deliveryDays}}</text>
+            <text class="value-unit">天</text>
+          </view>
           <slider class="delivery-slider" 
                   min="1" 
                   max="30" 
                   value="{{deliveryDays}}" 
                   activeColor="#66BB6A"
                   backgroundColor="#E0E0E0"
-                  block-size="24"
+                  block-size="28"
                   bindchange="onDeliveryDaysChange"
-                  bindchanging="onDeliveryDaysChanging"
-                  show-value/>
-          <text class="slider-unit">天</text>
-        </view>
-      </view>
-
-      <!-- 商品标签（仅显示） -->
-      <view class="form-group">
-        <view class="group-label">商品标签 <text class="label-hint">（由管理员设置）</text></view>
-        <view wx:if="{{formData.tags.length > 0}}" class="tag-grid">
-          <view wx:for="{{formData.tags}}" 
-                wx:key="index" 
-                class="tag-item active readonly">
-            {{item}}
+                  bindchanging="onDeliveryDaysChanging"/>
+          <view class="slider-range">
+            <text class="range-min">1天</text>
+            <text class="range-max">30天</text>
           </view>
         </view>
-        <view wx:else class="empty-hint">暂无标签，请联系管理员添加</view>
       </view>
 
       <!-- 自动保存提示 -->
@@ -122,20 +116,63 @@
     <view wx:if="{{currentStep === 2}}" class="step-content">
       <view class="step-title">
         <text class="title-text">规格与定价</text>
-        <text class="title-desc">设置商品规格和价格体系</text>
+        <text class="title-desc">选择定价方式</text>
       </view>
 
-      <!-- 基础价格 -->
-      <view class="form-group">
-        <view class="group-label">基础价格 <text class="required">*</text></view>
-        <view class="group-hint">不选规格时的默认价格</view>
-        <view class="price-input-wrapper">
-          <text class="price-symbol">¥</text>
-          <input class="form-input price-input" 
-                 type="digit"
-                 placeholder="0.00" 
-                 value="{{formData.basePrice}}"
-                 bindinput="onBasePriceInput" />
+      <!-- 定价方式选择（2选1引导） -->
+      <view class="pricing-guide">
+        <view class="guide-tip">
+          <text class="tip-icon">💡</text>
+          <text class="tip-text">选择一种定价方式：单一价格 或 多规格定价</text>
+        </view>
+        
+        <view class="pricing-options">
+          <!-- 选项1：基础价格 -->
+          <view class="pricing-option {{!spec1Selected ? 'active' : ''}}" bindtap="selectBasicPricing">
+            <view class="option-header">
+              <view class="option-icon">💰</view>
+              <view class="option-info">
+                <text class="option-title">单一价格</text>
+                <text class="option-desc">商品只有一个固定价格</text>
+              </view>
+              <view wx:if="{{!spec1Selected}}" class="option-badge">已选择</view>
+            </view>
+            
+            <!-- 基础价格输入（选中时显示） -->
+            <view wx:if="{{!spec1Selected}}" class="option-content">
+              <view class="price-input-large">
+                <text class="price-symbol-large">¥</text>
+                <input class="price-input-main" 
+                       type="digit"
+                       placeholder="请输入价格" 
+                       value="{{formData.basePrice}}"
+                       bindinput="onBasePriceInput"
+                       focus="{{!spec1Selected}}" />
+              </view>
+              <view class="price-hint">设置统一的商品价格</view>
+            </view>
+          </view>
+
+          <!-- 选项2：多规格定价 -->
+          <view class="pricing-option {{spec1Selected ? 'active' : ''}}" bindtap="selectSpecPricing">
+            <view class="option-header">
+              <view class="option-icon">📋</view>
+              <view class="option-info">
+                <text class="option-title">多规格定价</text>
+                <text class="option-desc">不同规格有不同价格</text>
+              </view>
+              <view wx:if="{{spec1Selected}}" class="option-badge">已选择</view>
+            </view>
+            
+            <!-- 规格说明（选中时显示） -->
+            <view wx:if="{{spec1Selected}}" class="option-content">
+              <view class="spec-example">
+                <text class="example-title">示例：</text>
+                <text class="example-text">头像类型：大头像 ¥50 / 半身像 ¥80 / 全身像 ¥120</text>
+              </view>
+              <button class="setup-spec-btn" bindtap="addFirstSpec">开始设置规格</button>
+            </view>
+          </view>
         </view>
       </view>
 

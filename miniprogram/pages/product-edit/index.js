@@ -37,14 +37,14 @@ Page({
     
     // 第一步：基础信息
     categories: [
-      { id: 'portrait', name: '头像设计' },
-      { id: 'illustration', name: '插画设计' },
-      { id: 'logo', name: 'LOGO设计' },
-      { id: 'poster', name: '海报设计' },
-      { id: 'emoticon', name: '表情包' },
-      { id: 'ui', name: 'UI设计' },
-      { id: 'animation', name: '动画设计' },
-      { id: 'banner', name: '横幅设计' }
+      { id: 'portrait', name: '头像设计', icon: '👤' },
+      { id: 'illustration', name: '插画设计', icon: '🎨' },
+      { id: 'logo', name: 'LOGO设计', icon: '🏷️' },
+      { id: 'poster', name: '海报设计', icon: '🖼️' },
+      { id: 'emoticon', name: '表情包', icon: '😊' },
+      { id: 'ui', name: 'UI设计', icon: '📱' },
+      { id: 'animation', name: '动画设计', icon: '🎬' },
+      { id: 'banner', name: '横幅设计', icon: '📐' }
     ],
     categoryIndex: -1,
     categoryName: '请选择分类',
@@ -531,8 +531,9 @@ Page({
   },
 
   // 选择分类
-  onCategoryChange(e) {
-    const index = parseInt(e.detail.value)
+  // 分类点选（卡片式）
+  onCategorySelect(e) {
+    const index = parseInt(e.currentTarget.dataset.index)
     if (index >= 0 && index < this.data.categories.length) {
       const category = this.data.categories[index]
       this.setData({
@@ -540,6 +541,7 @@ Page({
         categoryIndex: index,
         categoryName: category.name
       })
+      this.saveDraft()
     }
   },
 
@@ -616,12 +618,44 @@ Page({
   },
 
   // 添加一级规格
+  // 选择基础定价
+  selectBasicPricing() {
+    if (this.data.spec1Selected) {
+      wx.showModal({
+        title: '切换定价方式',
+        content: '切换到单一价格将清除已设置的规格，确定继续吗？',
+        success: (res) => {
+          if (res.confirm) {
+            this.setData({
+              spec1Selected: false,
+              spec1Name: '',
+              spec1Values: [],
+              spec2Selected: false,
+              spec2Name: '',
+              spec2Values: [],
+              pricePreviewTable: []
+            })
+            this.saveDraft()
+          }
+        }
+      })
+    }
+  },
+
+  // 选择规格定价
+  selectSpecPricing() {
+    if (!this.data.spec1Selected) {
+      this.addFirstSpec()
+    }
+  },
+
   addFirstSpec() {
     this.setData({
       spec1Selected: true,
       spec1Name: '',
       spec1Values: [{ name: '', addPrice: '0', image: '' }]
     })
+    this.saveDraft()
   },
 
   // 重置一级规格
