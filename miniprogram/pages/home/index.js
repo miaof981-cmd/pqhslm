@@ -86,32 +86,40 @@ Page({
           let displayPrice = parseFloat(p.basePrice) || 0
           
           // 如果有规格，计算最低价格
+          // 规格价格逻辑：一级规格是基础价格，二级规格是加价
           if (p.specs && p.specs.length > 0) {
             const spec1 = p.specs[0]
             if (spec1.values && spec1.values.length > 0) {
               const prices = []
               
-              if (p.specs.length > 1 && p.specs[1].values) {
-                // 两级规格：一级价格 + 二级加价
+              if (p.specs.length > 1 && p.specs[1].values && p.specs[1].values.length > 0) {
+                // 两级规格：一级价格（基础价格） + 二级加价
                 spec1.values.forEach(v1 => {
                   p.specs[1].values.forEach(v2 => {
-                    const price1 = parseFloat(v1.addPrice) || 0
-                    const price2 = parseFloat(v2.addPrice) || 0
-                    prices.push(price1 + price2)
+                    const price1 = parseFloat(v1.addPrice) || 0  // 一级规格的基础价格
+                    const price2 = parseFloat(v2.addPrice) || 0  // 二级规格的加价
+                    prices.push(price1 + price2)  // 总价 = 基础价格 + 加价
                   })
                 })
               } else {
-                // 只有一级规格
+                // 只有一级规格：addPrice 就是基础价格
                 spec1.values.forEach(v1 => {
                   prices.push(parseFloat(v1.addPrice) || 0)
                 })
               }
               
               if (prices.length > 0) {
-                displayPrice = Math.min(...prices)
+                displayPrice = Math.min(...prices)  // 取最低价格
               }
             }
           }
+          
+          console.log(`商品 ${p.name} 价格计算:`, {
+            basePrice: p.basePrice,
+            hasSpecs: !!(p.specs && p.specs.length > 0),
+            specsCount: p.specs ? p.specs.length : 0,
+            displayPrice: displayPrice
+          })
           
           return {
             _id: p.id || p._id,
