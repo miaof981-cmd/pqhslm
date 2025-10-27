@@ -67,6 +67,16 @@ Page({
         return
       }
       
+      // 获取当前用户信息
+      const userInfo = wx.getStorageSync('userInfo') || {}
+      const app = getApp()
+      const userId = app.globalData.userId || wx.getStorageSync('userId')
+      
+      console.log('📱 获取用户信息:')
+      console.log('- 昵称:', userInfo.nickName)
+      console.log('- 头像:', userInfo.avatarUrl ? '已设置' : '未设置')
+      console.log('- 用户ID:', userId)
+      
       // 构建订单数据
       const newOrder = {
         id: orderInfo.orderNo,
@@ -80,7 +90,16 @@ Page({
         artistName: orderInfo.artistName,
         createTime: orderInfo.createTime,
         deadline: orderInfo.deadline,
-        status: 'inProgress'
+        status: 'inProgress',
+        
+        // ✅ 保存下单者信息
+        buyerName: userInfo.nickName || '客户',
+        buyerAvatar: userInfo.avatarUrl || '/assets/default-avatar.png',
+        buyerOpenId: userInfo.openid || '',
+        
+        // ✅ 保存客服信息（待分配）
+        serviceName: '待分配',
+        serviceAvatar: '/assets/default-avatar.png'
       }
       
       console.log('新订单数据:', newOrder)
