@@ -346,11 +346,22 @@ Page({
     
     if (userRole === 'artist') {
       // 画师：只看自己的订单
-      myOrders = allOrders.filter(o => o.artistId === currentUserId)
-      console.log('📊 画师订单筛选: 总订单', allOrders.length, '→ 我的订单', myOrders.length)
+      // ⚠️ 兼容旧数据：如果订单没有 artistId，默认显示所有订单
+      const ordersWithArtistId = allOrders.filter(o => o.artistId)
+      
+      if (ordersWithArtistId.length === 0) {
+        // 所有订单都没有 artistId，显示全部（兼容旧数据）
+        myOrders = allOrders
+        console.log('⚠️ 兼容模式: 旧订单缺少 artistId，显示所有订单')
+      } else {
+        // 有 artistId，按正常逻辑筛选
+        myOrders = allOrders.filter(o => o.artistId === currentUserId)
+        console.log('📊 画师订单筛选: 总订单', allOrders.length, '→ 我的订单', myOrders.length)
+      }
     } else if (userRole === 'service') {
       // 客服：只看自己负责的订单
-      myOrders = allOrders.filter(o => o.serviceId === currentUserId)
+      // ⚠️ 兼容旧数据：如果订单没有 serviceId，显示待分配订单
+      myOrders = allOrders.filter(o => o.serviceId === currentUserId || !o.serviceId)
       console.log('📊 客服订单筛选: 总订单', allOrders.length, '→ 我的订单', myOrders.length)
     } else {
       // 其他角色（管理员等）可以看到所有订单
