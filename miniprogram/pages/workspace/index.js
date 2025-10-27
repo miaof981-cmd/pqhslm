@@ -1,3 +1,5 @@
+const orderStatusUtil = require('../../utils/order-status')
+
 Page({
   data: {
     loading: true,
@@ -7,9 +9,9 @@ Page({
     
     // 待处理订单统计
     pendingStats: {
-      nearDeadline: 3,
-      overdue: 1,
-      inProgress: 8
+      nearDeadline: 0,
+      overdue: 0,
+      inProgress: 0
     },
     
     // 待处理订单列表
@@ -326,30 +328,39 @@ Page({
   loadPendingStats() {
     const { userRole } = this.data
     
-    // 模拟数据 - 实际应该从后端获取
-    let pendingStats = {
-      nearDeadline: 0,
-      overdue: 0,
-      inProgress: 0
-    }
+    // 从本地存储加载真实订单
+    let allOrders = wx.getStorageSync('pending_orders') || []
     
-    if (userRole === 'artist') {
-      // 画师：只看自己的订单
-      pendingStats = {
-        nearDeadline: 2,
-        overdue: 1,
-        inProgress: 5
-      }
-    } else if (userRole === 'service') {
-      // 客服：看所有订单
-      pendingStats = {
-        nearDeadline: 12,
-        overdue: 5,
-        inProgress: 38
-      }
-    }
+    console.log('=== 工作台加载订单 ===')
+    console.log('原始订单数量:', allOrders.length)
     
-    this.setData({ pendingStats })
+    // 自动计算所有订单的状态
+    allOrders = orderStatusUtil.calculateOrdersStatus(allOrders)
+    
+    // 保存更新后的订单状态
+    wx.setStorageSync('pending_orders', allOrders)
+    
+    console.log('更新后订单:', allOrders.map(o => ({
+      id: o.id,
+      name: o.productName,
+      deadline: o.deadline,
+      status: o.status
+    })))
+    
+    // 统计订单状态
+    const stats = orderStatusUtil.countOrderStatus(allOrders)
+    
+    console.log('订单统计:', stats)
+    
+    this.setData({ 
+      pendingStats: {
+        nearDeadline: stats.nearDeadline,
+        overdue: stats.overdue,
+        inProgress: stats.inProgress
+      },
+      pendingOrders: allOrders.slice(0, 5), // 只显示前5个
+      allOrders: allOrders
+    })
   },
 
   // 切换角色标签

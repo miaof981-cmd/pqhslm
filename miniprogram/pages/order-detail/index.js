@@ -1,3 +1,5 @@
+const orderStatusUtil = require('../../utils/order-status')
+
 Page({
   data: {
     loading: true,
@@ -37,9 +39,12 @@ Page({
       return
     }
     
-    const order = orders.find(o => o.id === orderId)
+    let order = orders.find(o => o.id === orderId)
     
     if (order) {
+      // 自动计算订单状态
+      order = orderStatusUtil.calculateOrderStatus(order)
+      
       // 计算进度步骤
       let step = 1
       if (order.status === 'inProgress' || order.status === 'nearDeadline' || order.status === 'overdue') {
@@ -51,6 +56,13 @@ Page({
       this.setData({
         order: { ...order, step },
         loading: false
+      })
+      
+      console.log('订单详情:', {
+        id: order.id,
+        deadline: order.deadline,
+        status: order.status,
+        statusText: order.statusText
       })
     } else {
       this.loadMockOrder(orderId)
