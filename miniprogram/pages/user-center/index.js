@@ -148,22 +148,26 @@ Page({
       console.log('📋 最新申请状态:', latestApp.status, '→ applicationApproved:', applicationApproved)
     }
     
-    // ✅ 计算布尔值
+    // ✅ 计算布尔值（分离不同角色）
     const isArtist = roles.indexOf('artist') !== -1
     const isAdmin = roles.indexOf('admin') !== -1
+    const isService = roles.indexOf('service') !== -1
     
     // ⭐ 关键逻辑：
     // 1. 如果申请已通过（即使没有artist权限），也显示"工作台"入口
     // 2. 点击后会跳转到建立档案页面（由 workspace/index.js 处理）
     const shouldShowCert = !isArtist && !isAdmin && !applicationApproved
-    const shouldShowWorkspace = isArtist || isAdmin || applicationApproved
+    const hasArtistRole = isArtist || applicationApproved  // 显示画师工作台
+    const hasServiceRole = isService  // 显示客服工作台
     
     console.log('📊 计算UI显示逻辑:')
     console.log('  - isArtist:', isArtist)
     console.log('  - isAdmin:', isAdmin)
+    console.log('  - isService:', isService)
     console.log('  - applicationApproved:', applicationApproved)
     console.log('  - shouldShowCert:', shouldShowCert)
-    console.log('  - shouldShowWorkspace:', shouldShowWorkspace)
+    console.log('  - hasArtistRole:', hasArtistRole)
+    console.log('  - hasServiceRole:', hasServiceRole)
     
     // ✅ 更新页面（包含布尔值）
     this.setData({
@@ -173,12 +177,14 @@ Page({
       isArtist: isArtist,
       isAdmin: isAdmin,
       shouldShowCert: shouldShowCert,
-      shouldShowWorkspace: shouldShowWorkspace
+      hasArtistRole: hasArtistRole,
+      hasServiceRole: hasServiceRole
     }, () => {
       console.log('✅ 页面角色刷新完成')
       console.log('  - roles:', this.data.roles)
       console.log('  - shouldShowCert:', this.data.shouldShowCert)
-      console.log('  - shouldShowWorkspace:', this.data.shouldShowWorkspace)
+      console.log('  - hasArtistRole:', this.data.hasArtistRole)
+      console.log('  - hasServiceRole:', this.data.hasServiceRole)
     })
   },
 
@@ -187,7 +193,8 @@ Page({
     const roleMap = {
       'customer': '普通用户',
       'artist': '画师',
-      'admin': '管理员'
+      'admin': '管理员',
+      'service': '客服'
     }
     return roleMap[role] || '未知'
   },
@@ -423,15 +430,25 @@ Page({
     })
   },
 
-  // 进入工作台（根据角色显示不同内容）
-  goToWorkspace() {
+  // 进入画师工作台
+  goToArtistWorkspace() {
+    console.log('🎨 进入画师工作台')
     wx.navigateTo({
-      url: '/pages/workspace/index'
+      url: '/pages/workspace/index?role=artist'
+    })
+  },
+
+  // 进入客服工作台（独立页面）
+  goToServiceWorkspace() {
+    console.log('📞 进入客服工作台')
+    wx.navigateTo({
+      url: '/pages/service-workspace/index'
     })
   },
 
   // 进入管理后台
   goToAdmin() {
+    console.log('🔧 进入管理后台')
     const app = getApp()
     if (app.checkPermission('admin')) {
       wx.navigateTo({

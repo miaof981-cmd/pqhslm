@@ -592,6 +592,36 @@
   border: 2rpx solid #E9ECEF;
 }
 
+/* 画师工作台区域 */
+.artist-workspace {
+  background-color: white;
+  margin: 20rpx 30rpx;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(168, 230, 207, 0.2);
+  border: 2rpx solid #D0F0C0;
+}
+
+/* 客服工作台区域 */
+.service-workspace {
+  background-color: white;
+  margin: 20rpx 30rpx;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(255, 183, 77, 0.2);
+  border: 2rpx solid #FFE0B2;
+}
+
+/* 管理后台区域 */
+.admin-workspace {
+  background-color: white;
+  margin: 20rpx 30rpx;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(255, 107, 107, 0.2);
+  border: 2rpx solid #FFCDD2;
+}
+
 /* 其他功能 */
 .other-section {
   background-color: white;

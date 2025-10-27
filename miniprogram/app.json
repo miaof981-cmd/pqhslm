@@ -35,7 +35,8 @@
     "pages/artist-products-manage/index",
     "pages/withdraw/index",
     "pages/withdraw-records/index",
-    "pages/data-stats/index"
+    "pages/data-stats/index",
+    "pages/service-workspace/index"
   ],
   "window": {
     "navigationBarTitleText": "画师商城",

@@ -71,10 +71,10 @@
       </view>
     </view>
 
-    <!-- 工作台区域（有权限时显示） -->
-    <view wx:if="{{shouldShowWorkspace}}" class="artist-workspace">
+    <!-- 画师工作台 -->
+    <view wx:if="{{hasArtistRole}}" class="artist-workspace">
       <view class="workspace-header">
-        <text class="workspace-title">工作台</text>
+        <text class="workspace-title">画师工作台</text>
         <view wx:if="{{memberInfo && memberInfo.isValid}}" class="member-status active">
           <text>会员有效</text>
         </view>
@@ -84,25 +84,40 @@
       </view>
       
       <view class="workspace-actions">
-        <!-- 工作台按钮（画师或客服或管理员） -->
-        <button wx:if="{{shouldShowWorkspace}}" 
-                class="workspace-btn primary" 
-                bindtap="goToWorkspace">
-          工作台
+        <button class="workspace-btn primary" bindtap="goToArtistWorkspace">
+          进入画师工作台
         </button>
         
-        <!-- 管理后台按钮 -->
-        <button wx:if="{{isAdmin}}" 
-                class="workspace-btn admin" 
-                bindtap="goToAdmin">
-          管理后台
-        </button>
-        
-        <!-- 续费会员按钮 -->
         <button wx:if="{{memberInfo && !memberInfo.isValid}}" 
                 class="workspace-btn secondary" 
                 bindtap="renewMember">
           续费会员
+        </button>
+      </view>
+    </view>
+
+    <!-- 客服工作台 -->
+    <view wx:if="{{hasServiceRole}}" class="service-workspace">
+      <view class="workspace-header">
+        <text class="workspace-title">客服工作台</text>
+      </view>
+      
+      <view class="workspace-actions">
+        <button class="workspace-btn service" bindtap="goToServiceWorkspace">
+          进入客服工作台
+        </button>
+      </view>
+    </view>
+
+    <!-- 管理后台（独立） -->
+    <view wx:if="{{isAdmin}}" class="admin-workspace">
+      <view class="workspace-header">
+        <text class="workspace-title">管理后台</text>
+      </view>
+      
+      <view class="workspace-actions">
+        <button class="workspace-btn admin" bindtap="goToAdmin">
+          进入管理后台
         </button>
       </view>
     </view>
