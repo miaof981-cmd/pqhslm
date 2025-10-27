@@ -142,7 +142,8 @@ Page({
           _id: product.id,
           name: product.name,
           image: (product.images && product.images[0]) || 'https://via.placeholder.com/200',
-          price: displayPrice
+          price: displayPrice,
+          deliveryDays: product.deliveryDays || 7 // 添加出稿天数
         }
       })
       
@@ -244,6 +245,12 @@ Page({
           
           this.setData({ cartItems })
           this.calculateTotal()
+          
+          // 如果购物车为空，重新加载推荐商品
+          if (cartItems.length === 0) {
+            this.loadRecommend()
+          }
+          
           wx.showToast({ title: '已删除', icon: 'success' })
         }
       }
