@@ -2,12 +2,8 @@ Page({
   data: {
     serviceList: [],
     showAddModal: false,
-    showQrcodeModal: false,
-    currentQrcode: {
-      url: '',
-      number: '',
-      serviceId: ''
-    },
+    showDetailModal: false,
+    currentService: null,
     newService: {
       userId: '',
       name: '',
@@ -211,7 +207,7 @@ Page({
     console.log('用户角色已更新:', userRoles)
   },
 
-  // 绑定二维码
+  // 绑定二维码（首次上传）
   bindQrcode(e) {
     const serviceId = e.currentTarget.dataset.id
     
@@ -243,6 +239,11 @@ Page({
               services[serviceIndex].qrcodeNumber = qrcodeNumber
               wx.setStorageSync('service_list', services)
               
+              // 更新当前显示的客服信息
+              this.setData({
+                currentService: services[serviceIndex]
+              })
+              
               wx.showToast({ title: '绑定成功', icon: 'success' })
               this.loadServiceList()
             }
@@ -258,63 +259,66 @@ Page({
 
   // 更换二维码
   changeQrcode(e) {
-    this.hideQrcodeModal()
-    this.bindQrcode(e)
+    const serviceId = e.currentTarget.dataset.id
+    
+    wx.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const tempFilePath = res.tempFilePaths[0]
+        
+        wx.getFileSystemManager().readFile({
+          filePath: tempFilePath,
+          encoding: 'base64',
+          success: (fileRes) => {
+            const base64 = 'data:image/jpeg;base64,' + fileRes.data
+            
+            // 更新客服二维码
+            let services = wx.getStorageSync('service_list') || []
+            const serviceIndex = services.findIndex(s => s.id === serviceId)
+            
+            if (serviceIndex !== -1) {
+              // 保持原有编号，只更新图片
+              services[serviceIndex].qrcodeUrl = base64
+              wx.setStorageSync('service_list', services)
+              
+              // 更新当前显示的客服信息
+              this.setData({
+                currentService: services[serviceIndex]
+              })
+              
+              wx.showToast({ title: '更换成功', icon: 'success' })
+              this.loadServiceList()
+            }
+          },
+          fail: (err) => {
+            console.error('读取文件失败:', err)
+            wx.showToast({ title: '更换失败', icon: 'none' })
+          }
+        })
+      }
+    })
   },
 
-  // 查看二维码
-  viewQrcode(e) {
+  // 查看客服详情
+  viewServiceDetail(e) {
     const serviceId = e.currentTarget.dataset.id
     const services = wx.getStorageSync('service_list') || []
     const service = services.find(s => s.id === serviceId)
     
-    if (service && service.qrcodeUrl) {
+    if (service) {
       this.setData({
-        showQrcodeModal: true,
-        currentQrcode: {
-          url: service.qrcodeUrl,
-          number: service.qrcodeNumber,
-          serviceId: service.id
-        }
+        showDetailModal: true,
+        currentService: service
       })
     }
   },
 
-  // 隐藏二维码弹窗
-  hideQrcodeModal() {
+  // 隐藏详情弹窗
+  hideDetailModal() {
     this.setData({
-      showQrcodeModal: false
-    })
-  },
-
-  // 编辑客服
-  editService(e) {
-    const serviceId = e.currentTarget.dataset.id
-    const services = wx.getStorageSync('service_list') || []
-    const service = services.find(s => s.id === serviceId)
-    
-    if (!service) return
-    
-    // 显示操作菜单
-    wx.showActionSheet({
-      itemList: [
-        service.isActive ? '设为离线' : '设为在线',
-        '更换二维码',
-        '移除客服'
-      ],
-      success: (res) => {
-        switch (res.tapIndex) {
-          case 0:
-            this.toggleServiceStatus({ currentTarget: { dataset: { id: serviceId, active: service.isActive } } })
-            break
-          case 1:
-            this.bindQrcode({ currentTarget: { dataset: { id: serviceId } } })
-            break
-          case 2:
-            this.deleteService({ currentTarget: { dataset: { id: serviceId } } })
-            break
-        }
-      }
+      showDetailModal: false
     })
   },
 
@@ -370,6 +374,9 @@ Page({
                 app.globalData.userRoles = userRoles
               }
             }
+            
+            // 关闭详情弹窗
+            this.hideDetailModal()
             
             wx.showToast({ title: '已移除', icon: 'success' })
             this.loadServiceList()

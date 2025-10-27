@@ -12,36 +12,32 @@
 
   <!-- 客服列表 -->
   <view class="service-list">
-    <view wx:for="{{serviceList}}" wx:key="id" class="service-card" bindtap="editService" data-id="{{item.id}}">
-      <!-- 左侧：头像 -->
-      <view class="card-left">
+    <view wx:for="{{serviceList}}" wx:key="id" class="service-card">
+      <!-- 左侧：头像 - 点击查看详情 -->
+      <view class="card-left" bindtap="viewServiceDetail" data-id="{{item.id}}">
         <view class="service-avatar-wrap">
           <image class="service-avatar" src="{{item.avatar}}" mode="aspectFill" />
           <view class="service-number-badge">{{item.serviceNumber}}</view>
         </view>
       </view>
 
-      <!-- 中间：客服信息 -->
-      <view class="card-middle">
+      <!-- 中间：客服信息 - 点击查看详情 -->
+      <view class="card-middle" bindtap="viewServiceDetail" data-id="{{item.id}}">
         <view class="service-name-row">
           <text class="service-name">{{item.name}}</text>
-          <view class="status-badge {{item.isActive ? 'active' : 'inactive'}}">
-            {{item.isActive ? '在线' : '离线'}}
-          </view>
         </view>
         <text class="service-id">KF{{item.serviceNumber}}</text>
       </view>
 
-      <!-- 右侧：二维码缩略图 -->
-      <view class="card-right" catchtap="viewQrcode" data-id="{{item.id}}">
-        <view wx:if="{{item.qrcodeUrl}}" class="qrcode-thumb-wrap">
-          <image class="qrcode-thumb" src="{{item.qrcodeUrl}}" mode="aspectFit" />
-          <text class="qrcode-label">二维码{{item.qrcodeNumber}}</text>
-        </view>
-        <view wx:else class="qrcode-empty" catchtap="bindQrcode" data-id="{{item.id}}">
-          <text class="qrcode-empty-icon">+</text>
-          <text class="qrcode-empty-text">绑定</text>
-        </view>
+      <!-- 右侧：状态切换按钮 -->
+      <view class="card-right">
+        <button 
+          class="status-toggle-btn {{item.isActive ? 'btn-active' : 'btn-inactive'}}" 
+          catchtap="toggleServiceStatus" 
+          data-id="{{item.id}}" 
+          data-active="{{item.isActive}}">
+          {{item.isActive ? '在线' : '离线'}}
+        </button>
       </view>
     </view>
 
@@ -53,19 +49,58 @@
     </view>
   </view>
 
-  <!-- 查看二维码弹窗 -->
-  <view wx:if="{{showQrcodeModal}}" class="qrcode-modal-overlay" catchtap="hideQrcodeModal">
-    <view class="qrcode-modal-content" catchtap="stopPropagation">
-      <view class="qrcode-modal-header">
-        <text class="qrcode-modal-title">客服二维码</text>
-        <view class="qrcode-modal-close" catchtap="hideQrcodeModal">×</view>
+  <!-- 客服详情弹窗 -->
+  <view wx:if="{{showDetailModal}}" class="detail-modal-overlay" catchtap="hideDetailModal">
+    <view class="detail-modal-content" catchtap="stopPropagation">
+      <view class="detail-modal-header">
+        <text class="detail-modal-title">客服详情</text>
+        <view class="detail-modal-close" catchtap="hideDetailModal">×</view>
       </view>
-      <view class="qrcode-modal-body">
-        <image class="qrcode-full-image" src="{{currentQrcode.url}}" mode="aspectFit" />
-        <text class="qrcode-full-label">编号: {{currentQrcode.number}}</text>
-        <button class="change-qrcode-btn" catchtap="changeQrcode" data-id="{{currentQrcode.serviceId}}">
-          更换二维码
-        </button>
+      
+      <view class="detail-modal-body">
+        <!-- 客服基本信息 -->
+        <view class="detail-info-section">
+          <view class="detail-avatar-wrap">
+            <image class="detail-avatar" src="{{currentService.avatar}}" mode="aspectFill" />
+            <view class="detail-number-badge">{{currentService.serviceNumber}}</view>
+          </view>
+          <view class="detail-info">
+            <text class="detail-name">{{currentService.name}}</text>
+            <text class="detail-id">客服编号：KF{{currentService.serviceNumber}}</text>
+            <text class="detail-wechat">微信号：{{currentService.wechatId || '未设置'}}</text>
+            <view class="detail-status">
+              <text class="detail-status-label">状态：</text>
+              <view class="status-badge {{currentService.isActive ? 'active' : 'inactive'}}">
+                {{currentService.isActive ? '在线' : '离线'}}
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 二维码区域 -->
+        <view class="detail-qrcode-section">
+          <view class="detail-section-title">客服二维码</view>
+          <view wx:if="{{currentService.qrcodeUrl}}" class="detail-qrcode-display">
+            <image class="detail-qrcode-image" src="{{currentService.qrcodeUrl}}" mode="aspectFit" />
+            <text class="detail-qrcode-label">编号: {{currentService.qrcodeNumber}}</text>
+            <button class="detail-action-btn secondary" catchtap="changeQrcode" data-id="{{currentService.id}}">
+              更换二维码
+            </button>
+          </view>
+          <view wx:else class="detail-qrcode-empty">
+            <text class="detail-empty-hint">暂未绑定客服二维码</text>
+            <button class="detail-action-btn primary" catchtap="bindQrcode" data-id="{{currentService.id}}">
+              上传二维码
+            </button>
+          </view>
+        </view>
+
+        <!-- 操作按钮 -->
+        <view class="detail-actions">
+          <button class="detail-action-btn danger" catchtap="deleteService" data-id="{{currentService.id}}">
+            移除客服
+          </button>
+        </view>
       </view>
     </view>
   </view>
