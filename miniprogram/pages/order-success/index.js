@@ -19,7 +19,12 @@ Page({
       price: parseFloat(options.price) || 0,
       totalAmount: parseFloat(options.totalAmount) || 0,
       deliveryDays: parseInt(options.deliveryDays) || 7,
+      
+      // ✅ 画师完整信息
+      artistId: options.artistId || '',
       artistName: decodeURIComponent(options.artistName || '画师'),
+      artistAvatar: decodeURIComponent(options.artistAvatar || '/assets/default-avatar.png'),
+      
       createTime: this.formatDateTime(new Date())
     }
     
@@ -87,17 +92,23 @@ Page({
         price: orderInfo.totalAmount,
         quantity: orderInfo.quantity,
         deliveryDays: orderInfo.deliveryDays,
-        artistName: orderInfo.artistName,
         createTime: orderInfo.createTime,
         deadline: orderInfo.deadline,
         status: 'inProgress',
         
         // ✅ 保存下单者信息
+        buyerId: userId,
         buyerName: userInfo.nickName || '客户',
         buyerAvatar: userInfo.avatarUrl || '/assets/default-avatar.png',
         buyerOpenId: userInfo.openid || '',
         
+        // ✅ 保存画师完整信息
+        artistId: orderInfo.artistId || '',
+        artistName: orderInfo.artistName,
+        artistAvatar: orderInfo.artistAvatar || '/assets/default-avatar.png',
+        
         // ✅ 保存客服信息（待分配）
+        serviceId: '',
         serviceName: '待分配',
         serviceAvatar: '/assets/default-avatar.png'
       }

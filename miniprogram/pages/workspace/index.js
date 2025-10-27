@@ -327,28 +327,50 @@ Page({
   // 加载待处理订单统计
   loadPendingStats() {
     const { userRole } = this.data
+    const currentUserId = wx.getStorageSync('userId')
     
     // 从本地存储加载真实订单
     let allOrders = wx.getStorageSync('pending_orders') || []
     
     console.log('=== 工作台加载订单 ===')
     console.log('原始订单数量:', allOrders.length)
+    console.log('当前用户ID:', currentUserId)
+    console.log('当前角色:', userRole)
     
-    // 自动计算所有订单的状态
-    allOrders = orderStatusUtil.calculateOrdersStatus(allOrders)
+    // ✅ 根据角色筛选订单
+    let myOrders = []
     
-    // 保存更新后的订单状态
+    if (userRole === 'artist') {
+      // 画师：只看自己的订单
+      myOrders = allOrders.filter(o => o.artistId === currentUserId)
+      console.log('📊 画师订单筛选: 总订单', allOrders.length, '→ 我的订单', myOrders.length)
+    } else if (userRole === 'service') {
+      // 客服：只看自己负责的订单
+      myOrders = allOrders.filter(o => o.serviceId === currentUserId)
+      console.log('📊 客服订单筛选: 总订单', allOrders.length, '→ 我的订单', myOrders.length)
+    } else {
+      // 其他角色（管理员等）可以看到所有订单
+      myOrders = allOrders
+      console.log('📊 管理员视角: 显示所有订单', allOrders.length)
+    }
+    
+    // 自动计算订单的状态
+    myOrders = orderStatusUtil.calculateOrdersStatus(myOrders)
+    
+    // 保存更新后的订单状态（更新全部订单）
     wx.setStorageSync('pending_orders', allOrders)
     
-    console.log('更新后订单:', allOrders.map(o => ({
+    console.log('更新后我的订单:', myOrders.map(o => ({
       id: o.id,
       name: o.productName,
+      artistId: o.artistId,
+      serviceId: o.serviceId,
       deadline: o.deadline,
       status: o.status
     })))
     
-    // 统计订单状态
-    const stats = orderStatusUtil.countOrderStatus(allOrders)
+    // 统计订单状态（基于筛选后的订单）
+    const stats = orderStatusUtil.countOrderStatus(myOrders)
     
     console.log('订单统计:', stats)
     
@@ -358,9 +380,12 @@ Page({
         overdue: stats.overdue,
         inProgress: stats.inProgress
       },
-      pendingOrders: allOrders.slice(0, 5), // 只显示前5个
-      allOrders: allOrders
+      pendingOrders: myOrders, // ✅ 只显示当前用户的订单
+      allOrders: myOrders       // ✅ 用于筛选
     })
+    
+    // 应用当前筛选
+    this.applyFilter()
   },
 
   // 切换角色标签
