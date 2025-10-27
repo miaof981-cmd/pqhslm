@@ -15,6 +15,9 @@ Page({
   },
 
   onLoad(options) {
+    console.log('=== onLoad 触发 ===')
+    console.log('接收到的 options:', options)
+    
     if (options.artistId) {
       this.setData({ artistId: options.artistId })
       this.loadArtistInfo()
@@ -22,6 +25,15 @@ Page({
     } else {
       wx.showToast({ title: '画师ID不存在', icon: 'none' })
       setTimeout(() => wx.navigateBack(), 1500)
+    }
+  },
+
+  onShow() {
+    console.log('=== onShow 触发 ===')
+    // 如果已有 artistId，重新加载数据（以防从编辑页返回）
+    if (this.data.artistId) {
+      console.log('页面显示，重新加载商品数据')
+      this.loadProducts()
     }
   },
 
@@ -141,6 +153,7 @@ Page({
     })
     
     console.log('该画师商品数量:', artistProducts.length)
+    console.log('商品列表:', artistProducts.map(p => `${p.name}(isOnSale:${p.isOnSale})`))
     
     // 统计上下架数量（使用 isOnSale 字段）
     const onlineCount = artistProducts.filter(p => p.isOnSale !== false).length
@@ -152,8 +165,11 @@ Page({
       products: artistProducts,
       onlineCount: onlineCount,
       offlineCount: offlineCount
+    }, () => {
+      console.log('setData 完成 - products:', this.data.products.length, '个')
     })
     
+    console.log('准备调用 filterProducts()')
     this.filterProducts()
   },
 
