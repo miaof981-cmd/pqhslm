@@ -588,10 +588,37 @@
   border-bottom: 1rpx solid #F0F0F0;
 }
 
-.order-id {
+/* 订单号区域（可点击复制） */
+.order-id-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  padding: 8rpx 16rpx;
+  background: linear-gradient(135deg, #F5F5F5 0%, #FAFAFA 100%);
+  border-radius: 12rpx;
+  border: 1rpx dashed #E0E0E0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.order-id-wrapper:active {
+  transform: scale(0.98);
+  background: linear-gradient(135deg, #E8F5E9 0%, #F1F8F2 100%);
+  border-color: #A8E6CF;
+}
+
+.order-id-label {
+  font-size: 20rpx;
+  color: #999;
+  font-weight: 400;
+}
+
+.order-id-value {
   font-size: 26rpx;
   font-weight: 600;
   color: #333;
+  font-family: 'Courier New', Consolas, monospace;
+  letter-spacing: 0.5rpx;
 }
 
 .order-status {

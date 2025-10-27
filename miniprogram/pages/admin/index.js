@@ -317,10 +317,6 @@ Page({
         }
       }
       
-      // 格式化订单号：统一显示后6位
-      const rawOrderNo = order.orderNumber || order.orderNo || order.id || ''
-      const displayOrderNo = rawOrderNo.length > 6 ? '...' + rawOrderNo.slice(-6) : rawOrderNo
-      
       // 格式化时间：只显示日期和时分
       const formatTime = (timestamp) => {
         if (!timestamp) return ''
@@ -332,9 +328,12 @@ Page({
         return `${month}-${day} ${hour}:${minute}`
       }
       
+      // 完整订单号
+      const fullOrderNo = order.orderNumber || order.orderNo || order.id || ''
+      
       return {
         _id: order.id,
-        orderNo: displayOrderNo,
+        fullOrderNo: fullOrderNo,  // 完整订单号，用于显示和复制
         productName: order.productName,
         productImage: order.productImage || '',
         userName: order.buyerName || order.buyer || '未知用户',
@@ -344,7 +343,6 @@ Page({
         amount: parseFloat(order.price || order.totalPrice || 0).toFixed(2),
         status: order.status || 'created',
         statusText: statusTextMap[order.status] || order.status || '待处理',
-        businessStatus: businessStatus,  // 业务状态中文
         createTime: formatTime(order.createdAt || order.createTime),
         deadline: order.deadline ? formatTime(order.deadline) : '',
         isOverdue: isOverdue,
@@ -693,6 +691,30 @@ Page({
     const id = e.currentTarget.dataset.id
     wx.navigateTo({
       url: `/pages/order-detail/index?id=${id}`
+    })
+  },
+
+  // 复制订单号
+  copyOrderNo(e) {
+    const orderNo = e.currentTarget.dataset.orderno
+    
+    wx.setClipboardData({
+      data: orderNo,
+      success: () => {
+        wx.showToast({
+          title: '订单号已复制',
+          icon: 'success',
+          duration: 1500
+        })
+        console.log('✅ 订单号已复制:', orderNo)
+      },
+      fail: (err) => {
+        console.error('❌ 复制失败:', err)
+        wx.showToast({
+          title: '复制失败',
+          icon: 'none'
+        })
+      }
     })
   },
 

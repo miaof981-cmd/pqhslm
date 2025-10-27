@@ -224,10 +224,12 @@
         <view wx:for="{{orders}}" wx:key="_id" class="order-card">
           <!-- 订单头部：订单号 + 状态 -->
           <view class="order-header">
-            <view class="order-id">订单 #{{item.orderNo}}</view>
+            <view class="order-id-wrapper" catchtap="copyOrderNo" data-orderno="{{item.fullOrderNo}}">
+              <text class="order-id-label">订单号</text>
+              <text class="order-id-value">{{item.fullOrderNo}}</text>
+            </view>
             <view class="order-status status-{{item.status}}">
               {{item.statusText}}
-              <text wx:if="{{item.businessStatus}}" class="business-status-text">{{item.businessStatus}}</text>
             </view>
           </view>
 
