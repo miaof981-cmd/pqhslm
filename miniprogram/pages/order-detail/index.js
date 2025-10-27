@@ -176,10 +176,128 @@ Page({
 
   // 上传作品
   uploadWork() {
-    wx.showToast({
-      title: '上传作品功能开发中',
-      icon: 'none'
+    const { order } = this.data
+    
+    wx.chooseImage({
+      count: 9,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        wx.showLoading({ title: '上传中...' })
+        
+        const tempFilePaths = res.tempFilePaths
+        
+        // TODO: 这里应该上传到云存储或服务器
+        // 目前先模拟上传成功
+        
+        setTimeout(() => {
+          wx.hideLoading()
+          
+          // 标记作品已上传
+          order.workUploaded = true
+          order.workUploadTime = new Date().toLocaleString()
+          
+          // 更新本地存储
+          this.updateOrderInStorage(order)
+          
+          this.setData({ order })
+          
+          wx.showModal({
+            title: '上传成功',
+            content: '作品已上传，是否立即通知客户确认订单？',
+            confirmText: '立即通知',
+            cancelText: '稍后通知',
+            success: (modalRes) => {
+              if (modalRes.confirm) {
+                // 发送模板消息通知客户
+                this.sendOrderCompleteNotice(order)
+              } else {
+                wx.showToast({
+                  title: '上传成功',
+                  icon: 'success'
+                })
+              }
+            }
+          })
+        }, 1500)
+      }
     })
+  },
+
+  // 发送订单完成通知（模板消息）
+  sendOrderCompleteNotice(order) {
+    console.log('📨 准备发送模板消息通知')
+    console.log('订单信息:', {
+      orderId: order.id,
+      productName: order.productName,
+      buyerOpenId: order.buyerOpenId || '待获取',
+      artistName: order.artistName
+    })
+    
+    // TODO: 调用云函数发送模板消息
+    // 接口设计如下：
+    /*
+    wx.cloud.callFunction({
+      name: 'sendTemplateMessage',
+      data: {
+        type: 'orderComplete',
+        toUser: order.buyerOpenId,  // 买家的 openid
+        data: {
+          orderId: order.id,
+          productName: order.productName,
+          artistName: order.artistName,
+          completeTime: order.workUploadTime,
+          page: `pages/order-detail/index?id=${order.id}&source=customer`
+        }
+      },
+      success: res => {
+        console.log('✅ 模板消息发送成功:', res)
+        wx.showToast({
+          title: '已通知客户',
+          icon: 'success'
+        })
+      },
+      fail: err => {
+        console.error('❌ 模板消息发送失败:', err)
+        wx.showToast({
+          title: '通知发送失败',
+          icon: 'none'
+        })
+      }
+    })
+    */
+    
+    // 模拟发送成功
+    wx.showLoading({ title: '发送通知中...' })
+    setTimeout(() => {
+      wx.hideLoading()
+      wx.showToast({
+        title: '已通知客户确认',
+        icon: 'success',
+        duration: 2000
+      })
+      
+      console.log('✅ 模板消息已发送（模拟）')
+      console.log('📱 客户将收到：')
+      console.log('   标题: 您的作品已完成')
+      console.log('   内容: 订单号：' + order.id)
+      console.log('   内容: 商品名称：' + order.productName)
+      console.log('   内容: 画师：' + order.artistName)
+      console.log('   内容: 完成时间：' + order.workUploadTime)
+      console.log('   提示: 点击查看详情并确认完成')
+    }, 1000)
+  },
+
+  // 更新订单到本地存储
+  updateOrderInStorage(order) {
+    const pendingOrders = wx.getStorageSync('pending_orders') || []
+    const index = pendingOrders.findIndex(o => o.id === order.id)
+    
+    if (index !== -1) {
+      pendingOrders[index] = order
+      wx.setStorageSync('pending_orders', pendingOrders)
+      console.log('✅ 订单已更新到本地存储')
+    }
   },
 
   // 联系买家
