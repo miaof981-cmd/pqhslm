@@ -246,7 +246,21 @@ Page({
   // 加载订单列表
   async loadOrders() {
     // 从本地存储读取真实订单数据
-    const allOrders = wx.getStorageSync('mock_orders') || []
+    const allOrders = wx.getStorageSync('orders') || []
+    
+    console.log('━━━━━━━━━━━━━━━━━━━━━━')
+    console.log('📦 [管理后台] 加载订单列表')
+    console.log('  - 订单总数:', allOrders.length)
+    if (allOrders.length > 0) {
+      console.log('  - 订单详情:')
+      allOrders.forEach((order, index) => {
+        console.log(`    ${index + 1}. ${order.productName || '商品'}`)
+        console.log(`       订单号: ${order.orderNumber}`)
+        console.log(`       状态: ${order.status}`)
+        console.log(`       客服: ${order.serviceName || '未分配'}`)
+      })
+    }
+    console.log('━━━━━━━━━━━━━━━━━━━━━━')
     
     // 状态文本映射
     const statusTextMap = {
@@ -270,16 +284,17 @@ Page({
       
       return {
         _id: order.id,
-        orderNo: order.orderNo,
+        orderNo: order.orderNumber || order.orderNo,
         productName: order.productName,
         productImage: order.productImage || '',
-        userName: order.buyer || order.buyerName || '未知用户',
+        userName: order.buyerName || order.buyer || '未知用户',
         userPhone: order.buyerPhone || '',
-        artistName: order.artistName || '未知画师',
-        amount: parseFloat(order.totalPrice || 0).toFixed(2),
-        status: order.status,
-        statusText: statusTextMap[order.status] || order.status,
-        createTime: order.createTime,
+        artistName: order.artistName || '未分配',
+        serviceName: order.serviceName || '未分配',
+        amount: parseFloat(order.price || order.totalPrice || 0).toFixed(2),
+        status: order.status || 'created',
+        statusText: statusTextMap[order.status] || order.status || '待处理',
+        createTime: order.createdAt || order.createTime,
         deadline: order.deadline,
         isOverdue: isOverdue,
         buyerId: order.buyerId,
