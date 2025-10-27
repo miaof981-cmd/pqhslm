@@ -182,22 +182,6 @@ page {
   font-weight: 700;
 }
 
-.reward-icon {
-  background: linear-gradient(135deg, #FFCCBC 0%, #FFAB91 100%);
-}
-
-.reward-icon::after {
-  content: '';
-  position: absolute;
-  width: 18rpx;
-  height: 18rpx;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(45deg);
-  border: 3rpx solid #fff;
-  border-radius: 3rpx;
-}
-
 .confirm-icon {
   background: linear-gradient(135deg, #CE93D8 0%, #BA68C8 100%);
 }

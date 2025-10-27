@@ -40,10 +40,6 @@
           <view class="func-icon money-icon"></view>
           <text class="func-name">提现</text>
         </view>
-        <view class="func-btn" bindtap="handleFunction" data-func="rewards">
-          <view class="func-icon reward-icon"></view>
-          <text class="func-name">打赏</text>
-        </view>
         <view class="func-btn" bindtap="toggleNotices">
           <view class="func-icon notice-icon"></view>
           <text class="func-name">须知</text>

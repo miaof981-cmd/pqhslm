@@ -33,7 +33,6 @@
     "pages/artist-qrcode/index",
     "pages/staff-qrcode-manage/index",
     "pages/artist-products-manage/index",
-    "pages/reward-records/index",
     "pages/withdraw/index",
     "pages/withdraw-records/index",
     "pages/data-stats/index"

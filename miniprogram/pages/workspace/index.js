@@ -307,8 +307,7 @@ Page({
     const quickActions = [
       { id: 'data-stats', label: '数据统计', iconClass: 'icon-chart' },
       { id: 'order-manage', label: '订单管理', iconClass: 'icon-order' },
-      { id: 'product-manage', label: '商品管理', iconClass: 'icon-product' },
-      { id: 'rewards', label: '打赏记录', iconClass: 'icon-money' }
+      { id: 'product-manage', label: '商品管理', iconClass: 'icon-product' }
     ]
     
     this.setData({ quickActions })
@@ -469,7 +468,6 @@ Page({
           url: '/pages/product-manage/index'
         })
         break
-      case 'rewards':
       case 'consultations':
         wx.showToast({
           title: '功能开发中',
@@ -580,11 +578,6 @@ Page({
         })
         break
         
-      case 'rewards':
-        wx.navigateTo({
-          url: '/pages/reward-records/index'
-        })
-        break
         
       case 'withdraw':
         wx.navigateTo({
