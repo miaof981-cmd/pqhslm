@@ -98,20 +98,25 @@ Page({
             id: p.id,
             name: p.name || '未命名商品',
             price: displayPrice,
-            basePrice: p.basePrice,
-            originalPrice: displayPrice * 1.3, // 模拟原价
-            deliveryDays: p.deliveryDays || 7,
-            images: p.images && p.images.length > 0 ? p.images : ['https://via.placeholder.com/300x300.png?text=商品图'],
+            artistName: p.artistName || p.artist?.name || '画师',
+            // ⚠️ 性能优化：只传第一张图片，不传整个数组
+            images: p.images && p.images.length > 0 ? [p.images[0]] : ['https://via.placeholder.com/300x300.png?text=商品图'],
             category: p.category || 'other',
-            artist: p.artist || { name: '画师', avatar: '' },
-            sales: p.sales || 0,
-            rating: p.rating || 5.0,
+            deliveryDays: p.deliveryDays || 7,
             tags: p.tags || [],
             isOnSale: p.isOnSale !== false
           }
         })
       
       console.log('转换后的商品数据', allProducts.length, '个')
+      
+      // 计算数据大小
+      const dataSize = JSON.stringify(allProducts).length / 1024
+      console.log(`📊 商品数据大小: ${dataSize.toFixed(2)} KB`)
+      
+      if (dataSize > 100) {
+        console.warn('⚠️ 数据量较大，可能影响性能')
+      }
     } else {
       console.log('本地存储为空，无商品数据')
     }
