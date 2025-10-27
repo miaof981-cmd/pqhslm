@@ -387,25 +387,9 @@ Page({
 
       wx.showLoading({ title: '处理图片中...' })
       
-      // 将临时路径转换为 base64（永久有效）
-      const fs = wx.getFileSystemManager()
+      // 压缩并转换为 base64
       const promises = res.tempFilePaths.map(tempPath => {
-        return new Promise((resolve) => {
-          fs.readFile({
-            filePath: tempPath,
-            encoding: 'base64',
-            success: (fileRes) => {
-              // 转换为 data URL（永久路径）
-              const base64 = 'data:image/jpeg;base64,' + fileRes.data
-              console.log('✅ 图片转换成功，大小:', (fileRes.data.length / 1024).toFixed(2), 'KB')
-              resolve(base64)
-            },
-            fail: (err) => {
-              console.error('❌ 读取图片失败:', tempPath, err)
-              resolve(null)
-            }
-          })
-        })
+        return this.compressAndConvertImage(tempPath)
       })
       
       const base64Images = await Promise.all(promises)
@@ -424,7 +408,7 @@ Page({
           icon: 'success' 
         })
         
-        console.log('✅ 图片已转换为永久路径（base64），不会失效')
+        console.log('✅ 图片已压缩并转换为 base64')
       } else {
         wx.hideLoading()
         wx.showToast({ title: '图片处理失败', icon: 'none' })
@@ -437,6 +421,86 @@ Page({
         console.error('选择图片错误:', error)
       }
     }
+  },
+  
+  // 压缩并转换图片为 base64（优化存储）
+  async compressAndConvertImage(tempPath) {
+    return new Promise((resolve) => {
+      // 先使用 canvas 压缩图片
+      wx.getImageInfo({
+        src: tempPath,
+        success: (imgInfo) => {
+          // 计算压缩后的尺寸（最大宽度 800px）
+          let width = imgInfo.width
+          let height = imgInfo.height
+          const maxWidth = 800
+          
+          if (width > maxWidth) {
+            height = Math.floor(height * (maxWidth / width))
+            width = maxWidth
+          }
+          
+          // 创建 canvas 进行压缩
+          const ctx = wx.createCanvasContext('compressCanvas', this)
+          ctx.drawImage(tempPath, 0, 0, width, height)
+          ctx.draw(false, () => {
+            // 导出为临时文件
+            wx.canvasToTempFilePath({
+              canvasId: 'compressCanvas',
+              destWidth: width,
+              destHeight: height,
+              quality: 0.6, // 压缩质量 60%
+              success: (canvasRes) => {
+                // 转换为 base64
+                const fs = wx.getFileSystemManager()
+                fs.readFile({
+                  filePath: canvasRes.tempFilePath,
+                  encoding: 'base64',
+                  success: (fileRes) => {
+                    const base64 = 'data:image/jpeg;base64,' + fileRes.data
+                    const sizeKB = (fileRes.data.length / 1024).toFixed(2)
+                    console.log(`✅ 图片压缩成功: ${width}x${height}, ${sizeKB}KB`)
+                    resolve(base64)
+                  },
+                  fail: (err) => {
+                    console.error('❌ base64转换失败:', err)
+                    resolve(null)
+                  }
+                })
+              },
+              fail: (err) => {
+                console.error('❌ canvas导出失败:', err)
+                // 降级：直接转换原图
+                this.directConvertToBase64(tempPath, resolve)
+              }
+            }, this)
+          })
+        },
+        fail: (err) => {
+          console.error('❌ 获取图片信息失败:', err)
+          // 降级：直接转换
+          this.directConvertToBase64(tempPath, resolve)
+        }
+      })
+    })
+  },
+  
+  // 直接转换（降级方案）
+  directConvertToBase64(tempPath, resolve) {
+    const fs = wx.getFileSystemManager()
+    fs.readFile({
+      filePath: tempPath,
+      encoding: 'base64',
+      success: (fileRes) => {
+        const base64 = 'data:image/jpeg;base64,' + fileRes.data
+        console.log('⚠️ 使用原图转换，大小:', (fileRes.data.length / 1024).toFixed(2), 'KB')
+        resolve(base64)
+      },
+      fail: (err) => {
+        console.error('❌ 直接转换失败:', err)
+        resolve(null)
+      }
+    })
   },
 
   // 删除主图
@@ -615,25 +679,25 @@ Page({
         sourceType: ['album', 'camera']
       })
 
-      wx.showLoading({ title: '上传中...' })
+      wx.showLoading({ title: '处理中...' })
       
-      // 模拟上传到云存储
-      // TODO: 后端需要实现图片上传接口，返回图片URL
-      // const uploadRes = await wx.cloud.uploadFile({
-      //   cloudPath: `spec-images/${Date.now()}-${Math.random()}.jpg`,
-      //   filePath: res.tempFilePaths[0]
-      // })
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // 压缩并转换为 base64
+      const base64 = await this.compressAndConvertImage(res.tempFilePaths[0])
       
-      const spec1Values = [...this.data.spec1Values]
-      spec1Values[index].image = res.tempFilePaths[0] // TODO: 替换为上传后的URL
-      this.setData({ spec1Values })
+      if (base64) {
+        const spec1Values = [...this.data.spec1Values]
+        spec1Values[index].image = base64
+        this.setData({ spec1Values })
 
-      wx.hideLoading()
-      wx.showToast({ title: '上传成功', icon: 'success' })
-      
-      // 保存草稿
-      this.saveDraft()
+        wx.hideLoading()
+        wx.showToast({ title: '上传成功', icon: 'success' })
+        
+        // 保存草稿
+        this.saveDraft()
+      } else {
+        wx.hideLoading()
+        wx.showToast({ title: '上传失败', icon: 'none' })
+      }
 
     } catch (error) {
       wx.hideLoading()
@@ -722,21 +786,25 @@ Page({
         sourceType: ['album', 'camera']
       })
 
-      wx.showLoading({ title: '上传中...' })
+      wx.showLoading({ title: '处理中...' })
       
-      // 模拟上传到云存储
-      // TODO: 后端需要实现图片上传接口，返回图片URL
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // 压缩并转换为 base64
+      const base64 = await this.compressAndConvertImage(res.tempFilePaths[0])
       
-      const spec2Values = [...this.data.spec2Values]
-      spec2Values[index].image = res.tempFilePaths[0] // TODO: 替换为上传后的URL
-      this.setData({ spec2Values })
+      if (base64) {
+        const spec2Values = [...this.data.spec2Values]
+        spec2Values[index].image = base64
+        this.setData({ spec2Values })
 
-      wx.hideLoading()
-      wx.showToast({ title: '上传成功', icon: 'success' })
-      
-      // 保存草稿
-      this.saveDraft()
+        wx.hideLoading()
+        wx.showToast({ title: '上传成功', icon: 'success' })
+        
+        // 保存草稿
+        this.saveDraft()
+      } else {
+        wx.hideLoading()
+        wx.showToast({ title: '上传失败', icon: 'none' })
+      }
 
     } catch (error) {
       wx.hideLoading()
@@ -905,30 +973,52 @@ Page({
   },
 
   // 选择简介图片
-  chooseSummaryImages() {
+  async chooseSummaryImages() {
     const currentCount = this.data.formData.summaryImages.length
     const maxCount = 3 - currentCount
 
-    wx.chooseImage({
-      count: maxCount,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success: (res) => {
-        const newImages = [...this.data.formData.summaryImages, ...res.tempFilePaths]
+    try {
+      const res = await wx.chooseImage({
+        count: maxCount,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera']
+      })
+      
+      wx.showLoading({ title: '处理图片中...' })
+      
+      // 压缩并转换所有图片
+      const promises = res.tempFilePaths.map(tempPath => {
+        return this.compressAndConvertImage(tempPath)
+      })
+      
+      const base64Images = await Promise.all(promises)
+      const validImages = base64Images.filter(img => img !== null)
+      
+      if (validImages.length > 0) {
+        const newImages = [...this.data.formData.summaryImages, ...validImages]
         this.setData({
           'formData.summaryImages': newImages
         })
         
+        wx.hideLoading()
         wx.showToast({
-          title: `已上传图${newImages.length}`,
+          title: `已上传${validImages.length}张`,
           icon: 'success',
           duration: 1000
         })
         
         // 自动保存草稿
         this.saveDraft()
+      } else {
+        wx.hideLoading()
+        wx.showToast({ title: '图片处理失败', icon: 'none' })
       }
-    })
+    } catch (error) {
+      wx.hideLoading()
+      if (error.errMsg && !error.errMsg.includes('cancel')) {
+        wx.showToast({ title: '选择图片失败', icon: 'none' })
+      }
+    }
   },
 
   // 删除简介图片
