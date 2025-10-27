@@ -95,15 +95,56 @@ Page({
 
   // 查看订单详情
   viewOrderDetail() {
-    wx.showToast({
-      title: '订单功能开发中',
-      icon: 'none'
-    })
+    const { orderInfo } = this.data
     
-    // 真实场景：跳转到订单详情页
-    // wx.navigateTo({
-    //   url: `/pages/order-detail/index?id=${this.data.orderInfo.orderNo}`
-    // })
+    // 保存订单到本地存储
+    const orders = wx.getStorageSync('pending_orders') || []
+    
+    // 检查订单是否已存在
+    const existingIndex = orders.findIndex(o => o.id === orderInfo.orderNo)
+    
+    if (existingIndex === -1) {
+      // 创建完整的订单对象
+      const newOrder = {
+        id: orderInfo.orderNo,
+        productName: orderInfo.productName,
+        productImage: '/assets/default-product.png',
+        spec: `${orderInfo.spec1}${orderInfo.spec2 ? '/' + orderInfo.spec2 : ''}`,
+        price: orderInfo.totalAmount.toFixed(2),
+        quantity: orderInfo.quantity,
+        status: 'inProgress',
+        statusText: '进行中',
+        createTime: orderInfo.createTime,
+        deadline: this.calculateDeadline(orderInfo.createTime, 7), // 默认7天
+        urgent: false,
+        step: 2,
+        buyerName: wx.getStorageSync('userInfo')?.nickName || '匿名用户',
+        artistName: '待分配'
+      }
+      
+      orders.push(newOrder)
+      wx.setStorageSync('pending_orders', orders)
+      console.log('✅ 订单已保存:', newOrder)
+    }
+    
+    // 跳转到订单详情页
+    wx.navigateTo({
+      url: `/pages/order-detail/index?id=${orderInfo.orderNo}`
+    })
+  },
+  
+  // 计算截稿日期
+  calculateDeadline(createTime, days) {
+    const create = new Date(createTime)
+    const deadline = new Date(create.getTime() + days * 24 * 60 * 60 * 1000)
+    
+    return deadline.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
   },
 
   // 返回首页
