@@ -65,18 +65,16 @@
         <view class="char-count">{{formData.name.length}}/50</view>
       </view>
 
-      <!-- 商品分类（卡片式点选） -->
+      <!-- 商品分类（标签式点选） -->
       <view class="form-group">
         <view class="group-label">商品分类 <text class="required">*</text></view>
-        <view class="category-grid">
+        <view class="category-tags">
           <view wx:for="{{categories}}" 
                 wx:key="id"
-                class="category-card {{categoryIndex === index ? 'active' : ''}}"
+                class="category-tag {{categoryIndex === index ? 'active' : ''}}"
                 data-index="{{index}}"
                 bindtap="onCategorySelect">
-            <view class="category-icon">{{item.icon || '🎨'}}</view>
-            <text class="category-name">{{item.name}}</text>
-            <view wx:if="{{categoryIndex === index}}" class="category-check">✓</view>
+            {{item.name}}
           </view>
         </view>
       </view>
