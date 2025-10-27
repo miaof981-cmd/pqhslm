@@ -700,3 +700,131 @@ page {
     opacity: 0.6;
   }
 }
+
+/* ========== 订单卡片优化样式 ========== */
+
+/* 时间信息区 - 清晰的时间线 */
+.order-timeline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  margin: 16rpx 0;
+  background: linear-gradient(135deg, #F8FFF9 0%, #F0F9F1 100%);
+  border-radius: 12rpx;
+  border-left: 6rpx solid #66BB6A;
+}
+
+.timeline-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.timeline-label {
+  font-size: 22rpx;
+  color: #999;
+  font-weight: 500;
+}
+
+.timeline-value {
+  font-size: 24rpx;
+  color: #333;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.timeline-value.urgent-text {
+  color: #FF6B6B;
+}
+
+.timeline-arrow {
+  font-size: 28rpx;
+  color: #66BB6A;
+  padding: 0 16rpx;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+/* 人员信息区 - 清晰标注 */
+.order-people-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding: 20rpx 24rpx;
+  margin: 16rpx 0;
+  background: linear-gradient(135deg, #FAFAFA 0%, #F5F5F5 100%);
+  border-radius: 12rpx;
+}
+
+.people-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.people-label {
+  width: 80rpx;
+  font-size: 24rpx;
+  color: #666;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.people-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.people-avatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  border: 3rpx solid #fff;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+  background: #E0E0E0;
+}
+
+.people-name {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+/* 操作按钮区 - 右对齐且醒目 */
+.order-actions {
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx dashed #E0E0E0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-mark-complete {
+  padding: 16rpx 48rpx;
+  background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 600;
+  border: none;
+  border-radius: 30rpx;
+  box-shadow: 0 6rpx 16rpx rgba(102, 187, 106, 0.3);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.btn-mark-complete::after {
+  border: none;
+}
+
+.btn-mark-complete:active {
+  transform: scale(0.96);
+  box-shadow: 0 4rpx 12rpx rgba(102, 187, 106, 0.2);
+}
