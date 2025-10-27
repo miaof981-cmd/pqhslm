@@ -18,12 +18,14 @@ page {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%; /* 确保占满宽度 */
 }
 
 .page-title {
   font-size: 32rpx;
   font-weight: 700;
   color: #2D5C3F;
+  flex-shrink: 0; /* 防止标题被压缩 */
 }
 
 .upload-btn {
@@ -38,10 +40,17 @@ page {
   font-weight: 600;
   border: none;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  flex-shrink: 0; /* 防止按钮被压缩 */
+  margin: 0 !important; /* 重置所有margin */
+  margin-left: auto !important; /* 强制靠右 */
+  padding-left: 20rpx !important;
+  padding-right: 20rpx !important;
+  line-height: normal;
+  width: auto;
 }
 
 .upload-btn::after {
-  border: none;
+  border: none !important;
 }
 
 .upload-icon {
