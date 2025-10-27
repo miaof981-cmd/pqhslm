@@ -45,7 +45,11 @@
           class="edit-icon" 
           catchtap="viewServiceDetail" 
           data-id="{{item.id}}">
-          <text class="icon-text">···</text>
+          <view class="menu-icon">
+            <view class="menu-line"></view>
+            <view class="menu-line"></view>
+            <view class="menu-line"></view>
+          </view>
         </view>
       </view>
     </view>

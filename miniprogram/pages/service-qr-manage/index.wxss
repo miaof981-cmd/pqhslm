@@ -224,12 +224,24 @@ page {
   background: #EEEEEE;
 }
 
-.icon-text {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #999;
-  line-height: 1;
-  letter-spacing: 2rpx;
+/* 三条横杠菜单图标 */
+.menu-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  width: 28rpx;
+}
+
+.menu-line {
+  width: 28rpx;
+  height: 3rpx;
+  background: #999;
+  border-radius: 2rpx;
+  transition: all 0.3s;
+}
+
+.edit-icon:active .menu-line {
+  background: #666;
 }
 
 /* 空状态 */
