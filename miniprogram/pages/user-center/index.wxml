@@ -78,7 +78,6 @@
       <view class="workspace-grid">
         <!-- 画师工作台 -->
         <view wx:if="{{hasArtistRole}}" class="workspace-card artist" bindtap="goToArtistWorkspace">
-          <view class="workspace-icon artist-icon"></view>
           <text class="workspace-name">画师工作台</text>
           <view wx:if="{{memberInfo && memberInfo.isValid}}" class="card-badge active">会员有效</view>
           <view wx:elif="{{memberInfo}}" class="card-badge expired">已过期</view>
@@ -86,13 +85,11 @@
 
         <!-- 客服工作台 -->
         <view wx:if="{{hasServiceRole}}" class="workspace-card service" bindtap="goToServiceWorkspace">
-          <view class="workspace-icon service-icon"></view>
           <text class="workspace-name">客服工作台</text>
         </view>
 
         <!-- 管理后台 -->
         <view wx:if="{{isAdmin}}" class="workspace-card admin" bindtap="goToAdmin">
-          <view class="workspace-icon admin-icon"></view>
           <text class="workspace-name">管理后台</text>
         </view>
       </view>
