@@ -47,7 +47,9 @@
       </view>
       <view class="recommend-list">
         <view wx:for="{{recommendProducts}}" wx:key="_id" class="recommend-item" bindtap="viewProduct" data-id="{{item._id}}">
-          <image class="recommend-image" src="{{item.image}}" mode="aspectFill" />
+          <view class="recommend-image-wrapper">
+            <image class="recommend-image" src="{{item.image}}" mode="aspectFill" />
+          </view>
           <text class="recommend-name">{{item.name}}</text>
           <text class="recommend-price">¥{{item.price}}</text>
         </view>
