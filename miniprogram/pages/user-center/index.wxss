@@ -158,25 +158,18 @@
 }
 
 .stat-icon.processing {
-  background: linear-gradient(135deg, #FFD54F 0%, #FFCA28 100%);
+  background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
 }
 
 .stat-icon.processing::before {
-  width: 20rpx;
-  height: 20rpx;
+  width: 18rpx;
+  height: 18rpx;
   border: 3rpx solid white;
-  border-top-color: transparent;
   border-radius: 50%;
-  animation: rotate 1s linear infinite;
-}
-
-@keyframes rotate {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 .stat-icon.completed {
-  background: linear-gradient(135deg, #81C784 0%, #66BB6A 100%);
+  background: linear-gradient(135deg, #C8E6C9 0%, #A5D6A7 100%);
 }
 
 .stat-icon.completed::before {
@@ -189,7 +182,7 @@
 }
 
 .stat-icon.refunded {
-  background: linear-gradient(135deg, #EF9A9A 0%, #E57373 100%);
+  background: linear-gradient(135deg, #FFCCBC 0%, #FFAB91 100%);
 }
 
 .stat-icon.refunded::before {
@@ -212,7 +205,7 @@
 }
 
 .stat-icon.all {
-  background: linear-gradient(135deg, #64B5F6 0%, #42A5F5 100%);
+  background: linear-gradient(135deg, #B2DFDB 0%, #80CBC4 100%);
 }
 
 .stat-icon.all::before {
@@ -734,26 +727,7 @@
   margin-bottom: 10rpx;
   border-radius: 50%;
   position: relative;
-}
-
-.icon-favorite {
-  background: linear-gradient(135deg, #FFB3BA 0%, #FF8A95 100%);
-}
-
-.icon-history {
-  background: linear-gradient(135deg, #BAE1FF 0%, #A5D8FF 100%);
-}
-
-.icon-service {
-  background: linear-gradient(135deg, #B5EAD7 0%, #95E1D3 100%);
-}
-
-.icon-show {
-  background: linear-gradient(135deg, #FFDAC1 0%, #FFCBA4 100%);
-}
-
-.icon-reward {
-  background: linear-gradient(135deg, #E2CDF7 0%, #D4B5F0 100%);
+  background: linear-gradient(135deg, #C8E6C9 0%, #A5D6A7 100%);
 }
 
 .function-icon::before {
