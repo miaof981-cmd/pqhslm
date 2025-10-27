@@ -11,21 +11,21 @@ page {
 /* 顶部标题栏 */
 .header-section {
   background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
-  padding: 24rpx 0 20rpx 30rpx; /* 右边距为0，按钮紧贴右边 */
+  padding: 24rpx 30rpx 20rpx; /* 恢复左右间距 */
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%; /* 确保占满宽度 */
+  width: 100%;
 }
 
 .page-title {
   font-size: 32rpx;
   font-weight: 700;
   color: #2D5C3F;
-  flex-shrink: 0; /* 防止标题被压缩 */
+  flex-shrink: 0;
 }
 
 .upload-btn {
@@ -35,14 +35,14 @@ page {
   padding: 10rpx 20rpx;
   background: rgba(255, 255, 255, 0.95);
   color: #66BB6A;
-  border-radius: 14rpx 0 0 14rpx; /* 右边圆角为0，紧贴边缘 */
+  border-radius: 14rpx; /* 恢复完整圆角 */
   font-size: 24rpx;
   font-weight: 600;
   border: none;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
-  flex-shrink: 0; /* 防止按钮被压缩 */
-  margin: 0 !important; /* 重置所有margin */
-  margin-left: auto !important; /* 强制靠右 */
+  flex-shrink: 0;
+  margin: 0 !important;
+  margin-left: auto !important;
   padding-left: 20rpx !important;
   padding-right: 20rpx !important;
   line-height: normal;
@@ -61,17 +61,18 @@ page {
 
 /* 搜索和筛选区域 */
 .search-filter-section {
-  padding: 20rpx 30rpx;
-  background: white;
+  padding: 20rpx 30rpx 24rpx;
+  background: transparent; /* 改为透明，融入整体背景 */
 }
 
 .search-box {
   display: flex;
   align-items: center;
-  background: #F5F5F5;
+  background: white; /* 改为白色，与筛选标签统一 */
   border-radius: 20rpx;
   padding: 16rpx 20rpx;
   margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(102, 187, 106, 0.06); /* 添加轻微阴影 */
 }
 
 .search-icon {
@@ -139,12 +140,16 @@ page {
 .filter-tabs {
   display: flex;
   gap: 12rpx;
+  background: white; /* 添加白色背景 */
+  padding: 8rpx; /* 添加内边距 */
+  border-radius: 20rpx; /* 圆角 */
+  box-shadow: 0 2rpx 8rpx rgba(102, 187, 106, 0.06); /* 轻微阴影 */
 }
 
 .filter-tag {
   padding: 10rpx 20rpx;
-  border-radius: 20rpx;
-  background: #F5F5F5;
+  border-radius: 16rpx;
+  background: transparent; /* 默认透明 */
   color: #666;
   font-size: 24rpx;
   font-weight: 500;
@@ -161,6 +166,7 @@ page {
 /* 商品列表 */
 .product-list {
   padding: 0 30rpx;
+  padding-top: 20rpx; /* 增加顶部间距，与筛选区分离 */
   display: flex;
   flex-direction: column;
   gap: 16rpx;
@@ -172,7 +178,7 @@ page {
   padding: 16rpx;
   display: flex;
   gap: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(102, 187, 106, 0.06);
+  box-shadow: 0 2rpx 12rpx rgba(102, 187, 106, 0.08); /* 稍微加深阴影，增强层次感 */
 }
 
 .product-image {
