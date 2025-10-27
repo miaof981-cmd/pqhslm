@@ -338,22 +338,56 @@ Page({
         sourceType: ['album', 'camera']
       })
 
-      wx.showLoading({ title: '上传中...' })
+      wx.showLoading({ title: '处理图片中...' })
       
-      // 模拟上传到云存储
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      this.setData({
-        'formData.images': [...this.data.formData.images, ...res.tempFilePaths]
+      // 将临时路径转换为 base64（永久有效）
+      const fs = wx.getFileSystemManager()
+      const promises = res.tempFilePaths.map(tempPath => {
+        return new Promise((resolve) => {
+          fs.readFile({
+            filePath: tempPath,
+            encoding: 'base64',
+            success: (fileRes) => {
+              // 转换为 data URL（永久路径）
+              const base64 = 'data:image/jpeg;base64,' + fileRes.data
+              console.log('✅ 图片转换成功，大小:', (fileRes.data.length / 1024).toFixed(2), 'KB')
+              resolve(base64)
+            },
+            fail: (err) => {
+              console.error('❌ 读取图片失败:', tempPath, err)
+              resolve(null)
+            }
+          })
+        })
       })
-
-      wx.hideLoading()
-      wx.showToast({ title: '上传成功', icon: 'success' })
+      
+      const base64Images = await Promise.all(promises)
+      
+      // 过滤掉失败的图片
+      const validImages = base64Images.filter(img => img !== null)
+      
+      if (validImages.length > 0) {
+        this.setData({
+          'formData.images': [...this.data.formData.images, ...validImages]
+        })
+        
+        wx.hideLoading()
+        wx.showToast({ 
+          title: `已添加${validImages.length}张图片`, 
+          icon: 'success' 
+        })
+        
+        console.log('✅ 图片已转换为永久路径（base64），不会失效')
+      } else {
+        wx.hideLoading()
+        wx.showToast({ title: '图片处理失败', icon: 'none' })
+      }
 
     } catch (error) {
       wx.hideLoading()
       if (error.errMsg && !error.errMsg.includes('cancel')) {
-        wx.showToast({ title: '上传失败', icon: 'none' })
+        wx.showToast({ title: '选择图片失败', icon: 'none' })
+        console.error('选择图片错误:', error)
       }
     }
   },
