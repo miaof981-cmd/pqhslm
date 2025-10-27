@@ -10,12 +10,15 @@ Page({
     // 从URL参数获取订单信息（需要解码）
     const orderInfo = {
       orderNo: this.generateOrderNo(),
+      productId: options.productId || '',
       productName: decodeURIComponent(options.productName || '商品'),
+      productImage: decodeURIComponent(options.productImage || '/assets/default-product.png'),
       spec1: decodeURIComponent(options.spec1 || ''),
       spec2: decodeURIComponent(options.spec2 || ''),
       quantity: parseInt(options.quantity) || 1,
       price: parseFloat(options.price) || 0,
       totalAmount: parseFloat(options.totalAmount) || 0,
+      deliveryDays: parseInt(options.deliveryDays) || 7,
       createTime: new Date().toLocaleString('zh-CN', {
         year: 'numeric',
         month: '2-digit',
@@ -105,17 +108,22 @@ Page({
     
     if (existingIndex === -1) {
       // 创建完整的订单对象
+      const specText = orderInfo.spec1 && orderInfo.spec2 
+        ? `${orderInfo.spec1}/${orderInfo.spec2}`
+        : orderInfo.spec1 || orderInfo.spec2 || '无'
+      
       const newOrder = {
         id: orderInfo.orderNo,
+        productId: orderInfo.productId,
         productName: orderInfo.productName,
-        productImage: '/assets/default-product.png',
-        spec: `${orderInfo.spec1}${orderInfo.spec2 ? '/' + orderInfo.spec2 : ''}`,
+        productImage: orderInfo.productImage,
+        spec: specText,
         price: orderInfo.totalAmount.toFixed(2),
         quantity: orderInfo.quantity,
         status: 'inProgress',
         statusText: '进行中',
         createTime: orderInfo.createTime,
-        deadline: this.calculateDeadline(orderInfo.createTime, 7), // 默认7天
+        deadline: this.calculateDeadline(orderInfo.createTime, orderInfo.deliveryDays),
         urgent: false,
         step: 2,
         buyerName: wx.getStorageSync('userInfo')?.nickName || '匿名用户',

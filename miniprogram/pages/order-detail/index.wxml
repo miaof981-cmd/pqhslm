@@ -72,10 +72,6 @@
         <text class="info-label">买家昵称</text>
         <text class="info-value">{{order.buyerName || '匿名用户'}}</text>
       </view>
-      <view class="info-row">
-        <text class="info-label">联系方式</text>
-        <text class="info-value">查看客服二维码</text>
-      </view>
     </view>
 
     <!-- 画师信息（买家可见） -->
@@ -84,6 +80,16 @@
       <view class="info-row">
         <text class="info-label">画师昵称</text>
         <text class="info-value">{{order.artistName}}</text>
+      </view>
+    </view>
+
+    <!-- 客服二维码 -->
+    <view class="section-card qr-section">
+      <view class="section-title">联系客服</view>
+      <view class="qr-container">
+        <image class="qr-image" src="https://via.placeholder.com/400x400.png?text=客服二维码" mode="aspectFit"/>
+        <text class="qr-hint">长按识别二维码添加客服微信</text>
+        <text class="qr-desc">客服会与您进一步沟通绘画要求</text>
       </view>
     </view>
 
