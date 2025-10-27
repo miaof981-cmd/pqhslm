@@ -12,76 +12,36 @@
 
   <!-- 客服列表 -->
   <view class="service-list">
-    <view wx:for="{{serviceList}}" wx:key="id" class="service-card">
-      <!-- 客服信息 -->
-      <view class="service-info">
+    <view wx:for="{{serviceList}}" wx:key="id" class="service-card" bindtap="editService" data-id="{{item.id}}">
+      <!-- 左侧：头像 -->
+      <view class="card-left">
         <view class="service-avatar-wrap">
           <image class="service-avatar" src="{{item.avatar}}" mode="aspectFill" />
           <view class="service-number-badge">{{item.serviceNumber}}</view>
         </view>
-        
-        <view class="service-details">
-          <view class="service-name-row">
-            <text class="service-name">{{item.name}}</text>
-            <view class="status-badge {{item.isActive ? 'active' : 'inactive'}}">
-              {{item.isActive ? '在线' : '离线'}}
-            </view>
+      </view>
+
+      <!-- 中间：客服信息 -->
+      <view class="card-middle">
+        <view class="service-name-row">
+          <text class="service-name">{{item.name}}</text>
+          <view class="status-badge {{item.isActive ? 'active' : 'inactive'}}">
+            {{item.isActive ? '在线' : '离线'}}
           </view>
-          <text class="service-id">客服编号：KF{{item.serviceNumber}}</text>
-          <text class="service-contact">微信：{{item.wechatId || '未设置'}}</text>
         </view>
+        <text class="service-id">KF{{item.serviceNumber}}</text>
       </view>
 
-      <!-- 二维码信息 -->
-      <view class="qrcode-section">
-        <view class="qrcode-header">
-          <text class="qrcode-title">客服二维码</text>
-          <button wx:if="{{!item.qrcodeUrl}}" class="bind-qr-btn" bindtap="bindQrcode" data-id="{{item.id}}">
-            绑定二维码
-          </button>
-          <button wx:else class="change-qr-btn" bindtap="changeQrcode" data-id="{{item.id}}">
-            更换
-          </button>
+      <!-- 右侧：二维码缩略图 -->
+      <view class="card-right" catchtap="viewQrcode" data-id="{{item.id}}">
+        <view wx:if="{{item.qrcodeUrl}}" class="qrcode-thumb-wrap">
+          <image class="qrcode-thumb" src="{{item.qrcodeUrl}}" mode="aspectFit" />
+          <text class="qrcode-label">二维码{{item.qrcodeNumber}}</text>
         </view>
-        
-        <view wx:if="{{item.qrcodeUrl}}" class="qrcode-display">
-          <image class="qrcode-image" src="{{item.qrcodeUrl}}" mode="aspectFit" />
-          <view class="qrcode-number">编号: {{item.qrcodeNumber}}</view>
+        <view wx:else class="qrcode-empty" catchtap="bindQrcode" data-id="{{item.id}}">
+          <text class="qrcode-empty-icon">+</text>
+          <text class="qrcode-empty-text">绑定</text>
         </view>
-        <view wx:else class="qrcode-placeholder">
-          <text class="placeholder-text">未绑定二维码</text>
-        </view>
-      </view>
-
-      <!-- 统计信息 -->
-      <view class="service-stats">
-        <view class="stat-item">
-          <text class="stat-value">{{item.orderCount || 0}}</text>
-          <text class="stat-label">接单数</text>
-        </view>
-        <view class="stat-divider"></view>
-        <view class="stat-item">
-          <text class="stat-value">{{item.processingCount || 0}}</text>
-          <text class="stat-label">处理中</text>
-        </view>
-        <view class="stat-divider"></view>
-        <view class="stat-item">
-          <text class="stat-value">{{item.completedCount || 0}}</text>
-          <text class="stat-label">已完成</text>
-        </view>
-      </view>
-
-      <!-- 操作按钮 -->
-      <view class="service-actions">
-        <button class="action-btn edit-btn" bindtap="editService" data-id="{{item.id}}">
-          编辑资料
-        </button>
-        <button class="action-btn toggle-btn" bindtap="toggleServiceStatus" data-id="{{item.id}}" data-active="{{item.isActive}}">
-          {{item.isActive ? '设为离线' : '设为在线'}}
-        </button>
-        <button class="action-btn delete-btn" bindtap="deleteService" data-id="{{item.id}}">
-          移除客服
-        </button>
       </view>
     </view>
 
@@ -90,6 +50,23 @@
       <view class="empty-icon"></view>
       <text class="empty-text">暂无客服</text>
       <text class="empty-hint">点击右上角按钮添加客服</text>
+    </view>
+  </view>
+
+  <!-- 查看二维码弹窗 -->
+  <view wx:if="{{showQrcodeModal}}" class="qrcode-modal-overlay" catchtap="hideQrcodeModal">
+    <view class="qrcode-modal-content" catchtap="stopPropagation">
+      <view class="qrcode-modal-header">
+        <text class="qrcode-modal-title">客服二维码</text>
+        <view class="qrcode-modal-close" catchtap="hideQrcodeModal">×</view>
+      </view>
+      <view class="qrcode-modal-body">
+        <image class="qrcode-full-image" src="{{currentQrcode.url}}" mode="aspectFit" />
+        <text class="qrcode-full-label">编号: {{currentQrcode.number}}</text>
+        <button class="change-qrcode-btn" catchtap="changeQrcode" data-id="{{currentQrcode.serviceId}}">
+          更换二维码
+        </button>
+      </view>
     </view>
   </view>
 

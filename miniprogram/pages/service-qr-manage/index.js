@@ -2,6 +2,12 @@ Page({
   data: {
     serviceList: [],
     showAddModal: false,
+    showQrcodeModal: false,
+    currentQrcode: {
+      url: '',
+      number: '',
+      serviceId: ''
+    },
     newService: {
       userId: '',
       name: '',
@@ -252,13 +258,64 @@ Page({
 
   // 更换二维码
   changeQrcode(e) {
+    this.hideQrcodeModal()
     this.bindQrcode(e)
+  },
+
+  // 查看二维码
+  viewQrcode(e) {
+    const serviceId = e.currentTarget.dataset.id
+    const services = wx.getStorageSync('service_list') || []
+    const service = services.find(s => s.id === serviceId)
+    
+    if (service && service.qrcodeUrl) {
+      this.setData({
+        showQrcodeModal: true,
+        currentQrcode: {
+          url: service.qrcodeUrl,
+          number: service.qrcodeNumber,
+          serviceId: service.id
+        }
+      })
+    }
+  },
+
+  // 隐藏二维码弹窗
+  hideQrcodeModal() {
+    this.setData({
+      showQrcodeModal: false
+    })
   },
 
   // 编辑客服
   editService(e) {
     const serviceId = e.currentTarget.dataset.id
-    wx.showToast({ title: '编辑功能开发中', icon: 'none' })
+    const services = wx.getStorageSync('service_list') || []
+    const service = services.find(s => s.id === serviceId)
+    
+    if (!service) return
+    
+    // 显示操作菜单
+    wx.showActionSheet({
+      itemList: [
+        service.isActive ? '设为离线' : '设为在线',
+        '更换二维码',
+        '移除客服'
+      ],
+      success: (res) => {
+        switch (res.tapIndex) {
+          case 0:
+            this.toggleServiceStatus({ currentTarget: { dataset: { id: serviceId, active: service.isActive } } })
+            break
+          case 1:
+            this.bindQrcode({ currentTarget: { dataset: { id: serviceId } } })
+            break
+          case 2:
+            this.deleteService({ currentTarget: { dataset: { id: serviceId } } })
+            break
+        }
+      }
+    })
   },
 
   // 切换客服状态

@@ -1,6 +1,6 @@
-/* 客服管理页面样式 */
+/* 客服管理页面 - 名片式布局 */
 page {
-  background: linear-gradient(180deg, #E8F5E9 0%, #F1F8E9 100%);
+  background: #F8F9FA;
   min-height: 100vh;
 }
 
@@ -17,6 +17,7 @@ page {
 
 .header-content {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 20rpx;
 }
@@ -25,13 +26,12 @@ page {
   font-size: 36rpx;
   font-weight: 700;
   color: white;
-  flex: 0 0 auto;
+  flex-shrink: 0;
 }
 
 .add-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 6rpx;
   padding: 10rpx 20rpx;
   background: rgba(255, 255, 255, 0.95);
@@ -41,9 +41,8 @@ page {
   font-weight: 600;
   border: none;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
-  flex: 0 0 auto;
+  flex-shrink: 0;
   margin-left: auto;
-  min-width: 120rpx;
 }
 
 .add-btn::after {
@@ -56,41 +55,43 @@ page {
   line-height: 1;
 }
 
-/* 客服列表 - 两列名片布局 */
+/* 客服列表 - 名片式横向布局 */
 .service-list {
-  padding: 20rpx 20rpx;
+  padding: 20rpx 30rpx;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 20rpx;
 }
 
 .service-card {
-  width: calc((100% - 20rpx) / 2);
+  width: 100%;
+  max-width: 90%;
+  margin: 0 auto;
+  height: 120rpx;
   background: white;
   border-radius: 16rpx;
   padding: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
-  box-sizing: border-box;
-  transition: all 0.3s;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  transition: all 0.2s;
 }
 
 .service-card:active {
   transform: scale(0.98);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
 }
 
-/* 客服信息 - 名片式布局 */
-.service-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12rpx;
-  margin-bottom: 16rpx;
-  padding-bottom: 16rpx;
-  border-bottom: 1rpx solid #F0F0F0;
+/* 左侧：头像区域 */
+.card-left {
+  flex-shrink: 0;
 }
 
 .service-avatar-wrap {
   position: relative;
+  width: 80rpx;
+  height: 80rpx;
 }
 
 .service-avatar {
@@ -118,24 +119,24 @@ page {
   color: white;
 }
 
-.service-details {
-  width: 100%;
+/* 中间：客服信息 */
+.card-middle {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 6rpx;
+  min-width: 0;
+  justify-content: center;
 }
 
 .service-name-row {
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  width: 100%;
-  justify-content: center;
+  gap: 10rpx;
 }
 
 .service-name {
-  font-size: 26rpx;
+  font-size: 28rpx;
   font-weight: 700;
   color: #333;
   overflow: hidden;
@@ -150,6 +151,7 @@ page {
   font-size: 18rpx;
   font-weight: 600;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .status-badge.active {
@@ -165,170 +167,70 @@ page {
 .service-id {
   font-size: 22rpx;
   color: #999;
-  text-align: center;
-}
-
-.service-contact {
-  font-size: 20rpx;
-  color: #666;
-  text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100%;
 }
 
-/* 二维码区域 - 简化显示 */
-.qrcode-section {
-  margin-bottom: 12rpx;
-  padding-bottom: 12rpx;
-  border-bottom: 1rpx solid #F0F0F0;
-}
-
-.qrcode-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8rpx;
-}
-
-.qrcode-title {
-  font-size: 22rpx;
-  font-weight: 600;
-  color: #666;
-}
-
-.bind-qr-btn,
-.change-qr-btn {
-  padding: 4rpx 12rpx;
-  background: #E3F2FD;
-  color: #2196F3;
-  border-radius: 12rpx;
-  font-size: 20rpx;
-  font-weight: 500;
-  border: none;
-}
-
-.bind-qr-btn::after,
-.change-qr-btn::after {
-  border: none;
-}
-
-.qrcode-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8rpx;
-  padding: 12rpx;
-  background: #FAFAFA;
-  border-radius: 12rpx;
-}
-
-.qrcode-image {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 8rpx;
-  border: 2rpx solid #E0E0E0;
-}
-
-.qrcode-number {
-  padding: 4rpx 16rpx;
-  background: linear-gradient(135deg, #FFD54F 0%, #FFCA28 100%);
-  border-radius: 12rpx;
-  font-size: 20rpx;
-  font-weight: 700;
-  color: #F57F17;
-}
-
-.qrcode-placeholder {
-  padding: 24rpx;
-  background: #FAFAFA;
-  border-radius: 12rpx;
-  border: 2rpx dashed #E0E0E0;
+/* 右侧：二维码缩略图 */
+.card-right {
+  flex-shrink: 0;
+  width: 80rpx;
+  height: 80rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.placeholder-text {
-  font-size: 20rpx;
-  color: #999;
-}
-
-/* 统计信息 - 精简显示 */
-.service-stats {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 12rpx;
-  background: linear-gradient(135deg, #F0F8FF 0%, #E8F5E9 100%);
-  border-radius: 12rpx;
-  margin-bottom: 12rpx;
-}
-
-.stat-item {
+.qrcode-thumb-wrap {
+  width: 80rpx;
+  height: 80rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4rpx;
 }
 
-.stat-value {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #2196F3;
+.qrcode-thumb {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #E0E0E0;
+  background: #FAFAFA;
 }
 
-.stat-label {
-  font-size: 20rpx;
-  color: #666;
+.qrcode-label {
+  font-size: 18rpx;
+  color: #999;
+  white-space: nowrap;
 }
 
-.stat-divider {
-  width: 1rpx;
-  height: 30rpx;
-  background: #E0E0E0;
-}
-
-/* 操作按钮 - 精简样式 */
-.service-actions {
+.qrcode-empty {
+  width: 60rpx;
+  height: 60rpx;
+  background: #FAFAFA;
+  border: 2rpx dashed #E0E0E0;
+  border-radius: 8rpx;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  align-items: center;
+  justify-content: center;
+  gap: 2rpx;
 }
 
-.action-btn {
-  width: 100%;
-  padding: 12rpx;
-  border-radius: 8rpx;
-  font-size: 22rpx;
-  font-weight: 500;
-  border: none;
-  text-align: center;
+.qrcode-empty-icon {
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1;
 }
 
-.action-btn::after {
-  border: none;
-}
-
-.edit-btn {
-  background: #E3F2FD;
-  color: #2196F3;
-}
-
-.toggle-btn {
-  background: #FFF9E6;
-  color: #FFA500;
-}
-
-.delete-btn {
-  background: #FFEBEE;
-  color: #FF6B6B;
+.qrcode-empty-text {
+  font-size: 18rpx;
+  color: #999;
 }
 
 /* 空状态 */
 .empty-state {
-  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -382,7 +284,94 @@ page {
   color: #999;
 }
 
-/* 弹窗 */
+/* 查看二维码弹窗 */
+.qrcode-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.qrcode-modal-content {
+  width: 600rpx;
+  background: white;
+  border-radius: 24rpx;
+  overflow: hidden;
+}
+
+.qrcode-modal-header {
+  padding: 24rpx 30rpx;
+  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.qrcode-modal-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: white;
+}
+
+.qrcode-modal-close {
+  width: 48rpx;
+  height: 48rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  color: white;
+  line-height: 1;
+}
+
+.qrcode-modal-body {
+  padding: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.qrcode-full-image {
+  width: 400rpx;
+  height: 400rpx;
+  border-radius: 16rpx;
+  border: 2rpx solid #E0E0E0;
+}
+
+.qrcode-full-label {
+  padding: 8rpx 24rpx;
+  background: linear-gradient(135deg, #FFD54F 0%, #FFCA28 100%);
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #F57F17;
+}
+
+.change-qrcode-btn {
+  width: 100%;
+  padding: 20rpx 0;
+  background: #E3F2FD;
+  color: #2196F3;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  border: none;
+}
+
+.change-qrcode-btn::after {
+  border: none;
+}
+
+/* 添加客服弹窗 */
 .modal-overlay {
   position: fixed;
   top: 0;
