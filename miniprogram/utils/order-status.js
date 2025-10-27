@@ -10,7 +10,17 @@
 function calculateOrderStatus(order) {
   // 如果订单已完成，不需要重新计算
   if (order.status === 'completed') {
-    return order
+    return { ...order, statusText: '已完成' }
+  }
+  
+  // 如果订单已标记为画师完成（等待客户确认），保持该状态
+  if (order.status === 'waitingConfirm' || order.workCompleted) {
+    return {
+      ...order,
+      status: 'waitingConfirm',
+      statusText: '待客户确认',
+      urgent: false
+    }
   }
   
   const now = new Date()
@@ -71,6 +81,7 @@ function countOrderStatus(orders) {
     inProgress: 0,
     nearDeadline: 0,
     overdue: 0,
+    waitingConfirm: 0,
     completed: 0
   }
   
@@ -79,6 +90,8 @@ function countOrderStatus(orders) {
     
     if (order.status === 'completed') {
       stats.completed++
+    } else if (order.status === 'waitingConfirm') {
+      stats.waitingConfirm++
     } else if (order.status === 'overdue') {
       stats.overdue++
     } else if (order.status === 'nearDeadline') {

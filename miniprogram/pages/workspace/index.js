@@ -713,22 +713,16 @@ Page({
   markOrderComplete(order) {
     wx.showLoading({ title: '处理中...' })
     
-    // 标记订单为已完成
+    // 标记订单为画师已完成（等待客户确认）
     order.workCompleted = true
     order.workCompleteTime = this.formatDateTime(new Date())
+    order.status = 'waitingConfirm'  // 新增状态：等待确认
+    order.statusText = '待客户确认'
     
     // 更新本地存储
     this.updateOrderInStorage(order)
     
-    // 更新当前数据
-    const { pendingOrders } = this.data
-    const index = pendingOrders.findIndex(o => o.id === order.id)
-    if (index !== -1) {
-      pendingOrders[index] = order
-    }
-    
-    this.setData({ pendingOrders })
-    this.applyFilter()
+    // 重新加载统计和订单
     this.loadPendingStats()
     
     setTimeout(() => {

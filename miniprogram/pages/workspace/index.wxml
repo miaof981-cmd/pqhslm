@@ -44,10 +44,6 @@
           <view class="func-icon reward-icon"></view>
           <text class="func-name">打赏</text>
         </view>
-        <view class="func-btn" bindtap="showConfirmGuide">
-          <view class="func-icon confirm-icon"></view>
-          <text class="func-name">催确认</text>
-        </view>
         <view class="func-btn" bindtap="toggleNotices">
           <view class="func-icon notice-icon"></view>
           <text class="func-name">须知</text>
@@ -188,13 +184,18 @@
               </view>
             </view>
 
-            <!-- 操作按钮 -->
-            <view wx:if="{{item.status !== 'completed'}}" class="order-actions">
+            <!-- 操作按钮（只在未完成且未标记完成时显示） -->
+            <view wx:if="{{item.status !== 'completed' && item.status !== 'waitingConfirm'}}" class="order-actions">
               <button class="btn-mark-complete" 
                       catchtap="quickMarkComplete" 
                       data-id="{{item.id}}">
                 标记完成
               </button>
+            </view>
+            
+            <!-- 已标记完成提示 -->
+            <view wx:elif="{{item.status === 'waitingConfirm'}}" class="order-waiting-tip">
+              <text class="waiting-text">✓ 已完成，等待客户确认</text>
             </view>
           </view>
         </view>
