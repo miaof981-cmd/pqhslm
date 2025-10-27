@@ -56,10 +56,26 @@
   </view>
 
   <!-- 空状态 -->
-  <view wx:else class="empty-state">
-    <view class="empty-icon"></view>
-    <text class="empty-text">购物车空空如也</text>
-    <button class="go-shopping-btn" bindtap="goShopping">去逛逛</button>
+  <view wx:else class="empty-cart-content">
+    <view class="empty-state">
+      <view class="empty-icon"></view>
+      <text class="empty-text">购物车空空如也</text>
+      <button class="go-shopping-btn" bindtap="goShopping">去逛逛</button>
+    </view>
+
+    <!-- 空购物车时的推荐商品 -->
+    <view wx:if="{{recommendProducts.length > 0}}" class="recommend-section">
+      <view class="recommend-header">
+        <text class="recommend-title">为你推荐</text>
+      </view>
+      <view class="recommend-list">
+        <view wx:for="{{recommendProducts}}" wx:key="_id" class="recommend-item" bindtap="viewProduct" data-id="{{item._id}}">
+          <image class="recommend-image" src="{{item.image}}" mode="aspectFill" />
+          <text class="recommend-name">{{item.name}}</text>
+          <text class="recommend-price">¥{{item.price}}</text>
+        </view>
+      </view>
+    </view>
   </view>
 
   <!-- 底部操作栏 -->
