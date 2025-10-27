@@ -126,32 +126,15 @@
   height: 100%;
   background: linear-gradient(90deg, 
     #4CAF50 0%, 
-    #66BB6A 20%, 
-    #81C784 40%, 
-    #A5D6A7 60%, 
-    #81C784 80%, 
-    #66BB6A 100%
+    #66BB6A 50%, 
+    #81C784 100%
   );
-  background-size: 300% 100%;
   border-radius: 16rpx;
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  animation: shimmer 3s ease-in-out infinite;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: 200% center;
-  }
-  50% {
-    background-position: 0% center;
-  }
-  100% {
-    background-position: -200% center;
-  }
-}
-
-/* 进度条高光效果 */
+/* 进度条高光效果（静态） */
 .progress-bar-fill::before {
   content: '';
   position: absolute;
@@ -163,62 +146,26 @@
   border-radius: 16rpx 16rpx 0 0;
 }
 
-/* 临近截稿状态 - 橙色进度条 */
+/* 临近截稿状态 - 橙色进度条（静态渐变） */
 .progress-bar-fill.near-deadline {
   background: linear-gradient(90deg, 
     #FF9800 0%, 
-    #FFA726 20%, 
-    #FFB74D 40%, 
-    #FFCC80 60%, 
-    #FFB74D 80%, 
-    #FFA726 100%
+    #FFA726 50%, 
+    #FFB74D 100%
   );
-  background-size: 300% 100%;
-  animation: shimmer-orange 3s ease-in-out infinite;
 }
 
-@keyframes shimmer-orange {
-  0% {
-    background-position: 200% center;
-  }
-  50% {
-    background-position: 0% center;
-  }
-  100% {
-    background-position: -200% center;
-  }
-}
-
-/* 脱稿状态 - 红色进度条 */
+/* 脱稿状态 - 红色进度条（静态渐变） */
 .progress-bar-fill.overdue {
   background: linear-gradient(90deg, 
     #E53935 0%, 
-    #FF6B6B 20%, 
-    #FF8A80 40%, 
-    #FFAB91 60%, 
-    #FF8A80 80%, 
-    #FF6B6B 100%
+    #FF6B6B 50%, 
+    #FF8A80 100%
   );
-  background-size: 300% 100%;
-  animation: shimmer-red 3s ease-in-out infinite;
 }
 
-@keyframes shimmer-red {
-  0% {
-    background-position: 200% center;
-  }
-  50% {
-    background-position: 0% center;
-  }
-  100% {
-    background-position: -200% center;
-  }
-}
-
-/* 已完成状态 - 紫色进度条 */
+/* 已完成状态 - 紫色进度条（静态渐变） */
 .progress-bar-fill.completed {
-  background: linear-gradient(90deg, #9C27B0 0%, #BA68C8 50%, #9C27B0 100%);
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite;
+  background: linear-gradient(90deg, #9C27B0 0%, #BA68C8 50%, #CE93D8 100%);
 }
 
