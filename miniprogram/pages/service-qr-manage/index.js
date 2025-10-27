@@ -125,7 +125,6 @@ Page({
     }
 
     // 检查用户是否存在
-    const wxUserInfo = wx.getStorageSync('wxUserInfo')
     const currentUserId = wx.getStorageSync('userId')
     
     if (userId != currentUserId) {
@@ -136,6 +135,17 @@ Page({
       })
       return
     }
+
+    // 获取当前用户的头像和昵称
+    const userInfo = wx.getStorageSync('userInfo') || {}
+    const userAvatar = userInfo.avatarUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0E4RTZDRiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7lrqI8L3RleHQ+PC9zdmc+'
+    const userNickName = userInfo.nickName || name
+
+    console.log('📋 准备添加客服:')
+    console.log('  - 用户ID:', userId)
+    console.log('  - 客服姓名:', name)
+    console.log('  - 用户昵称:', userNickName)
+    console.log('  - 用户头像:', userAvatar.substring(0, 50) + '...')
 
     // 获取现有客服列表
     let services = wx.getStorageSync('service_list') || []
@@ -167,11 +177,12 @@ Page({
       id: 'service_' + Date.now(),
       userId: parseInt(userId),
       name: name,
+      nickName: userNickName,  // 保存用户昵称
       wechatId: wechatId || '',
       serviceNumber: serviceNumber,
       qrcodeUrl: qrcodeUrl || '',
       qrcodeNumber: qrcodeNumber,
-      avatar: wxUserInfo?.avatarUrl || wxUserInfo?.avatar || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0E4RTZDRiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7lrqI8L3RleHQ+PC9zdmc+',
+      avatar: userAvatar,  // 使用用户的真实头像
       isActive: true,
       orderCount: 0,
       processingCount: 0,
