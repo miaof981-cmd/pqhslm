@@ -4,7 +4,7 @@
 /* 订单列表页样式 */
 .container {
   min-height: 100vh;
-  background-color: #F5F5F5;
+  background: linear-gradient(180deg, #E8F5E9 0%, #F1F8F4 50%, #FAFFFE 100%);
   padding-top: 90rpx;
 }
 
