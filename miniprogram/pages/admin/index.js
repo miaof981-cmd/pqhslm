@@ -285,14 +285,20 @@ Page({
     }
     console.log('━━━━━━━━━━━━━━━━━━━━━━')
     
-    // 状态文本映射
+    // 状态文本映射（完整版）
     const statusTextMap = {
       'unpaid': '待支付',
       'paid': '已支付',
+      'created': '待处理',
       'processing': '制作中',
+      'inProgress': '进行中',
+      'waitingConfirm': '待客户确认',
+      'nearDeadline': '临近截稿',
+      'overdue': '已逾期',
       'completed': '已完成',
       'refunding': '退款中',
-      'refunded': '已退款'
+      'refunded': '已退款',
+      'cancelled': '已取消'
     }
     
     // 转换为管理后台需要的格式
