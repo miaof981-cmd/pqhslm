@@ -23,10 +23,14 @@ Page({
       createTime: this.formatDateTime(new Date())
     }
     
+    // 计算截稿时间
+    orderInfo.deadline = this.calculateDeadline(orderInfo.createTime, orderInfo.deliveryDays)
+    
     console.log('✅ 订单信息格式化完成')
     console.log('- 画师:', orderInfo.artistName)
     console.log('- 下单时间:', orderInfo.createTime)
     console.log('- 出稿天数:', orderInfo.deliveryDays)
+    console.log('- 截稿时间:', orderInfo.deadline)
 
     console.log('订单信息:', orderInfo)
     console.log('原始参数:', options)
@@ -37,9 +41,51 @@ Page({
         imageUrl: 'https://via.placeholder.com/400x400.png?text=客服二维码'
       }
     })
+    
+    // ✅ 自动保存订单到本地存储
+    this.saveOrderToLocal(orderInfo)
 
     // 禁止用户返回（可选）
     // wx.hideHomeButton() // 隐藏返回首页按钮
+  },
+  
+  // 自动保存订单到本地存储
+  saveOrderToLocal(orderInfo) {
+    try {
+      let orders = wx.getStorageSync('pending_orders') || []
+      
+      // 检查是否已存在相同订单号（避免重复保存）
+      const existingIndex = orders.findIndex(o => o.id === orderInfo.orderNo)
+      if (existingIndex !== -1) {
+        console.log('⚠️ 订单已存在，跳过保存')
+        return
+      }
+      
+      // 添加新订单
+      orders.push({
+        id: orderInfo.orderNo,
+        productId: orderInfo.productId,
+        productName: orderInfo.productName,
+        productImage: orderInfo.productImage,
+        spec: `${orderInfo.spec1}${orderInfo.spec2 ? ' / ' + orderInfo.spec2 : ''}`,
+        price: orderInfo.totalAmount,
+        quantity: orderInfo.quantity,
+        deliveryDays: orderInfo.deliveryDays,
+        artistName: orderInfo.artistName,
+        createTime: orderInfo.createTime,
+        deadline: orderInfo.deadline,
+        status: 'inProgress'
+      })
+      
+      // 保存到本地存储
+      wx.setStorageSync('pending_orders', orders)
+      
+      console.log('✅ 订单已自动保存到本地存储')
+      console.log('订单号:', orderInfo.orderNo)
+      console.log('订单总数:', orders.length)
+    } catch (error) {
+      console.error('❌ 订单保存失败:', error)
+    }
   },
 
   // 生成订单号
