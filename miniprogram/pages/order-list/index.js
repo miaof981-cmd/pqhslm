@@ -317,7 +317,7 @@ Page({
     const orderId = e.currentTarget.dataset.id
     console.error('❌ 图片加载失败 - 订单ID:', orderId)
     
-    // 查找对应订单并更新为默认图片
+    // 查找对应订单并清空图片路径（显示占位符）
     const orders = this.data.orders
     const index = orders.findIndex(o => o._id === orderId)
     
@@ -329,9 +329,10 @@ Page({
         是否为空: !failedImage,
         路径内容: failedImage
       })
-      console.log('✅ 已替换为默认图片')
+      console.log('✅ 已清空图片路径，将显示占位符')
       
-      orders[index].productImage = '/assets/default-product.png'
+      // 清空图片路径，让 wx:if 显示占位符
+      orders[index].productImage = ''
       this.setData({ orders })
     }
   }
