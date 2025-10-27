@@ -1064,9 +1064,12 @@ Page({
         }
       } else {
         // 新增模式：添加新商品
+        const userInfo = wx.getStorageSync('userInfo') || {}
         const newProduct = {
           id: `product_${Date.now()}`,
           ...productData,
+          artistName: userInfo.nickName || '画师',
+          artistId: wx.getStorageSync('userId') || '',
           createTime: Date.now(),
           updateTime: Date.now()
         }

@@ -19,6 +19,7 @@ Page({
       price: parseFloat(options.price) || 0,
       totalAmount: parseFloat(options.totalAmount) || 0,
       deliveryDays: parseInt(options.deliveryDays) || 7,
+      artistName: decodeURIComponent(options.artistName || '画师'),
       createTime: new Date().toLocaleString('zh-CN', {
         year: 'numeric',
         month: '2-digit',
@@ -127,7 +128,7 @@ Page({
         urgent: false,
         step: 2,
         buyerName: wx.getStorageSync('userInfo')?.nickName || '匿名用户',
-        artistName: '待分配'
+        artistName: orderInfo.artistName
       }
       
       orders.push(newOrder)

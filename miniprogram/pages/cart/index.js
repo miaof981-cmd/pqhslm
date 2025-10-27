@@ -289,7 +289,7 @@ Page({
         
         // 跳转到订单成功页面
         wx.redirectTo({
-          url: `/pages/order-success/index?productId=${item.productId || ''}&productName=${encodeURIComponent(item.productName)}&productImage=${encodeURIComponent(item.productImage || '/assets/default-product.png')}&spec1=${encodeURIComponent(item.spec1 || '')}&spec2=${encodeURIComponent(item.spec2 || '')}&quantity=${item.quantity}&price=${item.price}&totalAmount=${parseFloat(item.price) * item.quantity}&deliveryDays=${item.deliveryDays || 7}`
+          url: `/pages/order-success/index?productId=${item.productId || ''}&productName=${encodeURIComponent(item.productName)}&productImage=${encodeURIComponent(item.productImage || '/assets/default-product.png')}&spec1=${encodeURIComponent(item.spec1 || '')}&spec2=${encodeURIComponent(item.spec2 || '')}&quantity=${item.quantity}&price=${item.price}&totalAmount=${parseFloat(item.price) * item.quantity}&deliveryDays=${item.deliveryDays || 7}&artistName=${encodeURIComponent(item.artistName || '画师')}`
         })
       }, 1000)
     } else {
@@ -311,7 +311,7 @@ Page({
               // 跳转到订单成功页面（使用第一件商品的信息）
               const firstItem = selectedItems[0]
               wx.redirectTo({
-                url: `/pages/order-success/index?productId=${firstItem.productId || ''}&productName=${encodeURIComponent(firstItem.productName + ' 等' + selectedItems.length + '件商品')}&productImage=${encodeURIComponent(firstItem.productImage || '/assets/default-product.png')}&spec1=&spec2=&quantity=${selectedItems.reduce((sum, item) => sum + item.quantity, 0)}&price=${this.data.totalPrice}&totalAmount=${this.data.totalPrice}&deliveryDays=${firstItem.deliveryDays || 7}`
+                url: `/pages/order-success/index?productId=${firstItem.productId || ''}&productName=${encodeURIComponent(firstItem.productName + ' 等' + selectedItems.length + '件商品')}&productImage=${encodeURIComponent(firstItem.productImage || '/assets/default-product.png')}&spec1=&spec2=&quantity=${selectedItems.reduce((sum, item) => sum + item.quantity, 0)}&price=${this.data.totalPrice}&totalAmount=${this.data.totalPrice}&deliveryDays=${firstItem.deliveryDays || 7}&artistName=${encodeURIComponent(firstItem.artistName || '画师')}`
               })
             }, 1000)
           }

@@ -42,16 +42,21 @@
         </view>
       </view>
 
-      <!-- 订单进度 -->
-      <view wx:if="{{item.status === 'processing'}}" class="order-progress">
-        <view class="progress-info">
-          <text class="progress-label">制作进度</text>
-          <text class="progress-value">{{item.progress}}%</text>
+      <!-- 订单时间线 -->
+      <view wx:if="{{item.status === 'processing'}}" class="order-timeline">
+        <view class="timeline-row">
+          <view class="timeline-point active">
+            <view class="point-dot"></view>
+            <text class="point-label">下单时间</text>
+            <text class="point-time">{{item.createTime}}</text>
+          </view>
+          <view class="timeline-line"></view>
+          <view class="timeline-point">
+            <view class="point-dot"></view>
+            <text class="point-label">截稿时间</text>
+            <text class="point-time">{{item.deadline}}</text>
+          </view>
         </view>
-        <view class="progress-bar-wrapper">
-          <view class="progress-bar" style="width: {{item.progress}}%"></view>
-        </view>
-        <text class="deadline-text">预计{{item.deadline}}完成</text>
       </view>
 
       <!-- 订单操作 -->

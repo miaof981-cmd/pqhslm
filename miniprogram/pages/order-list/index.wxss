@@ -213,51 +213,63 @@
   color: #E53935;
 }
 
-/* 订单进度 */
-.order-progress {
-  padding: 20rpx 25rpx;
-  background: #FAFAFA;
-  border-top: 1rpx solid #F5F5F5;
+/* 订单时间线 */
+.order-timeline {
+  padding: 30rpx 25rpx;
+  background: linear-gradient(135deg, #F1F8F4 0%, #FAFAFA 100%);
+  border-top: 1rpx solid #E8F5E9;
 }
 
-.progress-info {
+.timeline-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 12rpx;
+  justify-content: space-between;
 }
 
-.progress-label {
-  font-size: 24rpx;
-  color: #666;
+.timeline-point {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  flex: 0 0 auto;
 }
 
-.progress-value {
-  font-size: 24rpx;
-  color: #A8E6CF;
-  font-weight: 600;
+.timeline-point.active .point-dot {
+  background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
+  box-shadow: 0 4rpx 12rpx rgba(102, 187, 106, 0.3);
 }
 
-.progress-bar-wrapper {
-  height: 8rpx;
+.point-dot {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
   background: #E0E0E0;
-  border-radius: 4rpx;
-  overflow: hidden;
-  margin-bottom: 10rpx;
+  border: 4rpx solid #fff;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
 }
 
-.progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #A8E6CF 0%, #D0F0C0 100%);
-  border-radius: 4rpx;
-  transition: width 0.3s;
-}
-
-.deadline-text {
+.point-label {
   font-size: 22rpx;
+  color: #666;
+  font-weight: 500;
+}
+
+.point-time {
+  font-size: 20rpx;
   color: #999;
   text-align: center;
-  display: block;
+  max-width: 140rpx;
+  word-break: break-all;
+}
+
+.timeline-line {
+  flex: 1;
+  height: 2rpx;
+  background: linear-gradient(90deg, #66BB6A 0%, #E0E0E0 50%, #E0E0E0 100%);
+  margin: 0 20rpx;
+  position: relative;
+  top: -30rpx;
 }
 
 /* 订单操作 */
