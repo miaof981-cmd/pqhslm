@@ -1,0 +1,53 @@
+// ========================================
+// 修复订单1 - 控制台脚本
+// ========================================
+
+(function() {
+  const userId = wx.getStorageSync('userId')
+  const userInfo = wx.getStorageSync('userInfo')
+  const pendingOrders = wx.getStorageSync('pending_orders') || []
+  
+  console.log('===== 开始修复订单1 =====')
+  console.log('订单ID: 202510271529058195')
+  
+  // 找到订单1
+  const order1Index = pendingOrders.findIndex(o => o.id === '202510271529058195')
+  
+  if (order1Index === -1) {
+    console.log('❌ 未找到订单1')
+    return
+  }
+  
+  const order1 = pendingOrders[order1Index]
+  console.log('\n修复前:')
+  console.log('  状态:', order1.status)
+  console.log('  画师ID:', order1.artistId)
+  console.log('  workCompleted:', order1.workCompleted)
+  
+  // 修复订单1
+  pendingOrders[order1Index] = {
+    ...order1,
+    artistId: userId,                    // 添加画师ID
+    artistName: userInfo.nickName,        // 添加画师名称
+    artistAvatar: userInfo.avatarUrl,     // 添加画师头像
+    status: 'waitingConfirm',             // 恢复为待确认状态
+    statusText: '待客户确认',
+    workCompleted: true,                  // 标记为已完成
+    workCompleteTime: order1.workCompleteTime || '2025-10-27 15:30:00'  // 添加完成时间
+  }
+  
+  // 保存
+  wx.setStorageSync('pending_orders', pendingOrders)
+  
+  console.log('\n修复后:')
+  console.log('  状态:', pendingOrders[order1Index].status)
+  console.log('  画师ID:', pendingOrders[order1Index].artistId)
+  console.log('  workCompleted:', pendingOrders[order1Index].workCompleted)
+  
+  console.log('\n✅ 订单1修复完成！')
+  console.log('请刷新工作台页面查看')
+  
+  // 自动刷新
+  wx.reLaunch({ url: '/pages/workspace/index' })
+})();
+

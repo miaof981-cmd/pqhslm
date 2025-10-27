@@ -1,0 +1,52 @@
+// ========================================
+// 检查订单数据 - 控制台脚本
+// ========================================
+
+// 1. 查看所有待处理订单
+console.log('===== 待处理订单 (pending_orders) =====')
+const pendingOrders = wx.getStorageSync('pending_orders') || []
+console.log('数量:', pendingOrders.length)
+pendingOrders.forEach((order, index) => {
+  console.log(`\n订单 ${index + 1}:`)
+  console.log('- ID:', order.id)
+  console.log('- 商品:', order.productName)
+  console.log('- 状态:', order.status, '/', order.statusText)
+  console.log('- 是否完成:', order.workCompleted)
+  console.log('- 下单时间:', order.createTime)
+  console.log('- 截稿时间:', order.deadline)
+})
+
+// 2. 查看所有已完成订单
+console.log('\n\n===== 已完成订单 (completed_orders) =====')
+const completedOrders = wx.getStorageSync('completed_orders') || []
+console.log('数量:', completedOrders.length)
+completedOrders.forEach((order, index) => {
+  console.log(`\n订单 ${index + 1}:`)
+  console.log('- ID:', order.id)
+  console.log('- 商品:', order.productName)
+  console.log('- 状态:', order.status, '/', order.statusText)
+  console.log('- 下单时间:', order.createTime)
+})
+
+// 3. 统计各状态订单数量
+console.log('\n\n===== 订单状态统计 =====')
+const statusCount = {}
+pendingOrders.forEach(order => {
+  const status = order.status || 'unknown'
+  statusCount[status] = (statusCount[status] || 0) + 1
+})
+console.log('待处理订单状态分布:', statusCount)
+
+// 4. 查找"待确认"状态的订单
+console.log('\n\n===== 待确认状态订单 =====')
+const waitingConfirmOrders = pendingOrders.filter(o => o.status === 'waitingConfirm' || o.workCompleted === true)
+console.log('数量:', waitingConfirmOrders.length)
+waitingConfirmOrders.forEach(order => {
+  console.log(`\n订单: ${order.id}`)
+  console.log('- 商品:', order.productName)
+  console.log('- 状态:', order.status)
+  console.log('- 完成时间:', order.workCompleteTime || '未记录')
+})
+
+console.log('\n\n===== 检查完成 =====')
+

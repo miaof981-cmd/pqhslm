@@ -486,12 +486,53 @@ page {
 }
 
 /* 订单卡片 */
+/* 订单列表容器 */
+.orders-list {
+  padding-bottom: 120rpx; /* 增加底部空间，确保最后一个订单完整显示 */
+}
+
 .order-card {
   background: #fff;
   border-radius: 20rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 4rpx 16rpx rgba(102, 187, 106, 0.08);
+}
+
+/* 列表底部提示 */
+.list-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx 0 60rpx;
+}
+
+.footer-text {
+  font-size: 24rpx;
+  color: #999;
+  position: relative;
+  padding: 0 40rpx;
+}
+
+/* 底部提示左右装饰线 */
+.footer-text::before,
+.footer-text::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 80rpx;
+  height: 1rpx;
+  background: linear-gradient(90deg, transparent 0%, rgba(153, 153, 153, 0.3) 50%, transparent 100%);
+}
+
+.footer-text::before {
+  right: 100%;
+  margin-right: 20rpx;
+}
+
+.footer-text::after {
+  left: 100%;
+  margin-left: 20rpx;
 }
 
 /* 订单头部 */

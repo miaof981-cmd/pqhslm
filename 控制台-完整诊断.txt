@@ -1,0 +1,122 @@
+// ========================================
+// 完整订单诊断 - 控制台脚本
+// ========================================
+
+console.log('========================================')
+console.log('开始完整诊断')
+console.log('========================================\n')
+
+// 1. 查看当前用户信息
+console.log('===== 1. 用户信息 =====')
+const userId = wx.getStorageSync('userId')
+const userInfo = wx.getStorageSync('userInfo')
+const userRoles = wx.getStorageSync('userRoles') || []
+console.log('用户ID:', userId)
+console.log('用户昵称:', userInfo?.nickName || '未设置')
+console.log('用户角色:', userRoles)
+
+// 2. 查看所有待处理订单
+console.log('\n\n===== 2. 待处理订单 (pending_orders) =====')
+const pendingOrders = wx.getStorageSync('pending_orders') || []
+console.log('总数量:', pendingOrders.length)
+
+if (pendingOrders.length === 0) {
+  console.log('⚠️ 没有待处理订单！')
+} else {
+  pendingOrders.forEach((order, index) => {
+    console.log(`\n【订单 ${index + 1}】`)
+    console.log('  订单ID:', order.id)
+    console.log('  商品名:', order.productName)
+    console.log('  状态:', order.status, '→', order.statusText)
+    console.log('  画师ID:', order.artistId, '→', order.artistName)
+    console.log('  买家ID:', order.buyerId, '→', order.buyerName)
+    console.log('  客服ID:', order.serviceId || '待分配', '→', order.serviceName)
+    console.log('  下单时间:', order.createTime)
+    console.log('  截稿时间:', order.deadline)
+    console.log('  是否完成:', order.workCompleted ? '是' : '否')
+    console.log('  完成时间:', order.workCompleteTime || '未完成')
+    
+    // 特别标注
+    if (order.status === 'waitingConfirm' || order.workCompleted) {
+      console.log('  ⭐ 这是一个待确认订单！')
+    }
+  })
+}
+
+// 3. 查看已完成订单
+console.log('\n\n===== 3. 已完成订单 (completed_orders) =====')
+const completedOrders = wx.getStorageSync('completed_orders') || []
+console.log('数量:', completedOrders.length)
+
+if (completedOrders.length > 0) {
+  completedOrders.forEach((order, index) => {
+    console.log(`\n【订单 ${index + 1}】`)
+    console.log('  订单ID:', order.id)
+    console.log('  商品名:', order.productName)
+    console.log('  状态:', order.status)
+  })
+}
+
+// 4. 统计分析
+console.log('\n\n===== 4. 订单统计分析 =====')
+const statusMap = {}
+pendingOrders.forEach(order => {
+  const status = order.status || 'unknown'
+  statusMap[status] = (statusMap[status] || 0) + 1
+})
+console.log('各状态订单数量:')
+Object.keys(statusMap).forEach(status => {
+  console.log(`  ${status}: ${statusMap[status]}`)
+})
+
+// 5. 筛选逻辑模拟
+console.log('\n\n===== 5. 筛选逻辑模拟 =====')
+console.log('如果你是画师，只会看到 artistId === ' + userId + ' 的订单:')
+const myArtistOrders = pendingOrders.filter(o => o.artistId === userId)
+console.log('  匹配订单数:', myArtistOrders.length)
+myArtistOrders.forEach(o => {
+  console.log(`  - ${o.productName} (${o.status})`)
+})
+
+console.log('\n如果你是客服，只会看到 serviceId === ' + userId + ' 或未分配的订单:')
+const myServiceOrders = pendingOrders.filter(o => o.serviceId === userId || !o.serviceId)
+console.log('  匹配订单数:', myServiceOrders.length)
+myServiceOrders.forEach(o => {
+  console.log(`  - ${o.productName} (${o.status})`)
+})
+
+// 6. 查找可能丢失的订单
+console.log('\n\n===== 6. 查找可能丢失的订单 =====')
+const waitingOrders = pendingOrders.filter(o => 
+  o.status === 'waitingConfirm' || 
+  o.workCompleted === true
+)
+console.log('待确认状态的订单数:', waitingOrders.length)
+
+if (waitingOrders.length === 0) {
+  console.log('❌ 没有找到待确认订单！')
+  console.log('可能原因:')
+  console.log('  1. 订单被标记完成后移到了 completed_orders')
+  console.log('  2. 订单的 status 不是 waitingConfirm')
+  console.log('  3. 订单被筛选逻辑过滤掉了（artistId/serviceId 不匹配）')
+} else {
+  console.log('✅ 找到待确认订单:')
+  waitingOrders.forEach(o => {
+    console.log(`  - ${o.productName} (ID: ${o.id})`)
+    console.log(`    画师: ${o.artistName} (ID: ${o.artistId})`)
+    console.log(`    买家: ${o.buyerName} (ID: ${o.buyerId})`)
+    
+    // 检查是否会被筛选掉
+    if (userRoles.includes('artist') && o.artistId !== userId) {
+      console.log(`    ⚠️ 这个订单会被画师筛选掉！(artistId ${o.artistId} !== 当前用户 ${userId})`)
+    }
+    if (userRoles.includes('service') && o.serviceId !== userId && o.serviceId) {
+      console.log(`    ⚠️ 这个订单会被客服筛选掉！(serviceId ${o.serviceId} !== 当前用户 ${userId})`)
+    }
+  })
+}
+
+console.log('\n\n========================================')
+console.log('诊断完成')
+console.log('========================================')
+
