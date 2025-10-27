@@ -40,27 +40,35 @@
   <view class="product-list">
     <view wx:for="{{products}}" wx:key="_id" class="product-card">
       <image class="product-image" src="{{item.image}}" mode="aspectFill" />
+      
       <view class="product-info">
-        <text class="product-name">{{item.name}}</text>
-        <view class="product-price-row">
-          <text class="product-price">¥{{item.price}}</text>
-          <view class="status-badge {{item.status === 'online' ? 'badge-online' : 'badge-offline'}}">
+        <view class="product-header">
+          <text class="product-name">{{item.name}}</text>
+          <view class="status-badge {{item.status === 'online' ? 'online' : 'offline'}}">
             {{item.status === 'online' ? '已上架' : '已下架'}}
           </view>
         </view>
+        
+        <view class="product-meta">
+          <text class="product-category">分类：{{item.categoryName || '未分类'}}</text>
+          <text class="product-price">¥{{item.price}}</text>
+        </view>
+        
         <view class="product-stats">
-          <text class="stat-text">销量 {{item.sales}}</text>
-          <text class="stat-divider">|</text>
-          <text class="stat-text">库存 {{item.stock === 0 ? '♾️' : item.stock}}</text>
+          <text class="stat-text">浏览：{{item.views || 0}}</text>
+          <text class="stat-text">订单：{{item.orders || 0}}</text>
         </view>
       </view>
+
       <view class="product-actions">
-        <button class="action-btn edit-btn" data-id="{{item._id}}" bindtap="editProduct">编辑</button>
-        <button class="action-btn toggle-btn {{item.status === 'online' ? 'btn-offline' : 'btn-online'}}" 
-                data-id="{{item._id}}" 
-                data-status="{{item.status}}" 
-                bindtap="toggleProductStatus">
+        <button class="action-btn edit-btn" bindtap="editProduct" data-id="{{item._id}}">
+          编辑
+        </button>
+        <button class="action-btn toggle-btn" bindtap="toggleProductStatus" data-id="{{item._id}}" data-status="{{item.status}}">
           {{item.status === 'online' ? '下架' : '上架'}}
+        </button>
+        <button class="action-btn delete-btn" bindtap="deleteProduct" data-id="{{item._id}}">
+          删除
         </button>
       </view>
     </view>

@@ -56,6 +56,9 @@ Page({
           basePrice: p.basePrice || '0.00',
           status: p.isOnSale !== false ? 'online' : 'offline',
           isOnSale: p.isOnSale !== false,
+          categoryName: p.categoryName || '未分类',
+          views: p.views || 0,
+          orders: p.orders || 0,
           sales: p.sales || 0,
           stock: p.stock || 0
         }
@@ -130,6 +133,7 @@ Page({
     const id = e.currentTarget.dataset.id
     const currentStatus = e.currentTarget.dataset.status
     const newStatus = currentStatus === 'online' ? 'offline' : 'online'
+    const newIsOnSale = newStatus === 'online'
     const actionText = newStatus === 'online' ? '上架' : '下架'
 
     wx.showModal({
@@ -137,33 +141,49 @@ Page({
       content: `确认${actionText}此商品？`,
       success: (res) => {
         if (res.confirm) {
-          // 实际应调用后端API更新状态
-          const products = this.data.allProducts.map(p => {
-            if (p._id === id) {
-              return { ...p, status: newStatus }
-            }
-            return p
-          })
-
-          // 重新计算统计
-          const stats = {
-            all: products.length,
-            online: products.filter(p => p.status === 'online').length,
-            offline: products.filter(p => p.status === 'offline').length
+          // 更新本地存储
+          const allProducts = wx.getStorageSync('mock_products') || []
+          const productIndex = allProducts.findIndex(p => (p.id || p._id) === id)
+          
+          if (productIndex !== -1) {
+            allProducts[productIndex].isOnSale = newIsOnSale
+            wx.setStorageSync('mock_products', allProducts)
+            
+            wx.showToast({
+              title: `已${actionText}`,
+              icon: 'success'
+            })
+            
+            // 重新加载数据
+            this.loadProducts()
           }
+        }
+      }
+    })
+  },
 
-          this.setData({
-            allProducts: products,
-            stats: stats
-          })
-
-          // 刷新当前显示的列表
-          this.applyFilters()
-
+  // 删除商品
+  deleteProduct(e) {
+    const id = e.currentTarget.dataset.id
+    
+    wx.showModal({
+      title: '确认删除',
+      content: '确认删除该商品？删除后无法恢复',
+      confirmColor: '#FF6B6B',
+      success: (res) => {
+        if (res.confirm) {
+          // 从本地存储删除
+          let allProducts = wx.getStorageSync('mock_products') || []
+          allProducts = allProducts.filter(p => (p.id || p._id) !== id)
+          wx.setStorageSync('mock_products', allProducts)
+          
           wx.showToast({
-            title: `已${actionText}`,
+            title: '已删除',
             icon: 'success'
           })
+          
+          // 重新加载
+          this.loadProducts()
         }
       }
     })
