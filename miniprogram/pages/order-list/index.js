@@ -103,9 +103,14 @@ Page({
         }
       })
       
-      console.log('转换后订单:', mockOrders.length)
+      console.log('=== 转换后订单详情 ===')
+      console.log('订单数量:', mockOrders.length)
       mockOrders.forEach(o => {
-        console.log(`- ${o.orderNo}: ${o.productName} (${o.statusText})`)
+        console.log(`\n订单: ${o.orderNo}`)
+        console.log(`- 商品: ${o.productName}`)
+        console.log(`- 状态: ${o.statusText}`)
+        console.log(`- 图片: ${o.productImage}`)
+        console.log(`- 是否临时路径: ${o.productImage ? o.productImage.includes('tmp') : '无'}`)
       })
 
       // 计算各状态数量
@@ -305,5 +310,29 @@ Page({
   onPullDownRefresh() {
     this.loadOrders()
     wx.stopPullDownRefresh()
+  },
+  
+  // 图片加载失败处理
+  onImageError(e) {
+    const orderId = e.currentTarget.dataset.id
+    console.error('❌ 图片加载失败 - 订单ID:', orderId)
+    
+    // 查找对应订单并更新为默认图片
+    const orders = this.data.orders
+    const index = orders.findIndex(o => o._id === orderId)
+    
+    if (index !== -1) {
+      const failedImage = orders[index].productImage
+      console.error('失败的图片路径:', failedImage)
+      console.log('原因分析:', {
+        是否临时路径: failedImage ? failedImage.includes('tmp') : false,
+        是否为空: !failedImage,
+        路径内容: failedImage
+      })
+      console.log('✅ 已替换为默认图片')
+      
+      orders[index].productImage = '/assets/default-product.png'
+      this.setData({ orders })
+    }
   }
 })

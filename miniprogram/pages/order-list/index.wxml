@@ -31,7 +31,13 @@
 
       <!-- 商品信息 -->
       <view class="order-content" bindtap="viewOrder" data-id="{{item._id}}">
-        <image class="product-image" src="{{item.productImage}}" mode="aspectFill" />
+        <image 
+          class="product-image" 
+          src="{{item.productImage || '/assets/default-product.png'}}" 
+          mode="aspectFill"
+          binderror="onImageError"
+          data-id="{{item._id}}"
+        />
         <view class="product-info">
           <text class="product-name">{{item.productName}}</text>
           <text class="product-artist">画师：{{item.artistName}}</text>
