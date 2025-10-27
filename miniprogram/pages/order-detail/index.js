@@ -190,13 +190,6 @@ Page({
     })
   },
 
-  // 联系画师
-  contactArtist() {
-    wx.showToast({
-      title: '查看客服二维码',
-      icon: 'none'
-    })
-  },
 
   // 确认完成
   confirmComplete() {

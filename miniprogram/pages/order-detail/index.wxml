@@ -118,7 +118,7 @@
     <!-- 操作按钮区 -->
     <view class="action-buttons">
       <!-- 画师操作 -->
-      <view wx:if="{{userRole === 'artist'}}">
+      <view wx:if="{{userRole === 'artist'}}" class="button-group">
         <button wx:if="{{order.status === 'inProgress'}}" class="btn-primary" bindtap="uploadWork">
           上传作品
         </button>
@@ -128,12 +128,9 @@
       </view>
       
       <!-- 买家操作 -->
-      <view wx:if="{{userRole === 'customer'}}">
-        <button wx:if="{{order.status === 'inProgress'}}" class="btn-primary" bindtap="confirmComplete">
+      <view wx:if="{{userRole === 'customer'}}" class="button-group">
+        <button wx:if="{{order.status === 'inProgress'}}" class="btn-primary btn-full" bindtap="confirmComplete">
           确认完成
-        </button>
-        <button class="btn-secondary" bindtap="contactArtist">
-          联系画师
         </button>
       </view>
     </view>

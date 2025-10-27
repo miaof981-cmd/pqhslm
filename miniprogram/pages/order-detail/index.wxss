@@ -392,13 +392,10 @@ page {
 
 /* ========== 操作按钮 ========== */
 .action-buttons {
-  display: flex;
-  gap: 20rpx;
   margin-top: 20rpx;
 }
 
-.action-buttons > view {
-  flex: 1;
+.button-group {
   display: flex;
   gap: 20rpx;
 }
@@ -407,12 +404,18 @@ page {
 .btn-secondary {
   flex: 1;
   height: 88rpx;
-  line-height: 88rpx;
-  text-align: center;
   border-radius: 16rpx;
   font-size: 30rpx;
   font-weight: 600;
   border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 单个按钮占满整行 */
+.btn-full {
+  width: 100%;
 }
 
 .btn-primary {
@@ -429,8 +432,16 @@ page {
 
 .btn-primary:active {
   opacity: 0.9;
+  transform: scale(0.98);
 }
 
 .btn-secondary:active {
   background: #F5F5F5;
+  transform: scale(0.98);
+}
+
+/* 修复按钮内文字居中 */
+.btn-primary::after,
+.btn-secondary::after {
+  border: none;
 }
