@@ -260,30 +260,30 @@
   opacity: 0.8;
 }
 
-/* 快捷功能 */
+/* 快捷功能（装饰+缓解视觉疲劳） */
 .quick-actions {
-  margin: 30rpx;
+  margin: 20rpx 30rpx;
   display: flex;
-  gap: 20rpx;
+  gap: 15rpx;
 }
 
 .action-item {
   flex: 1;
-  background: white;
-  border-radius: 20rpx;
-  padding: 30rpx 20rpx;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 16rpx;
+  padding: 20rpx 15rpx;
   text-align: center;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
 .action-item:active {
-  transform: scale(0.95);
+  opacity: 0.7;
 }
 
 .action-icon {
-  width: 60rpx;
-  height: 60rpx;
-  margin: 0 auto 15rpx;
+  width: 48rpx;
+  height: 48rpx;
+  margin: 0 auto 10rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -291,55 +291,43 @@
   position: relative;
 }
 
-.action-icon.qrcode {
-  background: linear-gradient(135deg, #81C784 0%, #66BB6A 100%);
-}
-
-.action-icon.qrcode::before {
-  content: '';
-  width: 30rpx;
-  height: 30rpx;
-  border: 3rpx solid white;
-  border-radius: 4rpx;
-}
-
 .action-icon.stats {
-  background: linear-gradient(135deg, #64B5F6 0%, #42A5F5 100%);
+  background: linear-gradient(135deg, #B3E5FC 0%, #81D4FA 100%);
 }
 
 .action-icon.stats::before {
   content: '';
-  width: 6rpx;
-  height: 20rpx;
+  width: 5rpx;
+  height: 16rpx;
   background: white;
   position: absolute;
-  left: 15rpx;
-  bottom: 15rpx;
+  left: 14rpx;
+  bottom: 12rpx;
 }
 
 .action-icon.stats::after {
   content: '';
-  width: 6rpx;
-  height: 28rpx;
+  width: 5rpx;
+  height: 24rpx;
   background: white;
   position: absolute;
-  right: 15rpx;
-  bottom: 15rpx;
+  right: 14rpx;
+  bottom: 12rpx;
 }
 
 .action-icon.withdraw {
-  background: linear-gradient(135deg, #FFB74D 0%, #FFA726 100%);
+  background: linear-gradient(135deg, #FFECB3 0%, #FFE082 100%);
 }
 
 .action-icon.withdraw::before {
   content: '¥';
-  font-size: 28rpx;
+  font-size: 24rpx;
   font-weight: 700;
   color: white;
 }
 
 .action-label {
-  font-size: 24rpx;
-  color: #666;
+  font-size: 22rpx;
+  color: #888;
 }
 

@@ -29,24 +29,47 @@ Page({
   loadServiceInfo() {
     const userId = wx.getStorageSync('userId')
     const serviceList = wx.getStorageSync('service_list') || []
+    
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    console.log('📋 [客服工作台] 加载客服信息')
+    console.log('  - 当前用户ID:', userId)
+    console.log('  - 客服列表数量:', serviceList.length)
+    
+    if (serviceList.length > 0) {
+      console.log('  - 客服列表详情:')
+      serviceList.forEach((s, index) => {
+        console.log(`    ${index + 1}. ID:${s.userId} 编号:${s.serviceNumber} 姓名:${s.name}`)
+        console.log(`       头像: ${s.avatar ? s.avatar.substring(0, 50) + '...' : '无'}`)
+      })
+    }
+    
     const myService = serviceList.find(s => s.userId == userId)
 
     if (myService) {
+      console.log('✅ 找到匹配的客服记录:')
+      console.log('  - 客服编号:', myService.serviceNumber)
+      console.log('  - 客服姓名:', myService.name)
+      console.log('  - 客服昵称:', myService.nickName)
+      console.log('  - 头像URL:', myService.avatar ? myService.avatar.substring(0, 80) + '...' : '无')
+      
       this.setData({
         serviceInfo: {
           serviceNumber: myService.serviceNumber,
           name: myService.name,
-          avatar: myService.avatar
+          avatar: myService.avatar || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzRGQzNGNyIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7lrqI8L3RleHQ+PC9zdmc+'
         }
       })
-      console.log('✅ 客服信息加载成功:', myService)
+      console.log('✅ 客服信息已设置到页面')
     } else {
-      console.warn('⚠️ 未找到当前用户的客服信息')
+      console.warn('❌ 未找到当前用户的客服信息')
+      console.warn('  - 查找条件: userId =', userId)
+      console.warn('  - 可能原因: 该用户未被添加为客服')
       wx.showToast({
         title: '未找到客服信息',
         icon: 'none'
       })
     }
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   },
 
   // 加载订单
@@ -176,28 +199,6 @@ Page({
     const orderId = e.currentTarget.dataset.id
     wx.navigateTo({
       url: `/pages/order-detail/index?id=${orderId}`
-    })
-  },
-
-  // 管理二维码
-  manageQrcode() {
-    const userId = wx.getStorageSync('userId')
-    const serviceList = wx.getStorageSync('service_list') || []
-    const myService = serviceList.find(s => s.userId == userId)
-
-    if (!myService) {
-      wx.showToast({
-        title: '未找到客服信息',
-        icon: 'none'
-      })
-      return
-    }
-
-    // 跳转到客服二维码编辑页面（待实现）
-    wx.showModal({
-      title: '管理二维码',
-      content: '二维码管理功能开发中',
-      showCancel: false
     })
   },
 
