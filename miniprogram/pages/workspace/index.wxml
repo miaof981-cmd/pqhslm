@@ -112,6 +112,11 @@
                 data-filter="inProgress">
             进行中
           </view>
+          <view class="filter-tab {{currentFilter === 'waitingConfirm' ? 'active' : ''}}" 
+                bindtap="filterOrders" 
+                data-filter="waitingConfirm">
+            待确认
+          </view>
           <view class="filter-tab {{currentFilter === 'completed' ? 'active' : ''}}" 
                 bindtap="filterOrders" 
                 data-filter="completed">
