@@ -172,13 +172,14 @@ page {
   white-space: nowrap;
 }
 
-/* 右侧：状态切换按钮 */
+/* 右侧：操作按钮组 */
 .card-right {
   flex-shrink: 0;
-  width: 100rpx;
+  width: 200rpx;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
+  gap: 10rpx;
 }
 
 .status-toggle-btn {
@@ -212,6 +213,30 @@ page {
 
 .status-toggle-btn:active {
   transform: scale(0.95);
+}
+
+.edit-btn {
+  width: 80rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  padding: 0;
+  border-radius: 28rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  border: none;
+  text-align: center;
+  background: #E3F2FD;
+  color: #2196F3;
+  transition: all 0.3s;
+}
+
+.edit-btn::after {
+  border: none;
+}
+
+.edit-btn:active {
+  transform: scale(0.95);
+  background: #BBDEFB;
 }
 
 /* 空状态 */
