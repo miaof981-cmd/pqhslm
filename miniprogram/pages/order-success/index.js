@@ -51,18 +51,24 @@ Page({
   
   // 自动保存订单到本地存储
   saveOrderToLocal(orderInfo) {
+    console.log('========================================')
+    console.log('💾 订单自动保存 - 开始')
+    console.log('========================================')
+    
     try {
       let orders = wx.getStorageSync('pending_orders') || []
+      console.log('当前订单数量:', orders.length)
       
       // 检查是否已存在相同订单号（避免重复保存）
       const existingIndex = orders.findIndex(o => o.id === orderInfo.orderNo)
       if (existingIndex !== -1) {
         console.log('⚠️ 订单已存在，跳过保存')
+        console.log('订单号:', orderInfo.orderNo)
         return
       }
       
-      // 添加新订单
-      orders.push({
+      // 构建订单数据
+      const newOrder = {
         id: orderInfo.orderNo,
         productId: orderInfo.productId,
         productName: orderInfo.productName,
@@ -75,16 +81,35 @@ Page({
         createTime: orderInfo.createTime,
         deadline: orderInfo.deadline,
         status: 'inProgress'
-      })
+      }
+      
+      console.log('新订单数据:', newOrder)
+      
+      // 添加新订单
+      orders.push(newOrder)
       
       // 保存到本地存储
       wx.setStorageSync('pending_orders', orders)
       
-      console.log('✅ 订单已自动保存到本地存储')
+      // 验证保存
+      const savedOrders = wx.getStorageSync('pending_orders') || []
+      
+      console.log('========================================')
+      console.log('✅ 订单保存成功！')
+      console.log('========================================')
       console.log('订单号:', orderInfo.orderNo)
-      console.log('订单总数:', orders.length)
+      console.log('商品名:', orderInfo.productName)
+      console.log('总价:', orderInfo.totalAmount)
+      console.log('保存后订单总数:', savedOrders.length)
+      console.log('验证: 订单已在 pending_orders 中')
+      console.log('========================================')
+      
     } catch (error) {
-      console.error('❌ 订单保存失败:', error)
+      console.log('========================================')
+      console.error('❌ 订单保存失败！')
+      console.log('========================================')
+      console.error('错误信息:', error)
+      console.log('========================================')
     }
   },
 
