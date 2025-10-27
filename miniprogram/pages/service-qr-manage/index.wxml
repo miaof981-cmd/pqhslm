@@ -13,7 +13,7 @@
   <!-- 客服列表 -->
   <view class="service-list">
     <view wx:for="{{serviceList}}" wx:key="id" class="service-card">
-      <!-- 左侧：头像 - 点击查看详情 -->
+      <!-- 左侧：头像 -->
       <view class="card-left" bindtap="viewServiceDetail" data-id="{{item.id}}">
         <view class="service-avatar-wrap">
           <image class="service-avatar" src="{{item.avatar}}" mode="aspectFill" />
@@ -21,18 +21,21 @@
         </view>
       </view>
 
-      <!-- 中间：客服信息 - 点击查看详情 -->
+      <!-- 中间：客服信息 -->
       <view class="card-middle" bindtap="viewServiceDetail" data-id="{{item.id}}">
-        <view class="service-name-row">
+        <view class="service-info-top">
           <text class="service-name">{{item.name}}</text>
+          <view class="status-badge {{item.isActive ? 'badge-online' : 'badge-offline'}}">
+            <view class="status-dot"></view>
+            <text class="status-text">{{item.isActive ? '在线' : '离线'}}</text>
+          </view>
         </view>
-        <text class="service-id">KF{{item.serviceNumber}}</text>
+        <text class="service-id">编号：KF{{item.serviceNumber}}</text>
       </view>
 
-      <!-- 右侧：操作按钮组 -->
+      <!-- 右侧：操作区 -->
       <view class="card-right">
-        <view class="status-switch-wrap">
-          <text class="status-label">{{item.isActive ? '在线' : '离线'}}</text>
+        <view class="switch-container">
           <switch 
             class="status-switch" 
             checked="{{item.isActive}}" 
@@ -40,12 +43,12 @@
             data-id="{{item.id}}" 
             color="#66BB6A" />
         </view>
-        <button 
-          class="edit-btn" 
+        <view 
+          class="edit-icon" 
           catchtap="viewServiceDetail" 
           data-id="{{item.id}}">
-          编辑
-        </button>
+          <text class="icon-text">···</text>
+        </view>
       </view>
     </view>
 

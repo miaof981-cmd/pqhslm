@@ -64,27 +64,25 @@ page {
   padding: 20rpx 30rpx;
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 
 .service-card {
   width: 100%;
-  max-width: 90%;
-  margin: 0 auto;
-  height: 120rpx;
   background: white;
-  border-radius: 16rpx;
-  padding: 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  border-radius: 20rpx;
+  padding: 24rpx 20rpx;
+  box-shadow: 0 2rpx 16rpx rgba(168, 230, 207, 0.15);
   display: flex;
   align-items: center;
   gap: 20rpx;
-  transition: all 0.2s;
+  transition: all 0.3s;
+  border: 1rpx solid rgba(168, 230, 207, 0.2);
 }
 
 .service-card:active {
   transform: scale(0.98);
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1rpx 8rpx rgba(168, 230, 207, 0.2);
 }
 
 /* 左侧：头像区域 */
@@ -128,44 +126,76 @@ page {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6rpx;
+  gap: 8rpx;
   min-width: 0;
   justify-content: center;
 }
 
-.service-name-row {
+.service-info-top {
   display: flex;
   align-items: center;
-  gap: 10rpx;
+  gap: 12rpx;
 }
 
 .service-name {
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 700;
   color: #333;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 60%;
 }
 
+/* 状态徽章 */
 .status-badge {
-  padding: 3rpx 10rpx;
-  border-radius: 10rpx;
-  font-size: 18rpx;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  font-size: 20rpx;
   font-weight: 600;
   flex-shrink: 0;
-  white-space: nowrap;
 }
 
-.status-badge.active {
-  background: #E8F5E9;
+.badge-online {
+  background: linear-gradient(135deg, rgba(102, 187, 106, 0.15) 0%, rgba(129, 199, 132, 0.15) 100%);
   color: #66BB6A;
 }
 
-.status-badge.inactive {
-  background: #F5F5F5;
+.badge-offline {
+  background: rgba(189, 189, 189, 0.15);
   color: #999;
+}
+
+.status-dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.badge-online .status-dot {
+  background: #66BB6A;
+  box-shadow: 0 0 8rpx rgba(102, 187, 106, 0.6);
+  animation: pulse 2s infinite;
+}
+
+.badge-offline .status-dot {
+  background: #BDBDBD;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.status-text {
+  line-height: 1;
 }
 
 .service-id {
@@ -176,58 +206,53 @@ page {
   white-space: nowrap;
 }
 
-/* 右侧：操作按钮组 */
+/* 右侧：操作区 */
 .card-right {
   flex-shrink: 0;
-  width: 220rpx;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 12rpx;
+  gap: 16rpx;
 }
 
-/* 状态开关组 */
-.status-switch-wrap {
+/* Switch 开关容器 */
+.switch-container {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4rpx;
-}
-
-.status-label {
-  font-size: 20rpx;
-  color: #666;
-  font-weight: 600;
-  white-space: nowrap;
+  justify-content: center;
+  padding: 8rpx 12rpx;
+  background: rgba(168, 230, 207, 0.1);
+  border-radius: 40rpx;
+  border: 2rpx solid rgba(168, 230, 207, 0.3);
 }
 
 .status-switch {
-  transform: scale(0.85);
-  margin: 0;
+  transform: scale(0.9);
 }
 
-.edit-btn {
-  width: 80rpx;
+/* 编辑图标 */
+.edit-icon {
+  width: 56rpx;
   height: 56rpx;
-  line-height: 56rpx;
-  padding: 0;
-  border-radius: 28rpx;
-  font-size: 24rpx;
-  font-weight: 600;
-  border: none;
-  text-align: center;
-  background: #E3F2FD;
-  color: #2196F3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(168, 230, 207, 0.2) 0%, rgba(208, 240, 192, 0.2) 100%);
+  border-radius: 50%;
+  border: 2rpx solid rgba(168, 230, 207, 0.3);
   transition: all 0.3s;
 }
 
-.edit-btn::after {
-  border: none;
+.edit-icon:active {
+  transform: scale(0.9);
+  background: linear-gradient(135deg, rgba(168, 230, 207, 0.3) 0%, rgba(208, 240, 192, 0.3) 100%);
 }
 
-.edit-btn:active {
-  transform: scale(0.95);
-  background: #BBDEFB;
+.icon-text {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #66BB6A;
+  line-height: 1;
+  letter-spacing: 2rpx;
 }
 
 /* 空状态 */
