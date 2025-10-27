@@ -221,46 +221,74 @@
 
       <!-- 订单列表 -->
       <view class="order-list">
-        <view wx:for="{{orders}}" wx:key="_id" class="order-card-compact">
-          <!-- 左侧商品图 -->
-          <image class="order-img-compact" src="{{item.productImage}}" mode="aspectFill" />
-          
-          <!-- 中间信息区 -->
-          <view class="order-info-compact">
-            <!-- 第一行：商品名 + 状态 -->
-            <view class="order-row-1">
-              <text class="product-name-compact">{{item.productName}}</text>
-              <view class="status-badge-compact status-{{item.status}}">
-                {{item.statusText}}
-                <text wx:if="{{item.businessStatus}}" class="sub-status">{{item.businessStatus}}</text>
-              </view>
-            </view>
-            
-            <!-- 第二行：关键信息 -->
-            <view class="order-row-2">
-              <text class="info-text">订单 {{item.orderNo}}</text>
-              <text class="info-text">买家 {{item.userName}}</text>
-              <text class="info-text">画师 {{item.artistName}}</text>
-            </view>
-            
-            <!-- 第三行：时间 + 金额 -->
-            <view class="order-row-3">
-              <text class="time-text">{{item.createTime}}</text>
-              <text wx:if="{{item.deadline}}" class="deadline-text {{item.isOverdue ? 'overdue' : ''}}">
-                截稿 {{item.deadline}}
-              </text>
-              <text class="price-compact">¥{{item.amount}}</text>
+        <view wx:for="{{orders}}" wx:key="_id" class="order-card">
+          <!-- 订单头部：订单号 + 状态 -->
+          <view class="order-header">
+            <view class="order-id">订单 #{{item.orderNo}}</view>
+            <view class="order-status status-{{item.status}}">
+              {{item.statusText}}
+              <text wx:if="{{item.businessStatus}}" class="business-status-text">{{item.businessStatus}}</text>
             </view>
           </view>
-          
-          <!-- 右侧操作区 -->
-          <view class="order-actions-compact">
-            <button class="btn-icon btn-service" data-id="{{item._id}}" catchtap="changeService">换客服</button>
+
+          <!-- 商品信息区 -->
+          <view class="order-product" bindtap="viewOrderDetail" data-id="{{item._id}}">
+            <image class="product-thumb" src="{{item.productImage}}" mode="aspectFill"/>
+            <view class="product-info">
+              <text class="product-name">{{item.productName}}</text>
+              <text class="product-spec" wx:if="{{item.specs && item.specs.length > 0}}">规格：{{item.specs}}</text>
+            </view>
+            <view class="product-price">
+              <text class="price-symbol">¥</text>
+              <text class="price-value">{{item.amount}}</text>
+            </view>
+          </view>
+
+          <!-- 时间进度条 -->
+          <view class="order-progress-section {{item.isOverdue ? 'overdue' : ''}}">
+            <view class="progress-header">
+              <view class="progress-label">
+                <text class="time-title">下单时间</text>
+                <text class="time-value">{{item.createTime}}</text>
+              </view>
+              <view class="progress-label deadline-label {{item.isOverdue ? 'overdue' : ''}}">
+                <text class="time-title">截稿时间</text>
+                <text class="time-value">{{item.deadline || '无'}}</text>
+              </view>
+            </view>
+            <view wx:if="{{item.deadline}}" class="progress-bar-container">
+              <view class="progress-bar-bg {{item.isOverdue ? 'overdue' : ''}}">
+                <view class="progress-bar-fill" style="width: {{item.progressPercent || 50}}%;"></view>
+              </view>
+            </view>
+          </view>
+
+          <!-- 人员信息区（买家+画师+客服） -->
+          <view class="order-people-row">
+            <view class="people-item">
+              <text class="people-label-small">买家</text>
+              <text class="people-name-compact">{{item.userName}}</text>
+            </view>
+            <view class="people-divider-compact"></view>
+            <view class="people-item">
+              <text class="people-label-small">画师</text>
+              <text class="people-name-compact">{{item.artistName}}</text>
+            </view>
+            <view class="people-divider-compact"></view>
+            <view class="people-item">
+              <text class="people-label-small">客服</text>
+              <text class="people-name-compact">{{item.serviceName}}</text>
+            </view>
+          </view>
+
+          <!-- 操作按钮 -->
+          <view class="order-actions">
+            <button class="btn-action btn-service" data-id="{{item._id}}" catchtap="changeService">换客服</button>
             <button wx:if="{{item.status !== 'completed' && item.status !== 'refunded'}}" 
-                    class="btn-icon btn-refund" 
+                    class="btn-action btn-refund" 
                     data-id="{{item._id}}" 
                     catchtap="initiateRefund">退款</button>
-            <button class="btn-icon btn-more" data-id="{{item._id}}" catchtap="viewOrderDetail">详情</button>
+            <button class="btn-action btn-detail" data-id="{{item._id}}" catchtap="viewOrderDetail">详情</button>
           </view>
         </view>
 
