@@ -2,10 +2,7 @@
   <!-- 顶部标题栏 -->
   <view class="header-section">
     <view class="header-content">
-      <view class="title-row">
-        <text class="page-title">我的商品</text>
-        <text class="product-count">{{products.length}}件</text>
-      </view>
+      <text class="page-title">我的商品</text>
       <button class="upload-btn" bindtap="addProduct">
         <text class="upload-icon">+</text>
         上传商品
@@ -13,20 +10,28 @@
     </view>
   </view>
 
-  <!-- 筛选标签 -->
-  <view class="filter-section">
+  <!-- 搜索和筛选 -->
+  <view class="search-filter-section">
+    <!-- 搜索框 -->
+    <view class="search-box">
+      <view class="search-icon"></view>
+      <input class="search-input" 
+             placeholder="搜索商品名称" 
+             value="{{searchKeyword}}"
+             bindinput="onSearchInput"/>
+      <view wx:if="{{searchKeyword}}" class="clear-icon" bindtap="clearSearch"></view>
+    </view>
+
+    <!-- 筛选标签 -->
     <view class="filter-tabs">
-      <view class="filter-tab {{statusFilter === 'all' ? 'active' : ''}}" data-filter="all" bindtap="filterByStatus">
-        <text class="tab-label">全部</text>
-        <text class="tab-count">{{stats.all}}</text>
+      <view class="filter-tag {{statusFilter === 'all' ? 'active' : ''}}" data-filter="all" bindtap="filterByStatus">
+        全部 {{stats.all}}
       </view>
-      <view class="filter-tab {{statusFilter === 'online' ? 'active' : ''}}" data-filter="online" bindtap="filterByStatus">
-        <text class="tab-label">已上架</text>
-        <text class="tab-count">{{stats.online}}</text>
+      <view class="filter-tag {{statusFilter === 'online' ? 'active' : ''}}" data-filter="online" bindtap="filterByStatus">
+        已上架 {{stats.online}}
       </view>
-      <view class="filter-tab {{statusFilter === 'offline' ? 'active' : ''}}" data-filter="offline" bindtap="filterByStatus">
-        <text class="tab-label">已下架</text>
-        <text class="tab-count">{{stats.offline}}</text>
+      <view class="filter-tag {{statusFilter === 'offline' ? 'active' : ''}}" data-filter="offline" bindtap="filterByStatus">
+        已下架 {{stats.offline}}
       </view>
     </view>
   </view>

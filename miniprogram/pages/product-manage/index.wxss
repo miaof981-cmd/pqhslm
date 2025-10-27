@@ -20,36 +20,24 @@ page {
   align-items: center;
 }
 
-.title-row {
-  display: flex;
-  align-items: baseline;
-  gap: 12rpx;
-}
-
 .page-title {
   font-size: 32rpx;
   font-weight: 700;
   color: #2D5C3F;
 }
 
-.product-count {
-  font-size: 24rpx;
-  color: #5A8A6F;
-}
-
 .upload-btn {
   display: flex;
   align-items: center;
   gap: 6rpx;
-  padding: 12rpx 24rpx;
+  padding: 10rpx 20rpx;
   background: rgba(255, 255, 255, 0.95);
   color: #66BB6A;
-  border-radius: 16rpx;
+  border-radius: 14rpx;
   font-size: 24rpx;
   font-weight: 600;
   border: none;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
-  margin-left: auto;
 }
 
 .upload-btn::after {
@@ -62,54 +50,83 @@ page {
   font-weight: 700;
 }
 
-/* 筛选标签 */
-.filter-section {
+/* 搜索和筛选区域 */
+.search-filter-section {
   padding: 20rpx 30rpx;
+  background: white;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: #F5F5F5;
+  border-radius: 20rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.search-icon {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 12rpx;
+  background: radial-gradient(circle at 40% 40%, transparent 8rpx, #999 8rpx, #999 10rpx, transparent 10rpx),
+              linear-gradient(135deg, transparent 20rpx, #999 20rpx, #999 24rpx, transparent 24rpx);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 26rpx;
+  color: #333;
+}
+
+.clear-icon {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  background: #D0D0D0;
+  position: relative;
+  flex-shrink: 0;
+  margin-left: 12rpx;
+}
+
+.clear-icon::before,
+.clear-icon::after {
+  content: '';
+  position: absolute;
+  width: 16rpx;
+  height: 2rpx;
+  background: white;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.clear-icon::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 .filter-tabs {
   display: flex;
   gap: 12rpx;
-  background: white;
-  padding: 6rpx;
-  border-radius: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(102, 187, 106, 0.08);
 }
 
-.filter-tab {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4rpx;
-  padding: 12rpx 12rpx;
-  border-radius: 12rpx;
+.filter-tag {
+  padding: 10rpx 20rpx;
+  border-radius: 20rpx;
+  background: #F5F5F5;
+  color: #666;
+  font-size: 24rpx;
+  font-weight: 500;
+  white-space: nowrap;
   transition: all 0.3s;
 }
 
-.filter-tab.active {
+.filter-tag.active {
   background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
-}
-
-.tab-label {
-  font-size: 24rpx;
-  color: #666;
-  font-weight: 500;
-}
-
-.filter-tab.active .tab-label {
   color: #2D5C3F;
   font-weight: 600;
-}
-
-.tab-count {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #999;
-}
-
-.filter-tab.active .tab-count {
-  color: #2D5C3F;
 }
 
 /* 商品列表 */

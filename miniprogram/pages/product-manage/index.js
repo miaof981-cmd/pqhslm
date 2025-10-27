@@ -3,6 +3,7 @@ Page({
     artistId: '',
     artistName: '',
     statusFilter: 'all',
+    searchKeyword: '', // 搜索关键词
     products: [],
     allProducts: [],
     stats: {
@@ -74,13 +75,39 @@ Page({
   filterByStatus(e) {
     const filter = e.currentTarget.dataset.filter
     this.setData({ statusFilter: filter })
+    this.applyFilters()
+  },
 
-    if (filter === 'all') {
-      this.setData({ products: this.data.allProducts })
-    } else {
-      const filtered = this.data.allProducts.filter(p => p.status === filter)
-      this.setData({ products: filtered })
+  // 应用筛选（状态 + 搜索）
+  applyFilters() {
+    let filtered = this.data.allProducts
+
+    // 应用状态筛选
+    if (this.data.statusFilter !== 'all') {
+      filtered = filtered.filter(p => p.status === this.data.statusFilter)
     }
+
+    // 应用搜索筛选
+    if (this.data.searchKeyword) {
+      const keyword = this.data.searchKeyword.toLowerCase()
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(keyword)
+      )
+    }
+
+    this.setData({ products: filtered })
+  },
+
+  // 搜索输入
+  onSearchInput(e) {
+    this.setData({ searchKeyword: e.detail.value })
+    this.applyFilters()
+  },
+
+  // 清除搜索
+  clearSearch() {
+    this.setData({ searchKeyword: '' })
+    this.applyFilters()
   },
 
   editProduct(e) {
@@ -122,7 +149,7 @@ Page({
           })
 
           // 刷新当前显示的列表
-          this.filterByStatus({ currentTarget: { dataset: { filter: this.data.statusFilter } } })
+          this.applyFilters()
 
           wx.showToast({
             title: `已${actionText}`,
