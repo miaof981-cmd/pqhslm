@@ -43,6 +43,10 @@
           <view class="func-icon reward-icon"></view>
           <text class="func-name">打赏</text>
         </view>
+        <view class="func-btn" bindtap="showConfirmGuide">
+          <view class="func-icon confirm-icon"></view>
+          <text class="func-name">催确认</text>
+        </view>
         <view class="func-btn" bindtap="toggleNotices">
           <view class="func-icon notice-icon"></view>
           <text class="func-name">须知</text>

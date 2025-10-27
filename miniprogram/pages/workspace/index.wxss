@@ -195,6 +195,22 @@ page {
   border-radius: 3rpx;
 }
 
+.confirm-icon {
+  background: linear-gradient(135deg, #CE93D8 0%, #BA68C8 100%);
+}
+
+.confirm-icon::before {
+  content: '';
+  position: absolute;
+  width: 12rpx;
+  height: 24rpx;
+  top: 50%;
+  left: 50%;
+  transform: translate(-60%, -50%) rotate(45deg);
+  border-right: 4rpx solid #fff;
+  border-bottom: 4rpx solid #fff;
+}
+
 .notice-icon {
   background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
 }
