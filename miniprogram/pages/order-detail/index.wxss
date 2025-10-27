@@ -453,6 +453,8 @@ page {
   background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
   border-radius: 16rpx;
   gap: 12rpx;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .tip-icon {
