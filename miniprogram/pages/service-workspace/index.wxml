@@ -1,98 +1,69 @@
 <view class="service-container">
-  <!-- 顶部欢迎卡片 -->
-  <view class="welcome-card">
-    <view class="welcome-content">
-      <text class="welcome-title">客服工作台</text>
-      <text class="welcome-subtitle">编号 {{serviceInfo.serviceNumber}} · {{serviceInfo.name}}</text>
+  <!-- 精简顶栏：头像+信息+快捷操作 -->
+  <view class="compact-header">
+    <image class="header-avatar" src="{{serviceInfo.avatar}}" mode="aspectFill" />
+    <view class="header-info">
+      <text class="header-title">客服工作台</text>
+      <text class="header-subtitle">编号{{serviceInfo.serviceNumber}} · {{serviceInfo.name}}</text>
     </view>
-    <image class="service-avatar" src="{{serviceInfo.avatar}}" mode="aspectFill" />
-  </view>
-
-  <!-- 快捷功能（装饰+缓解视觉疲劳） -->
-  <view class="quick-actions">
-    <view class="action-item" bindtap="viewStats">
-      <view class="action-icon stats"></view>
-      <text class="action-label">数据统计</text>
-    </view>
-    <view class="action-item" bindtap="viewWithdraw">
-      <view class="action-icon withdraw"></view>
-      <text class="action-label">提现记录</text>
+    <view class="header-actions">
+      <view class="mini-action" bindtap="viewStats">统计</view>
+      <view class="mini-action" bindtap="viewWithdraw">提现</view>
     </view>
   </view>
 
-  <!-- 待办事项统计 -->
-  <view class="stats-section">
-    <view class="section-title">待办事项</view>
-    <view class="stats-grid">
-      <view class="stat-card" data-filter="pending" bindtap="filterOrders">
-        <view class="stat-value pending">{{stats.pending}}</view>
-        <text class="stat-label">待处理订单</text>
-      </view>
-      <view class="stat-card" data-filter="processing" bindtap="filterOrders">
-        <view class="stat-value processing">{{stats.processing}}</view>
-        <text class="stat-label">进行中</text>
-      </view>
-      <view class="stat-card" data-filter="urgent" bindtap="filterOrders">
-        <view class="stat-value urgent">{{stats.urgent}}</view>
-        <text class="stat-label">紧急订单</text>
-      </view>
+  <!-- 精简待办：单行显示 -->
+  <view class="compact-stats">
+    <view class="compact-stat" data-filter="pending" bindtap="filterOrders">
+      <text class="stat-num">{{stats.pending}}</text>
+      <text class="stat-text">待处理</text>
+    </view>
+    <view class="compact-stat" data-filter="processing" bindtap="filterOrders">
+      <text class="stat-num">{{stats.processing}}</text>
+      <text class="stat-text">进行中</text>
+    </view>
+    <view class="compact-stat" data-filter="urgent" bindtap="filterOrders">
+      <text class="stat-num urgent">{{stats.urgent}}</text>
+      <text class="stat-text">紧急</text>
     </view>
   </view>
 
-  <!-- 我的订单列表（主体内容） -->
-  <view class="orders-section">
-    <view class="section-header">
-      <text class="section-title">我的订单</text>
-      <view class="filter-tabs">
-        <text class="filter-tab {{currentFilter === 'all' ? 'active' : ''}}" 
-              data-filter="all" 
-              bindtap="switchFilter">全部</text>
-        <text class="filter-tab {{currentFilter === 'processing' ? 'active' : ''}}" 
-              data-filter="processing" 
-              bindtap="switchFilter">进行中</text>
-        <text class="filter-tab {{currentFilter === 'completed' ? 'active' : ''}}" 
-              data-filter="completed" 
-              bindtap="switchFilter">已完成</text>
-      </view>
-    </view>
+  <!-- 订单筛选 -->
+  <view class="filter-bar">
+    <text class="filter-item {{currentFilter === 'all' ? 'active' : ''}}" 
+          data-filter="all" 
+          bindtap="switchFilter">全部</text>
+    <text class="filter-item {{currentFilter === 'processing' ? 'active' : ''}}" 
+          data-filter="processing" 
+          bindtap="switchFilter">进行中</text>
+    <text class="filter-item {{currentFilter === 'completed' ? 'active' : ''}}" 
+          data-filter="completed" 
+          bindtap="switchFilter">已完成</text>
+  </view>
 
-    <!-- 订单列表 -->
-    <view class="order-list">
-      <view wx:if="{{filteredOrders.length === 0}}" class="empty-tip">
-        <text>暂无订单</text>
+  <!-- 订单列表（紧凑布局） -->
+  <view class="order-list">
+    <view wx:if="{{filteredOrders.length === 0}}" class="empty-tip">
+      暂无订单
+    </view>
+    
+    <view wx:for="{{filteredOrders}}" 
+          wx:key="id" 
+          class="order-card" 
+          bindtap="viewOrderDetail" 
+          data-id="{{item.id}}">
+      <view class="order-left">
+        <image class="order-image" src="{{item.productImage}}" mode="aspectFill" />
       </view>
-      
-      <view wx:for="{{filteredOrders}}" 
-            wx:key="id" 
-            class="order-card" 
-            bindtap="viewOrderDetail" 
-            data-id="{{item.id}}">
-        <view class="order-header">
-          <text class="order-id">订单号：{{item.orderNumber}}</text>
-          <text class="order-status {{item.status}}">{{item.statusText}}</text>
+      <view class="order-main">
+        <text class="order-name">{{item.productName}}</text>
+        <view class="order-meta">
+          <text class="order-buyer">买家：{{item.buyerName}}</text>
+          <text class="order-time">{{item.createTime}}</text>
         </view>
-        
-        <view class="order-body">
-          <image class="product-image" src="{{item.productImage}}" mode="aspectFill" />
-          <view class="order-info">
-            <text class="product-name">{{item.productName}}</text>
-            <text class="order-time">下单时间：{{item.createTime}}</text>
-            <text class="buyer-info">买家：{{item.buyerName}}</text>
-          </view>
-        </view>
-
-        <view class="order-footer">
+        <view class="order-bottom">
           <text class="order-price">¥{{item.price}}</text>
-          <view class="order-actions">
-            <button wx:if="{{item.status === 'created'}}" 
-                    class="action-btn primary" 
-                    catchtap="contactBuyer" 
-                    data-id="{{item.id}}">联系买家</button>
-            <button wx:if="{{item.status === 'completed'}}" 
-                    class="action-btn" 
-                    catchtap="viewDetail" 
-                    data-id="{{item.id}}">查看详情</button>
-          </view>
+          <text class="order-status {{item.status}}">{{item.statusText}}</text>
         </view>
       </view>
     </view>
