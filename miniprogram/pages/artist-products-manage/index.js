@@ -121,9 +121,23 @@ Page({
     const artistProducts = allProducts.filter(product => {
       const match = product.artistId == artistId
       if (match) {
-        console.log('找到商品:', product.name, 'isOnSale:', product.isOnSale)
+        console.log('找到商品:', product.name, 'isOnSale:', product.isOnSale, 'price:', product.price, 'basePrice:', product.basePrice)
       }
       return match
+    }).map(product => {
+      // 确保价格正确显示（与首页保持一致的逻辑）
+      let displayPrice = parseFloat(product.price) || parseFloat(product.basePrice) || 0
+      
+      console.log(`商品 ${product.name} 价格处理:`, {
+        原始price: product.price,
+        basePrice: product.basePrice,
+        最终显示: displayPrice
+      })
+      
+      return {
+        ...product,
+        price: displayPrice // 确保 price 是数字
+      }
     })
     
     console.log('该画师商品数量:', artistProducts.length)
