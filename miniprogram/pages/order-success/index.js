@@ -154,16 +154,35 @@ Page({
   
   // 计算截稿日期
   calculateDeadline(createTime, days) {
-    const create = new Date(createTime)
+    // 确保时间格式可以被正确解析
+    const createTimeStr = createTime.replace(/-/g, '/')
+    const create = new Date(createTimeStr)
+    
+    // 检查日期是否有效
+    if (isNaN(create.getTime())) {
+      console.error('❌ 无效的创建时间:', createTime)
+      return '待确认'
+    }
+    
+    // 计算截稿时间
     const deadline = new Date(create.getTime() + days * 24 * 60 * 60 * 1000)
     
-    return deadline.toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
+    // 格式化为标准格式：YYYY-MM-DD HH:mm
+    const year = deadline.getFullYear()
+    const month = String(deadline.getMonth() + 1).padStart(2, '0')
+    const day = String(deadline.getDate()).padStart(2, '0')
+    const hours = String(deadline.getHours()).padStart(2, '0')
+    const minutes = String(deadline.getMinutes()).padStart(2, '0')
+    
+    const formatted = `${year}-${month}-${day} ${hours}:${minutes}`
+    
+    console.log('✅ 截稿时间计算:', {
+      创建时间: createTime,
+      出稿天数: days,
+      截稿时间: formatted
     })
+    
+    return formatted
   },
 
   // 返回首页

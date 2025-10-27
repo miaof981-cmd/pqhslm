@@ -66,6 +66,25 @@ Page({
           console.log('⚠️ 订单缺少画师信息，使用兜底:', artistName)
         }
         
+        // 截稿时间格式化显示
+        let deadlineDisplay = order.deadline
+        if (deadlineDisplay) {
+          // 如果是完整日期时间，只显示日期部分
+          // "2025-11-03 14:11" → "2025-11-03"
+          deadlineDisplay = deadlineDisplay.split(' ')[0]
+        }
+        
+        // 下单时间格式化显示
+        let createTimeDisplay = order.createTime
+        if (createTimeDisplay) {
+          // "2025-10-27 14:11:43" → "2025-10-27 14:11"
+          const parts = createTimeDisplay.split(' ')
+          if (parts.length === 2) {
+            const timePart = parts[1].split(':')
+            createTimeDisplay = `${parts[0]} ${timePart[0]}:${timePart[1]}`
+          }
+        }
+        
         return {
           _id: order.id,
           orderNo: order.id,
@@ -78,8 +97,8 @@ Page({
           status: status,
           statusText: statusText,
           progress: status === 'completed' ? 100 : 60,
-          createTime: order.createTime,
-          deadline: order.deadline,
+          createTime: createTimeDisplay,
+          deadline: deadlineDisplay,
           reviewed: false
         }
       })
