@@ -42,10 +42,17 @@
             class="product-card" 
             data-id="{{item._id}}" 
             bindtap="onProductTap">
-        <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
+        <!-- 商品图片（正方形） -->
+        <view class="product-image-wrapper">
+          <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
+        </view>
+        <!-- 商品信息 -->
         <view class="product-info">
           <view class="product-name">{{item.name}}</view>
-          <view class="product-price">¥{{item.price}}</view>
+          <view class="product-meta">
+            <view class="product-price">¥{{item.price}}</view>
+            <view class="product-artist">{{item.artistName || '画师'}}</view>
+          </view>
         </view>
       </view>
     </view>
@@ -99,13 +106,18 @@
             data-id="{{item._id}}" 
             bindtap="onProductTap">
         
-        <!-- 商品图片 -->
-        <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
+        <!-- 商品图片（正方形） -->
+        <view class="product-image-wrapper">
+          <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
+        </view>
         
         <!-- 商品信息 -->
         <view class="product-info">
           <view class="product-name">{{item.name}}</view>
-          <view class="product-price">¥{{item.price}}</view>
+          <view class="product-meta">
+            <view class="product-price">¥{{item.price}}</view>
+            <view class="product-artist">{{item.artistName || '画师'}}</view>
+          </view>
         </view>
       </view>
     </view>
