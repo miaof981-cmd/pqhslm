@@ -910,8 +910,14 @@ Page({
   calculateFinalPrice() {
     const basePrice = parseFloat(this.data.formData.basePrice) || 0
     
-    // 如果没有规格，直接返回基础价格
-    if (!this.data.spec1Selected || this.data.spec1Values.length === 0) {
+    // ✅ 检查是否有有效的规格（规格名称和价格都不为空）
+    const hasValidSpec1 = this.data.spec1Selected && 
+                          this.data.spec1Values.length > 0 &&
+                          this.data.spec1Values.some(v => v.name && v.name.trim() && v.addPrice)
+    
+    // 如果没有有效规格，直接返回基础价格
+    if (!hasValidSpec1) {
+      console.log('⚠️ 无有效规格，使用基础价格:', basePrice)
       return basePrice
     }
     
@@ -921,7 +927,12 @@ Page({
     if (this.data.spec2Selected && this.data.spec2Values.length > 0) {
       // 两级规格：一级价格 + 二级加价
       this.data.spec1Values.forEach(v1 => {
+        // ✅ 只计算有效的规格值
+        if (!v1.name || !v1.name.trim() || !v1.addPrice) return
+        
         this.data.spec2Values.forEach(v2 => {
+          if (!v2.name || !v2.name.trim() || !v2.addPrice) return
+          
           const price1 = parseFloat(v1.addPrice) || 0  // 一级规格价格
           const price2 = parseFloat(v2.addPrice) || 0  // 二级加价
           const totalPrice = price1 + price2
@@ -933,6 +944,9 @@ Page({
     } else {
       // 只有一级规格：直接使用一级规格价格
       this.data.spec1Values.forEach(v1 => {
+        // ✅ 只计算有效的规格值
+        if (!v1.name || !v1.name.trim() || !v1.addPrice) return
+        
         const price1 = parseFloat(v1.addPrice) || 0
         if (price1 < minPrice) {
           minPrice = price1
@@ -940,7 +954,14 @@ Page({
       })
     }
     
-    return minPrice === Infinity ? basePrice : minPrice
+    // 如果所有规格都无效，返回基础价格
+    if (minPrice === Infinity) {
+      console.log('⚠️ 规格无效，使用基础价格:', basePrice)
+      return basePrice
+    }
+    
+    console.log('✅ 计算规格最低价:', minPrice)
+    return minPrice
   },
 
   // 提交表单
@@ -965,18 +986,39 @@ Page({
         specs: []
       }
       
-      // 添加规格数据
+      // 添加规格数据（只保存有效的规格）
       if (this.data.spec1Selected && this.data.spec1Values.length > 0) {
-        productData.specs.push({
-          name: this.data.spec1Name,
-          values: this.data.spec1Values
-        })
+        // ✅ 过滤掉无效的规格值（名称或价格为空）
+        const validSpec1Values = this.data.spec1Values.filter(v => 
+          v.name && v.name.trim() && v.addPrice
+        )
+        
+        if (validSpec1Values.length > 0) {
+          productData.specs.push({
+            name: this.data.spec1Name,
+            values: validSpec1Values
+          })
+          console.log('✅ 保存一级规格:', validSpec1Values.length, '个有效值')
+        } else {
+          console.log('⚠️ 一级规格无有效值，跳过保存')
+        }
       }
+      
       if (this.data.spec2Selected && this.data.spec2Values.length > 0) {
-        productData.specs.push({
-          name: this.data.spec2Name,
-          values: this.data.spec2Values
-        })
+        // ✅ 过滤掉无效的规格值
+        const validSpec2Values = this.data.spec2Values.filter(v => 
+          v.name && v.name.trim() && v.addPrice
+        )
+        
+        if (validSpec2Values.length > 0) {
+          productData.specs.push({
+            name: this.data.spec2Name,
+            values: validSpec2Values
+          })
+          console.log('✅ 保存二级规格:', validSpec2Values.length, '个有效值')
+        } else {
+          console.log('⚠️ 二级规格无有效值，跳过保存')
+        }
       }
 
       console.log('提交商品数据', productData)
