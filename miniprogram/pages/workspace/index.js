@@ -316,12 +316,16 @@ Page({
 
   // 加载客服快捷功能
   loadServiceActions() {
-    const quickActions = [
-      { id: 'order-manage', label: '订单管理', iconClass: 'icon-order' },
-      { id: 'consultations', label: '咨询记录', iconClass: 'icon-chat' }
+    const notices = [
+      { id: 1, content: '收到订单后请及时建群，拉买家和画师进群' },
+      { id: 2, content: '定期更新客服二维码，避免被举报' },
+      { id: 3, content: '作品完成后提醒买家确认订单' }
     ]
     
-    this.setData({ quickActions })
+    this.setData({ 
+      notices: notices,
+      showNotices: false  // 默认折叠
+    })
   },
 
   // 加载待处理订单统计
@@ -571,9 +575,83 @@ Page({
         })
         break
         
+      case 'qrcodeManage':
+        // 客服二维码管理
+        this.manageQRCode()
+        break
+        
       default:
         console.log('未知功能:', func)
     }
+  },
+
+  // 客服二维码管理
+  manageQRCode() {
+    const userId = wx.getStorageSync('userId')
+    const serviceQRCodes = wx.getStorageSync('service_qrcodes') || {}
+    const currentQR = serviceQRCodes[userId]
+
+    wx.showModal({
+      title: '客服二维码管理',
+      content: currentQR ? '当前二维码已设置\n\n点击"更换"可上传新的客服二维码' : '尚未设置客服二维码\n\n点击"上传"设置您的客服二维码',
+      confirmText: currentQR ? '更换' : '上传',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          this.uploadQRCode()
+        }
+      }
+    })
+  },
+
+  // 上传客服二维码
+  uploadQRCode() {
+    wx.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const tempFilePath = res.tempFilePaths[0]
+        
+        wx.showLoading({ title: '上传中...' })
+        
+        // 转换为 base64
+        const fs = wx.getFileSystemManager()
+        fs.readFile({
+          filePath: tempFilePath,
+          encoding: 'base64',
+          success: (fileRes) => {
+            const base64 = 'data:image/jpeg;base64,' + fileRes.data
+            
+            // 保存到本地存储
+            const userId = wx.getStorageSync('userId')
+            const serviceQRCodes = wx.getStorageSync('service_qrcodes') || {}
+            
+            serviceQRCodes[userId] = {
+              imageUrl: base64,
+              updateTime: new Date().toLocaleString()
+            }
+            
+            wx.setStorageSync('service_qrcodes', serviceQRCodes)
+            
+            wx.hideLoading()
+            wx.showToast({
+              title: '上传成功',
+              icon: 'success'
+            })
+            
+            console.log('✅ 客服二维码已更新')
+          },
+          fail: () => {
+            wx.hideLoading()
+            wx.showToast({
+              title: '上传失败',
+              icon: 'none'
+            })
+          }
+        })
+      }
+    })
   },
   
   // 查看订单详情

@@ -26,7 +26,8 @@
       </view>
 
       <!-- 快捷功能（紧凑） -->
-      <view class="quick-functions">
+      <!-- 画师功能 -->
+      <view wx:if="{{userRole === 'artist'}}" class="quick-functions">
         <view class="func-btn" bindtap="handleFunction" data-func="productManage">
           <view class="func-icon product-icon"></view>
           <text class="func-name">商品</text>
@@ -46,6 +47,26 @@
         <view class="func-btn" bindtap="showConfirmGuide">
           <view class="func-icon confirm-icon"></view>
           <text class="func-name">催确认</text>
+        </view>
+        <view class="func-btn" bindtap="toggleNotices">
+          <view class="func-icon notice-icon"></view>
+          <text class="func-name">须知</text>
+        </view>
+      </view>
+
+      <!-- 客服功能 -->
+      <view wx:elif="{{userRole === 'service'}}" class="quick-functions">
+        <view class="func-btn" bindtap="handleFunction" data-func="dataStats">
+          <view class="func-icon stats-icon"></view>
+          <text class="func-name">统计</text>
+        </view>
+        <view class="func-btn" bindtap="handleFunction" data-func="withdraw">
+          <view class="func-icon money-icon"></view>
+          <text class="func-name">提现</text>
+        </view>
+        <view class="func-btn" bindtap="handleFunction" data-func="qrcodeManage">
+          <view class="func-icon qrcode-icon"></view>
+          <text class="func-name">二维码</text>
         </view>
         <view class="func-btn" bindtap="toggleNotices">
           <view class="func-icon notice-icon"></view>

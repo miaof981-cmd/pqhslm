@@ -211,6 +211,34 @@ page {
   border-bottom: 4rpx solid #fff;
 }
 
+.qrcode-icon {
+  background: linear-gradient(135deg, #90CAF9 0%, #64B5F6 100%);
+}
+
+.qrcode-icon::before {
+  content: '';
+  position: absolute;
+  width: 28rpx;
+  height: 28rpx;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 3rpx solid #fff;
+  border-radius: 4rpx;
+}
+
+.qrcode-icon::after {
+  content: '';
+  position: absolute;
+  width: 12rpx;
+  height: 12rpx;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 2rpx;
+}
+
 .notice-icon {
   background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
 }
