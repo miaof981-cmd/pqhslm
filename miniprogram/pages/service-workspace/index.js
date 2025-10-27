@@ -86,11 +86,32 @@ Page({
     console.log('  - 客服ID:', userId)
     console.log('  - 我的订单数:', myOrders.length)
 
-    // 处理订单状态文本
+    // 处理订单状态文本和业务状态
+    const now = new Date()
     const processedOrders = myOrders.map(order => {
+      let businessStatus = ''
+      let isOverdue = false
+      
+      if (order.deadline && (order.status === 'processing' || order.status === 'paid' || order.status === 'waitingConfirm')) {
+        const deadline = new Date(order.deadline)
+        const diffTime = deadline - now
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+        
+        if (diffTime < 0) {
+          isOverdue = true
+          businessStatus = '已逾期'
+        } else if (diffDays <= 2) {
+          businessStatus = '临近截稿'
+        } else if (order.status === 'waitingConfirm') {
+          businessStatus = '待客户确认'
+        }
+      }
+      
       return {
         ...order,
         statusText: this.getStatusText(order.status),
+        businessStatus: businessStatus,
+        isOverdue: isOverdue,
         createTime: this.formatTime(order.createdAt)
       }
     })
@@ -218,11 +239,72 @@ Page({
     })
   },
 
+  // 发起退款（客服）
+  initiateRefund(e) {
+    const orderId = e.currentTarget.dataset.id
+    
+    wx.showModal({
+      title: '确认退款',
+      content: '确认对此订单进行退款操作？\n\n退款后订单状态将变为"已退款"，此操作不可撤销。',
+      confirmText: '确认退款',
+      confirmColor: '#FF6B6B',
+      success: (res) => {
+        if (res.confirm) {
+          this.doRefund(orderId)
+        }
+      }
+    })
+  },
+
+  // 执行退款
+  doRefund(orderId) {
+    // 同时从两个存储源读取
+    let ordersFromOrders = wx.getStorageSync('orders') || []
+    let ordersFromPending = wx.getStorageSync('pending_orders') || []
+    
+    // 先在 pending_orders 中查找
+    const pendingIndex = ordersFromPending.findIndex(o => o.id === orderId)
+    if (pendingIndex !== -1) {
+      ordersFromPending[pendingIndex].status = 'refunded'
+      ordersFromPending[pendingIndex].refundTime = new Date().toISOString()
+      wx.setStorageSync('pending_orders', ordersFromPending)
+    }
+    
+    // 再在 orders 中查找（如果存在）
+    const orderIndex = ordersFromOrders.findIndex(o => o.id === orderId)
+    if (orderIndex !== -1) {
+      ordersFromOrders[orderIndex].status = 'refunded'
+      ordersFromOrders[orderIndex].refundTime = new Date().toISOString()
+      wx.setStorageSync('orders', ordersFromOrders)
+    }
+
+    if (pendingIndex === -1 && orderIndex === -1) {
+      wx.showToast({
+        title: '订单不存在',
+        icon: 'none'
+      })
+      return
+    }
+
+    console.log('✅ [客服] 订单已退款:')
+    console.log('  - 订单ID:', orderId)
+    console.log('  - 退款时间:', new Date().toLocaleString())
+
+    wx.showToast({
+      title: '退款成功',
+      icon: 'success'
+    })
+
+    // 刷新订单列表
+    this.loadOrders()
+  },
+
   // 获取状态文本
   getStatusText(status) {
     const statusMap = {
       'created': '待处理',
       'processing': '进行中',
+      'waitingConfirm': '待确认',
       'completed': '已完成',
       'cancelled': '已取消',
       'refunded': '已退款'

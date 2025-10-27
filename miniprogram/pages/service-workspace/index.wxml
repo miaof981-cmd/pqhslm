@@ -47,23 +47,45 @@
       暂无订单
     </view>
     
-    <view wx:for="{{filteredOrders}}" 
-          wx:key="id" 
-          class="order-card" 
-          bindtap="viewOrderDetail" 
-          data-id="{{item.id}}">
-      <view class="order-left">
-        <image class="order-image" src="{{item.productImage}}" mode="aspectFill" />
-      </view>
-      <view class="order-main">
-        <text class="order-name">{{item.productName}}</text>
-        <view class="order-meta">
-          <text class="order-buyer">买家：{{item.buyerName}}</text>
-          <text class="order-time">{{item.createTime}}</text>
+    <view wx:for="{{filteredOrders}}" wx:key="id" class="order-card-new">
+      <!-- 订单头部 -->
+      <view class="order-card-header" bindtap="viewOrderDetail" data-id="{{item.id}}">
+        <view class="order-no-info">
+          <text class="order-no-label">订单号</text>
+          <text class="order-no-value">{{item.orderNumber || item.id}}</text>
         </view>
-        <view class="order-bottom">
-          <text class="order-price">¥{{item.price}}</text>
-          <text class="order-status {{item.status}}">{{item.statusText}}</text>
+        <view class="order-status-badge status-{{item.status}}">
+          <text class="status-text">{{item.statusText}}</text>
+          <text wx:if="{{item.businessStatus}}" class="business-status">{{item.businessStatus}}</text>
+        </view>
+      </view>
+
+      <!-- 订单内容 -->
+      <view class="order-card-content" bindtap="viewOrderDetail" data-id="{{item.id}}">
+        <image class="product-image-new" src="{{item.productImage}}" mode="aspectFill" />
+        <view class="order-info-new">
+          <text class="product-name-new">{{item.productName}}</text>
+          <view class="order-meta-new">
+            <text class="meta-text">买家：{{item.buyerName}}</text>
+            <text class="meta-text">下单：{{item.createTime}}</text>
+            <text wx:if="{{item.deadline}}" class="meta-text deadline {{item.isOverdue ? 'overdue' : ''}}">
+              截稿：{{item.deadline}} {{item.isOverdue ? '⚠️已超时' : ''}}
+            </text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 订单操作区 -->
+      <view class="order-card-actions">
+        <text class="price-text">¥{{item.price}}</text>
+        <view class="action-buttons">
+          <button wx:if="{{item.status !== 'completed' && item.status !== 'refunded'}}" 
+                  class="action-btn refund-btn" 
+                  data-id="{{item.id}}" 
+                  catchtap="initiateRefund">退款</button>
+          <button class="action-btn detail-btn" 
+                  data-id="{{item.id}}" 
+                  catchtap="viewOrderDetail">详情</button>
         </view>
       </view>
     </view>
