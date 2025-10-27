@@ -215,9 +215,10 @@
 
 /* 订单时间线 */
 .order-timeline {
-  padding: 30rpx 25rpx;
-  background: linear-gradient(135deg, #F1F8F4 0%, #FAFAFA 100%);
+  padding: 35rpx 30rpx;
+  background: linear-gradient(135deg, #E8F5E9 0%, #F1F8F4 100%);
   border-top: 1rpx solid #E8F5E9;
+  border-radius: 0 0 20rpx 20rpx;
 }
 
 .timeline-row {
@@ -230,46 +231,57 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8rpx;
+  gap: 12rpx;
   flex: 0 0 auto;
+  z-index: 2;
 }
 
 .timeline-point.active .point-dot {
   background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
-  box-shadow: 0 4rpx 12rpx rgba(102, 187, 106, 0.3);
+  box-shadow: 0 6rpx 16rpx rgba(102, 187, 106, 0.4);
+  width: 32rpx;
+  height: 32rpx;
+  border-width: 5rpx;
 }
 
 .point-dot {
-  width: 24rpx;
-  height: 24rpx;
+  width: 28rpx;
+  height: 28rpx;
   border-radius: 50%;
   background: #E0E0E0;
   border: 4rpx solid #fff;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3rpx 10rpx rgba(0, 0, 0, 0.15);
   transition: all 0.3s;
 }
 
 .point-label {
-  font-size: 22rpx;
-  color: #666;
-  font-weight: 500;
+  font-size: 24rpx;
+  color: #333;
+  font-weight: 600;
+}
+
+.timeline-point.active .point-label {
+  color: #4CAF50;
 }
 
 .point-time {
-  font-size: 20rpx;
-  color: #999;
+  font-size: 22rpx;
+  color: #666;
   text-align: center;
-  max-width: 140rpx;
-  word-break: break-all;
+  max-width: 160rpx;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .timeline-line {
   flex: 1;
-  height: 2rpx;
-  background: linear-gradient(90deg, #66BB6A 0%, #E0E0E0 50%, #E0E0E0 100%);
-  margin: 0 20rpx;
+  height: 6rpx;
+  background: linear-gradient(90deg, #66BB6A 0%, #A8D5A8 40%, #E0E0E0 60%, #E0E0E0 100%);
+  margin: 0 24rpx;
   position: relative;
-  top: -30rpx;
+  top: -42rpx;
+  border-radius: 3rpx;
+  box-shadow: 0 2rpx 6rpx rgba(102, 187, 106, 0.2);
 }
 
 /* 订单操作 */

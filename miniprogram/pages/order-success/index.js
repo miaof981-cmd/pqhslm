@@ -20,15 +20,13 @@ Page({
       totalAmount: parseFloat(options.totalAmount) || 0,
       deliveryDays: parseInt(options.deliveryDays) || 7,
       artistName: decodeURIComponent(options.artistName || '画师'),
-      createTime: new Date().toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      })
+      createTime: this.formatDateTime(new Date())
     }
+    
+    console.log('✅ 订单信息格式化完成')
+    console.log('- 画师:', orderInfo.artistName)
+    console.log('- 下单时间:', orderInfo.createTime)
+    console.log('- 出稿天数:', orderInfo.deliveryDays)
 
     console.log('订单信息:', orderInfo)
     console.log('原始参数:', options)
@@ -56,6 +54,18 @@ Page({
     const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
     
     return `${year}${month}${day}${hours}${minutes}${seconds}${random}`
+  },
+  
+  // 格式化日期时间（统一格式，便于解析）
+  formatDateTime(date) {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    const seconds = String(date.getSeconds()).padStart(2, '0')
+    
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
   },
 
   // 长按保存二维码

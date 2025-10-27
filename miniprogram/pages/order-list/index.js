@@ -57,13 +57,22 @@ Page({
           statusText = '制作中'
         }
         
+        // 画师信息兜底逻辑
+        let artistName = order.artistName
+        if (!artistName || artistName === '待分配') {
+          // 尝试从用户信息获取
+          const userInfo = wx.getStorageSync('userInfo')
+          artistName = userInfo?.nickName || '画师'
+          console.log('⚠️ 订单缺少画师信息，使用兜底:', artistName)
+        }
+        
         return {
           _id: order.id,
           orderNo: order.id,
           productId: order.productId || '',
           productName: order.productName,
           productImage: order.productImage,
-          artistName: order.artistName || '待分配',
+          artistName: artistName,
           deliveryDays: order.deliveryDays || 7,
           amount: order.price,
           status: status,
