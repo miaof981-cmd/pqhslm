@@ -1,12 +1,530 @@
-.container { min-height: 100vh; background: #F5F5F5; }
-.loading { display: flex; justify-content: center; align-items: center; height: 400rpx; color: #999; }
-.header-bar { background: white; padding: 30rpx; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20rpx; }
-.page-title { font-size: 32rpx; font-weight: 600; color: #333; }
-.add-btn { padding: 15rpx 30rpx; background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%); color: white; border-radius: 25rpx; font-size: 26rpx; border: none; }
-.list { padding: 0 20rpx; }
-.list-item { background: white; padding: 25rpx; margin-bottom: 20rpx; border-radius: 16rpx; display: flex; justify-content: space-between; align-items: center; }
-.item-title { font-size: 28rpx; color: #333; flex: 1; }
-.item-actions { display: flex; gap: 15rpx; }
-.action-btn { padding: 10rpx 20rpx; border-radius: 8rpx; font-size: 24rpx; border: none; }
-.action-btn.edit { background: #E3F2FD; color: #2196F3; }
-.action-btn.delete { background: #FFEBEE; color: #F44336; }
+/* 客服管理页面样式 */
+page {
+  background: linear-gradient(180deg, #E8F5E9 0%, #F1F8E9 100%);
+  min-height: 100vh;
+}
+
+.container {
+  min-height: 100vh;
+  padding-bottom: 30rpx;
+}
+
+/* 头部标题栏 */
+.header-section {
+  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
+  padding: 40rpx 30rpx 30rpx;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: white;
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 24rpx;
+  background: rgba(255, 255, 255, 0.95);
+  color: #66BB6A;
+  border-radius: 25rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.add-btn::after {
+  border: none;
+}
+
+.add-icon {
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* 客服列表 */
+.service-list {
+  padding: 20rpx 30rpx;
+}
+
+.service-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.06);
+}
+
+/* 客服信息 */
+.service-info {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 24rpx;
+  padding-bottom: 24rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.service-avatar-wrap {
+  position: relative;
+}
+
+.service-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: #F5F5F5;
+  border: 4rpx solid #A8E6CF;
+}
+
+.service-number-badge {
+  position: absolute;
+  bottom: -6rpx;
+  right: -6rpx;
+  width: 40rpx;
+  height: 40rpx;
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  border-radius: 50%;
+  border: 3rpx solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20rpx;
+  font-weight: 700;
+  color: white;
+}
+
+.service-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.service-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.service-name {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #333;
+}
+
+.status-badge {
+  padding: 4rpx 14rpx;
+  border-radius: 12rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+.status-badge.active {
+  background: #E8F5E9;
+  color: #66BB6A;
+}
+
+.status-badge.inactive {
+  background: #F5F5F5;
+  color: #999;
+}
+
+.service-id {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.service-contact {
+  font-size: 24rpx;
+  color: #666;
+}
+
+/* 二维码区域 */
+.qrcode-section {
+  margin-bottom: 24rpx;
+  padding-bottom: 24rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.qrcode-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.qrcode-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.bind-qr-btn,
+.change-qr-btn {
+  padding: 8rpx 20rpx;
+  background: #E3F2FD;
+  color: #2196F3;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+  border: none;
+}
+
+.bind-qr-btn::after,
+.change-qr-btn::after {
+  border: none;
+}
+
+.qrcode-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  padding: 20rpx;
+  background: #FAFAFA;
+  border-radius: 16rpx;
+}
+
+.qrcode-image {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 12rpx;
+  border: 2rpx solid #E0E0E0;
+}
+
+.qrcode-number {
+  padding: 6rpx 20rpx;
+  background: linear-gradient(135deg, #FFD54F 0%, #FFCA28 100%);
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #F57F17;
+}
+
+.qrcode-placeholder {
+  padding: 40rpx;
+  background: #FAFAFA;
+  border-radius: 16rpx;
+  border: 2rpx dashed #E0E0E0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-text {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 统计信息 */
+.service-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 20rpx;
+  background: linear-gradient(135deg, #F0F8FF 0%, #E8F5E9 100%);
+  border-radius: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.stat-value {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #2196F3;
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: #666;
+}
+
+.stat-divider {
+  width: 1rpx;
+  height: 40rpx;
+  background: #E0E0E0;
+}
+
+/* 操作按钮 */
+.service-actions {
+  display: flex;
+  gap: 12rpx;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 18rpx 0;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  border: none;
+  text-align: center;
+}
+
+.action-btn::after {
+  border: none;
+}
+
+.edit-btn {
+  background: #E3F2FD;
+  color: #2196F3;
+}
+
+.toggle-btn {
+  background: #FFF9E6;
+  color: #FFA500;
+}
+
+.delete-btn {
+  background: #FFEBEE;
+  color: #FF6B6B;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 60rpx;
+  text-align: center;
+}
+
+.empty-icon {
+  width: 160rpx;
+  height: 160rpx;
+  background: #F5F5F5;
+  border-radius: 50%;
+  position: relative;
+  margin-bottom: 30rpx;
+}
+
+.empty-icon::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80rpx;
+  height: 80rpx;
+  border: 6rpx solid #E0E0E0;
+  border-radius: 50%;
+}
+
+.empty-icon::after {
+  content: '';
+  position: absolute;
+  bottom: 35rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50rpx;
+  height: 6rpx;
+  background: #E0E0E0;
+  border-radius: 3rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #666;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.empty-hint {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 弹窗 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  width: 650rpx;
+  max-height: 80vh;
+  background: white;
+  border-radius: 24rpx;
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 30rpx;
+  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: white;
+}
+
+.modal-close {
+  width: 50rpx;
+  height: 50rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: white;
+  line-height: 1;
+}
+
+.modal-body {
+  padding: 30rpx;
+  max-height: calc(80vh - 180rpx);
+  overflow-y: auto;
+}
+
+.form-item {
+  margin-bottom: 30rpx;
+}
+
+.form-label {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.form-input {
+  width: 100%;
+  padding: 20rpx;
+  background: #F8F8F8;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  border: 1rpx solid #E0E0E0;
+  box-sizing: border-box;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #999;
+}
+
+/* 二维码上传 */
+.qrcode-upload {
+  margin-top: 12rpx;
+}
+
+.qrcode-preview {
+  position: relative;
+  width: 200rpx;
+  height: 200rpx;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 12rpx;
+  border: 2rpx solid #E0E0E0;
+}
+
+.preview-remove {
+  position: absolute;
+  top: -12rpx;
+  right: -12rpx;
+  width: 40rpx;
+  height: 40rpx;
+  background: #FF6B6B;
+  border-radius: 50%;
+  border: 3rpx solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: white;
+  line-height: 1;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+}
+
+.upload-btn {
+  width: 200rpx;
+  height: 200rpx;
+  background: #FAFAFA;
+  border: 2rpx dashed #E0E0E0;
+  border-radius: 12rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+}
+
+.upload-btn::after {
+  border: none;
+}
+
+.upload-icon {
+  font-size: 48rpx;
+  color: #999;
+  line-height: 1;
+}
+
+.upload-text {
+  font-size: 22rpx;
+  color: #999;
+}
+
+/* 弹窗底部 */
+.modal-footer {
+  padding: 20rpx 30rpx;
+  display: flex;
+  gap: 20rpx;
+  border-top: 1rpx solid #F0F0F0;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 20rpx 0;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  border: none;
+}
+
+.modal-btn::after {
+  border: none;
+}
+
+.cancel-btn {
+  background: #F5F5F5;
+  color: #666;
+}
+
+.confirm-btn {
+  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
+  color: white;
+}
