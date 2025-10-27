@@ -522,8 +522,9 @@ Page({
     const { id } = e.currentTarget.dataset
     console.log('查看订单详情:', id)
     
+    // 从工作台进入，显示画师视角
     wx.navigateTo({
-      url: `/pages/order-detail/index?id=${id}`
+      url: `/pages/order-detail/index?id=${id}&source=artist`
     })
   },
   

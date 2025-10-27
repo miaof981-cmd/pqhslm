@@ -32,88 +32,53 @@ Page({
       // 模拟加载订单数据
       await new Promise(resolve => setTimeout(resolve, 500))
       
-      const mockOrders = [
-        {
-          _id: 'ORD202401250001',
-          orderNo: 'ORD202401250001',
-          productId: '1',
-          productName: '精美头像设计',
-          productImage: 'https://via.placeholder.com/150',
-          artistName: '画师小A',
-          deliveryDays: 3,
-          amount: '88.00',
-          status: 'processing',
-          statusText: '制作中',
-          progress: 60,
-          createTime: '2024-01-25 10:30',
-          deadline: '2024-01-28',
-          reviewed: false
-        },
-        {
-          _id: 'ORD202401240001',
-          orderNo: 'ORD202401240001',
-          productId: '2',
-          productName: '创意插画作品',
-          productImage: 'https://via.placeholder.com/150',
-          artistName: '画师小B',
-          deliveryDays: 5,
-          amount: '168.00',
-          status: 'completed',
-          statusText: '已完成',
-          progress: 100,
-          createTime: '2024-01-24 15:20',
-          deadline: '2024-01-29',
-          reviewed: false
-        },
-        {
-          _id: 'ORD202401230001',
-          orderNo: 'ORD202401230001',
-          productId: '3',
-          productName: 'LOGO设计',
-          productImage: 'https://via.placeholder.com/150',
-          artistName: '画师小C',
-          deliveryDays: 7,
-          amount: '299.00',
-          status: 'unpaid',
-          statusText: '待支付',
-          progress: 0,
-          createTime: '2024-01-23 09:15',
-          deadline: '2024-01-30',
-          reviewed: false
-        },
-        {
-          _id: 'ORD202401220001',
-          orderNo: 'ORD202401220001',
-          productId: '4',
-          productName: '海报设计',
-          productImage: 'https://via.placeholder.com/150',
-          artistName: '画师小D',
-          deliveryDays: 4,
-          amount: '199.00',
-          status: 'completed',
-          statusText: '已完成',
-          progress: 100,
-          createTime: '2024-01-22 14:30',
-          deadline: '2024-01-26',
-          reviewed: true
-        },
-        {
-          _id: 'ORD202401210001',
-          orderNo: 'ORD202401210001',
-          productId: '5',
-          productName: '表情包设计',
-          productImage: 'https://via.placeholder.com/150',
-          artistName: '画师小E',
-          deliveryDays: 2,
-          amount: '58.00',
-          status: 'cancelled',
-          statusText: '已取消',
-          progress: 0,
-          createTime: '2024-01-21 11:00',
-          deadline: '2024-01-23',
+      // 从本地存储加载真实订单
+      const pendingOrders = wx.getStorageSync('pending_orders') || []
+      const completedOrders = wx.getStorageSync('completed_orders') || []
+      
+      console.log('=== 我的订单加载 ===')
+      console.log('进行中订单:', pendingOrders.length)
+      console.log('已完成订单:', completedOrders.length)
+      
+      // 合并所有订单
+      let allOrders = [...pendingOrders, ...completedOrders]
+      
+      // 转换为订单列表需要的格式
+      const mockOrders = allOrders.map(order => {
+        // 映射状态
+        let status = 'processing'
+        let statusText = '制作中'
+        
+        if (order.status === 'completed') {
+          status = 'completed'
+          statusText = '已完成'
+        } else if (order.status === 'inProgress' || order.status === 'nearDeadline' || order.status === 'overdue') {
+          status = 'processing'
+          statusText = '制作中'
+        }
+        
+        return {
+          _id: order.id,
+          orderNo: order.id,
+          productId: order.productId || '',
+          productName: order.productName,
+          productImage: order.productImage,
+          artistName: order.artistName || '待分配',
+          deliveryDays: order.deliveryDays || 7,
+          amount: order.price,
+          status: status,
+          statusText: statusText,
+          progress: status === 'completed' ? 100 : 60,
+          createTime: order.createTime,
+          deadline: order.deadline,
           reviewed: false
         }
-      ]
+      })
+      
+      console.log('转换后订单:', mockOrders.length)
+      mockOrders.forEach(o => {
+        console.log(`- ${o.orderNo}: ${o.productName} (${o.statusText})`)
+      })
 
       // 计算各状态数量
       const statusCounts = {
@@ -175,7 +140,7 @@ Page({
   viewOrder(e) {
     const id = e.currentTarget.dataset.id
     wx.navigateTo({
-      url: `/pages/order-detail/index?id=${id}`
+      url: `/pages/order-detail/index?id=${id}&source=customer`
     })
   },
 

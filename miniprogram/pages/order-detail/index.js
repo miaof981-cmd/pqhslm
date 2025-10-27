@@ -19,11 +19,12 @@ Page({
       this.loadOrderDetail(id)
     }
     
-    // 获取用户角色
-    const app = getApp()
-    const roles = app.getUserRoles()
-    const userRole = roles.includes('artist') ? 'artist' : 'customer'
-    this.setData({ userRole })
+    // 获取用户角色 - 默认为顾客视角
+    // 注意：订单详情页应该根据订单归属来判断，而不是用户角色
+    // 如果是从"我的订单"进入，显示顾客视角
+    // 如果是从"工作台"进入，显示画师视角
+    const source = options.source || 'customer' // customer 或 artist
+    this.setData({ userRole: source })
   },
 
   // 加载订单详情
