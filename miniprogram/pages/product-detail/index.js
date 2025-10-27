@@ -559,9 +559,12 @@ Page({
       setTimeout(() => {
         wx.hideLoading()
         
+        // 获取商品图片（使用 base64 或空字符串）
+        const productImage = (product.images && product.images[0]) || ''
+        
         // 跳转到订单成功页面
         wx.redirectTo({
-          url: `/pages/order-success/index?productName=${encodeURIComponent(product.name)}&spec1=${encodeURIComponent(spec1Name)}&spec2=${encodeURIComponent(spec2Name)}&quantity=${quantity}&price=${currentPrice}&totalAmount=${currentPrice * quantity}`
+          url: `/pages/order-success/index?productId=${product.id || ''}&productName=${encodeURIComponent(product.name)}&productImage=${encodeURIComponent(productImage)}&spec1=${encodeURIComponent(spec1Name)}&spec2=${encodeURIComponent(spec2Name)}&quantity=${quantity}&price=${currentPrice}&totalAmount=${currentPrice * quantity}&deliveryDays=${product.deliveryDays || 7}&artistName=${encodeURIComponent(product.artistName || '画师')}`
         })
       }, 1000)
     }
