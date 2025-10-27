@@ -40,101 +40,148 @@
       </view>
 
       <!-- 核心数据卡片 -->
-      <view class="stats-grid">
-        <view class="stat-card" bindtap="goToOrders">
-          <view class="stat-label">订单数</view>
-          <view class="stat-value">{{dashboard.orderCount}}<text class="stat-unit">笔</text></view>
-          <view class="stat-trend">较昨日 {{dashboard.orderTrend}}</view>
+      <!-- 数据概览 - 清新卡片风格 -->
+      <view class="stats-grid-fresh">
+        <view class="stat-card-fresh card-orders" bindtap="goToOrders">
+          <view class="stat-icon-fresh icon-orders"></view>
+          <view class="stat-content-fresh">
+            <text class="stat-label-fresh">订单数</text>
+            <view class="stat-value-row">
+              <text class="stat-value-fresh">{{dashboard.orderCount}}</text>
+              <text class="stat-unit-fresh">笔</text>
+            </view>
+            <text class="stat-trend-fresh">较昨日 {{dashboard.orderTrend}}</text>
+          </view>
         </view>
 
-        <view class="stat-card" bindtap="goToUsers">
-          <view class="stat-label">下单人数</view>
-          <view class="stat-value">{{dashboard.buyerCount}}<text class="stat-unit">人</text></view>
-          <view class="stat-trend">较昨日 {{dashboard.buyerTrend}}</view>
+        <view class="stat-card-fresh card-users" bindtap="goToUsers">
+          <view class="stat-icon-fresh icon-users"></view>
+          <view class="stat-content-fresh">
+            <text class="stat-label-fresh">下单人数</text>
+            <view class="stat-value-row">
+              <text class="stat-value-fresh">{{dashboard.buyerCount}}</text>
+              <text class="stat-unit-fresh">人</text>
+            </view>
+            <text class="stat-trend-fresh">较昨日 {{dashboard.buyerTrend}}</text>
+          </view>
         </view>
 
-        <view class="stat-card" bindtap="goToOrders">
-          <view class="stat-label">成交金额</view>
-          <view class="stat-value">{{dashboard.revenue}}<text class="stat-unit">元</text></view>
-          <view class="stat-trend">较昨日 {{dashboard.revenueTrend}}</view>
+        <view class="stat-card-fresh card-revenue" bindtap="goToOrders">
+          <view class="stat-icon-fresh icon-revenue"></view>
+          <view class="stat-content-fresh">
+            <text class="stat-label-fresh">成交金额</text>
+            <view class="stat-value-row">
+              <text class="stat-value-fresh">{{dashboard.revenue}}</text>
+              <text class="stat-unit-fresh">元</text>
+            </view>
+            <text class="stat-trend-fresh">较昨日 {{dashboard.revenueTrend}}</text>
+          </view>
         </view>
 
-        <view class="stat-card" bindtap="goToRefunds">
-          <view class="stat-label">退款金额</view>
-          <view class="stat-value">{{dashboard.refundAmount}}<text class="stat-unit">元</text></view>
-          <view class="stat-trend">{{dashboard.refundCount}}笔退款</view>
+        <view class="stat-card-fresh card-refund" bindtap="goToRefunds">
+          <view class="stat-icon-fresh icon-refund"></view>
+          <view class="stat-content-fresh">
+            <text class="stat-label-fresh">退款金额</text>
+            <view class="stat-value-row">
+              <text class="stat-value-fresh">{{dashboard.refundAmount}}</text>
+              <text class="stat-unit-fresh">元</text>
+            </view>
+            <text class="stat-trend-fresh">{{dashboard.refundCount}}笔退款</text>
+          </view>
         </view>
 
-        <view class="stat-card" bindtap="goToArtists">
-          <view class="stat-label">画师数</view>
-          <view class="stat-value">{{dashboard.artistCount}}<text class="stat-unit">人</text></view>
-          <view class="stat-trend">活跃 {{dashboard.activeArtists}}人</view>
+        <view class="stat-card-fresh card-artists" bindtap="goToArtists">
+          <view class="stat-icon-fresh icon-artists"></view>
+          <view class="stat-content-fresh">
+            <text class="stat-label-fresh">画师数</text>
+            <view class="stat-value-row">
+              <text class="stat-value-fresh">{{dashboard.artistCount}}</text>
+              <text class="stat-unit-fresh">人</text>
+            </view>
+            <text class="stat-trend-fresh">活跃 {{dashboard.activeArtists}}人</text>
+          </view>
         </view>
 
-        <view class="stat-card" bindtap="goToUsers">
-          <view class="stat-label">用户数</view>
-          <view class="stat-value">{{dashboard.userCount}}<text class="stat-unit">人</text></view>
-          <view class="stat-trend">新增 {{dashboard.newUsers}}人</view>
+        <view class="stat-card-fresh card-total-users" bindtap="goToUsers">
+          <view class="stat-icon-fresh icon-total-users"></view>
+          <view class="stat-content-fresh">
+            <text class="stat-label-fresh">用户数</text>
+            <view class="stat-value-row">
+              <text class="stat-value-fresh">{{dashboard.userCount}}</text>
+              <text class="stat-unit-fresh">人</text>
+            </view>
+            <text class="stat-trend-fresh">新增 {{dashboard.newUsers}}人</text>
+          </view>
         </view>
       </view>
 
-      <!-- 待处理事项 -->
-      <view class="pending-section">
-        <view class="section-title">待处理事项</view>
-        <view class="pending-list">
-          <view class="pending-item" bindtap="goToPendingOrders">
-            <view class="pending-info">
-              <text class="pending-title">待处理订单</text>
-              <text class="pending-desc">需要确认的订单</text>
+      <!-- 待处理事项 - 清新卡片风格 -->
+      <view class="pending-section-fresh">
+        <view class="section-title-fresh">
+          <view class="title-icon-fresh"></view>
+          <text>待办事项</text>
+        </view>
+        <view class="pending-cards">
+          <view class="pending-card-fresh card-pending" bindtap="goToPendingOrders">
+            <view class="pending-icon-fresh icon-pending"></view>
+            <view class="pending-info-fresh">
+              <text class="pending-label">待处理订单</text>
+              <text class="pending-desc-fresh">需要确认的订单</text>
             </view>
-            <view class="pending-count">{{pendingOrders}}</view>
+            <view class="pending-badge">{{pendingOrders}}</view>
           </view>
-          <view class="pending-item" bindtap="goToOverdueOrders">
-            <view class="pending-info">
-              <text class="pending-title">拖稿订单</text>
-              <text class="pending-desc">超时未交付</text>
+          
+          <view class="pending-card-fresh card-overdue" bindtap="goToOverdueOrders">
+            <view class="pending-icon-fresh icon-overdue"></view>
+            <view class="pending-info-fresh">
+              <text class="pending-label">拖稿订单</text>
+              <text class="pending-desc-fresh">超时未交付</text>
             </view>
-            <view class="pending-count warning">{{overdueOrders}}</view>
+            <view class="pending-badge badge-warning">{{overdueOrders}}</view>
           </view>
-          <view class="pending-item" bindtap="goToReviewManage">
-            <view class="pending-info">
-              <text class="pending-title">画师审核</text>
-              <text class="pending-desc">待审核</text>
+          
+          <view class="pending-card-fresh card-review" bindtap="goToReviewManage">
+            <view class="pending-icon-fresh icon-review"></view>
+            <view class="pending-info-fresh">
+              <text class="pending-label">画师审核</text>
+              <text class="pending-desc-fresh">待审核申请</text>
             </view>
-            <view class="pending-count">{{pendingApplications}}</view>
+            <view class="pending-badge">{{pendingApplications}}</view>
           </view>
         </view>
       </view>
 
-      <!-- 画师排行榜 -->
-      <view class="ranking-section">
-        <view class="section-header-row">
-          <text class="section-title">画师排行榜</text>
-          <view class="ranking-tabs">
-            <text class="ranking-tab {{rankingType === 'order' ? 'active' : ''}}" data-type="order" bindtap="switchRankingType">订单量</text>
-            <text class="ranking-tab {{rankingType === 'revenue' ? 'active' : ''}}" data-type="revenue" bindtap="switchRankingType">收入</text>
-            <text class="ranking-tab {{rankingType === 'rate' ? 'active' : ''}}" data-type="rate" bindtap="switchRankingType">完成率</text>
+      <!-- 画师排行榜 - 清新风格 -->
+      <view class="ranking-section-fresh">
+        <view class="section-header-fresh">
+          <view class="section-title-fresh">
+            <view class="title-icon-fresh"></view>
+            <text>画师排行榜</text>
+          </view>
+          <view class="ranking-tabs-fresh">
+            <text class="ranking-tab-fresh {{rankingType === 'order' ? 'active' : ''}}" data-type="order" bindtap="switchRankingType">订单量</text>
+            <text class="ranking-tab-fresh {{rankingType === 'revenue' ? 'active' : ''}}" data-type="revenue" bindtap="switchRankingType">收入</text>
+            <text class="ranking-tab-fresh {{rankingType === 'rate' ? 'active' : ''}}" data-type="rate" bindtap="switchRankingType">完成率</text>
           </view>
         </view>
 
-        <view class="ranking-list">
-          <view wx:for="{{artistRanking}}" wx:key="userId" class="ranking-item">
-            <view class="rank-badge rank-{{index + 1}}">
-              <text>{{index + 1}}</text>
+        <view class="ranking-list-fresh">
+          <view wx:for="{{artistRanking}}" wx:key="userId" class="ranking-card-fresh">
+            <view class="rank-badge-fresh rank-{{index + 1}}">{{index + 1}}</view>
+            <image class="artist-avatar-fresh" src="{{item.avatar}}" mode="aspectFill"/>
+            <view class="artist-info-fresh">
+              <text class="artist-name-fresh">{{item.name}}</text>
+              <text class="artist-id-fresh">ID {{item.userId}}</text>
             </view>
-            <image class="artist-avatar" src="{{item.avatar}}" mode="aspectFill"/>
-            <view class="artist-info">
-              <text class="artist-name">{{item.name}}</text>
-              <text class="artist-id">ID: {{item.userId}}</text>
-            </view>
-            <view class="ranking-data">
-              <text class="data-value" wx:if="{{rankingType === 'order'}}">{{item.orderCount}}单</text>
-              <text class="data-value" wx:elif="{{rankingType === 'revenue'}}">¥{{item.revenue}}</text>
-              <text class="data-value" wx:else>{{item.completeRate}}%</text>
+            <view class="ranking-data-fresh">
+              <text class="data-value-fresh" wx:if="{{rankingType === 'order'}}">{{item.orderCount}}<text class="data-unit">单</text></text>
+              <text class="data-value-fresh" wx:elif="{{rankingType === 'revenue'}}">¥{{item.revenue}}</text>
+              <text class="data-value-fresh" wx:else>{{item.completeRate}}<text class="data-unit">%</text></text>
             </view>
           </view>
-          <view wx:if="{{artistRanking.length === 0}}" class="empty-ranking">
-            <text>暂无数据</text>
+          <view wx:if="{{artistRanking.length === 0}}" class="empty-ranking-fresh">
+            <view class="empty-icon-dash"></view>
+            <text class="empty-text-fresh">暂无排行数据</text>
           </view>
         </view>
       </view>
