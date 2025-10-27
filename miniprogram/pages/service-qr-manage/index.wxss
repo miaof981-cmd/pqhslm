@@ -126,15 +126,9 @@ page {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 6rpx;
   min-width: 0;
   justify-content: center;
-}
-
-.service-info-top {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
 }
 
 .service-name {
@@ -146,64 +140,57 @@ page {
   white-space: nowrap;
 }
 
+.service-meta {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.service-id {
+  font-size: 22rpx;
+  color: #999;
+  flex-shrink: 0;
+}
+
 /* 状态徽章 */
 .status-badge {
   display: flex;
   align-items: center;
   gap: 6rpx;
-  padding: 4rpx 12rpx;
-  border-radius: 20rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 12rpx;
   font-size: 20rpx;
-  font-weight: 600;
+  font-weight: 500;
   flex-shrink: 0;
 }
 
 .badge-online {
-  background: linear-gradient(135deg, rgba(102, 187, 106, 0.15) 0%, rgba(129, 199, 132, 0.15) 100%);
+  background: rgba(102, 187, 106, 0.1);
   color: #66BB6A;
 }
 
 .badge-offline {
-  background: rgba(189, 189, 189, 0.15);
+  background: rgba(189, 189, 189, 0.1);
   color: #999;
 }
 
 .status-dot {
-  width: 8rpx;
-  height: 8rpx;
+  width: 6rpx;
+  height: 6rpx;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .badge-online .status-dot {
   background: #66BB6A;
-  box-shadow: 0 0 8rpx rgba(102, 187, 106, 0.6);
-  animation: pulse 2s infinite;
 }
 
 .badge-offline .status-dot {
   background: #BDBDBD;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
 .status-text {
   line-height: 1;
-}
-
-.service-id {
-  font-size: 22rpx;
-  color: #999;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* 右侧：操作区 */
@@ -211,46 +198,36 @@ page {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: 20rpx;
 }
 
-/* Switch 开关容器 */
-.switch-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8rpx 12rpx;
-  background: rgba(168, 230, 207, 0.1);
-  border-radius: 40rpx;
-  border: 2rpx solid rgba(168, 230, 207, 0.3);
-}
-
+/* Switch 开关 */
 .status-switch {
-  transform: scale(0.9);
+  transform: scale(0.8);
+  margin: 0;
 }
 
 /* 编辑图标 */
 .edit-icon {
-  width: 56rpx;
-  height: 56rpx;
+  width: 60rpx;
+  height: 60rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(168, 230, 207, 0.2) 0%, rgba(208, 240, 192, 0.2) 100%);
+  background: #F5F5F5;
   border-radius: 50%;
-  border: 2rpx solid rgba(168, 230, 207, 0.3);
   transition: all 0.3s;
 }
 
 .edit-icon:active {
   transform: scale(0.9);
-  background: linear-gradient(135deg, rgba(168, 230, 207, 0.3) 0%, rgba(208, 240, 192, 0.3) 100%);
+  background: #EEEEEE;
 }
 
 .icon-text {
-  font-size: 32rpx;
+  font-size: 28rpx;
   font-weight: 700;
-  color: #66BB6A;
+  color: #999;
   line-height: 1;
   letter-spacing: 2rpx;
 }

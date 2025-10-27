@@ -23,26 +23,24 @@
 
       <!-- 中间：客服信息 -->
       <view class="card-middle" bindtap="viewServiceDetail" data-id="{{item.id}}">
-        <view class="service-info-top">
-          <text class="service-name">{{item.name}}</text>
+        <text class="service-name">{{item.name}}</text>
+        <view class="service-meta">
+          <text class="service-id">KF{{item.serviceNumber}}</text>
           <view class="status-badge {{item.isActive ? 'badge-online' : 'badge-offline'}}">
             <view class="status-dot"></view>
             <text class="status-text">{{item.isActive ? '在线' : '离线'}}</text>
           </view>
         </view>
-        <text class="service-id">编号：KF{{item.serviceNumber}}</text>
       </view>
 
       <!-- 右侧：操作区 -->
       <view class="card-right">
-        <view class="switch-container">
-          <switch 
-            class="status-switch" 
-            checked="{{item.isActive}}" 
-            bindchange="toggleServiceStatus" 
-            data-id="{{item.id}}" 
-            color="#66BB6A" />
-        </view>
+        <switch 
+          class="status-switch" 
+          checked="{{item.isActive}}" 
+          bindchange="toggleServiceStatus" 
+          data-id="{{item.id}}" 
+          color="#66BB6A" />
         <view 
           class="edit-icon" 
           catchtap="viewServiceDetail" 
