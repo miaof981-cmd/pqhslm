@@ -174,54 +174,48 @@ Page({
     })
   },
 
-  // 上传作品
-  uploadWork() {
+  // 画师标记已完成
+  markComplete() {
     const { order } = this.data
     
-    wx.chooseImage({
-      count: 9,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
+    wx.showModal({
+      title: '标记已完成',
+      content: '确认作品已在群里交付完成？\n\n标记后将自动通知客户去群里查看作品并确认订单。',
+      confirmText: '确认完成',
+      cancelText: '取消',
       success: (res) => {
-        wx.showLoading({ title: '上传中...' })
-        
-        const tempFilePaths = res.tempFilePaths
-        
-        // TODO: 这里应该上传到云存储或服务器
-        // 目前先模拟上传成功
-        
-        setTimeout(() => {
-          wx.hideLoading()
+        if (res.confirm) {
+          wx.showLoading({ title: '处理中...' })
           
-          // 标记作品已上传
-          order.workUploaded = true
-          order.workUploadTime = new Date().toLocaleString()
+          // 标记订单为已完成
+          order.workCompleted = true
+          order.workCompleteTime = this.formatDateTime(new Date())
           
           // 更新本地存储
           this.updateOrderInStorage(order)
           
           this.setData({ order })
           
-          wx.showModal({
-            title: '上传成功',
-            content: '作品已上传，是否立即通知客户确认订单？',
-            confirmText: '立即通知',
-            cancelText: '稍后通知',
-            success: (modalRes) => {
-              if (modalRes.confirm) {
-                // 发送模板消息通知客户
-                this.sendOrderCompleteNotice(order)
-              } else {
-                wx.showToast({
-                  title: '上传成功',
-                  icon: 'success'
-                })
-              }
-            }
-          })
-        }, 1500)
+          setTimeout(() => {
+            wx.hideLoading()
+            
+            // 发送模板消息通知客户
+            this.sendOrderCompleteNotice(order)
+          }, 500)
+        }
       }
     })
+  },
+  
+  // 格式化日期时间
+  formatDateTime(date) {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    const seconds = String(date.getSeconds()).padStart(2, '0')
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
   },
 
   // 发送订单完成通知（模板消息）
@@ -246,7 +240,7 @@ Page({
           orderId: order.id,
           productName: order.productName,
           artistName: order.artistName,
-          completeTime: order.workUploadTime,
+          completeTime: order.workCompleteTime,
           page: `pages/order-detail/index?id=${order.id}&source=customer`
         }
       },
@@ -271,10 +265,15 @@ Page({
     wx.showLoading({ title: '发送通知中...' })
     setTimeout(() => {
       wx.hideLoading()
-      wx.showToast({
-        title: '已通知客户确认',
-        icon: 'success',
-        duration: 2000
+      wx.showModal({
+        title: '通知已发送',
+        content: '已通过微信服务通知提醒客户去群里查看作品并确认订单。',
+        showCancel: false,
+        confirmText: '知道了',
+        success: () => {
+          // 返回上一页
+          wx.navigateBack()
+        }
       })
       
       console.log('✅ 模板消息已发送（模拟）')
@@ -283,8 +282,8 @@ Page({
       console.log('   内容: 订单号：' + order.id)
       console.log('   内容: 商品名称：' + order.productName)
       console.log('   内容: 画师：' + order.artistName)
-      console.log('   内容: 完成时间：' + order.workUploadTime)
-      console.log('   提示: 点击查看详情并确认完成')
+      console.log('   内容: 完成时间：' + order.workCompleteTime)
+      console.log('   提示: 请前往群聊查看作品，并点击确认完成订单')
     }, 1000)
   },
 
@@ -300,13 +299,6 @@ Page({
     }
   },
 
-  // 联系买家
-  contactCustomer() {
-    wx.showToast({
-      title: '查看客服二维码',
-      icon: 'none'
-    })
-  },
 
 
   // 确认完成

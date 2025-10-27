@@ -266,6 +266,50 @@ page {
   animation: pulse 1.5s infinite;
 }
 
+/* ========== 人员信息卡片 ========== */
+.people-card {
+  background: linear-gradient(135deg, #F5F5F5 0%, #FAFAFA 100%);
+}
+
+.people-info {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+}
+
+.people-avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: #E0E0E0;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+  border: 4rpx solid #fff;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.people-detail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.people-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.people-label {
+  font-size: 24rpx;
+  color: #999;
+  padding: 4rpx 16rpx;
+  background: rgba(102, 187, 106, 0.1);
+  border-radius: 8rpx;
+  align-self: flex-start;
+}
+
 /* ========== 客服二维码 ========== */
 .qr-section {
   background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);

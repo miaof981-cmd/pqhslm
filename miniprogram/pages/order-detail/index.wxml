@@ -65,26 +65,44 @@
       </view>
     </view>
 
-    <!-- 买家信息（画师可见） -->
-    <view wx:if="{{userRole === 'artist'}}" class="section-card">
-      <view class="section-title">买家信息</view>
-      <view class="info-row">
-        <text class="info-label">买家昵称</text>
-        <text class="info-value">{{order.buyerName || '匿名用户'}}</text>
+    <!-- 客户信息（画师视角） -->
+    <view wx:if="{{userRole === 'artist'}}" class="section-card people-card">
+      <view class="section-title">客户信息</view>
+      <view class="people-info">
+        <image class="people-avatar" src="{{order.buyerAvatar || '/assets/default-avatar.png'}}" mode="aspectFill"/>
+        <view class="people-detail">
+          <text class="people-name">{{order.buyerName || '匿名用户'}}</text>
+          <text class="people-label">客户</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 客服信息（画师视角） -->
+    <view wx:if="{{userRole === 'artist'}}" class="section-card people-card">
+      <view class="section-title">对接客服</view>
+      <view class="people-info">
+        <image class="people-avatar" src="{{order.serviceAvatar || '/assets/default-avatar.png'}}" mode="aspectFill"/>
+        <view class="people-detail">
+          <text class="people-name">{{order.serviceName || '待分配'}}</text>
+          <text class="people-label">客服</text>
+        </view>
       </view>
     </view>
 
     <!-- 画师信息（买家可见） -->
-    <view wx:if="{{userRole === 'customer'}}" class="section-card">
+    <view wx:if="{{userRole === 'customer'}}" class="section-card people-card">
       <view class="section-title">画师信息</view>
-      <view class="info-row">
-        <text class="info-label">画师昵称</text>
-        <text class="info-value">{{order.artistName}}</text>
+      <view class="people-info">
+        <image class="people-avatar" src="{{order.artistAvatar || '/assets/default-avatar.png'}}" mode="aspectFill"/>
+        <view class="people-detail">
+          <text class="people-name">{{order.artistName}}</text>
+          <text class="people-label">画师</text>
+        </view>
       </view>
     </view>
 
-    <!-- 客服二维码 -->
-    <view class="section-card qr-section">
+    <!-- 客服二维码（买家可见） -->
+    <view wx:if="{{userRole === 'customer'}}" class="section-card qr-section">
       <view class="section-title">联系客服</view>
       <view class="qr-container">
         <image class="qr-image" src="https://via.placeholder.com/400x400.png?text=客服二维码" mode="aspectFit"/>
@@ -119,11 +137,8 @@
     <view class="action-buttons">
       <!-- 画师操作 -->
       <view wx:if="{{userRole === 'artist'}}" class="button-group">
-        <button wx:if="{{order.status === 'inProgress'}}" class="btn-primary" bindtap="uploadWork">
-          上传作品
-        </button>
-        <button wx:if="{{order.status === 'inProgress'}}" class="btn-secondary" bindtap="contactCustomer">
-          联系买家
+        <button wx:if="{{order.status !== 'completed'}}" class="btn-primary btn-full" bindtap="markComplete">
+          标记已完成
         </button>
       </view>
       
