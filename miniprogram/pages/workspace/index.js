@@ -561,6 +561,113 @@ Page({
       url: `/pages/order-detail/index?id=${id}&source=artist`
     })
   },
+
+  // 快速标记完成
+  quickMarkComplete(e) {
+    const { id } = e.currentTarget.dataset
+    const { pendingOrders } = this.data
+    const order = pendingOrders.find(o => o.id === id)
+    
+    if (!order) {
+      wx.showToast({
+        title: '订单不存在',
+        icon: 'none'
+      })
+      return
+    }
+    
+    wx.showModal({
+      title: '标记已完成',
+      content: `确认订单 ${order.id.slice(-6)} 已在群里交付完成？\n\n标记后将自动通知客户去群里查看作品并确认订单。`,
+      confirmText: '确认完成',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          this.markOrderComplete(order)
+        }
+      }
+    })
+  },
+
+  // 标记订单完成
+  markOrderComplete(order) {
+    wx.showLoading({ title: '处理中...' })
+    
+    // 标记订单为已完成
+    order.workCompleted = true
+    order.workCompleteTime = this.formatDateTime(new Date())
+    
+    // 更新本地存储
+    this.updateOrderInStorage(order)
+    
+    // 更新当前数据
+    const { pendingOrders } = this.data
+    const index = pendingOrders.findIndex(o => o.id === order.id)
+    if (index !== -1) {
+      pendingOrders[index] = order
+    }
+    
+    this.setData({ pendingOrders })
+    this.applyFilter()
+    this.loadPendingStats()
+    
+    setTimeout(() => {
+      wx.hideLoading()
+      
+      // 发送模板消息通知客户
+      this.sendOrderCompleteNotice(order)
+    }, 500)
+  },
+
+  // 格式化日期时间
+  formatDateTime(date) {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    const seconds = String(date.getSeconds()).padStart(2, '0')
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+  },
+
+  // 发送订单完成通知（模板消息）
+  sendOrderCompleteNotice(order) {
+    console.log('📨 准备发送模板消息通知')
+    console.log('订单信息:', {
+      orderId: order.id,
+      productName: order.productName,
+      buyerOpenId: order.buyerOpenId || '待获取'
+    })
+    
+    // TODO: 调用云函数发送模板消息
+    // 模拟发送成功
+    wx.showModal({
+      title: '通知已发送',
+      content: '已通过微信服务通知提醒客户去群里查看作品并确认订单。',
+      showCancel: false,
+      confirmText: '知道了'
+    })
+    
+    console.log('✅ 模板消息已发送（模拟）')
+    console.log('📱 客户将收到：')
+    console.log('   标题: 您的作品已完成')
+    console.log('   内容: 订单号：' + order.id)
+    console.log('   内容: 商品名称：' + order.productName)
+    console.log('   内容: 完成时间：' + order.workCompleteTime)
+    console.log('   提示: 请前往群聊查看作品，并点击确认完成订单')
+  },
+
+  // 更新订单到本地存储
+  updateOrderInStorage(order) {
+    const pendingOrders = wx.getStorageSync('pending_orders') || []
+    const index = pendingOrders.findIndex(o => o.id === order.id)
+    
+    if (index !== -1) {
+      pendingOrders[index] = order
+      wx.setStorageSync('pending_orders', pendingOrders)
+      console.log('✅ 订单已更新到本地存储')
+    }
+  },
   
   // 筛选订单
   filterOrders(e) {

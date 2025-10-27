@@ -462,12 +462,6 @@ page {
   padding: 24rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 4rpx 16rpx rgba(102, 187, 106, 0.08);
-  transition: all 0.2s;
-}
-
-.order-card:active {
-  transform: scale(0.98);
-  box-shadow: 0 2rpx 8rpx rgba(102, 187, 106, 0.12);
 }
 
 /* 订单头部 */
@@ -570,6 +564,48 @@ page {
   color: #FF6B6B;
 }
 
+/* 人员信息 */
+.order-people {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 16rpx 0;
+  margin: 12rpx 0;
+  background: linear-gradient(135deg, #F5F5F5 0%, #FAFAFA 100%);
+  border-radius: 12rpx;
+}
+
+.people-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.people-avatar-small {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: #E0E0E0;
+  border: 3rpx solid #fff;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.people-name-small {
+  font-size: 24rpx;
+  color: #666;
+  font-weight: 500;
+  max-width: 120rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.people-divider {
+  width: 1rpx;
+  height: 40rpx;
+  background: linear-gradient(180deg, transparent 0%, #E0E0E0 50%, transparent 100%);
+}
+
 /* 订单底部 */
 .order-footer {
   display: flex;
@@ -577,6 +613,12 @@ page {
   align-items: center;
   padding-top: 12rpx;
   border-top: 1rpx solid #F0F0F0;
+}
+
+.order-time-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
 }
 
 .order-time {
@@ -593,6 +635,31 @@ page {
 .order-deadline.urgent {
   color: #FF6B6B;
   animation: pulse 1.5s infinite;
+}
+
+/* 标记完成按钮 */
+.mark-complete-btn {
+  padding: 12rpx 24rpx;
+  background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 600;
+  border-radius: 20rpx;
+  border: none;
+  box-shadow: 0 4rpx 12rpx rgba(102, 187, 106, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.mark-complete-btn::after {
+  border: none;
+}
+
+.mark-complete-btn:active {
+  opacity: 0.9;
+  transform: scale(0.96);
 }
 
 @keyframes pulse {
