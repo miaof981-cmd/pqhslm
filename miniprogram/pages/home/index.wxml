@@ -51,7 +51,7 @@
           <view class="product-name">{{item.name}}</view>
           <view class="product-meta">
             <view class="product-price">¥{{item.price}}</view>
-            <view class="product-delivery {{item.deliveryDays === 1 ? 'fast' : ''}}">
+            <view class="product-delivery delivery-{{item.deliveryDays <= 1 ? 'fast' : (item.deliveryDays <= 3 ? 'quick' : (item.deliveryDays <= 7 ? 'normal' : 'slow'))}}">
               <text wx:if="{{item.deliveryDays === 1}}">极速出稿</text>
               <text wx:else>{{item.deliveryDays}}天出稿</text>
             </view>
@@ -145,7 +145,7 @@
           <view class="product-name">{{item.name}}</view>
           <view class="product-meta">
             <view class="product-price">¥{{item.price}}</view>
-            <view class="product-delivery {{item.deliveryDays === 1 ? 'fast' : ''}}">
+            <view class="product-delivery delivery-{{item.deliveryDays <= 1 ? 'fast' : (item.deliveryDays <= 3 ? 'quick' : (item.deliveryDays <= 7 ? 'normal' : 'slow'))}}">
               <text wx:if="{{item.deliveryDays === 1}}">极速出稿</text>
               <text wx:else>{{item.deliveryDays}}天出稿</text>
             </view>

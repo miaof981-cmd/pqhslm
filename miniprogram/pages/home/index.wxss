@@ -443,19 +443,37 @@
 
 /* 出稿时间标签（在商品信息区） */
 .product-delivery {
-  background: #F0F0F0;
-  color: #666;
   font-size: 22rpx;
   padding: 6rpx 12rpx;
   border-radius: 8rpx;
   white-space: nowrap;
+  font-weight: 500;
 }
 
-/* 极速出稿 - 特殊样式 */
-.product-delivery.fast {
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
-  color: white;
+/* 极速出稿 (1天) - 浅蓝色 */
+.product-delivery.delivery-fast {
+  background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+  color: #1976D2;
   font-weight: 600;
+}
+
+/* 快速出稿 (2-3天) - 浅绿色 */
+.product-delivery.delivery-quick {
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  color: #388E3C;
+  font-weight: 600;
+}
+
+/* 普通出稿 (4-7天) - 普通色（浅黄） */
+.product-delivery.delivery-normal {
+  background: linear-gradient(135deg, #FFF9E6 0%, #FFF3CD 100%);
+  color: #F57C00;
+}
+
+/* 慢速出稿 (8-30天) - 灰色 */
+.product-delivery.delivery-slow {
+  background: #F5F5F5;
+  color: #999;
 }
 
 /* 商品信息 */
