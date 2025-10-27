@@ -431,6 +431,8 @@ page {
 .orders-scroll {
   flex: 1;
   height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* 空状态 */

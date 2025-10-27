@@ -155,7 +155,7 @@
             </view>
 
             <!-- 时间进度条 -->
-            <view class="order-progress-section">
+            <view class="order-progress-section {{item.status === 'overdue' ? 'overdue' : (item.status === 'nearDeadline' ? 'near-deadline' : '')}}">
               <view class="progress-header">
                 <view class="progress-label">
                   <text class="time-title">下单时间</text>
@@ -168,7 +168,7 @@
               </view>
               <view class="progress-bar-container">
                 <view class="progress-bar-bg">
-                  <view class="progress-bar-fill {{item.status === 'overdue' ? 'overdue' : ''}}" 
+                  <view class="progress-bar-fill {{item.status === 'overdue' ? 'overdue' : (item.status === 'nearDeadline' ? 'near-deadline' : '')}}" 
                         style="width: {{item.progressPercent || 50}}%;"></view>
                 </view>
               </view>

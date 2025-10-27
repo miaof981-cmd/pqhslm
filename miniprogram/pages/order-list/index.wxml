@@ -55,7 +55,7 @@
       </view>
 
       <!-- 订单进度条 -->
-      <view wx:if="{{item.status === 'processing'}}" class="order-progress-section">
+      <view wx:if="{{item.status === 'processing'}}" class="order-progress-section {{item.isOverdue ? 'overdue' : (item.isNearDeadline ? 'near-deadline' : '')}}">
         <view class="progress-header">
           <view class="progress-label">
             <text class="time-title">下单时间</text>
@@ -68,7 +68,7 @@
         </view>
         <view class="progress-bar-container">
           <view class="progress-bar-bg">
-            <view class="progress-bar-fill {{item.isOverdue ? 'overdue' : ''}}" 
+            <view class="progress-bar-fill {{item.isOverdue ? 'overdue' : (item.isNearDeadline ? 'near-deadline' : '')}}" 
                   style="width: {{item.progressPercent || 50}}%;"></view>
           </view>
         </view>

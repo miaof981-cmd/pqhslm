@@ -11,6 +11,17 @@
   border-radius: 16rpx;
   position: relative;
   overflow: hidden;
+  transition: background 0.3s ease;
+}
+
+/* 临近截稿状态 - 橙色背景 */
+.order-progress-section.near-deadline {
+  background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+}
+
+/* 脱稿状态 - 红色背景 */
+.order-progress-section.overdue {
+  background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
 }
 
 /* 左侧装饰条 */
@@ -22,6 +33,17 @@
   width: 6rpx;
   height: 100%;
   background: linear-gradient(180deg, #66BB6A 0%, #4CAF50 100%);
+  transition: background 0.3s ease;
+}
+
+/* 临近截稿状态 - 橙色装饰条 */
+.order-progress-section.near-deadline::before {
+  background: linear-gradient(180deg, #FFA726 0%, #FF9800 100%);
+}
+
+/* 脱稿状态 - 红色装饰条 */
+.order-progress-section.overdue::before {
+  background: linear-gradient(180deg, #EF5350 0%, #E53935 100%);
 }
 
 .progress-header {
@@ -115,6 +137,32 @@
   height: 50%;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, transparent 100%);
   border-radius: 16rpx 16rpx 0 0;
+}
+
+/* 临近截稿状态 - 橙色进度条 */
+.progress-bar-fill.near-deadline {
+  background: linear-gradient(90deg, 
+    #FF9800 0%, 
+    #FFA726 20%, 
+    #FFB74D 40%, 
+    #FFCC80 60%, 
+    #FFB74D 80%, 
+    #FFA726 100%
+  );
+  background-size: 300% 100%;
+  animation: shimmer-orange 3s ease-in-out infinite;
+}
+
+@keyframes shimmer-orange {
+  0% {
+    background-position: 200% center;
+  }
+  50% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
 }
 
 /* 脱稿状态 - 红色进度条 */

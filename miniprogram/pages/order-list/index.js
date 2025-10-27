@@ -141,6 +141,7 @@ Page({
           deadline: deadlineText,
           progressPercent: progressData.percent,
           isOverdue: progressData.isOverdue,
+          isNearDeadline: progressData.isNearDeadline,
           overdueDays: progressData.overdueDays,
           reviewed: false
         }
@@ -409,7 +410,12 @@ Page({
   // 计算订单进度百分比（按整天数比例）
   calculateProgress(order) {
     if (order.status === 'completed') {
-      return { percent: 100, isOverdue: false, overdueDays: 0 }
+      return { 
+        percent: 100, 
+        isOverdue: false, 
+        isNearDeadline: false,
+        overdueDays: 0 
+      }
     }
     
     try {
@@ -419,7 +425,12 @@ Page({
       const todayDate = new Date(new Date().toLocaleDateString()).getTime()
       
       if (isNaN(createDate) || isNaN(deadlineDate)) {
-        return { percent: 5, isOverdue: false, overdueDays: 0 }
+        return { 
+          percent: 5, 
+          isOverdue: false, 
+          isNearDeadline: false,
+          overdueDays: 0 
+        }
       }
       
       // 计算整天数
@@ -434,6 +445,10 @@ Page({
       const isOverdue = todayDate > deadlineDate
       const overdueDays = isOverdue ? Math.round((todayDate - deadlineDate) / oneDayMs) : 0
       
+      // 判断是否临近截稿（还剩1天或更少）
+      const daysLeft = Math.round((deadlineDate - todayDate) / oneDayMs)
+      const isNearDeadline = !isOverdue && daysLeft <= 1
+      
       // 限制范围
       if (percent < 5) percent = 5    // 最小显示5%
       if (percent > 100) percent = 100
@@ -443,15 +458,22 @@ Page({
         截稿日期: order.deadline.split(' ')[0],
         总天数: totalDays,
         已过天数: elapsedDays,
+        剩余天数: daysLeft,
         进度: `${percent}%`,
         是否脱稿: isOverdue,
+        是否临近截稿: isNearDeadline,
         脱稿天数: overdueDays
       })
       
-      return { percent, isOverdue, overdueDays }
+      return { percent, isOverdue, isNearDeadline, overdueDays }
     } catch (error) {
       console.error('计算进度失败:', error)
-      return { percent: 5, isOverdue: false, overdueDays: 0 }
+      return { 
+        percent: 5, 
+        isOverdue: false, 
+        isNearDeadline: false,
+        overdueDays: 0 
+      }
     }
   }
 })
