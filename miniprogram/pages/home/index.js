@@ -121,8 +121,13 @@ Page({
       console.log('本地存储为空，无商品数据')
     }
     
-    // 前3个作为推荐商品
-    const recommendProducts = allProducts.slice(0, 3)
+    // 筛选有"推荐"或"热销"标签的商品作为推荐
+    const recommendProducts = allProducts.filter(p => {
+      const tags = p.tags || []
+      return tags.includes('推荐') || tags.includes('热销')
+    }).slice(0, 6) // 最多显示6个
+    
+    console.log(`🔥 推荐商品: ${recommendProducts.length} 个`)
     
     this.setData({
       allProducts: allProducts,
