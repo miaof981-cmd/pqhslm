@@ -592,34 +592,174 @@
   border: 2rpx solid #E9ECEF;
 }
 
-/* 画师工作台区域 */
-.artist-workspace {
+/* 工作台区域（并列展示） */
+.workspace-section {
   background-color: white;
   margin: 20rpx 30rpx;
   border-radius: 20rpx;
   padding: 30rpx;
-  box-shadow: 0 4rpx 20rpx rgba(168, 230, 207, 0.2);
-  border: 2rpx solid #D0F0C0;
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.08);
 }
 
-/* 客服工作台区域 */
-.service-workspace {
-  background-color: white;
-  margin: 20rpx 30rpx;
-  border-radius: 20rpx;
-  padding: 30rpx;
-  box-shadow: 0 4rpx 20rpx rgba(255, 183, 77, 0.2);
-  border: 2rpx solid #FFE0B2;
+.workspace-grid {
+  display: flex;
+  gap: 15rpx;
+  margin-top: 20rpx;
 }
 
-/* 管理后台区域 */
-.admin-workspace {
-  background-color: white;
-  margin: 20rpx 30rpx;
-  border-radius: 20rpx;
-  padding: 30rpx;
-  box-shadow: 0 4rpx 20rpx rgba(255, 107, 107, 0.2);
-  border: 2rpx solid #FFCDD2;
+.workspace-card {
+  flex: 1;
+  background: #FAFAFA;
+  border-radius: 16rpx;
+  padding: 30rpx 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  border: 2rpx solid transparent;
+  transition: all 0.3s;
+}
+
+.workspace-card:active {
+  transform: scale(0.95);
+}
+
+/* 画师工作台卡片 */
+.workspace-card.artist {
+  background: linear-gradient(135deg, #F0FFF4 0%, #E6F9EE 100%);
+  border-color: #C8E6D0;
+}
+
+.workspace-card.artist:active {
+  background: linear-gradient(135deg, #E6F9EE 0%, #D9F2E4 100%);
+}
+
+/* 客服工作台卡片 */
+.workspace-card.service {
+  background: linear-gradient(135deg, #FFF9F0 0%, #FFF4E6 100%);
+  border-color: #FFE4C4;
+}
+
+.workspace-card.service:active {
+  background: linear-gradient(135deg, #FFF4E6 0%, #FFEFDB 100%);
+}
+
+/* 管理后台卡片 */
+.workspace-card.admin {
+  background: linear-gradient(135deg, #FFF5F5 0%, #FFF0F0 100%);
+  border-color: #FFD6D6;
+}
+
+.workspace-card.admin:active {
+  background: linear-gradient(135deg, #FFF0F0 0%, #FFE8E8 100%);
+}
+
+/* 工作台图标 */
+.workspace-icon {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  margin-bottom: 15rpx;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.artist-icon {
+  background: linear-gradient(135deg, #A8E6CF 0%, #88D4AB 100%);
+}
+
+.artist-icon::before {
+  content: '';
+  width: 24rpx;
+  height: 24rpx;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.artist-icon::after {
+  content: '';
+  width: 32rpx;
+  height: 16rpx;
+  background: white;
+  border-radius: 16rpx 16rpx 0 0;
+  position: absolute;
+  bottom: 10rpx;
+}
+
+.service-icon {
+  background: linear-gradient(135deg, #FFD699 0%, #FFB74D 100%);
+}
+
+.service-icon::before {
+  content: '';
+  width: 28rpx;
+  height: 28rpx;
+  border: 4rpx solid white;
+  border-radius: 6rpx;
+  position: absolute;
+}
+
+.admin-icon {
+  background: linear-gradient(135deg, #FFB3BA 0%, #FF8A95 100%);
+}
+
+.admin-icon::before {
+  content: '';
+  width: 24rpx;
+  height: 24rpx;
+  border: 4rpx solid white;
+  border-radius: 4rpx;
+  position: absolute;
+  transform: rotate(45deg);
+}
+
+/* 工作台名称 */
+.workspace-name {
+  font-size: 24rpx;
+  color: #666;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* 卡片徽章 */
+.card-badge {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+  font-size: 20rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 10rpx;
+  font-weight: 500;
+}
+
+.card-badge.active {
+  background-color: rgba(168, 230, 207, 0.3);
+  color: #27AE60;
+}
+
+.card-badge.expired {
+  background-color: rgba(255, 179, 153, 0.3);
+  color: #E74C3C;
+}
+
+/* 续费会员按钮 */
+.renew-member-btn {
+  width: 100%;
+  margin-top: 20rpx;
+  padding: 20rpx 0;
+  background: linear-gradient(135deg, #FFF9E6 0%, #FFF3CC 100%);
+  color: #D68910;
+  border: 2rpx solid #FFE4A3;
+  border-radius: 16rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.renew-member-btn::after {
+  border: none;
 }
 
 /* 其他功能 */

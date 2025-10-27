@@ -71,55 +71,38 @@
       </view>
     </view>
 
-    <!-- 画师工作台 -->
-    <view wx:if="{{hasArtistRole}}" class="artist-workspace">
-      <view class="workspace-header">
-        <text class="workspace-title">画师工作台</text>
-        <view wx:if="{{memberInfo && memberInfo.isValid}}" class="member-status active">
-          <text>会员有效</text>
+    <!-- 工作台区域（并列展示） -->
+    <view wx:if="{{hasArtistRole || hasServiceRole || isAdmin}}" class="workspace-section">
+      <view class="section-title">工作台</view>
+      
+      <view class="workspace-grid">
+        <!-- 画师工作台 -->
+        <view wx:if="{{hasArtistRole}}" class="workspace-card artist" bindtap="goToArtistWorkspace">
+          <view class="workspace-icon artist-icon"></view>
+          <text class="workspace-name">画师工作台</text>
+          <view wx:if="{{memberInfo && memberInfo.isValid}}" class="card-badge active">会员有效</view>
+          <view wx:elif="{{memberInfo}}" class="card-badge expired">已过期</view>
         </view>
-        <view wx:elif="{{memberInfo}}" class="member-status expired">
-          <text>会员已过期</text>
+
+        <!-- 客服工作台 -->
+        <view wx:if="{{hasServiceRole}}" class="workspace-card service" bindtap="goToServiceWorkspace">
+          <view class="workspace-icon service-icon"></view>
+          <text class="workspace-name">客服工作台</text>
+        </view>
+
+        <!-- 管理后台 -->
+        <view wx:if="{{isAdmin}}" class="workspace-card admin" bindtap="goToAdmin">
+          <view class="workspace-icon admin-icon"></view>
+          <text class="workspace-name">管理后台</text>
         </view>
       </view>
-      
-      <view class="workspace-actions">
-        <button class="workspace-btn primary" bindtap="goToArtistWorkspace">
-          进入画师工作台
-        </button>
-        
-        <button wx:if="{{memberInfo && !memberInfo.isValid}}" 
-                class="workspace-btn secondary" 
-                bindtap="renewMember">
-          续费会员
-        </button>
-      </view>
-    </view>
 
-    <!-- 客服工作台 -->
-    <view wx:if="{{hasServiceRole}}" class="service-workspace">
-      <view class="workspace-header">
-        <text class="workspace-title">客服工作台</text>
-      </view>
-      
-      <view class="workspace-actions">
-        <button class="workspace-btn service" bindtap="goToServiceWorkspace">
-          进入客服工作台
-        </button>
-      </view>
-    </view>
-
-    <!-- 管理后台（独立） -->
-    <view wx:if="{{isAdmin}}" class="admin-workspace">
-      <view class="workspace-header">
-        <text class="workspace-title">管理后台</text>
-      </view>
-      
-      <view class="workspace-actions">
-        <button class="workspace-btn admin" bindtap="goToAdmin">
-          进入管理后台
-        </button>
-      </view>
+      <!-- 续费会员按钮（如果需要） -->
+      <button wx:if="{{hasArtistRole && memberInfo && !memberInfo.isValid}}" 
+              class="renew-member-btn" 
+              bindtap="renewMember">
+        续费会员
+      </button>
     </view>
 
     <!-- 其他功能 -->
