@@ -43,9 +43,9 @@
         <text class="info-label">出稿时间</text>
         <text class="info-value">{{product.deliveryDays}}天</text>
       </view>
-      <view class="info-row" bindtap="viewArtist">
+      <view wx:if="{{artist && artist.name && artist.name !== '画师'}}" class="info-row" bindtap="viewArtist">
         <text class="info-label">画师</text>
-        <text class="info-value">{{artist.name || '未知'}}</text>
+        <text class="info-value">{{artist.name}}</text>
         <text class="arrow">›</text>
       </view>
     </view>

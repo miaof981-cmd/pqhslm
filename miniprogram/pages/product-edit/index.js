@@ -1254,10 +1254,13 @@ Page({
         
         if (index > -1) {
           // 找到了，更新
+          const userInfo = wx.getStorageSync('userInfo') || {}
           products[index] = {
             ...products[index],
             ...productData,
             id: this.data.productId, // 保持原ID
+            artistName: userInfo.nickName || products[index].artistName || '画师',
+            artistId: wx.getStorageSync('userId') || products[index].artistId || '',
             updateTime: Date.now()
           }
           console.log('✓ 更新现有商品成功', products[index])

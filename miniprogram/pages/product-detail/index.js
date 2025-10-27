@@ -117,7 +117,10 @@ Page({
           price: displayPrice
         },
         summaryContent: summaryContent,
-        artist: product.artist || { name: '画师' },
+        artist: { 
+          name: product.artistName || '画师',
+          id: product.artistId || ''
+        },
         serviceQR: {
           imageUrl: 'https://via.placeholder.com/200x200.png?text=客服二维码'
         },
