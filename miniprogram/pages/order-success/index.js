@@ -39,23 +39,70 @@ Page({
 
     console.log('订单信息:', orderInfo)
     console.log('原始参数:', options)
+    
+    // ✅ 获取分配的客服信息
+    const serviceInfo = this.assignService()
+    
+    // 获取客服二维码（如果有）
+    const serviceQR = serviceInfo.serviceQrcodeUrl 
+      ? { imageUrl: serviceInfo.serviceQrcodeUrl, number: serviceInfo.serviceQrcodeNumber }
+      : { imageUrl: 'https://via.placeholder.com/400x400.png?text=客服二维码', number: null }
 
     this.setData({
       orderInfo: orderInfo,
-      serviceQR: {
-        imageUrl: 'https://via.placeholder.com/400x400.png?text=客服二维码'
-      }
+      serviceInfo: serviceInfo,  // 保存客服信息
+      serviceQR: serviceQR
     })
     
-    // ✅ 自动保存订单到本地存储
-    this.saveOrderToLocal(orderInfo)
+    // ✅ 自动保存订单到本地存储（包含客服信息）
+    this.saveOrderToLocal(orderInfo, serviceInfo)
 
     // 禁止用户返回（可选）
     // wx.hideHomeButton() // 隐藏返回首页按钮
   },
   
+  // 自动分配客服
+  assignService() {
+    // 获取所有在线客服
+    const serviceList = wx.getStorageSync('service_list') || []
+    const activeServices = serviceList.filter(s => s.isActive)
+    
+    console.log('📞 自动分配客服:')
+    console.log('- 客服总数:', serviceList.length)
+    console.log('- 在线客服数:', activeServices.length)
+    
+    if (activeServices.length === 0) {
+      console.log('⚠️ 暂无在线客服，订单待分配')
+      return {
+        serviceId: '',
+        serviceName: '待分配',
+        serviceAvatar: '/assets/default-avatar.png',
+        serviceQrcodeUrl: '',
+        serviceQrcodeNumber: null
+      }
+    }
+    
+    // 随机选择一个在线客服
+    const randomIndex = Math.floor(Math.random() * activeServices.length)
+    const assignedService = activeServices[randomIndex]
+    
+    console.log('✅ 分配客服成功:')
+    console.log('- 客服ID:', assignedService.userId)
+    console.log('- 客服姓名:', assignedService.name)
+    console.log('- 客服编号:', assignedService.serviceNumber)
+    console.log('- 二维码编号:', assignedService.qrcodeNumber)
+    
+    return {
+      serviceId: assignedService.userId,
+      serviceName: assignedService.name,
+      serviceAvatar: assignedService.avatar || '/assets/default-avatar.png',
+      serviceQrcodeUrl: assignedService.qrcodeUrl || '',
+      serviceQrcodeNumber: assignedService.qrcodeNumber
+    }
+  },
+  
   // 自动保存订单到本地存储
-  saveOrderToLocal(orderInfo) {
+  saveOrderToLocal(orderInfo, serviceInfo) {
     console.log('========================================')
     console.log('💾 订单自动保存 - 开始')
     console.log('========================================')
@@ -107,10 +154,12 @@ Page({
         artistName: orderInfo.artistName,
         artistAvatar: orderInfo.artistAvatar || '/assets/default-avatar.png',
         
-        // ✅ 保存客服信息（待分配）
-        serviceId: '',
-        serviceName: '待分配',
-        serviceAvatar: '/assets/default-avatar.png'
+        // ✅ 保存客服信息（已分配）
+        serviceId: serviceInfo.serviceId,
+        serviceName: serviceInfo.serviceName,
+        serviceAvatar: serviceInfo.serviceAvatar,
+        serviceQrcodeUrl: serviceInfo.serviceQrcodeUrl,
+        serviceQrcodeNumber: serviceInfo.serviceQrcodeNumber
       }
       
       console.log('新订单数据:', newOrder)
