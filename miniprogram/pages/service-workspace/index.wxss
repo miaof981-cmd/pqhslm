@@ -1,44 +1,45 @@
 .service-container {
   min-height: 100vh;
-  background: #F5F5F5;
+  background: linear-gradient(180deg, #E3F2FD 0%, #F5F9FF 50%, #FAFAFA 100%);
   padding-bottom: 20rpx;
 }
 
 /* 精简顶栏 */
 .compact-header {
   background: linear-gradient(135deg, #4FC3F7 0%, #29B6F6 100%);
-  padding: 20rpx 30rpx;
+  padding: 30rpx;
   display: flex;
   align-items: center;
-  gap: 20rpx;
+  gap: 24rpx;
 }
 
 .header-avatar {
-  width: 60rpx;
-  height: 60rpx;
+  width: 80rpx;
+  height: 80rpx;
   border-radius: 50%;
-  border: 3rpx solid rgba(255, 255, 255, 0.5);
+  border: 4rpx solid rgba(255, 255, 255, 0.5);
   flex-shrink: 0;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
 }
 
 .header-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4rpx;
+  gap: 6rpx;
 }
 
 .header-title {
-  font-size: 28rpx;
-  font-weight: 600;
+  font-size: 32rpx;
+  font-weight: 700;
   color: white;
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .header-subtitle {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: rgba(255, 255, 255, 0.9);
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .header-actions {
@@ -61,21 +62,22 @@
 
 /* 精简待办统计 */
 .compact-stats {
-  margin: 20rpx 30rpx 15rpx;
+  margin: 24rpx 30rpx 20rpx;
   display: flex;
   gap: 15rpx;
 }
 
 .compact-stat {
   flex: 1;
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 12rpx;
-  padding: 20rpx 15rpx;
+  padding: 24rpx 15rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  gap: 8rpx;
+  box-shadow: 0 4rpx 12rpx rgba(79, 195, 247, 0.1);
+  backdrop-filter: blur(10rpx);
 }
 
 .compact-stat:active {
@@ -101,13 +103,14 @@
 
 /* 筛选栏 */
 .filter-bar {
-  margin: 0 30rpx 15rpx;
+  margin: 0 30rpx 20rpx;
   padding: 8rpx;
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 12rpx;
   display: flex;
   gap: 10rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 12rpx rgba(79, 195, 247, 0.1);
+  backdrop-filter: blur(10rpx);
 }
 
 .filter-item {
@@ -139,13 +142,14 @@
 }
 
 .order-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 12rpx;
   padding: 20rpx;
   margin-bottom: 15rpx;
   display: flex;
   gap: 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 12rpx rgba(79, 195, 247, 0.08);
+  backdrop-filter: blur(10rpx);
 }
 
 .order-card:active {
