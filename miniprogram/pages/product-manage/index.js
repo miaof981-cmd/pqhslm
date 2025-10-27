@@ -1,3 +1,5 @@
+const fixProducts = require('../../utils/fix-products')
+
 Page({
   data: {
     artistId: '',
@@ -164,6 +166,50 @@ Page({
   addProduct() {
     wx.navigateTo({
       url: '/pages/product-edit/index'
+    })
+  },
+
+  // 修复商品数据
+  fixProductData() {
+    wx.showModal({
+      title: '修复商品数据',
+      content: '将清理所有商品的空规格并重新计算价格，是否继续？',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '修复中...' })
+          
+          try {
+            // 调用修复工具
+            const result = fixProducts.fixAllProducts()
+            
+            wx.hideLoading()
+            
+            if (result.success) {
+              wx.showModal({
+                title: '修复完成',
+                content: `共修复 ${result.fixed} 个商品\n清理空规格: ${result.cleanedSpecs} 个\n更新价格: ${result.priceUpdated} 个`,
+                showCancel: false,
+                success: () => {
+                  // 刷新页面
+                  this.loadProducts()
+                }
+              })
+            } else {
+              wx.showToast({
+                title: '修复失败: ' + result.error,
+                icon: 'none'
+              })
+            }
+          } catch (error) {
+            wx.hideLoading()
+            console.error('修复失败:', error)
+            wx.showToast({
+              title: '修复失败',
+              icon: 'none'
+            })
+          }
+        }
+      }
     })
   }
 })
