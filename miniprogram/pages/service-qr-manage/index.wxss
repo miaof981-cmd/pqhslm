@@ -19,26 +19,30 @@ page {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 20rpx;
 }
 
 .page-title {
   font-size: 36rpx;
   font-weight: 700;
   color: white;
+  flex-shrink: 0;
 }
 
 .add-btn {
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  padding: 12rpx 24rpx;
+  gap: 6rpx;
+  padding: 10rpx 20rpx;
   background: rgba(255, 255, 255, 0.95);
   color: #66BB6A;
   border-radius: 25rpx;
-  font-size: 26rpx;
+  font-size: 24rpx;
   font-weight: 600;
   border: none;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .add-btn::after {
@@ -46,7 +50,7 @@ page {
 }
 
 .add-icon {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 700;
   line-height: 1;
 }
@@ -75,6 +79,7 @@ page {
 
 .service-avatar-wrap {
   position: relative;
+  flex-shrink: 0;
 }
 
 .service-avatar {
@@ -107,25 +112,36 @@ page {
   display: flex;
   flex-direction: column;
   gap: 8rpx;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .service-name-row {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: 10rpx;
+  flex-wrap: wrap;
 }
 
 .service-name {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 700;
   color: #333;
+  word-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .status-badge {
-  padding: 4rpx 14rpx;
+  padding: 4rpx 12rpx;
   border-radius: 12rpx;
   font-size: 20rpx;
   font-weight: 600;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .status-badge.active {
@@ -141,11 +157,19 @@ page {
 .service-id {
   font-size: 24rpx;
   color: #999;
+  word-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .service-contact {
   font-size: 24rpx;
   color: #666;
+  word-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 二维码区域 */
@@ -263,17 +287,22 @@ page {
 /* 操作按钮 */
 .service-actions {
   display: flex;
-  gap: 12rpx;
+  gap: 10rpx;
+  flex-wrap: wrap;
 }
 
 .action-btn {
   flex: 1;
-  padding: 18rpx 0;
-  border-radius: 12rpx;
-  font-size: 24rpx;
+  min-width: calc(33.33% - 7rpx);
+  padding: 16rpx 8rpx;
+  border-radius: 10rpx;
+  font-size: 22rpx;
   font-weight: 500;
   border: none;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .action-btn::after {
@@ -362,10 +391,12 @@ page {
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 0 30rpx;
 }
 
 .modal-content {
-  width: 650rpx;
+  width: 100%;
+  max-width: 650rpx;
   max-height: 80vh;
   background: white;
   border-radius: 24rpx;
@@ -373,40 +404,46 @@ page {
 }
 
 .modal-header {
-  padding: 30rpx;
+  padding: 24rpx 30rpx;
   background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 20rpx;
 }
 
 .modal-title {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 700;
   color: white;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .modal-close {
-  width: 50rpx;
-  height: 50rpx;
+  width: 48rpx;
+  height: 48rpx;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40rpx;
+  font-size: 36rpx;
   color: white;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .modal-body {
-  padding: 30rpx;
-  max-height: calc(80vh - 180rpx);
+  padding: 24rpx 30rpx;
+  max-height: calc(80vh - 200rpx);
   overflow-y: auto;
 }
 
 .form-item {
-  margin-bottom: 30rpx;
+  margin-bottom: 24rpx;
 }
 
 .form-label {
@@ -414,17 +451,19 @@ page {
   font-size: 26rpx;
   font-weight: 600;
   color: #333;
-  margin-bottom: 12rpx;
+  margin-bottom: 10rpx;
+  word-wrap: break-word;
 }
 
 .form-input {
   width: 100%;
-  padding: 20rpx;
+  padding: 18rpx 16rpx;
   background: #F8F8F8;
   border-radius: 12rpx;
   font-size: 26rpx;
   border: 1rpx solid #E0E0E0;
   box-sizing: border-box;
+  line-height: 1.5;
 }
 
 .form-hint {
@@ -432,6 +471,8 @@ page {
   margin-top: 8rpx;
   font-size: 22rpx;
   color: #999;
+  line-height: 1.6;
+  word-wrap: break-word;
 }
 
 /* 二维码上传 */
