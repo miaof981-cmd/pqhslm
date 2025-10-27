@@ -360,7 +360,7 @@ Page({
     }
   },
   
-  // 计算订单进度百分比
+  // 计算订单进度百分比（按天数比例）
   calculateProgress(order) {
     if (order.status === 'completed') {
       return { percent: 100, isOverdue: false }
@@ -372,24 +372,34 @@ Page({
       const now = Date.now()
       
       if (isNaN(createTime) || isNaN(deadline)) {
-        return { percent: 50, isOverdue: false }
+        return { percent: 10, isOverdue: false }
       }
       
-      const totalTime = deadline - createTime
-      const elapsedTime = now - createTime
+      // 计算经过的天数和总天数
+      const oneDayMs = 24 * 60 * 60 * 1000
+      const totalDays = Math.ceil((deadline - createTime) / oneDayMs)
+      const elapsedDays = Math.ceil((now - createTime) / oneDayMs)
       
-      let percent = Math.round((elapsedTime / totalTime) * 100)
+      // 按天数比例计算进度
+      let percent = Math.round((elapsedDays / totalDays) * 100)
       
-      // 限制范围在 0-100%
-      if (percent < 0) percent = 0
+      // 限制范围
+      if (percent < 5) percent = 5    // 最小显示5%，确保有可见进度
       if (percent > 100) percent = 100
       
       const isOverdue = now > deadline
       
+      console.log(`订单 ${order.id} 进度:`, {
+        总天数: totalDays,
+        已过天数: elapsedDays,
+        进度: `${percent}%`,
+        是否脱稿: isOverdue
+      })
+      
       return { percent, isOverdue }
     } catch (error) {
       console.error('计算进度失败:', error)
-      return { percent: 50, isOverdue: false }
+      return { percent: 10, isOverdue: false }
     }
   }
 })

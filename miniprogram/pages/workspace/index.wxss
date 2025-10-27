@@ -801,19 +801,6 @@ page {
   border-radius: 16rpx 16rpx 0 0;
 }
 
-/* 进度条末端光点 */
-.progress-bar-fill::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: 0;
-  width: 8rpx;
-  height: 8rpx;
-  background: #fff;
-  border-radius: 50%;
-  transform: translateY(-50%);
-  box-shadow: 0 0 8rpx rgba(255, 255, 255, 0.8);
-}
 
 .progress-bar-fill.overdue {
   background: linear-gradient(90deg, #FF6B6B 0%, #FF8A80 50%, #FF6B6B 100%);
