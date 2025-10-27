@@ -37,8 +37,11 @@ Page({
     
     if (userInfo && hasLoggedIn) {
       // 已登录，直接跳转到首页
-      console.log('用户已登录，跳转首页')
+      console.log('✅ 用户已登录，跳转首页')
+      this.setData({ isLoading: true }) // 显示加载状态
       this.redirectToHome()
+    } else {
+      console.log('⚠️ 未登录，显示登录页面')
     }
   },
 
@@ -80,17 +83,44 @@ Page({
       console.log('  - 昵称:', userInfo.nickName)
       console.log('  - 头像:', userInfo.avatarUrl)
       
+      // ✅ 生成或获取用户ID
+      let userId = wx.getStorageSync('userId')
+      if (!userId) {
+        // 新用户：生成自增ID
+        const maxUserId = wx.getStorageSync('maxUserId') || 1000
+        userId = maxUserId + 1
+        wx.setStorageSync('userId', userId)
+        wx.setStorageSync('maxUserId', userId)
+        console.log('✅ 新用户，生成ID:', userId)
+      } else {
+        console.log('✅ 已有用户ID:', userId)
+      }
+      
+      // ✅ 初始化用户角色（如果不存在）
+      let userRoles = wx.getStorageSync('userRoles')
+      if (!userRoles || userRoles.length === 0) {
+        userRoles = ['customer'] // 默认为普通用户
+        wx.setStorageSync('userRoles', userRoles)
+        console.log('✅ 初始化用户角色:', userRoles)
+      } else {
+        console.log('✅ 已有用户角色:', userRoles)
+      }
+      
       // 保存用户信息到本地存储
       wx.setStorageSync('userInfo', userInfo)
       wx.setStorageSync('hasLoggedIn', true)
       
       // 保存到全局数据
       app.globalData.userInfo = userInfo
+      app.globalData.userId = userId
+      app.globalData.roles = userRoles
       
       // 验证保存结果
       const savedInfo = wx.getStorageSync('userInfo')
       console.log('✅ 保存验证 - 本地存储:', savedInfo)
       console.log('✅ 保存验证 - 全局数据:', app.globalData.userInfo)
+      console.log('✅ 保存验证 - 用户ID:', userId)
+      console.log('✅ 保存验证 - 用户角色:', userRoles)
       
       wx.hideLoading()
       
