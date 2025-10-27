@@ -32,29 +32,38 @@ Page({
 
   loadProducts() {
     console.log('=== 商品管理页加载数据 ===')
+    console.log('当前画师ID:', this.data.artistId)
     
     // 从本地存储加载商品
-    let products = wx.getStorageSync('mock_products') || []
-    console.log('从本地存储加载商品数量:', products.length)
+    let allProducts = wx.getStorageSync('mock_products') || []
+    console.log('从本地存储加载全部商品数量:', allProducts.length)
+    
+    // 筛选当前画师的商品
+    let products = allProducts.filter(p => p.artistId == this.data.artistId)
+    console.log('筛选后该画师的商品数量:', products.length)
     
     if (products.length > 0) {
       // 转换本地存储的商品格式为页面显示格式
-      products = products.map(p => ({
-        _id: p.id || p._id,
-        id: p.id || p._id,
-        name: p.name || '未命名商品',
-        image: (p.images && p.images[0]) || 'https://via.placeholder.com/200',
-        images: p.images || [],
-        price: p.price || p.basePrice || '0.00',
-        basePrice: p.basePrice || '0.00',
-        status: p.isOnSale ? 'online' : 'offline',
-        isOnSale: p.isOnSale !== false,
-        sales: p.sales || 0,
-        stock: p.stock || 0
-      }))
+      products = products.map(p => {
+        console.log(`商品: ${p.name}, artistId: ${p.artistId}, isOnSale: ${p.isOnSale}`)
+        return {
+          _id: p.id || p._id,
+          id: p.id || p._id,
+          name: p.name || '未命名商品',
+          image: (p.images && p.images[0]) || 'https://via.placeholder.com/200',
+          images: p.images || [],
+          price: p.price || p.basePrice || '0.00',
+          basePrice: p.basePrice || '0.00',
+          status: p.isOnSale !== false ? 'online' : 'offline',
+          isOnSale: p.isOnSale !== false,
+          sales: p.sales || 0,
+          stock: p.stock || 0
+        }
+      })
       console.log('转换后的商品数据:', products.length, '个')
+      products.forEach(p => console.log(`  - ${p.name}: status=${p.status}, isOnSale=${p.isOnSale}`))
     } else {
-      console.log('本地存储为空，无商品数据')
+      console.log('该画师暂无商品')
     }
 
     const stats = {
