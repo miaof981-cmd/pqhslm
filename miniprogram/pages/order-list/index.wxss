@@ -1,3 +1,6 @@
+/* 引入通用订单进度条样式 */
+@import "../../styles/order-progress.wxss";
+
 /* 订单列表页样式 */
 .container {
   min-height: 100vh;

@@ -103,6 +103,9 @@ Page({
           }
         }
         
+        // 计算进度百分比和是否脱稿
+        const progressData = this.calculateProgress(order)
+        
         return {
           _id: order.id,
           orderNo: order.id,
@@ -117,6 +120,8 @@ Page({
           progress: status === 'completed' ? 100 : 60,
           createTime: createTimeDisplay,
           deadline: deadlineDisplay,
+          progressPercent: progressData.percent,
+          isOverdue: progressData.isOverdue,
           reviewed: false
         }
       })
@@ -352,6 +357,39 @@ Page({
       // 清空图片路径，让 wx:if 显示占位符
       orders[index].productImage = ''
       this.setData({ orders })
+    }
+  },
+  
+  // 计算订单进度百分比
+  calculateProgress(order) {
+    if (order.status === 'completed') {
+      return { percent: 100, isOverdue: false }
+    }
+    
+    try {
+      const createTime = new Date(order.createTime).getTime()
+      const deadline = new Date(order.deadline).getTime()
+      const now = Date.now()
+      
+      if (isNaN(createTime) || isNaN(deadline)) {
+        return { percent: 50, isOverdue: false }
+      }
+      
+      const totalTime = deadline - createTime
+      const elapsedTime = now - createTime
+      
+      let percent = Math.round((elapsedTime / totalTime) * 100)
+      
+      // 限制范围在 0-100%
+      if (percent < 0) percent = 0
+      if (percent > 100) percent = 100
+      
+      const isOverdue = now > deadline
+      
+      return { percent, isOverdue }
+    } catch (error) {
+      console.error('计算进度失败:', error)
+      return { percent: 50, isOverdue: false }
     }
   }
 })

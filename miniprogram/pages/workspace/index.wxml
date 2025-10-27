@@ -156,14 +156,20 @@
             <!-- 时间进度条 -->
             <view class="order-progress-section">
               <view class="progress-header">
-                <text class="progress-label">下单：{{item.createTime}}</text>
-                <text class="progress-label deadline-label {{item.status === 'overdue' ? 'overdue' : ''}}">
-                  截稿：{{item.deadline}}
-                </text>
+                <view class="progress-label">
+                  <text class="time-title">下单时间</text>
+                  <text class="time-value">{{item.createTime}}</text>
+                </view>
+                <view class="progress-label deadline-label {{item.status === 'overdue' ? 'overdue' : ''}}">
+                  <text class="time-title">截稿时间</text>
+                  <text class="time-value">{{item.deadline}}</text>
+                </view>
               </view>
-              <view class="progress-bar-bg">
-                <view class="progress-bar-fill {{item.status === 'overdue' ? 'overdue' : ''}}" 
-                      style="width: {{item.progressPercent || 50}}%;"></view>
+              <view class="progress-bar-container">
+                <view class="progress-bar-bg">
+                  <view class="progress-bar-fill {{item.status === 'overdue' ? 'overdue' : ''}}" 
+                        style="width: {{item.progressPercent || 50}}%;"></view>
+                </view>
               </view>
             </view>
 

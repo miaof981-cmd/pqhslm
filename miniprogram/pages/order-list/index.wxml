@@ -54,19 +54,22 @@
         </view>
       </view>
 
-      <!-- 订单时间线 -->
-      <view wx:if="{{item.status === 'processing'}}" class="order-timeline">
-        <view class="timeline-row">
-          <view class="timeline-point active">
-            <view class="point-dot"></view>
-            <text class="point-label">下单时间</text>
-            <text class="point-time">{{item.createTime}}</text>
+      <!-- 订单进度条 -->
+      <view wx:if="{{item.status === 'processing'}}" class="order-progress-section">
+        <view class="progress-header">
+          <view class="progress-label">
+            <text class="time-title">下单时间</text>
+            <text class="time-value">{{item.createTime}}</text>
           </view>
-          <view class="timeline-line"></view>
-          <view class="timeline-point">
-            <view class="point-dot"></view>
-            <text class="point-label">截稿时间</text>
-            <text class="point-time">{{item.deadline}}</text>
+          <view class="progress-label deadline-label {{item.isOverdue ? 'overdue' : ''}}">
+            <text class="time-title">截稿时间</text>
+            <text class="time-value">{{item.deadline}}</text>
+          </view>
+        </view>
+        <view class="progress-bar-container">
+          <view class="progress-bar-bg">
+            <view class="progress-bar-fill {{item.isOverdue ? 'overdue' : ''}}" 
+                  style="width: {{item.progressPercent || 50}}%;"></view>
           </view>
         </view>
       </view>

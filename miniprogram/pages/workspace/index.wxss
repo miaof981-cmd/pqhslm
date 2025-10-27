@@ -703,65 +703,131 @@ page {
 
 /* ========== 订单卡片优化样式 ========== */
 
-/* 时间进度条区 */
+/* 时间进度条区 - 统一样式 */
 .order-progress-section {
-  padding: 20rpx 24rpx;
+  padding: 24rpx;
   margin: 16rpx 0;
   background: linear-gradient(135deg, #F8FFF9 0%, #F0F9F1 100%);
-  border-radius: 12rpx;
-  border-left: 6rpx solid #66BB6A;
+  border-radius: 16rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 左侧装饰条 */
+.order-progress-section::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 6rpx;
+  height: 100%;
+  background: linear-gradient(180deg, #66BB6A 0%, #4CAF50 100%);
 }
 
 .progress-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12rpx;
+  align-items: baseline;
+  margin-bottom: 16rpx;
 }
 
 .progress-label {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: #666;
   font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
 }
 
-.deadline-label {
+.progress-label .time-title {
+  font-size: 20rpx;
+  color: #999;
+  font-weight: 400;
+}
+
+.progress-label .time-value {
+  font-size: 24rpx;
+  color: #333;
   font-weight: 600;
 }
 
-.deadline-label.overdue {
+.deadline-label.overdue .time-value {
   color: #FF6B6B;
+}
+
+.progress-bar-container {
+  position: relative;
 }
 
 .progress-bar-bg {
   width: 100%;
-  height: 12rpx;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 12rpx;
+  height: 16rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16rpx;
   overflow: hidden;
-  box-shadow: inset 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 2rpx 6rpx rgba(0, 0, 0, 0.06);
+  position: relative;
 }
 
 .progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #66BB6A 0%, #81C784 100%);
-  border-radius: 12rpx;
-  transition: width 0.3s ease, background 0.3s ease;
+  background: linear-gradient(90deg, #66BB6A 0%, #81C784 50%, #66BB6A 100%);
+  background-size: 200% 100%;
+  border-radius: 16rpx;
+  transition: width 0.4s ease, background 0.3s ease;
   position: relative;
+  animation: shimmer 2s infinite;
 }
 
-.progress-bar-fill::after {
+@keyframes shimmer {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: 0% center;
+  }
+}
+
+/* 进度条高光效果 */
+.progress-bar-fill::before {
   content: '';
   position: absolute;
   top: 0;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 100%);
+  border-radius: 16rpx 16rpx 0 0;
+}
+
+/* 进度条末端光点 */
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 50%;
   right: 0;
-  width: 20rpx;
-  height: 100%;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 100%);
+  width: 8rpx;
+  height: 8rpx;
+  background: #fff;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  box-shadow: 0 0 8rpx rgba(255, 255, 255, 0.8);
 }
 
 .progress-bar-fill.overdue {
-  background: linear-gradient(90deg, #FF6B6B 0%, #FF8A80 100%);
+  background: linear-gradient(90deg, #FF6B6B 0%, #FF8A80 50%, #FF6B6B 100%);
+  background-size: 200% 100%;
+  animation: shimmer-red 2s infinite;
+}
+
+@keyframes shimmer-red {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: 0% center;
+  }
 }
 
 /* 人员信息区（紧凑单行） */
