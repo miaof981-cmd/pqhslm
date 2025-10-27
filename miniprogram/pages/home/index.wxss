@@ -233,6 +233,36 @@
   padding: 30rpx;
 }
 
+/* 筛选区块 */
+.filter-section {
+  margin-bottom: 40rpx;
+}
+
+.filter-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+  padding-left: 20rpx;
+  position: relative;
+}
+
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6rpx;
+  height: 24rpx;
+  background: linear-gradient(135deg, #A8E6CF 0%, #81C784 100%);
+  border-radius: 3rpx;
+}
+
 .filter-group {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -409,6 +439,42 @@
   width: 100%;
   height: 100%;
   display: block;
+}
+
+/* 出稿时间标签 */
+.delivery-badge {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8rpx);
+  color: white;
+  font-size: 22rpx;
+  font-weight: 600;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+  z-index: 2;
+}
+
+/* 极速出稿标签 - 特殊样式 */
+.delivery-badge.fast {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 107, 0.4);
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 /* 商品信息 */

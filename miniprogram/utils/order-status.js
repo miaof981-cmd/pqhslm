@@ -29,8 +29,9 @@ function calculateOrderStatus(order) {
   // 计算剩余时间（毫秒）
   const timeLeft = deadline.getTime() - now.getTime()
   
-  // 计算剩余天数
+  // 计算剩余天数和小时
   const daysLeft = timeLeft / (24 * 60 * 60 * 1000)
+  const hoursLeft = timeLeft / (60 * 60 * 1000)
   
   let status = 'inProgress'
   let statusText = '进行中'
@@ -41,8 +42,8 @@ function calculateOrderStatus(order) {
     status = 'overdue'
     statusText = '已拖稿'
     urgent = true
-  } else if (daysLeft <= 1) {
-    // 剩余时间小于等于1天
+  } else if (hoursLeft <= 12) {
+    // 剩余时间小于等于12小时（0.5天）
     status = 'nearDeadline'
     statusText = '临近截稿'
     urgent = true

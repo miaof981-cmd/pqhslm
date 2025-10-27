@@ -45,6 +45,11 @@
         <!-- 商品图片（正方形） -->
         <view class="product-image-wrapper">
           <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
+          <!-- 出稿时间标签 -->
+          <view class="delivery-badge {{item.deliveryDays === 1 ? 'fast' : ''}}">
+            <text wx:if="{{item.deliveryDays === 1}}">极速</text>
+            <text wx:else>{{item.deliveryDays}}天</text>
+          </view>
         </view>
         <!-- 商品信息 -->
         <view class="product-info">
@@ -63,16 +68,42 @@
     <view class="filter-mask" bindtap="toggleFilter"></view>
     <view class="filter-content">
       <view class="filter-header">
-        <text class="filter-title">商品分类</text>
+        <text class="filter-title">筛选条件</text>
         <view class="filter-close" bindtap="toggleFilter">×</view>
       </view>
       <view class="filter-body">
-        <view class="filter-group">
-          <view wx:for="{{categories}}" wx:key="id" 
-                class="filter-item {{item.active ? 'active' : ''}}" 
-                data-id="{{item.id}}" 
-                bindtap="switchCategory">
-            <text class="filter-item-name">{{item.name}}</text>
+        <!-- 商品分类 -->
+        <view class="filter-section">
+          <view class="section-title">商品分类</view>
+          <view class="filter-group">
+            <view wx:for="{{categories}}" wx:key="id" 
+                  class="filter-item {{item.active ? 'active' : ''}}" 
+                  data-id="{{item.id}}" 
+                  bindtap="switchCategory">
+              <text class="filter-item-name">{{item.name}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 出稿时间排序 -->
+        <view class="filter-section">
+          <view class="section-title">出稿时间</view>
+          <view class="filter-group">
+            <view class="filter-item {{deliverySort === 'default' ? 'active' : ''}}" 
+                  data-sort="default" 
+                  bindtap="changeDeliverySort">
+              <text class="filter-item-name">默认排序</text>
+            </view>
+            <view class="filter-item {{deliverySort === 'fastest' ? 'active' : ''}}" 
+                  data-sort="fastest" 
+                  bindtap="changeDeliverySort">
+              <text class="filter-item-name">最快优先</text>
+            </view>
+            <view class="filter-item {{deliverySort === 'slowest' ? 'active' : ''}}" 
+                  data-sort="slowest" 
+                  bindtap="changeDeliverySort">
+              <text class="filter-item-name">最慢优先</text>
+            </view>
           </view>
         </view>
       </view>

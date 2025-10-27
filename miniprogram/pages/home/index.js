@@ -10,7 +10,9 @@ Page({
     currentCategory: 'all',
     currentCategoryName: '全部商品',
     showFilter: false,
-    tempCategory: 'all'
+    tempCategory: 'all',
+    deliverySort: 'default', // 出稿时间排序：default/fastest/slowest
+    tempDeliverySort: 'default'
   },
 
   onLoad() {
@@ -179,6 +181,14 @@ Page({
     })
   },
 
+  // 切换出稿时间排序
+  changeDeliverySort(e) {
+    const sort = e.currentTarget.dataset.sort
+    this.setData({
+      tempDeliverySort: sort
+    })
+  },
+
   // 重置筛选
   resetFilter() {
     const categories = this.data.categories.map(cat => ({
@@ -188,37 +198,64 @@ Page({
     
     this.setData({
       categories: categories,
-      tempCategory: 'all'
+      tempCategory: 'all',
+      tempDeliverySort: 'default'
     })
   },
 
   // 确认筛选
   confirmFilter() {
     const categoryId = this.data.tempCategory
+    const deliverySort = this.data.tempDeliverySort
     const category = this.data.categories.find(cat => cat.id === categoryId)
     const categoryName = categoryId === 'all' ? '全部商品' : (category ? category.name : '全部商品')
     
     this.setData({
       currentCategory: categoryId,
       currentCategoryName: categoryName,
+      deliverySort: deliverySort,
       showFilter: false
     })
     
-    // 根据分类筛选商品
-    this.filterProductsByCategory(categoryId)
+    // 根据分类和排序筛选商品
+    this.filterAndSortProducts(categoryId, deliverySort)
   },
 
-  // 根据分类筛选商品
-  filterProductsByCategory(categoryId) {
+  // 根据分类和排序筛选商品
+  filterAndSortProducts(categoryId, deliverySort) {
     let filteredProducts = this.data.allProducts
     
+    // 1. 先按分类筛选
     if (categoryId !== 'all') {
-      filteredProducts = this.data.allProducts.filter(product => product.category === categoryId)
+      filteredProducts = filteredProducts.filter(product => product.category === categoryId)
     }
+    
+    // 2. 再按出稿时间排序
+    if (deliverySort === 'fastest') {
+      // 最快优先：出稿天数从小到大
+      filteredProducts = filteredProducts.sort((a, b) => {
+        const daysA = a.deliveryDays || 999
+        const daysB = b.deliveryDays || 999
+        return daysA - daysB
+      })
+    } else if (deliverySort === 'slowest') {
+      // 最慢优先：出稿天数从大到小
+      filteredProducts = filteredProducts.sort((a, b) => {
+        const daysA = a.deliveryDays || 0
+        const daysB = b.deliveryDays || 0
+        return daysB - daysA
+      })
+    }
+    // default: 保持原顺序（最新上传的在前）
     
     this.setData({
       products: filteredProducts
     })
+  },
+  
+  // 根据分类筛选商品（兼容旧代码）
+  filterProductsByCategory(categoryId) {
+    this.filterAndSortProducts(categoryId, this.data.deliverySort)
   },
 
   // 取消筛选
