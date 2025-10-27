@@ -279,10 +279,51 @@
   line-height: 1.4;
 }
 
+.recommend-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8rpx;
+}
+
 .recommend-price {
   font-size: 30rpx;
   font-weight: 700;
   color: #E53935;
+  flex-shrink: 0;
+}
+
+.recommend-delivery {
+  font-size: 20rpx;
+  padding: 4rpx 8rpx;
+  border-radius: 6rpx;
+  white-space: nowrap;
+  font-weight: 400;
+  flex-shrink: 0;
+}
+
+/* 极速出稿 (1天) - 极淡蓝色 */
+.recommend-delivery.delivery-fast {
+  background: #F0F8FF;
+  color: #7BA3CC;
+}
+
+/* 快速出稿 (2-3天) - 极淡绿色 */
+.recommend-delivery.delivery-quick {
+  background: #F4F9F4;
+  color: #81B589;
+}
+
+/* 普通出稿 (4-7天) - 极淡黄色 */
+.recommend-delivery.delivery-normal {
+  background: #FFFCF5;
+  color: #C9A872;
+}
+
+/* 慢速出稿 (8-30天) - 极淡灰色 */
+.recommend-delivery.delivery-slow {
+  background: #FAFAFA;
+  color: #B0B0B0;
 }
 
 /* 空购物车容器 */
