@@ -110,15 +110,29 @@ Page({
   loadProducts() {
     const artistId = this.data.artistId
     
+    console.log('=== 加载商品列表 ===')
+    console.log('artistId:', artistId)
+    
     // 从本地存储读取所有商品
     const allProducts = wx.getStorageSync('mock_products') || []
+    console.log('所有商品数量:', allProducts.length)
     
     // 筛选该画师的商品
-    const artistProducts = allProducts.filter(product => product.artistId == artistId)
+    const artistProducts = allProducts.filter(product => {
+      const match = product.artistId == artistId
+      if (match) {
+        console.log('找到商品:', product.name, 'isOnSale:', product.isOnSale)
+      }
+      return match
+    })
     
-    // 统计上下架数量
-    const onlineCount = artistProducts.filter(p => p.status === 'online').length
-    const offlineCount = artistProducts.filter(p => p.status === 'offline').length
+    console.log('该画师商品数量:', artistProducts.length)
+    
+    // 统计上下架数量（使用 isOnSale 字段）
+    const onlineCount = artistProducts.filter(p => p.isOnSale !== false).length
+    const offlineCount = artistProducts.filter(p => p.isOnSale === false).length
+    
+    console.log('已上架:', onlineCount, '已下架:', offlineCount)
     
     this.setData({
       products: artistProducts,
@@ -142,10 +156,12 @@ Page({
     let filtered = products
     
     if (currentTab === 'online') {
-      filtered = products.filter(p => p.status === 'online')
+      filtered = products.filter(p => p.isOnSale !== false)
     } else if (currentTab === 'offline') {
-      filtered = products.filter(p => p.status === 'offline')
+      filtered = products.filter(p => p.isOnSale === false)
     }
+    
+    console.log('筛选结果 - 当前标签:', currentTab, '商品数量:', filtered.length)
     
     this.setData({ filteredProducts: filtered })
   },
@@ -161,9 +177,11 @@ Page({
   // 切换商品状态
   toggleProductStatus(e) {
     const productId = e.currentTarget.dataset.id
-    const currentStatus = e.currentTarget.dataset.status
-    const newStatus = currentStatus === 'online' ? 'offline' : 'online'
-    const actionText = newStatus === 'online' ? '上架' : '下架'
+    const currentIsOnSale = e.currentTarget.dataset.isonsale
+    const newIsOnSale = !currentIsOnSale
+    const actionText = newIsOnSale ? '上架' : '下架'
+    
+    console.log('切换商品状态:', productId, '当前:', currentIsOnSale, '新:', newIsOnSale)
     
     wx.showModal({
       title: `确认${actionText}`,
@@ -175,8 +193,10 @@ Page({
           const productIndex = allProducts.findIndex(p => p.id === productId)
           
           if (productIndex !== -1) {
-            allProducts[productIndex].status = newStatus
+            allProducts[productIndex].isOnSale = newIsOnSale
             wx.setStorageSync('mock_products', allProducts)
+            
+            console.log('状态已更新:', allProducts[productIndex].name, 'isOnSale:', newIsOnSale)
             
             wx.showToast({
               title: `已${actionText}`,

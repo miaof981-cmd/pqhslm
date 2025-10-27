@@ -42,8 +42,8 @@
       <view class="product-info">
         <view class="product-header">
           <text class="product-name">{{item.name}}</text>
-          <view class="status-badge {{item.status === 'online' ? 'online' : 'offline'}}">
-            {{item.status === 'online' ? '已上架' : '已下架'}}
+          <view class="status-badge {{item.isOnSale !== false ? 'online' : 'offline'}}">
+            {{item.isOnSale !== false ? '已上架' : '已下架'}}
           </view>
         </view>
         
@@ -62,8 +62,8 @@
         <button class="action-btn edit-btn" bindtap="editProduct" data-id="{{item.id}}">
           编辑
         </button>
-        <button class="action-btn toggle-btn" bindtap="toggleProductStatus" data-id="{{item.id}}" data-status="{{item.status}}">
-          {{item.status === 'online' ? '下架' : '上架'}}
+        <button class="action-btn toggle-btn" bindtap="toggleProductStatus" data-id="{{item.id}}" data-isonsale="{{item.isOnSale !== false}}">
+          {{item.isOnSale !== false ? '下架' : '上架'}}
         </button>
         <button class="action-btn delete-btn" bindtap="deleteProduct" data-id="{{item.id}}">
           删除
