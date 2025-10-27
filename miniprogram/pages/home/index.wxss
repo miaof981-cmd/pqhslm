@@ -488,8 +488,10 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  min-height: 72rpx;
+  text-overflow: ellipsis;
+  white-space: normal;
   font-weight: 500;
+  /* 移除 min-height，让高度自适应 */
 }
 
 /* 价格和画师信息容器 */
