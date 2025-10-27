@@ -845,25 +845,26 @@ Page({
     this.applyFilter()
   },
   
-  // 计算订单进度百分比（按天数比例）
+  // 计算订单进度百分比（按整天数比例）
   calculateProgressPercent(order) {
     if (order.status === 'completed') {
       return 100
     }
     
     try {
-      const createTime = new Date(order.createTime).getTime()
-      const deadline = new Date(order.deadline).getTime()
-      const now = Date.now()
+      // 只取日期部分，忽略具体时间，避免频繁重新计算
+      const createDate = new Date(order.createTime.split(' ')[0]).getTime()
+      const deadlineDate = new Date(order.deadline.split(' ')[0]).getTime()
+      const todayDate = new Date(new Date().toLocaleDateString()).getTime()
       
-      if (isNaN(createTime) || isNaN(deadline)) {
-        return 10 // 默认显示一点点进度
+      if (isNaN(createDate) || isNaN(deadlineDate)) {
+        return 5 // 默认显示一点点进度
       }
       
-      // 计算经过的天数和总天数
+      // 计算整天数
       const oneDayMs = 24 * 60 * 60 * 1000
-      const totalDays = Math.ceil((deadline - createTime) / oneDayMs)
-      const elapsedDays = Math.ceil((now - createTime) / oneDayMs)
+      const totalDays = Math.round((deadlineDate - createDate) / oneDayMs)
+      const elapsedDays = Math.round((todayDate - createDate) / oneDayMs)
       
       // 按天数比例计算进度
       let percent = Math.round((elapsedDays / totalDays) * 100)
@@ -873,6 +874,8 @@ Page({
       if (percent > 100) percent = 100
       
       console.log(`订单 ${order.id} 进度计算:`, {
+        下单日期: order.createTime.split(' ')[0],
+        截稿日期: order.deadline.split(' ')[0],
         总天数: totalDays,
         已过天数: elapsedDays,
         进度: `${percent}%`
@@ -881,7 +884,7 @@ Page({
       return percent
     } catch (error) {
       console.error('计算进度百分比失败:', error)
-      return 10
+      return 5
     }
   },
   
