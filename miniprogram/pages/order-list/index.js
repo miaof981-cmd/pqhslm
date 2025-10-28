@@ -142,15 +142,26 @@ Page({
           deadlineText = `${deadlineDisplay} (已脱稿${progressData.overdueDays}天)`
         }
         
-        // 获取客服信息
+        // 获取客服信息（优先使用订单中已保存的数据）
         let serviceName = '待分配'
         let serviceAvatar = '/assets/default-avatar.png'
-        if (order.serviceId) {
+        
+        // 1️⃣ 优先使用订单中已保存的客服信息（下单时已绑定）
+        if (order.serviceName && order.serviceName !== '待分配') {
+          serviceName = order.serviceName
+          serviceAvatar = order.serviceAvatar || '/assets/default-avatar.png'
+          console.log(`✅ 使用订单中保存的客服信息: ${serviceName}`)
+        } 
+        // 2️⃣ 如果订单中没有，尝试从客服列表查找（兜底逻辑）
+        else if (order.serviceId) {
           const serviceList = wx.getStorageSync('customer_service_list') || []
           const service = serviceList.find(s => s.userId === order.serviceId)
           if (service) {
             serviceName = service.name || service.nickName || '客服'
             serviceAvatar = service.avatarUrl || '/assets/default-avatar.png'
+            console.log(`ℹ️ 从客服列表查找到客服: ${serviceName}`)
+          } else {
+            console.warn(`⚠️ 订单 ${order.id} 的 serviceId (${order.serviceId}) 在客服列表中未找到`)
           }
         }
         
