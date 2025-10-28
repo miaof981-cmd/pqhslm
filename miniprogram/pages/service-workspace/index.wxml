@@ -1,123 +1,195 @@
-<view class="service-container">
-  <!-- 精简顶栏：头像+信息+快捷操作 -->
-  <view class="compact-header">
-    <image class="header-avatar" src="{{serviceInfo.avatar}}" mode="aspectFill" />
-    <view class="header-info">
-      <text class="header-title">客服工作台</text>
-      <text class="header-subtitle">编号{{serviceInfo.serviceNumber}} · {{serviceInfo.name}}</text>
-    </view>
-    <view class="header-actions">
-      <view class="mini-action" bindtap="viewStats">统计</view>
-      <view class="mini-action" bindtap="viewWithdraw">提现</view>
-    </view>
+<view class="workspace-container">
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
   </view>
 
-  <!-- 精简待办：单行显示 -->
-  <view class="compact-stats">
-    <view class="compact-stat" data-filter="pending" bindtap="filterOrders">
-      <text class="stat-num">{{stats.pending}}</text>
-      <text class="stat-text">待处理</text>
-    </view>
-    <view class="compact-stat" data-filter="processing" bindtap="filterOrders">
-      <text class="stat-num">{{stats.processing}}</text>
-      <text class="stat-text">进行中</text>
-    </view>
-    <view class="compact-stat" data-filter="urgent" bindtap="filterOrders">
-      <text class="stat-num urgent">{{stats.urgent}}</text>
-      <text class="stat-text">紧急</text>
-    </view>
+  <!-- 无权限提示 -->
+  <view wx:elif="{{!hasPermission}}" class="no-permission">
+    <view class="no-permission-icon">🔒</view>
+    <view class="no-permission-title">暂无访问权限</view>
+    <view class="no-permission-text">您还不是客服</view>
   </view>
 
-  <!-- 搜索栏 -->
-  <view class="search-bar">
-    <view class="search-input-wrapper">
-      <view class="search-icon"></view>
-      <input class="search-input" 
-             placeholder="搜索订单号或商品名称" 
-             value="{{searchKeyword}}"
-             bindinput="onSearchInput"
-             confirm-type="search"
-             bindconfirm="onSearchConfirm" />
-      <view wx:if="{{searchKeyword}}" class="clear-icon" bindtap="clearSearch">×</view>
-    </view>
-  </view>
-
-  <!-- 订单筛选 -->
-  <view class="filter-bar">
-    <text class="filter-item {{currentFilter === 'all' ? 'active' : ''}}" 
-          data-filter="all" 
-          bindtap="switchFilter">全部</text>
-    <text class="filter-item {{currentFilter === 'processing' ? 'active' : ''}}" 
-          data-filter="processing" 
-          bindtap="switchFilter">进行中</text>
-    <text class="filter-item {{currentFilter === 'completed' ? 'active' : ''}}" 
-          data-filter="completed" 
-          bindtap="switchFilter">已完成</text>
-  </view>
-
-  <!-- 订单列表（紧凑布局） -->
-  <view class="order-list">
-    <view wx:if="{{filteredOrders.length === 0}}" class="empty-tip">
-      暂无订单
-    </view>
-    
-    <view wx:for="{{filteredOrders}}" wx:key="id" class="order-card-new">
-      <!-- 订单头部 -->
-      <view class="order-card-header" bindtap="viewOrderDetail" data-id="{{item.id}}">
-        <view class="order-no-info">
-          <text class="order-no-label">订单号</text>
-          <text class="order-no-value">{{item.orderNumber || item.id}}</text>
-        </view>
-        <view class="order-status-badge status-{{item.status}}">
-          <text class="status-text">{{item.businessStatus || item.statusText}}</text>
+  <view wx:else class="workspace-content">
+    <!-- 顶部功能区（紧凑） -->
+    <view class="top-section">
+      <view class="header-row">
+        <text class="page-title">客服工作台</text>
+        <view class="stats-mini">
+          <view class="stat-mini-item" bindtap="filterOrders" data-filter="inProgress">
+            待处理 <text class="stat-mini-num">{{pendingStats.inProgress || 0}}</text>
+          </view>
+          <view class="stat-mini-item urgent" bindtap="filterOrders" data-filter="urgent">
+            紧急 <text class="stat-mini-num">{{(pendingStats.overdue || 0) + (pendingStats.nearDeadline || 0)}}</text>
+          </view>
         </view>
       </view>
 
-      <!-- 订单内容 -->
-      <view class="order-card-content" bindtap="viewOrderDetail" data-id="{{item.id}}">
-        <image class="product-image-new" src="{{item.productImage}}" mode="aspectFill" />
-        <view class="order-info-new">
-          <text class="product-name-new">{{item.productName}}</text>
-          <view class="order-meta-new">
-            <text class="meta-text">买家：{{item.buyerName}}</text>
+      <!-- 客服快捷功能 -->
+      <view class="quick-functions">
+        <view class="func-btn" bindtap="handleFunction" data-func="dataStats">
+          <view class="func-icon stats-icon"></view>
+          <text class="func-name">统计</text>
+        </view>
+        <view class="func-btn" bindtap="handleFunction" data-func="withdraw">
+          <view class="func-icon money-icon"></view>
+          <text class="func-name">提现</text>
+        </view>
+        <view class="func-btn" bindtap="handleFunction" data-func="qrcodeManage">
+          <view class="func-icon qrcode-icon"></view>
+          <text class="func-name">二维码</text>
+        </view>
+        <view class="func-btn" bindtap="toggleNotices">
+          <view class="func-icon notice-icon"></view>
+          <text class="func-name">须知</text>
+        </view>
+      </view>
+
+      <!-- 平台须知（可展开） -->
+      <view wx:if="{{showNotices}}" class="notices-compact">
+        <view wx:for="{{notices}}" wx:key="id" class="notice-line">
+          <text>• {{item.content}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 订单列表区（占大半屏幕） -->
+    <view class="orders-section">
+      <view class="section-header">
+        <text class="section-title">待处理订单</text>
+        <text class="order-count">共 {{filteredOrders.length}} 单</text>
+      </view>
+
+      <!-- 搜索和筛选 -->
+      <view class="filter-bar">
+        <view class="search-box">
+          <view class="search-icon"></view>
+          <input class="search-input" 
+                 placeholder="搜索订单号/商品名" 
+                 value="{{searchKeyword}}"
+                 bindinput="onSearchInput"/>
+          <view wx:if="{{searchKeyword}}" class="clear-icon" bindtap="clearSearch"></view>
+        </view>
+        
+        <view class="filter-tabs">
+          <view class="filter-tab {{currentFilter === 'all' ? 'active' : ''}}" 
+                bindtap="filterOrders" 
+                data-filter="all">
+            全部
+          </view>
+          <view class="filter-tab {{currentFilter === 'urgent' ? 'active' : ''}}" 
+                bindtap="filterOrders" 
+                data-filter="urgent">
+            紧急
+          </view>
+          <view class="filter-tab {{currentFilter === 'inProgress' ? 'active' : ''}}" 
+                bindtap="filterOrders" 
+                data-filter="inProgress">
+            进行中
+          </view>
+          <view class="filter-tab {{currentFilter === 'waitingConfirm' ? 'active' : ''}}" 
+                bindtap="filterOrders" 
+                data-filter="waitingConfirm">
+            待确认
+          </view>
+          <view class="filter-tab {{currentFilter === 'completed' ? 'active' : ''}}" 
+                bindtap="filterOrders" 
+                data-filter="completed">
+            已完成
+          </view>
+        </view>
+      </view>
+
+      <scroll-view class="orders-scroll" scroll-y>
+        <view wx:if="{{filteredOrders.length === 0}}" class="empty-orders">
+          <view class="empty-icon-wrapper">
+            <view class="empty-icon"></view>
+          </view>
+          <text class="empty-text">{{searchKeyword ? '未找到相关订单' : '暂无待处理订单'}}</text>
+        </view>
+
+        <view wx:else class="orders-list">
+          <view wx:for="{{filteredOrders}}" wx:key="id" class="order-card">
+            <!-- 订单头部：订单号 + 状态 -->
+            <view class="order-header" bindtap="viewOrderDetail" data-id="{{item.id}}">
+              <view class="order-id">订单 #{{item.id}}</view>
+              <view class="order-status status-{{item.status}}">{{item.businessStatus || item.statusText}}</view>
+            </view>
+
+            <!-- 商品信息区 -->
+            <view class="order-product" bindtap="viewOrderDetail" data-id="{{item.id}}">
+              <image class="product-thumb" src="{{item.productImage}}" mode="aspectFill"/>
+              <view class="product-info">
+                <text class="product-name">{{item.productName}}</text>
+                <text class="product-spec">{{item.spec}}</text>
+              </view>
+              <view class="product-price">
+                <text class="price-symbol">¥</text>
+                <text class="price-value">{{item.price}}</text>
+              </view>
+            </view>
+
+            <!-- 时间进度条 -->
+            <view class="order-progress-section {{item.isOverdue ? 'overdue' : (item.businessStatus === '临近截稿' ? 'near-deadline' : '')}}">
+              <view class="progress-header">
+                <view class="progress-label">
+                  <text class="time-title">下单时间</text>
+                  <text class="time-value">{{item.createTime}}</text>
+                </view>
+                <view class="progress-label deadline-label {{item.isOverdue ? 'overdue' : ''}}">
+                  <text class="time-title">截稿时间</text>
+                  <text class="time-value">{{item.deadline}}</text>
+                </view>
+              </view>
+              <view class="progress-bar-container">
+                <view class="progress-bar-bg {{item.isOverdue ? 'overdue' : (item.businessStatus === '临近截稿' ? 'near-deadline' : '')}}">
+                  <view class="progress-bar-fill {{item.isOverdue ? 'overdue' : (item.businessStatus === '临近截稿' ? 'near-deadline' : '')}}" 
+                        style="width: {{item.progressPercent || 0}}%;"></view>
+                </view>
+              </view>
+            </view>
+
+            <!-- 人员信息区（单行） -->
+            <view class="order-people-compact">
+              <view class="people-item-compact">
+                <text class="people-label-small">客户</text>
+                <image class="people-avatar-small" src="{{item.buyerAvatar || '/assets/default-avatar.png'}}" mode="aspectFill"/>
+                <text class="people-name-compact">{{item.buyerName || '客户'}}</text>
+              </view>
+              <view class="people-divider-compact"></view>
+              <view class="people-item-compact">
+                <text class="people-label-small">画师</text>
+                <image class="people-avatar-small" src="{{item.artistAvatar || '/assets/default-avatar.png'}}" mode="aspectFill"/>
+                <text class="people-name-compact">{{item.artistName || '待分配'}}</text>
+              </view>
+            </view>
+
+            <!-- 客服操作按钮 -->
+            <view wx:if="{{item.status !== 'completed' && item.status !== 'refunded'}}" class="order-actions">
+              <button class="btn-secondary" 
+                      catchtap="contactCustomer" 
+                      data-id="{{item.id}}">
+                联系客户
+              </button>
+              <button class="btn-danger" 
+                      catchtap="handleRefund" 
+                      data-id="{{item.id}}">
+                处理退款
+              </button>
+            </view>
+            
+            <!-- 已完成提示 -->
+            <view wx:elif="{{item.status === 'completed'}}" class="order-waiting-tip">
+              <text class="waiting-text">✓ 订单已完成</text>
+            </view>
           </view>
           
-          <!-- 时间进度条 -->
-          <view class="order-progress-section {{item.isOverdue ? 'overdue' : (item.businessStatus === '临近截稿' ? 'near-deadline' : '')}}">
-            <view class="progress-header">
-              <view class="progress-label">
-                <text class="time-title">下单时间</text>
-                <text class="time-value">{{item.createTime}}</text>
-              </view>
-              <view class="progress-label deadline-label {{item.isOverdue ? 'overdue' : ''}}">
-                <text class="time-title">截稿时间</text>
-                <text class="time-value">{{item.deadline}}</text>
-              </view>
-            </view>
-            <view class="progress-bar-container">
-              <view class="progress-bar-bg {{item.isOverdue ? 'overdue' : (item.businessStatus === '临近截稿' ? 'near-deadline' : '')}}">
-                <view class="progress-bar-fill {{item.isOverdue ? 'overdue' : (item.businessStatus === '临近截稿' ? 'near-deadline' : '')}}" 
-                      style="width: {{item.progressPercent || 0}}%;"></view>
-              </view>
-            </view>
+          <!-- 底部提示 -->
+          <view class="list-footer">
+            <text class="footer-text">没有更多了</text>
           </view>
         </view>
-      </view>
-
-      <!-- 订单操作区 -->
-      <view class="order-card-actions">
-        <text class="price-text">¥{{item.price}}</text>
-        <view class="action-buttons">
-          <button wx:if="{{item.status !== 'completed' && item.status !== 'refunded'}}" 
-                  class="action-btn refund-btn" 
-                  data-id="{{item.id}}" 
-                  catchtap="initiateRefund">退款</button>
-          <button class="action-btn detail-btn" 
-                  data-id="{{item.id}}" 
-                  catchtap="viewOrderDetail">详情</button>
-        </view>
-      </view>
+      </scroll-view>
     </view>
   </view>
 </view>
-

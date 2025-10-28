@@ -1,58 +1,72 @@
+const orderStatusUtil = require('../../utils/order-status.js')
+
 Page({
   data: {
+    loading: true,
+    hasPermission: false,
     serviceInfo: {
       serviceNumber: 0,
       name: '客服',
       avatar: ''
     },
-    stats: {
-      pending: 0,
-      processing: 0,
-      urgent: 0
+    pendingStats: {
+      inProgress: 0,
+      nearDeadline: 0,
+      overdue: 0
     },
     currentFilter: 'all',
     searchKeyword: '',
+    showNotices: false,
+    notices: [
+      { id: 1, content: '客服应及时回复客户咨询' },
+      { id: 2, content: '遇到纠纷请第一时间联系管理员' },
+      { id: 3, content: '保护客户隐私，不得泄露订单信息' }
+    ],
     allOrders: [],
     filteredOrders: []
   },
 
   onLoad() {
-    this.loadServiceInfo()
-    this.loadOrders()
+    this.checkPermission()
   },
 
   onShow() {
-    // 每次显示时刷新数据
-    this.loadOrders()
+    if (this.data.hasPermission) {
+      this.loadOrders()
+    }
+  },
+
+  // 检查权限
+  checkPermission() {
+    const roles = wx.getStorageSync('userRoles') || []
+    const hasServiceRole = roles.includes('service')
+    
+    if (hasServiceRole) {
+      this.setData({
+        loading: false,
+        hasPermission: true
+      })
+      this.loadServiceInfo()
+      this.loadOrders()
+    } else {
+      this.setData({
+        loading: false,
+        hasPermission: false
+      })
+      wx.showToast({
+        title: '无客服权限',
+        icon: 'none'
+      })
+    }
   },
 
   // 加载客服信息
   loadServiceInfo() {
     const userId = wx.getStorageSync('userId')
     const serviceList = wx.getStorageSync('service_list') || []
-    
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    console.log('📋 [客服工作台] 加载客服信息')
-    console.log('  - 当前用户ID:', userId)
-    console.log('  - 客服列表数量:', serviceList.length)
-    
-    if (serviceList.length > 0) {
-      console.log('  - 客服列表详情:')
-      serviceList.forEach((s, index) => {
-        console.log(`    ${index + 1}. ID:${s.userId} 编号:${s.serviceNumber} 姓名:${s.name}`)
-        console.log(`       头像: ${s.avatar ? s.avatar.substring(0, 50) + '...' : '无'}`)
-      })
-    }
-    
     const myService = serviceList.find(s => s.userId == userId)
 
     if (myService) {
-      console.log('✅ 找到匹配的客服记录:')
-      console.log('  - 客服编号:', myService.serviceNumber)
-      console.log('  - 客服姓名:', myService.name)
-      console.log('  - 客服昵称:', myService.nickName)
-      console.log('  - 头像URL:', myService.avatar ? myService.avatar.substring(0, 80) + '...' : '无')
-      
       this.setData({
         serviceInfo: {
           serviceNumber: myService.serviceNumber,
@@ -60,17 +74,7 @@ Page({
           avatar: myService.avatar || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzRGQzNGNyIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7lrqI8L3RleHQ+PC9zdmc+'
         }
       })
-      console.log('✅ 客服信息已设置到页面')
-    } else {
-      console.warn('❌ 未找到当前用户的客服信息')
-      console.warn('  - 查找条件: userId =', userId)
-      console.warn('  - 可能原因: 该用户未被添加为客服')
-      wx.showToast({
-        title: '未找到客服信息',
-        icon: 'none'
-      })
     }
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   },
 
   // 加载订单
@@ -90,278 +94,81 @@ Page({
     })
     const allOrders = Array.from(orderMap.values())
     
-    // 筛选属于该客服的订单
+    // 筛选属于该客服的订单（或未分配的）
     const myOrders = allOrders.filter(order => {
       return order.serviceId === userId || !order.serviceId
     })
 
-    console.log('📦 客服订单加载:')
-    console.log('  - orders 数量:', orders.length)
-    console.log('  - pending_orders 数量:', pendingOrders.length)
-    console.log('  - 合并后订单数量:', allOrders.length)
-    console.log('  - 客服ID:', userId)
-    console.log('  - 我的订单数:', myOrders.length)
+    // 自动计算订单的状态和进度
+    const processedOrders = orderStatusUtil.calculateOrdersStatus(myOrders)
 
-    // 处理订单状态文本和业务状态
-    const now = new Date()
-    const processedOrders = myOrders.map(order => {
-      let businessStatus = ''
-      let isOverdue = false
-      
-      if (order.deadline && (order.status === 'processing' || order.status === 'paid' || order.status === 'waitingConfirm')) {
-        const deadline = new Date(order.deadline)
-        const diffTime = deadline - now
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-        
-        if (diffTime < 0) {
-          isOverdue = true
-          businessStatus = '已拖稿'
-        } else if (diffDays <= 2) {
-          businessStatus = '临近截稿'
-        } else if (order.status === 'waitingConfirm') {
-          businessStatus = '待客户确认'
-        }
-      }
-      
-      // 计算进度百分比
-      let progressPercent = 0
-      if (order.createdAt && order.deadline) {
-        const createTime = new Date(order.createdAt).getTime()
-        const deadline = new Date(order.deadline).getTime()
-        const now = Date.now()
-        const totalTime = deadline - createTime
-        const elapsedTime = now - createTime
-        
-        if (totalTime > 0) {
-          progressPercent = Math.min(Math.max((elapsedTime / totalTime) * 100, 0), 100)
-        }
-      }
-      
+    // 为每个订单计算进度百分比和格式化时间
+    const finalOrders = processedOrders.map(order => {
+      const progressPercent = this.calculateProgressPercent(order)
       return {
         ...order,
+        progressPercent,
         statusText: this.getStatusText(order.status),
-        businessStatus: businessStatus,
-        isOverdue: isOverdue,
-        progressPercent: progressPercent,
+        businessStatus: this.getBusinessStatus(order),
         createTime: this.formatTime(order.createdAt),
         deadline: this.formatTime(order.deadline)
       }
     })
 
-    // 计算统计数据
-    const stats = {
-      pending: processedOrders.filter(o => o.status === 'created').length,
-      processing: processedOrders.filter(o => o.status === 'processing').length,
-      urgent: processedOrders.filter(o => {
-        // 紧急订单：临近截稿或已拖稿
-        if (!o.deadline) return false
-        const now = new Date()
-        const deadline = new Date(o.deadline)
-        const daysLeft = (deadline - now) / (1000 * 60 * 60 * 24)
-        return daysLeft <= 1 || daysLeft < 0
-      }).length
-    }
+    // 统计订单状态
+    const stats = orderStatusUtil.countOrderStatus(finalOrders)
 
     this.setData({
-      allOrders: processedOrders,
-      stats: stats
+      allOrders: finalOrders,
+      pendingStats: {
+        inProgress: stats.inProgress,
+        nearDeadline: stats.nearDeadline,
+        overdue: stats.overdue
+      }
     })
 
     // 应用当前筛选
     this.applyFilter()
   },
 
-  // 切换筛选
-  switchFilter(e) {
-    const filter = e.currentTarget.dataset.filter
-    this.setData({
-      currentFilter: filter
-    })
-    this.applyFilter()
-  },
-
-  // 应用筛选
-  applyFilter() {
-    const { currentFilter, searchKeyword, allOrders } = this.data
-    let filtered = allOrders
-
-    // 1. 按状态筛选
-    if (currentFilter === 'processing') {
-      filtered = allOrders.filter(o => o.status === 'created' || o.status === 'processing')
-    } else if (currentFilter === 'completed') {
-      filtered = allOrders.filter(o => o.status === 'completed')
-    }
-
-    // 2. 按搜索关键词筛选
-    if (searchKeyword && searchKeyword.trim()) {
-      const keyword = searchKeyword.trim().toLowerCase()
-      filtered = filtered.filter(order => {
-        const orderNo = (order.orderNumber || order.id || '').toLowerCase()
-        const productName = (order.productName || '').toLowerCase()
-        return orderNo.includes(keyword) || productName.includes(keyword)
-      })
-    }
-
-    this.setData({
-      filteredOrders: filtered
-    })
-
-    console.log('🔍 筛选结果:', currentFilter, '搜索:', searchKeyword, '共', filtered.length, '条')
-  },
-
-  // 搜索输入
-  onSearchInput(e) {
-    this.setData({
-      searchKeyword: e.detail.value
-    })
-    // 实时搜索
-    this.applyFilter()
-  },
-
-  // 搜索确认
-  onSearchConfirm() {
-    this.applyFilter()
-  },
-
-  // 清除搜索
-  clearSearch() {
-    this.setData({
-      searchKeyword: ''
-    })
-    this.applyFilter()
-  },
-
-  // 快速筛选（点击统计卡片）
-  filterOrders(e) {
-    const filter = e.currentTarget.dataset.filter
+  // 获取业务状态
+  getBusinessStatus(order) {
+    if (!order.deadline) return ''
     
-    if (filter === 'pending') {
-      this.setData({ currentFilter: 'processing' })
-    } else if (filter === 'urgent') {
-      // 紧急订单筛选
-      const urgentOrders = this.data.allOrders.filter(o => {
-        if (!o.deadline) return false
-        const now = new Date()
-        const deadline = new Date(o.deadline)
-        const daysLeft = (deadline - now) / (1000 * 60 * 60 * 24)
-        return daysLeft <= 1 || daysLeft < 0
-      })
-      this.setData({
-        currentFilter: 'urgent',
-        filteredOrders: urgentOrders
-      })
-      return
-    } else {
-      this.setData({ currentFilter: filter })
+    const now = Date.now()
+    const deadline = new Date(order.deadline).getTime()
+    const diffTime = deadline - now
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (order.status === 'waitingConfirm') {
+      return '待客户确认'
     }
     
-    this.applyFilter()
-  },
-
-  // 查看订单详情
-  viewOrderDetail(e) {
-    const orderId = e.currentTarget.dataset.id
-    wx.navigateTo({
-      url: `/pages/order-detail/index?id=${orderId}`
-    })
-  },
-
-  // 联系买家
-  contactBuyer(e) {
-    const orderId = e.currentTarget.dataset.id
-    const order = this.data.allOrders.find(o => o.id === orderId)
-    
-    if (order && order.buyerName) {
-      wx.showModal({
-        title: '联系买家',
-        content: `买家：${order.buyerName}\n\n请通过微信联系买家沟通订单详情`,
-        showCancel: false
-      })
-    }
-  },
-
-  // 查看详情
-  viewDetail(e) {
-    const orderId = e.currentTarget.dataset.id
-    wx.navigateTo({
-      url: `/pages/order-detail/index?id=${orderId}`
-    })
-  },
-
-  // 查看数据统计
-  viewStats() {
-    wx.showModal({
-      title: '数据统计',
-      content: '数据统计功能开发中',
-      showCancel: false
-    })
-  },
-
-  // 查看提现记录
-  viewWithdraw() {
-    wx.navigateTo({
-      url: '/pages/withdraw/index'
-    })
-  },
-
-  // 发起退款（客服）
-  initiateRefund(e) {
-    const orderId = e.currentTarget.dataset.id
-    
-    wx.showModal({
-      title: '确认退款',
-      content: '确认对此订单进行退款操作？\n\n退款后订单状态将变为"已退款"，此操作不可撤销。',
-      confirmText: '确认退款',
-      confirmColor: '#FF6B6B',
-      success: (res) => {
-        if (res.confirm) {
-          this.doRefund(orderId)
-        }
+    if (order.status === 'processing' || order.status === 'paid' || order.status === 'inProgress') {
+      if (diffTime < 0) {
+        return '已拖稿'
+      } else if (diffDays <= 2) {
+        return '临近截稿'
       }
-    })
+    }
+    
+    return ''
   },
 
-  // 执行退款
-  doRefund(orderId) {
-    // 同时从两个存储源读取
-    let ordersFromOrders = wx.getStorageSync('orders') || []
-    let ordersFromPending = wx.getStorageSync('pending_orders') || []
+  // 计算进度百分比
+  calculateProgressPercent(order) {
+    if (!order.createdAt || !order.deadline) return 0
     
-    // 先在 pending_orders 中查找
-    const pendingIndex = ordersFromPending.findIndex(o => o.id === orderId)
-    if (pendingIndex !== -1) {
-      ordersFromPending[pendingIndex].status = 'refunded'
-      ordersFromPending[pendingIndex].refundTime = new Date().toISOString()
-      wx.setStorageSync('pending_orders', ordersFromPending)
-    }
+    const createTime = new Date(order.createdAt).getTime()
+    const deadline = new Date(order.deadline).getTime()
+    const now = Date.now()
+    const totalTime = deadline - createTime
+    const elapsedTime = now - createTime
     
-    // 再在 orders 中查找（如果存在）
-    const orderIndex = ordersFromOrders.findIndex(o => o.id === orderId)
-    if (orderIndex !== -1) {
-      ordersFromOrders[orderIndex].status = 'refunded'
-      ordersFromOrders[orderIndex].refundTime = new Date().toISOString()
-      wx.setStorageSync('orders', ordersFromOrders)
-    }
-
-    if (pendingIndex === -1 && orderIndex === -1) {
-      wx.showToast({
-        title: '订单不存在',
-        icon: 'none'
-      })
-      return
-    }
-
-    console.log('✅ [客服] 订单已退款:')
-    console.log('  - 订单ID:', orderId)
-    console.log('  - 退款时间:', new Date().toLocaleString())
-
-    wx.showToast({
-      title: '退款成功',
-      icon: 'success'
-    })
-
-    // 刷新订单列表
-    this.loadOrders()
+    if (totalTime <= 0) return 0
+    
+    const percent = (elapsedTime / totalTime) * 100
+    return Math.min(Math.max(percent, 0), 100)
   },
 
   // 获取状态文本
@@ -391,6 +198,150 @@ Page({
     const hour = date.getHours().toString().padStart(2, '0')
     const minute = date.getMinutes().toString().padStart(2, '0')
     return `${month}月${day}日 ${hour}:${minute}`
+  },
+
+  // 筛选订单
+  filterOrders(e) {
+    const filter = e.currentTarget.dataset.filter
+    this.setData({ currentFilter: filter })
+    this.applyFilter()
+  },
+
+  // 应用筛选
+  applyFilter() {
+    const { currentFilter, searchKeyword, allOrders } = this.data
+    let filtered = allOrders
+
+    // 1. 按状态筛选
+    if (currentFilter === 'urgent') {
+      // 紧急订单：临近截稿 + 已拖稿
+      filtered = allOrders.filter(o => {
+        return o.businessStatus === '临近截稿' || o.businessStatus === '已拖稿'
+      })
+      // 已拖稿优先
+      filtered.sort((a, b) => {
+        if (a.businessStatus === '已拖稿' && b.businessStatus !== '已拖稿') return -1
+        if (a.businessStatus !== '已拖稿' && b.businessStatus === '已拖稿') return 1
+        return 0
+      })
+    } else if (currentFilter === 'inProgress') {
+      filtered = allOrders.filter(o => o.status === 'processing' || o.status === 'inProgress')
+    } else if (currentFilter === 'waitingConfirm') {
+      filtered = allOrders.filter(o => o.status === 'waitingConfirm')
+    } else if (currentFilter === 'completed') {
+      filtered = allOrders.filter(o => o.status === 'completed')
+    }
+
+    // 2. 按搜索关键词筛选
+    if (searchKeyword && searchKeyword.trim()) {
+      const keyword = searchKeyword.trim().toLowerCase()
+      filtered = filtered.filter(order => {
+        const orderNo = (order.orderNumber || order.id || '').toLowerCase()
+        const productName = (order.productName || '').toLowerCase()
+        return orderNo.includes(keyword) || productName.includes(keyword)
+      })
+    }
+
+    this.setData({ filteredOrders: filtered })
+  },
+
+  // 搜索输入
+  onSearchInput(e) {
+    this.setData({ searchKeyword: e.detail.value })
+    this.applyFilter()
+  },
+
+  // 清除搜索
+  clearSearch() {
+    this.setData({ searchKeyword: '' })
+    this.applyFilter()
+  },
+
+  // 切换须知显示
+  toggleNotices() {
+    this.setData({ showNotices: !this.data.showNotices })
+  },
+
+  // 处理功能点击
+  handleFunction(e) {
+    const func = e.currentTarget.dataset.func
+    
+    switch(func) {
+      case 'dataStats':
+        wx.navigateTo({ url: '/pages/data-stats/index' })
+        break
+      case 'withdraw':
+        wx.navigateTo({ url: '/pages/withdraw/index' })
+        break
+      case 'qrcodeManage':
+        // 跳转到客服二维码管理页
+        wx.showToast({ title: '二维码管理', icon: 'none' })
+        break
+      default:
+        wx.showToast({ title: '功能开发中', icon: 'none' })
+    }
+  },
+
+  // 查看订单详情
+  viewOrderDetail(e) {
+    const orderId = e.currentTarget.dataset.id
+    wx.navigateTo({
+      url: `/pages/order-detail/index?id=${orderId}`
+    })
+  },
+
+  // 联系客户
+  contactCustomer(e) {
+    const orderId = e.currentTarget.dataset.id
+    wx.showToast({
+      title: '功能开发中',
+      icon: 'none'
+    })
+  },
+
+  // 处理退款
+  handleRefund(e) {
+    const orderId = e.currentTarget.dataset.id
+    const order = this.data.allOrders.find(o => o.id === orderId)
+    
+    if (!order) return
+    
+    wx.showModal({
+      title: '确认退款',
+      content: `确定要为订单 #${order.id} 处理退款吗？`,
+      success: (res) => {
+        if (res.confirm) {
+          this.doRefund(orderId)
+        }
+      }
+    })
+  },
+
+  // 执行退款
+  doRefund(orderId) {
+    // 更新订单状态
+    const orders = wx.getStorageSync('orders') || []
+    const pendingOrders = wx.getStorageSync('pending_orders') || []
+    
+    // 更新两个数据源
+    const updateStatus = (list) => {
+      return list.map(o => {
+        if (o.id === orderId) {
+          return { ...o, status: 'refunded' }
+        }
+        return o
+      })
+    }
+    
+    wx.setStorageSync('orders', updateStatus(orders))
+    wx.setStorageSync('pending_orders', updateStatus(pendingOrders))
+    
+    wx.showToast({
+      title: '退款成功',
+      icon: 'success'
+    })
+    
+    // 刷新订单列表
+    this.loadOrders()
   }
 })
-
