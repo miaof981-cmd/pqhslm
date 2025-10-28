@@ -107,8 +107,13 @@
         <view wx:else class="orders-list">
           <view wx:for="{{filteredOrders}}" wx:key="id" class="order-card">
             <!-- 订单头部：订单号 + 状态 -->
-            <view class="order-header" bindtap="viewOrderDetail" data-id="{{item.id}}">
-              <view class="order-id">订单 #{{item.id}}</view>
+            <view class="order-header">
+              <view class="order-id-wrapper">
+                <text class="order-id" bindtap="copyOrderNo" data-id="{{item.id}}" catchtap="copyOrderNo">订单 #{{item.id}}</text>
+                <view class="copy-group-name-icon" bindtap="copyGroupName" data-order="{{item}}" catchtap="copyGroupName">
+                  <view class="icon-group"></view>
+                </view>
+              </view>
               <view class="order-status status-{{item.status}}">{{item.businessStatus || item.statusText}}</view>
             </view>
 

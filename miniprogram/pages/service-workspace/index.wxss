@@ -533,10 +533,63 @@ page {
   border-bottom: 1rpx solid #F0F0F0;
 }
 
+.order-id-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
 .order-id {
   font-size: 26rpx;
   font-weight: 600;
   color: #333;
+  cursor: pointer;
+}
+
+.copy-group-name-icon {
+  width: 36rpx;
+  height: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+  border-radius: 8rpx;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.copy-group-name-icon:active {
+  transform: scale(0.9);
+  background: linear-gradient(135deg, #BBDEFB 0%, #90CAF9 100%);
+}
+
+/* CSS绘制群组图标 */
+.icon-group {
+  width: 20rpx;
+  height: 20rpx;
+  position: relative;
+}
+
+.icon-group::before {
+  content: '';
+  position: absolute;
+  width: 10rpx;
+  height: 10rpx;
+  top: 0;
+  left: 0;
+  border: 2rpx solid #1976D2;
+  border-radius: 50%;
+}
+
+.icon-group::after {
+  content: '';
+  position: absolute;
+  width: 10rpx;
+  height: 10rpx;
+  bottom: 0;
+  right: 0;
+  border: 2rpx solid #1976D2;
+  border-radius: 50%;
 }
 
 .order-status {

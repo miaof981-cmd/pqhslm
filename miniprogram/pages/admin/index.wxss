@@ -588,6 +588,13 @@
   border-bottom: 1rpx solid #F0F0F0;
 }
 
+/* 订单号操作区域 */
+.order-id-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
 /* 订单号区域（可点击复制） */
 .order-id-wrapper {
   display: flex;
@@ -605,6 +612,54 @@
   transform: scale(0.98);
   background: linear-gradient(135deg, #E8F5E9 0%, #F1F8F2 100%);
   border-color: #A8E6CF;
+}
+
+/* 复制群名图标 */
+.copy-group-name-icon {
+  width: 36rpx;
+  height: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
+  border-radius: 8rpx;
+  position: relative;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.copy-group-name-icon:active {
+  transform: scale(0.9);
+  background: linear-gradient(135deg, #FFF59D 0%, #FFEE58 100%);
+}
+
+/* CSS绘制群组图标 */
+.icon-group {
+  width: 20rpx;
+  height: 20rpx;
+  position: relative;
+}
+
+.icon-group::before {
+  content: '';
+  position: absolute;
+  width: 10rpx;
+  height: 10rpx;
+  top: 0;
+  left: 0;
+  border: 2rpx solid #F57F17;
+  border-radius: 50%;
+}
+
+.icon-group::after {
+  content: '';
+  position: absolute;
+  width: 10rpx;
+  height: 10rpx;
+  bottom: 0;
+  right: 0;
+  border: 2rpx solid #F57F17;
+  border-radius: 50%;
 }
 
 .order-id-label {
