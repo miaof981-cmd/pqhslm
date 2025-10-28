@@ -421,7 +421,7 @@ Page({
     }
   },
   
-  // 计算订单进度百分比（按整天数比例）
+  // 计算订单进度百分比（精确到小时和分钟）
   calculateProgress(order) {
     if (order.status === 'completed') {
       return { 
@@ -433,10 +433,16 @@ Page({
     }
     
     try {
-      // 只取日期部分，忽略具体时间，避免频繁重新计算
-      const createDate = new Date(order.createTime.split(' ')[0]).getTime()
-      const deadlineDate = new Date(order.deadline.split(' ')[0]).getTime()
-      const todayDate = new Date(new Date().toLocaleDateString()).getTime()
+      // 将日期字符串转换为 iOS 兼容格式（yyyy/MM/dd HH:mm:ss）
+      const parseDate = (dateStr) => {
+        if (!dateStr) return new Date()
+        return new Date(dateStr.replace(/-/g, '/'))
+      }
+      
+      // 精确到小时和分钟的时间戳
+      const createDate = parseDate(order.createTime).getTime()
+      const deadlineDate = parseDate(order.deadline).getTime()
+      const nowDate = new Date().getTime()
       
       if (isNaN(createDate) || isNaN(deadlineDate)) {
         return { 
@@ -447,32 +453,34 @@ Page({
         }
       }
       
-      // 计算整天数
+      // 计算精确的时间差（毫秒）
       const oneDayMs = 24 * 60 * 60 * 1000
-      const totalDays = Math.round((deadlineDate - createDate) / oneDayMs)
-      const elapsedDays = Math.round((todayDate - createDate) / oneDayMs)
+      const totalMs = deadlineDate - createDate
+      const elapsedMs = nowDate - createDate
       
-      // 按天数比例计算进度
-      let percent = Math.round((elapsedDays / totalDays) * 100)
+      // 按毫秒比例计算进度
+      let percent = Math.round((elapsedMs / totalMs) * 100)
       
-      // 判断是否脱稿
-      const isOverdue = todayDate > deadlineDate
-      const overdueDays = isOverdue ? Math.round((todayDate - deadlineDate) / oneDayMs) : 0
+      // 判断是否脱稿（精确到毫秒）
+      const isOverdue = nowDate > deadlineDate
+      // 脱稿天数：只有满24小时才算1天
+      const overdueDays = isOverdue ? Math.floor((nowDate - deadlineDate) / oneDayMs) : 0
       
-      // 判断是否临近截稿（还剩1天或更少）
-      const daysLeft = Math.round((deadlineDate - todayDate) / oneDayMs)
-      const isNearDeadline = !isOverdue && daysLeft <= 1
+      // 判断是否临近截稿（剩余时间 <= 24小时）
+      const timeLeft = deadlineDate - nowDate
+      const isNearDeadline = !isOverdue && timeLeft <= oneDayMs
       
       // 限制范围
       if (percent < 5) percent = 5    // 最小显示5%
       if (percent > 100) percent = 100
       
       console.log(`订单 ${order.id} 进度:`, {
-        下单日期: order.createTime.split(' ')[0],
-        截稿日期: order.deadline.split(' ')[0],
-        总天数: totalDays,
-        已过天数: elapsedDays,
-        剩余天数: daysLeft,
+        下单时间: order.createTime,
+        截稿时间: order.deadline,
+        当前时间: new Date().toLocaleString('zh-CN', { hour12: false }),
+        总时长: `${(totalMs / oneDayMs).toFixed(2)} 天`,
+        已过时长: `${(elapsedMs / oneDayMs).toFixed(2)} 天`,
+        剩余时长: isOverdue ? `已超时 ${(Math.abs(timeLeft) / oneDayMs).toFixed(2)} 天` : `剩余 ${(timeLeft / oneDayMs).toFixed(2)} 天`,
         进度: `${percent}%`,
         是否脱稿: isOverdue,
         是否临近截稿: isNearDeadline,
