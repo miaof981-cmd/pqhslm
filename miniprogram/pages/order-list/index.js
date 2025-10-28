@@ -139,6 +139,26 @@ Page({
           deadlineText = `${deadlineDisplay} (已脱稿${progressData.overdueDays}天)`
         }
         
+        // 获取客服信息
+        let serviceName = '待分配'
+        let serviceAvatar = '/assets/default-avatar.png'
+        if (order.serviceId) {
+          const serviceList = wx.getStorageSync('customer_service_list') || []
+          const service = serviceList.find(s => s.userId === order.serviceId)
+          if (service) {
+            serviceName = service.name || service.nickName || '客服'
+            serviceAvatar = service.avatarUrl || '/assets/default-avatar.png'
+          }
+        }
+        
+        // 获取买家信息（当前用户）
+        const userInfo = wx.getStorageSync('userInfo')
+        const buyerName = userInfo?.nickName || '买家'
+        const buyerAvatar = userInfo?.avatarUrl || '/assets/default-avatar.png'
+        
+        // 获取画师头像
+        const artistAvatar = order.artistAvatar || '/assets/default-avatar.png'
+        
         return {
           _id: order.id,
           orderNo: order.id,
@@ -146,6 +166,11 @@ Page({
           productName: order.productName,
           productImage: order.productImage,
           artistName: artistName,
+          artistAvatar: artistAvatar,
+          serviceName: serviceName,
+          serviceAvatar: serviceAvatar,
+          buyerName: buyerName,
+          buyerAvatar: buyerAvatar,
           deliveryDays: order.deliveryDays || 7,
           amount: order.price,
           status: status,

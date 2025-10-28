@@ -352,13 +352,22 @@ Page({
     const orderId = order.id || order.orderNumber || ''
     const last4Digits = orderId.toString().slice(-4)
 
-    // 获取截稿日期（格式：x月x日）
+    // 获取截稿日期（格式：x月x日）- iOS 兼容
     let deadlineText = ''
     if (order.deadline) {
-      const deadlineDate = new Date(order.deadline)
+      // 将 "yyyy-MM-dd HH:mm:ss" 转换为 "yyyy/MM/dd HH:mm:ss"（iOS 兼容）
+      const iosCompatibleDate = order.deadline.replace(/-/g, '/')
+      const deadlineDate = new Date(iosCompatibleDate)
       const month = deadlineDate.getMonth() + 1
       const day = deadlineDate.getDate()
-      deadlineText = `${month}月${day}日`
+      
+      // 检查日期是否有效
+      if (!isNaN(month) && !isNaN(day)) {
+        deadlineText = `${month}月${day}日`
+      } else {
+        console.error('❌ 日期解析失败:', order.deadline)
+        deadlineText = '日期'
+      }
     }
 
     // 获取商品名
