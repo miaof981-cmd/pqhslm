@@ -61,7 +61,7 @@ page {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10rpx);
   padding: 20rpx 30rpx 24rpx;
-  border-bottom: 1rpx solid rgba(168, 230, 207, 0.3);
+  border-bottom: 1rpx solid rgba(144, 202, 249, 0.3);
 }
 
 .header-row {
@@ -74,7 +74,7 @@ page {
 .page-title {
   font-size: 36rpx;
   font-weight: 700;
-  color: #2D5C3F;
+  color: #1565C0;
 }
 
 .stats-mini {
@@ -94,7 +94,7 @@ page {
 .stat-mini-num {
   font-size: 32rpx;
   font-weight: 700;
-  color: #66BB6A;
+  color: #42A5F5;
   margin-left: 6rpx;
 }
 
@@ -115,14 +115,14 @@ page {
   flex-direction: column;
   align-items: center;
   padding: 16rpx 8rpx;
-  background: linear-gradient(135deg, rgba(168, 230, 207, 0.2) 0%, rgba(208, 240, 192, 0.2) 100%);
+  background: linear-gradient(135deg, rgba(187, 222, 251, 0.25) 0%, rgba(144, 202, 249, 0.25) 100%);
   border-radius: 16rpx;
   transition: all 0.2s;
 }
 
 .func-btn:active {
   transform: scale(0.95);
-  background: linear-gradient(135deg, rgba(168, 230, 207, 0.4) 0%, rgba(208, 240, 192, 0.4) 100%);
+  background: linear-gradient(135deg, rgba(187, 222, 251, 0.45) 0%, rgba(144, 202, 249, 0.45) 100%);
 }
 
 .func-icon {
@@ -257,7 +257,7 @@ page {
 
 .func-name {
   font-size: 22rpx;
-  color: #2D5C3F;
+  color: #1565C0;
   font-weight: 500;
 }
 
@@ -300,12 +300,12 @@ page {
 .section-title {
   font-size: 30rpx;
   font-weight: 700;
-  color: #2D5C3F;
+  color: #1565C0;
 }
 
 .order-count {
   font-size: 24rpx;
-  color: #66BB6A;
+  color: #42A5F5;
   font-weight: 600;
 }
 
@@ -321,7 +321,7 @@ page {
   border-radius: 40rpx;
   padding: 16rpx 24rpx;
   margin-bottom: 16rpx;
-  box-shadow: 0 2rpx 12rpx rgba(102, 187, 106, 0.08);
+  box-shadow: 0 2rpx 12rpx rgba(66, 165, 245, 0.08);
 }
 
 .search-icon {
@@ -339,7 +339,7 @@ page {
   height: 20rpx;
   top: 2rpx;
   left: 2rpx;
-  border: 3rpx solid #66BB6A;
+  border: 3rpx solid #42A5F5;
   border-radius: 50%;
 }
 
@@ -350,7 +350,7 @@ page {
   height: 3rpx;
   bottom: 4rpx;
   right: 4rpx;
-  background: #66BB6A;
+  background: #42A5F5;
   transform: rotate(45deg);
   border-radius: 2rpx;
 }
@@ -411,9 +411,9 @@ page {
 }
 
 .filter-tab.active {
-  background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
+  background: linear-gradient(135deg, #42A5F5 0%, #2196F3 100%);
   color: #fff;
-  box-shadow: 0 4rpx 12rpx rgba(102, 187, 106, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(66, 165, 245, 0.3);
 }
 
 .orders-scroll {
@@ -484,7 +484,7 @@ page {
   border-radius: 20rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
-  box-shadow: 0 4rpx 16rpx rgba(102, 187, 106, 0.08);
+  box-shadow: 0 4rpx 16rpx rgba(66, 165, 245, 0.08);
 }
 
 /* 列表底部提示 */
