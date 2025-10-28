@@ -1,8 +1,9 @@
 /* 引入通用订单进度条样式 */
 @import "../../styles/order-progress.wxss";
 
+/* 客服工作台 - 蓝色主题背景 */
 page {
-  background: linear-gradient(180deg, #A8E6CF 0%, #D0F0C0 50%, #E6FFEB 100%);
+  background: linear-gradient(180deg, #E3F2FD 0%, #F5F9FF 50%, #FAFAFA 100%);
   height: 100vh;
 }
 
@@ -810,16 +811,16 @@ page {
   justify-content: flex-end;
 }
 
-/* 客服按钮样式 - 低饱和度版本 */
+/* 客服按钮样式 - 蓝色主题 */
 .btn-secondary {
   padding: 16rpx 40rpx;
-  background: linear-gradient(135deg, #B3E5FC 0%, #81D4FA 100%);
-  color: #0277BD;
+  background: linear-gradient(135deg, #BBDEFB 0%, #90CAF9 100%);
+  color: #1565C0;
   font-size: 26rpx;
   font-weight: 500;
   border: none;
   border-radius: 30rpx;
-  box-shadow: 0 4rpx 12rpx rgba(129, 212, 250, 0.15);
+  box-shadow: 0 4rpx 12rpx rgba(144, 202, 249, 0.2);
   transition: all 0.2s;
   display: flex;
   align-items: center;
@@ -833,18 +834,18 @@ page {
 
 .btn-secondary:active {
   transform: scale(0.96);
-  box-shadow: 0 2rpx 8rpx rgba(129, 212, 250, 0.1);
+  box-shadow: 0 2rpx 8rpx rgba(144, 202, 249, 0.15);
 }
 
 .btn-danger {
   padding: 16rpx 40rpx;
-  background: linear-gradient(135deg, #FFCDD2 0%, #EF9A9A 100%);
-  color: #C62828;
+  background: linear-gradient(135deg, #E1F5FE 0%, #B3E5FC 100%);
+  color: #0277BD;
   font-size: 26rpx;
   font-weight: 500;
   border: none;
   border-radius: 30rpx;
-  box-shadow: 0 4rpx 12rpx rgba(239, 154, 154, 0.15);
+  box-shadow: 0 4rpx 12rpx rgba(179, 229, 252, 0.2);
   transition: all 0.2s;
   display: flex;
   align-items: center;
@@ -858,7 +859,7 @@ page {
 
 .btn-danger:active {
   transform: scale(0.96);
-  box-shadow: 0 2rpx 8rpx rgba(239, 154, 154, 0.1);
+  box-shadow: 0 2rpx 8rpx rgba(179, 229, 252, 0.15);
 }
 
 /* 画师标记完成按钮（保留） */

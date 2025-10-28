@@ -35,10 +35,6 @@
           <view class="func-icon money-icon"></view>
           <text class="func-name">提现</text>
         </view>
-        <view class="func-btn" bindtap="handleFunction" data-func="qrcodeManage">
-          <view class="func-icon qrcode-icon"></view>
-          <text class="func-name">二维码</text>
-        </view>
         <view class="func-btn" bindtap="toggleNotices">
           <view class="func-icon notice-icon"></view>
           <text class="func-name">须知</text>
