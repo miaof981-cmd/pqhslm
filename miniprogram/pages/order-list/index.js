@@ -1,3 +1,7 @@
+// 引入统一工具函数
+const orderHelper = require('../../utils/order-helper.js')
+const orderStatusUtil = require('../../utils/order-status.js')
+
 Page({
   data: {
     currentTab: 'all',
@@ -45,87 +49,48 @@ Page({
       // 模拟加载订单数据
       await new Promise(resolve => setTimeout(resolve, 500))
       
-      // 从本地存储加载真实订单（同时读取 orders 和 pending_orders）
-      const orders = wx.getStorageSync('orders') || []
-      const pendingOrders = wx.getStorageSync('pending_orders') || []
-      const completedOrders = wx.getStorageSync('completed_orders') || []
+      const userId = wx.getStorageSync('userId')
       
       console.log('========================================')
-      console.log('📦 我的订单页 - 数据加载')
+      console.log('📦 [用户端] 使用统一工具加载订单')
       console.log('========================================')
-      console.log('orders 数量:', orders.length)
-      console.log('pending_orders 数量:', pendingOrders.length)
-      console.log('completed_orders 数量:', completedOrders.length)
+      console.log('当前用户ID:', userId)
       
-      if (orders.length === 0 && pendingOrders.length === 0 && completedOrders.length === 0) {
-        console.error('❌ 没有加载到任何订单！')
-        console.log('可能原因:')
-        console.log('1. 订单未保存到 orders/pending_orders')
-        console.log('2. 本地存储被清空')
-        console.log('3. 订单保存逻辑未执行')
-      } else {
-        console.log('✅ 成功加载订单数据')
-        if (orders.length > 0) {
-          console.log('\norders 订单详情:')
-          orders.forEach((o, i) => {
-            console.log(`  ${i + 1}. ID: ${o.id}, 商品: ${o.productName}, 价格: ${o.price}`)
-          })
-        }
-        if (pendingOrders.length > 0) {
-          console.log('\npending_orders 订单详情:')
-          pendingOrders.forEach((o, i) => {
-            console.log(`  ${i + 1}. ID: ${o.id}, 商品: ${o.productName}, 价格: ${o.price}`)
-          })
-        }
+      // 🎯 使用统一工具函数获取并标准化订单
+      let allOrders = orderHelper.prepareOrdersForPage({
+        role: 'customer',
+        userId: userId
+      })
+      
+      console.log('✅ 订单加载完成:', allOrders.length, '个')
+      if (allOrders.length > 0) {
+        console.log('订单示例:', {
+          id: allOrders[0].id,
+          status: allOrders[0].status,
+          statusText: allOrders[0].statusText,
+          serviceName: allOrders[0].serviceName,
+          serviceAvatar: allOrders[0].serviceAvatar ? '有' : '无'
+        })
       }
       
-      // 合并所有订单（去重，以 id 为准）
-      const orderMap = new Map()
-      ;[...orders, ...pendingOrders, ...completedOrders].forEach(order => {
-        if (order.id && !orderMap.has(order.id)) {
-          orderMap.set(order.id, order)
-        }
-      })
-      let allOrders = Array.from(orderMap.values())
-      
-      // 转换为订单列表需要的格式
+      // 转换为订单列表需要的格式（保留原有的格式化逻辑）
       const mockOrders = allOrders.map(order => {
-        // 映射状态
-        let status = 'processing'
-        let statusText = '制作中'
-        
-        if (order.status === 'completed') {
-          status = 'completed'
-          statusText = '已完成'
-        } else if (order.status === 'waitingConfirm') {
-          status = 'waitingConfirm'
-          statusText = '待确认'
-        } else if (order.status === 'inProgress' || order.status === 'nearDeadline' || order.status === 'overdue') {
-          status = 'processing'
-          statusText = '制作中'
-        }
-        
         // 画师信息兜底逻辑
         let artistName = order.artistName
         if (!artistName || artistName === '待分配') {
-          // 尝试从用户信息获取
           const userInfo = wx.getStorageSync('userInfo')
           artistName = userInfo?.nickName || '画师'
-          console.log('⚠️ 订单缺少画师信息，使用兜底:', artistName)
         }
         
         // 截稿时间格式化显示
         let deadlineDisplay = order.deadline
         if (deadlineDisplay) {
-          // 如果是完整日期时间，只显示日期部分
-          // "2025-11-03 14:11" → "2025-11-03"
           deadlineDisplay = deadlineDisplay.split(' ')[0]
         }
         
         // 下单时间格式化显示
         let createTimeDisplay = order.createTime
         if (createTimeDisplay) {
-          // "2025-10-27 14:11:43" → "2025-10-27 14:11"
           const parts = createTimeDisplay.split(' ')
           if (parts.length === 2) {
             const timePart = parts[1].split(':')
@@ -142,37 +107,13 @@ Page({
           deadlineText = `${deadlineDisplay} (已脱稿${progressData.overdueDays}天)`
         }
         
-        // 获取客服信息（优先使用订单中已保存的数据）
-        let serviceName = '待分配'
-        let serviceAvatar = '/assets/default-avatar.png'
-        
-        // 1️⃣ 优先使用订单中已保存的客服信息（下单时已绑定）
-        if (order.serviceName && order.serviceName !== '待分配') {
-          serviceName = order.serviceName
-          serviceAvatar = order.serviceAvatar || '/assets/default-avatar.png'
-          console.log(`✅ 使用订单中保存的客服信息: ${serviceName}`)
-        } 
-        // 2️⃣ 如果订单中没有，尝试从客服列表查找（兜底逻辑）
-        else if (order.serviceId) {
-          const serviceList = wx.getStorageSync('customer_service_list') || []
-          const service = serviceList.find(s => s.userId === order.serviceId)
-          if (service) {
-            serviceName = service.name || service.nickName || '客服'
-            serviceAvatar = service.avatar || service.avatarUrl || '/assets/default-avatar.png'
-            console.log(`ℹ️ 从客服列表查找到客服: ${serviceName}`)
-            console.log(`   头像字段: avatar=${service.avatar ? '有' : '无'}, avatarUrl=${service.avatarUrl ? '有' : '无'}`)
-          } else {
-            console.warn(`⚠️ 订单 ${order.id} 的 serviceId (${order.serviceId}) 在客服列表中未找到`)
-          }
-        }
-        
         // 获取买家信息（当前用户）
         const userInfo = wx.getStorageSync('userInfo')
         const buyerName = userInfo?.nickName || '买家'
-        const buyerAvatar = userInfo?.avatarUrl || '/assets/default-avatar.png'
+        const buyerAvatar = userInfo?.avatarUrl || orderStatusUtil.DEFAULT_AVATAR
         
         // 获取画师头像
-        const artistAvatar = order.artistAvatar || '/assets/default-avatar.png'
+        const artistAvatar = order.artistAvatar || orderStatusUtil.DEFAULT_AVATAR
         
         return {
           _id: order.id,
@@ -182,15 +123,15 @@ Page({
           productImage: order.productImage,
           artistName: artistName,
           artistAvatar: artistAvatar,
-          serviceName: serviceName,
-          serviceAvatar: serviceAvatar,
+          serviceName: order.serviceName,  // ✅ 已由工具函数处理
+          serviceAvatar: order.serviceAvatar,  // ✅ 已由工具函数处理
           buyerName: buyerName,
           buyerAvatar: buyerAvatar,
           deliveryDays: order.deliveryDays || 7,
           amount: order.price,
-          status: status,
-          statusText: statusText,
-          progress: status === 'completed' ? 100 : 60,
+          status: order.status,  // ✅ 使用工具函数处理后的状态
+          statusText: order.statusText,  // ✅ 使用工具函数处理后的状态文本
+          progress: order.status === 'completed' ? 100 : 60,
           createTime: createTimeDisplay,
           deadline: deadlineText,
           progressPercent: progressData.percent,

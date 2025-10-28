@@ -1,3 +1,7 @@
+// 引入统一工具函数
+const orderHelper = require('../../utils/order-helper.js')
+const orderStatusUtil = require('../../utils/order-status.js')
+
 Page({
   data: {
     loading: true,
@@ -245,88 +249,29 @@ Page({
 
   // 加载订单列表
   async loadOrders() {
-    const orderStatusUtil = require('../../utils/order-status.js')
+    console.log('========================================')
+    console.log('📦 [管理后台] 使用统一工具加载订单')
+    console.log('========================================')
     
-    // 🔧 同时读取两个存储源
-    const ordersFromOrders = wx.getStorageSync('orders') || []
-    const ordersFromPending = wx.getStorageSync('pending_orders') || []
-    
-    // 合并订单（去重，优先使用 orders 中的数据）
-    const orderMap = new Map()
-    
-    // 先加载 pending_orders
-    ordersFromPending.forEach(order => {
-      if (order.id) {
-        orderMap.set(order.id, order)
-      }
+    // 🎯 使用统一工具函数获取并标准化订单（管理员看所有订单）
+    let allOrders = orderHelper.prepareOrdersForPage({
+      role: 'admin'
     })
     
-    // 再加载 orders（覆盖同ID的订单）
-    ordersFromOrders.forEach(order => {
-      if (order.id) {
-        orderMap.set(order.id, order)
-      }
-    })
-    
-    // 转换为数组
-    let allOrders = Array.from(orderMap.values())
-    
-    // ✅ 使用工具自动计算订单状态（overdue/nearDeadline/inProgress）
-    allOrders = orderStatusUtil.calculateOrdersStatus(allOrders)
-    
-    console.log('━━━━━━━━━━━━━━━━━━━━━━')
-    console.log('📦 [管理后台] 加载订单列表')
-    console.log('  - orders 数量:', ordersFromOrders.length)
-    console.log('  - pending_orders 数量:', ordersFromPending.length)
-    console.log('  - 合并后总数:', allOrders.length)
+    console.log('✅ 订单加载完成:', allOrders.length, '个')
     if (allOrders.length > 0) {
-      console.log('  - 订单详情:')
-      allOrders.forEach((order, index) => {
-        console.log(`    ${index + 1}. ${order.productName || '商品'}`)
-        console.log(`       订单号: ${order.orderNumber || order.id}`)
-        console.log(`       状态: ${order.status}`)
-        console.log(`       客服: ${order.serviceName || '未分配'}`)
+      console.log('订单示例:', {
+        id: allOrders[0].id,
+        status: allOrders[0].status,
+        statusText: allOrders[0].statusText,
+        serviceName: allOrders[0].serviceName,
+        serviceAvatar: allOrders[0].serviceAvatar ? '有' : '无'
       })
-    }
-    console.log('━━━━━━━━━━━━━━━━━━━━━━')
-    
-    // 状态文本映射（完整版）
-    const statusTextMap = {
-      'unpaid': '待支付',
-      'paid': '已支付',
-      'created': '待处理',
-      'processing': '制作中',
-      'inProgress': '进行中',
-      'waitingConfirm': '待客户确认',
-      'nearDeadline': '临近截稿',
-      'overdue': '已拖稿',
-      'completed': '已完成',
-      'refunding': '退款中',
-      'refunded': '已退款',
-      'cancelled': '已取消'
     }
     
     // 转换为管理后台需要的格式
-    const now = new Date()
     const formattedOrders = allOrders.map(order => {
-      // 判断是否逾期
-      let isOverdue = false
-      let businessStatus = ''  // 业务状态：waitingConfirm/overdue/nearDeadline
-      
-      if (order.deadline && (order.status === 'processing' || order.status === 'paid' || order.status === 'waitingConfirm')) {
-        const deadline = new Date(order.deadline)
-        const diffTime = deadline - now
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-        
-        if (diffTime < 0) {
-          isOverdue = true
-          businessStatus = '已拖稿'
-        } else if (diffDays <= 2) {
-          businessStatus = '临近截稿'
-        } else if (order.status === 'waitingConfirm') {
-          businessStatus = '待客户确认'
-        }
-      }
+      // ✅ 状态已由工具函数处理，直接使用
       
       // 格式化时间：只显示日期和时分
       const formatTime = (timestamp) => {
@@ -350,13 +295,13 @@ Page({
         userName: order.buyerName || order.buyer || '未知用户',
         userPhone: order.buyerPhone || '',
         artistName: order.artistName || '未分配',
-        serviceName: order.serviceName || '未分配',
+        serviceName: order.serviceName,  // ✅ 已由工具函数处理
         amount: parseFloat(order.price || order.totalPrice || 0).toFixed(2),
-        status: order.status || 'created',
-        statusText: statusTextMap[order.status] || order.status || '待处理',
+        status: order.status,  // ✅ 已由工具函数处理
+        statusText: order.statusText,  // ✅ 已由工具函数处理
         createTime: formatTime(order.createdAt || order.createTime),
         deadline: order.deadline ? formatTime(order.deadline) : '',
-        isOverdue: isOverdue,
+        isOverdue: order.status === 'overdue',  // ✅ 使用工具函数计算的状态
         buyerId: order.buyerId,
         productId: order.productId,
         specs: order.specs || []

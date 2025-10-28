@@ -1,3 +1,5 @@
+// 引入统一工具函数
+const orderHelper = require('../../utils/order-helper.js')
 const orderStatusUtil = require('../../utils/order-status')
 
 Page({
@@ -332,56 +334,28 @@ Page({
     const { userRole } = this.data
     const currentUserId = wx.getStorageSync('userId')
     
-    // 从本地存储加载真实订单（同时读取 orders 和 pending_orders）
-    const orders = wx.getStorageSync('orders') || []
-    const pendingOrders = wx.getStorageSync('pending_orders') || []
-    
-    // 合并订单（去重，以 id 为准）
-    const orderMap = new Map()
-    ;[...orders, ...pendingOrders].forEach(order => {
-      if (order.id && !orderMap.has(order.id)) {
-        orderMap.set(order.id, order)
-      }
-    })
-    let allOrders = Array.from(orderMap.values())
-    
-    console.log('=== 工作台加载订单 ===')
-    console.log('orders 数量:', orders.length)
-    console.log('pending_orders 数量:', pendingOrders.length)
-    console.log('合并后订单数量:', allOrders.length)
+    console.log('========================================')
+    console.log('📦 [画师/客服端] 使用统一工具加载订单')
+    console.log('========================================')
     console.log('当前用户ID:', currentUserId)
     console.log('当前角色:', userRole)
     
-    // ✅ 根据角色筛选订单
-    let myOrders = []
+    // 🎯 使用统一工具函数获取并标准化订单
+    let myOrders = orderHelper.prepareOrdersForPage({
+      role: userRole,
+      userId: currentUserId
+    })
     
-    if (userRole === 'artist') {
-      // 画师：只看自己的订单
-      // ⚠️ 兼容旧数据：如果订单没有 artistId，默认显示所有订单
-      const ordersWithArtistId = allOrders.filter(o => o.artistId)
-      
-      if (ordersWithArtistId.length === 0) {
-        // 所有订单都没有 artistId，显示全部（兼容旧数据）
-        myOrders = allOrders
-        console.log('⚠️ 兼容模式: 旧订单缺少 artistId，显示所有订单')
-      } else {
-        // 有 artistId，按正常逻辑筛选
-        myOrders = allOrders.filter(o => o.artistId === currentUserId)
-        console.log('📊 画师订单筛选: 总订单', allOrders.length, '→ 我的订单', myOrders.length)
-      }
-    } else if (userRole === 'service') {
-      // 客服：只看自己负责的订单
-      // ⚠️ 兼容旧数据：如果订单没有 serviceId，显示待分配订单
-      myOrders = allOrders.filter(o => o.serviceId === currentUserId || !o.serviceId)
-      console.log('📊 客服订单筛选: 总订单', allOrders.length, '→ 我的订单', myOrders.length)
-    } else {
-      // 其他角色（管理员等）可以看到所有订单
-      myOrders = allOrders
-      console.log('📊 管理员视角: 显示所有订单', allOrders.length)
+    console.log('✅ 订单加载完成:', myOrders.length, '个')
+    if (myOrders.length > 0) {
+      console.log('订单示例:', {
+        id: myOrders[0].id,
+        status: myOrders[0].status,
+        statusText: myOrders[0].statusText,
+        serviceName: myOrders[0].serviceName,
+        serviceAvatar: myOrders[0].serviceAvatar ? '有' : '无'
+      })
     }
-    
-    // 自动计算订单的状态和进度
-    myOrders = orderStatusUtil.calculateOrdersStatus(myOrders)
     
     // 为每个订单计算进度百分比
     myOrders = myOrders.map(order => {
@@ -389,8 +363,7 @@ Page({
       return { ...order, progressPercent }
     })
     
-    // 保存更新后的订单状态（更新全部订单）
-    wx.setStorageSync('pending_orders', allOrders)
+    // ✅ 订单状态已由工具函数处理，无需再次保存
     
     console.log('更新后我的订单:', myOrders.map(o => ({
       id: o.id,
