@@ -102,16 +102,33 @@ Page({
     // 自动计算订单的状态和进度
     const processedOrders = orderStatusUtil.calculateOrdersStatus(myOrders)
 
-    // 为每个订单计算进度百分比和格式化时间
+    // 为每个订单计算进度百分比和格式化时间，并补充头像信息
     const finalOrders = processedOrders.map(order => {
       const progressPercent = this.calculateProgressPercent(order)
+      
+      // 获取买家头像（从用户信息或使用默认头像）
+      let buyerAvatar = order.buyerAvatar || '/assets/default-avatar.png'
+      if (!order.buyerAvatar && order.userId) {
+        const userInfo = wx.getStorageSync('userInfo')
+        if (userInfo && userInfo.userId === order.userId) {
+          buyerAvatar = userInfo.avatarUrl || '/assets/default-avatar.png'
+        }
+      }
+      
+      // 获取画师头像
+      const artistAvatar = order.artistAvatar || '/assets/default-avatar.png'
+      
       return {
         ...order,
         progressPercent,
         statusText: this.getStatusText(order.status),
         businessStatus: this.getBusinessStatus(order),
         createTime: this.formatTime(order.createTime || order.createdAt),
-        deadline: this.formatTime(order.deadline)
+        deadline: this.formatTime(order.deadline),
+        buyerAvatar,
+        artistAvatar,
+        buyerName: order.buyerName || order.userName || '客户',
+        artistName: order.artistName || '待分配'
       }
     })
 
