@@ -1,6 +1,50 @@
 /**
  * 订单状态计算工具
+ * 
+ * 统一管理订单状态的映射、计算和格式化
+ * ⚠️ 所有页面必须使用这里的函数，禁止硬编码状态文字
  */
+
+// ==========================================
+// 全局统一状态映射表（唯一出口）
+// ==========================================
+const STATUS_TEXT_MAP = {
+  'unpaid': '待支付',
+  'paid': '已支付',
+  'created': '待处理',
+  'inProgress': '进行中',        // ✅ 统一使用
+  'processing': '进行中',         // ⚠️ 兼容旧数据
+  'waitingConfirm': '待确认',
+  'nearDeadline': '临近截稿',
+  'overdue': '已拖稿',
+  'completed': '已完成',
+  'refunding': '退款中',
+  'refunded': '已退款',
+  'cancelled': '已取消'
+}
+
+/**
+ * 获取状态的中文文本（统一出口）
+ * @param {string} status - 状态代码
+ * @returns {string} 中文文本
+ */
+function textOf(status) {
+  return STATUS_TEXT_MAP[status] || status
+}
+
+/**
+ * 获取状态的样式类名（统一出口）
+ * @param {string} status - 状态代码
+ * @returns {string} CSS 类名
+ */
+function classOf(status) {
+  return `status-${status}`
+}
+
+/**
+ * 默认头像（base64 SVG）
+ */
+const DEFAULT_AVATAR = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0E4RTZDRiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7lrqI8L3RleHQ+PC9zdmc+'
 
 /**
  * 将日期字符串转换为 iOS 兼容格式
@@ -152,10 +196,80 @@ function formatDeadline(deadline) {
   }
 }
 
+/**
+ * 客服信息兜底处理（四端统一逻辑）
+ * @param {Object} order - 订单对象
+ * @param {Array} serviceList - 客服列表（可选，默认从本地存储读取）
+ * @returns {Object} 包含完整客服信息的订单对象
+ */
+function withServiceFallback(order, serviceList) {
+  const out = { ...order }
+  
+  // 如果没有传入客服列表，从本地存储读取
+  if (!serviceList) {
+    try {
+      serviceList = wx.getStorageSync('customer_service_list') || []
+    } catch (e) {
+      serviceList = []
+    }
+  }
+  
+  // 优先级：① 订单中的serviceName/serviceAvatar → ② 通过serviceId匹配客服列表 → ③ 默认值
+  
+  // 1️⃣ 如果订单已有客服名称和头像，直接使用
+  if (out.serviceName && out.serviceName !== '待分配' && out.serviceAvatar) {
+    // 确保头像不是旧的错误路径
+    if (out.serviceAvatar === '/assets/default-avatar.png') {
+      out.serviceAvatar = DEFAULT_AVATAR
+    }
+    return out
+  }
+  
+  // 2️⃣ 通过serviceId从客服列表查找
+  if (out.serviceId && serviceList.length > 0) {
+    const matched = serviceList.find(s => s.userId === out.serviceId || s.id === out.serviceId)
+    if (matched) {
+      out.serviceName = matched.name || matched.nickName || '客服'
+      out.serviceAvatar = matched.avatar || matched.avatarUrl || DEFAULT_AVATAR
+      return out
+    }
+  }
+  
+  // 3️⃣ 兜底：使用默认值
+  if (!out.serviceName || out.serviceName === '待分配') {
+    out.serviceName = '待分配'
+  }
+  out.serviceAvatar = DEFAULT_AVATAR
+  
+  return out
+}
+
+/**
+ * 批量处理订单的客服信息
+ * @param {Array} orders - 订单数组
+ * @param {Array} serviceList - 客服列表（可选）
+ * @returns {Array} 处理后的订单数组
+ */
+function withServicesFallback(orders, serviceList) {
+  if (!Array.isArray(orders)) return []
+  return orders.map(order => withServiceFallback(order, serviceList))
+}
+
 module.exports = {
+  // 状态计算
   calculateOrderStatus,
   calculateOrdersStatus,
   countOrderStatus,
-  formatDeadline
+  formatDeadline,
+  
+  // 状态映射（新增）
+  textOf,
+  classOf,
+  STATUS_TEXT_MAP,
+  
+  // 头像兜底（新增）
+  withServiceFallback,
+  withServicesFallback,
+  DEFAULT_AVATAR
 }
 
