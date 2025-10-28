@@ -158,8 +158,9 @@ Page({
           const service = serviceList.find(s => s.userId === order.serviceId)
           if (service) {
             serviceName = service.name || service.nickName || '客服'
-            serviceAvatar = service.avatarUrl || '/assets/default-avatar.png'
+            serviceAvatar = service.avatar || service.avatarUrl || '/assets/default-avatar.png'
             console.log(`ℹ️ 从客服列表查找到客服: ${serviceName}`)
+            console.log(`   头像字段: avatar=${service.avatar ? '有' : '无'}, avatarUrl=${service.avatarUrl ? '有' : '无'}`)
           } else {
             console.warn(`⚠️ 订单 ${order.id} 的 serviceId (${order.serviceId}) 在客服列表中未找到`)
           }
