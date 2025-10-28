@@ -25,8 +25,40 @@ page {
 
 .status-header {
   display: flex;
-  align-items: center;
-  margin-bottom: 40rpx;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+/* 状态徽章 */
+.status-badge {
+  display: inline-block;
+  padding: 12rpx 24rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: white;
+  align-self: flex-start;
+}
+
+.status-badge.status-inProgress {
+  background: linear-gradient(135deg, #A8E6CF 0%, #81C784 100%);
+}
+
+.status-badge.status-nearDeadline {
+  background: linear-gradient(135deg, #FFE0B2 0%, #FFCC80 100%);
+}
+
+.status-badge.status-overdue {
+  background: linear-gradient(135deg, #FFCDD2 0%, #E57373 100%);
+}
+
+.status-badge.status-waitingConfirm {
+  background: linear-gradient(135deg, #FFE082 0%, #FFD54F 100%);
+}
+
+.status-badge.status-completed {
+  background: linear-gradient(135deg, #E1BEE7 0%, #CE93D8 100%);
 }
 
 .status-icon {
@@ -575,6 +607,155 @@ page {
   font-size: 28rpx;
   color: #2E7D32;
   font-weight: 600;
+}
+
+/* ========== 待确认提示卡片 ========== */
+.waiting-confirm-hint {
+  margin: 24rpx 0;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #E8F5E9 0%, #F1F8F4 100%);
+  border-radius: 16rpx;
+  border: 2rpx solid #A8E6CF;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.hint-icon {
+  width: 64rpx;
+  height: 64rpx;
+  background: linear-gradient(135deg, #A8E6CF 0%, #7ED6B0 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: white;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.hint-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.hint-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2D5940;
+  line-height: 1.3;
+}
+
+.hint-desc {
+  font-size: 24rpx;
+  color: #5A8B6F;
+  line-height: 1.5;
+}
+
+/* ========== 时间进度条 ========== */
+.time-progress-section {
+  margin-top: 24rpx;
+  padding: 24rpx;
+  background: #F8F9FA;
+  border-radius: 16rpx;
+}
+
+.time-progress-section.overdue {
+  background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 30%, #FFEBEE 100%);
+}
+
+.time-progress-section.near-deadline {
+  background: linear-gradient(135deg, #FFF8E1 0%, #FFE082 30%, #FFF8E1 100%);
+}
+
+.time-progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.time-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.time-title {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.time-value {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 600;
+}
+
+.deadline-label.overdue .time-value {
+  color: #E57373;
+}
+
+.time-progress-bar-container {
+  position: relative;
+  height: 16rpx;
+  margin-bottom: 8rpx;
+}
+
+.time-progress-bar-bg {
+  width: 100%;
+  height: 16rpx;
+  background: #E0E0E0;
+  border-radius: 8rpx;
+  overflow: hidden;
+  position: relative;
+}
+
+.time-progress-bar-bg.overdue {
+  background: linear-gradient(90deg, #FFCDD2 0%, #E57373 100%);
+}
+
+.time-progress-bar-bg.near-deadline {
+  background: linear-gradient(90deg, #FFE082 0%, #FFB74D 100%);
+}
+
+.time-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #E8F5E9 0%, #A8E6CF 50%, #81C784 100%);
+  border-radius: 8rpx;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.time-progress-bar-fill.overdue {
+  background: linear-gradient(90deg, #E57373 0%, #D32F2F 100%);
+}
+
+.time-progress-bar-fill.near-deadline {
+  background: linear-gradient(90deg, #FFB74D 0%, #FF9800 100%);
+}
+
+.time-progress-strip {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 6rpx;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 0 8rpx 8rpx 0;
+}
+
+.overdue-warning {
+  margin-top: 12rpx;
+  padding: 8rpx 16rpx;
+  background: rgba(229, 115, 115, 0.1);
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  color: #E57373;
+  font-weight: 600;
+  text-align: center;
 }
 
 .btn-primary,

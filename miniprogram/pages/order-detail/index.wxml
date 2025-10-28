@@ -5,38 +5,53 @@
     <!-- 订单状态卡片 -->
     <view class="status-card">
       <view class="status-header">
-        <view class="status-icon status-{{order.status}}"></view>
-        <view class="status-info">
-          <text class="status-text">{{order.statusText}}</text>
-          <view class="order-id-row">
-            <text class="order-id-label">订单号：{{order.id}}</text>
-            <view class="copy-actions">
-              <view class="copy-btn" bindtap="copyOrderNo" catchtap="copyOrderNo">
-                <view class="copy-icon"></view>
-              </view>
-              <view class="copy-btn copy-group" bindtap="copyGroupName" catchtap="copyGroupName">
-                <view class="group-icon"></view>
-              </view>
+        <view class="status-badge status-{{order.statusClass || order.status}}">
+          {{order.statusText}}
+        </view>
+        <view class="order-id-row">
+          <text class="order-id-label">订单号：{{order.id}}</text>
+          <view class="copy-actions">
+            <view class="copy-btn" bindtap="copyOrderNo" catchtap="copyOrderNo">
+              <view class="copy-icon"></view>
+            </view>
+            <view class="copy-btn copy-group" bindtap="copyGroupName" catchtap="copyGroupName">
+              <view class="group-icon"></view>
             </view>
           </view>
         </view>
       </view>
       
-      <!-- 进度条 -->
-      <view class="progress-bar">
-        <view class="progress-step {{order.step >= 1 ? 'active' : ''}}">
-          <view class="step-dot"></view>
-          <text class="step-label">已下单</text>
+      <!-- 待确认提示卡片 -->
+      <view wx:if="{{order.status === 'waitingConfirm'}}" class="waiting-confirm-hint">
+        <view class="hint-icon">✓</view>
+        <view class="hint-content">
+          <view class="hint-title">画师已完成制作</view>
+          <view class="hint-desc">请前往群聊查看作品，满意后点击下方"确认完成"</view>
         </view>
-        <view class="progress-line {{order.step >= 2 ? 'active' : ''}}"></view>
-        <view class="progress-step {{order.step >= 2 ? 'active' : ''}}">
-          <view class="step-dot"></view>
-          <text class="step-label">制作中</text>
+      </view>
+      
+      <!-- 时间进度条（所有状态都显示，除了已完成） -->
+      <view wx:if="{{order.status !== 'completed'}}" class="time-progress-section {{order.isOverdue ? 'overdue' : (order.isNearDeadline ? 'near-deadline' : '')}}">
+        <view class="time-progress-header">
+          <view class="time-label">
+            <text class="time-title">下单时间</text>
+            <text class="time-value">{{order.createTimeShort}}</text>
+          </view>
+          <view class="time-label deadline-label {{order.isOverdue ? 'overdue' : ''}}">
+            <text class="time-title">截稿时间</text>
+            <text class="time-value">{{order.deadlineShort}}</text>
+          </view>
         </view>
-        <view class="progress-line {{order.step >= 3 ? 'active' : ''}}"></view>
-        <view class="progress-step {{order.step >= 3 ? 'active' : ''}}">
-          <view class="step-dot"></view>
-          <text class="step-label">已完成</text>
+        <view class="time-progress-bar-container">
+          <view class="time-progress-bar-bg {{order.isOverdue ? 'overdue' : (order.isNearDeadline ? 'near-deadline' : '')}}">
+            <view class="time-progress-bar-fill {{order.isOverdue ? 'overdue' : (order.isNearDeadline ? 'near-deadline' : '')}}" 
+                  style="width: {{order.progressPercent || 50}}%;"></view>
+            <view class="time-progress-strip"></view>
+          </view>
+        </view>
+        <!-- 脱稿提示 -->
+        <view wx:if="{{order.isOverdue && order.overdueDays > 0}}" class="overdue-warning">
+          已脱稿 {{order.overdueDays}} 天
         </view>
       </view>
     </view>

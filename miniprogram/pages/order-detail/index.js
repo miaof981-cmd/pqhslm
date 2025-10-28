@@ -46,19 +46,26 @@ Page({
       // 自动计算订单状态
       order = orderStatusUtil.calculateOrderStatus(order)
       
-      // 计算进度步骤
-      let step = 1
-      if (order.status === 'inProgress' || order.status === 'nearDeadline' || order.status === 'overdue') {
-        step = 2
-      } else if (order.status === 'completed') {
-        step = 3
-      }
+      // 计算进度百分比和脱稿信息
+      const progressData = this.calculateProgress(order)
+      
+      // 格式化时间显示（短格式）
+      const createTimeShort = this.formatShortTime(order.createTime)
+      const deadlineShort = this.formatShortTime(order.deadline)
+      
+      // 添加状态 CSS 类名
+      order.statusClass = orderStatusUtil.classOf(order.status)
       
       // 加载客服二维码
       this.loadServiceQRCode(order)
       
       this.setData({
-        order: { ...order, step },
+        order: { 
+          ...order, 
+          ...progressData,
+          createTimeShort,
+          deadlineShort
+        },
         loading: false
       })
       
@@ -67,6 +74,9 @@ Page({
         deadline: order.deadline,
         status: order.status,
         statusText: order.statusText,
+        progressPercent: progressData.progressPercent,
+        isOverdue: progressData.isOverdue,
+        overdueDays: progressData.overdueDays,
         serviceName: order.serviceName,
         serviceId: order.serviceId
       })
@@ -409,5 +419,91 @@ Page({
         }
       }
     })
+  },
+
+  // 计算订单进度百分比（精确到小时和分钟）
+  calculateProgress(order) {
+    if (order.status === 'completed') {
+      return { 
+        progressPercent: 100, 
+        isOverdue: false, 
+        isNearDeadline: false,
+        overdueDays: 0 
+      }
+    }
+    
+    try {
+      // 将日期字符串转换为 iOS 兼容格式（yyyy/MM/dd HH:mm:ss）
+      const parseDate = (dateStr) => {
+        if (!dateStr) return new Date()
+        return new Date(dateStr.replace(/-/g, '/'))
+      }
+      
+      // 精确到小时和分钟的时间戳
+      const createDate = parseDate(order.createTime).getTime()
+      const deadlineDate = parseDate(order.deadline).getTime()
+      const nowDate = new Date().getTime()
+      
+      if (isNaN(createDate) || isNaN(deadlineDate)) {
+        return { 
+          progressPercent: 5, 
+          isOverdue: false, 
+          isNearDeadline: false,
+          overdueDays: 0 
+        }
+      }
+      
+      // 计算精确的时间差（毫秒）
+      const oneDayMs = 24 * 60 * 60 * 1000
+      const totalMs = deadlineDate - createDate
+      const elapsedMs = nowDate - createDate
+      
+      // 按毫秒比例计算进度
+      let progressPercent = Math.round((elapsedMs / totalMs) * 100)
+      
+      // 判断是否脱稿（精确到毫秒）
+      const isOverdue = nowDate > deadlineDate
+      // 脱稿天数：只有满24小时才算1天
+      const overdueDays = isOverdue ? Math.floor((nowDate - deadlineDate) / oneDayMs) : 0
+      
+      // 判断是否临近截稿（剩余时间 <= 24小时）
+      const timeLeft = deadlineDate - nowDate
+      const isNearDeadline = !isOverdue && timeLeft <= oneDayMs
+      
+      // 限制范围
+      if (progressPercent < 5) progressPercent = 5    // 最小显示5%
+      if (progressPercent > 100) progressPercent = 100
+      
+      return { progressPercent, isOverdue, isNearDeadline, overdueDays }
+    } catch (error) {
+      console.error('计算进度失败:', error)
+      return { 
+        progressPercent: 5, 
+        isOverdue: false, 
+        isNearDeadline: false,
+        overdueDays: 0 
+      }
+    }
+  },
+
+  // 格式化短时间（10-25 17:47）
+  formatShortTime(dateStr) {
+    if (!dateStr) return ''
+    
+    try {
+      const iosCompatibleDate = dateStr.replace(/-/g, '/')
+      const date = new Date(iosCompatibleDate)
+      
+      if (isNaN(date.getTime())) return dateStr
+      
+      const month = date.getMonth() + 1
+      const day = date.getDate()
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      
+      return `${month}-${day} ${hours}:${minutes}`
+    } catch (error) {
+      return dateStr
+    }
   }
 })
