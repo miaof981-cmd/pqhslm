@@ -159,12 +159,19 @@ Page({
       // 计算各状态数量
       const statusCounts = {
         unpaid: 0,
-        processing: 0,
+        processing: 0,  // 包含所有进行中状态
         completed: 0
       }
       
       mockOrders.forEach(order => {
-        if (statusCounts[order.status] !== undefined) {
+        // ✅ 将所有进行中的状态归类到 processing
+        if (order.status === 'processing' || 
+            order.status === 'inProgress' ||
+            order.status === 'overdue' ||
+            order.status === 'nearDeadline' ||
+            order.status === 'waitingConfirm') {
+          statusCounts.processing++
+        } else if (statusCounts[order.status] !== undefined) {
           statusCounts[order.status]++
         }
       })
@@ -204,7 +211,18 @@ Page({
     let emptyText = '暂无订单'
 
     if (currentTab !== 'all') {
-      orders = allOrders.filter(order => order.status === currentTab)
+      if (currentTab === 'processing') {
+        // "制作中" Tab 包含所有进行中的状态（包括待确认）
+        orders = allOrders.filter(order => {
+          return order.status === 'processing' || 
+                 order.status === 'inProgress' || 
+                 order.status === 'overdue' || 
+                 order.status === 'nearDeadline' ||
+                 order.status === 'waitingConfirm'  // ✅ 关键：包含待确认
+        })
+      } else {
+        orders = allOrders.filter(order => order.status === currentTab)
+      }
       const tabItem = this.data.tabs.find(t => t.value === currentTab)
       emptyText = `暂无${tabItem ? tabItem.label : ''}订单`
     }
