@@ -17,7 +17,7 @@
 
   <!-- 订单列表 -->
   <view wx:elif="{{orders.length > 0}}" class="order-list">
-    <view wx:for="{{orders}}" wx:key="_id" class="order-item {{item.status === 'waitingConfirm' ? 'order-card-waiting' : ''}}">
+    <view wx:for="{{orders}}" wx:key="_id" class="order-item">
       <!-- 订单头部 -->
       <view class="order-header">
         <view class="order-info">

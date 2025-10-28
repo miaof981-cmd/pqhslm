@@ -236,12 +236,6 @@ Page({
       filtered = allOrders.filter(o => {
         return o.businessStatus === '临近截稿' || o.businessStatus === '已拖稿'
       })
-      // 已拖稿优先
-      filtered.sort((a, b) => {
-        if (a.businessStatus === '已拖稿' && b.businessStatus !== '已拖稿') return -1
-        if (a.businessStatus !== '已拖稿' && b.businessStatus === '已拖稿') return 1
-        return 0
-      })
     } else if (currentFilter === 'inProgress') {
       filtered = allOrders.filter(o => o.status === 'processing' || o.status === 'inProgress')
     } else if (currentFilter === 'waitingConfirm') {
@@ -260,7 +254,45 @@ Page({
       })
     }
 
+    // 3. 🎯 智能排序（优先级 + 时间）
+    filtered = this.sortOrdersByPriority(filtered)
+
     this.setData({ filteredOrders: filtered })
+  },
+
+  // 🎯 按优先级和时间排序订单
+  sortOrdersByPriority(orders) {
+    return orders.sort((a, b) => {
+      // 定义优先级权重（数字越大，优先级越高）
+      const priorityMap = {
+        'overdue': 4,        // 最高：已拖稿
+        'waitingConfirm': 3, // 第二：待确认
+        'nearDeadline': 2,   // 第三：临近截稿
+        'inProgress': 1,     // 第四：进行中
+        'completed': 0       // 最低：已完成
+      }
+      
+      const priorityA = priorityMap[a.status] || 0
+      const priorityB = priorityMap[b.status] || 0
+      
+      // 1. 先按优先级排序
+      if (priorityA !== priorityB) {
+        return priorityB - priorityA // 降序：优先级高的在前
+      }
+      
+      // 2. 同优先级，按时间排序
+      // 已完成的按完成时间倒序（新完成的在前）
+      if (a.status === 'completed' && b.status === 'completed') {
+        const timeA = new Date(a.completedAt || a.createTime).getTime()
+        const timeB = new Date(b.completedAt || b.createTime).getTime()
+        return timeB - timeA
+      }
+      
+      // 其他状态按创建时间倒序（新订单在前）
+      const timeA = new Date(a.createTime).getTime()
+      const timeB = new Date(b.createTime).getTime()
+      return timeB - timeA
+    })
   },
 
   // 搜索输入

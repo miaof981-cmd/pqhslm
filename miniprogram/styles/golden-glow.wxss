@@ -183,32 +183,70 @@
 }
 
 /* ========================================
-   确认按钮增强（配合光效）
+   确认按钮增强（鎏金流动边框 + 高亮）
    ======================================== */
 
 .btn-confirm-glow {
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  color: #FFFFFF;
-  font-weight: 600;
-  border: none;
-  box-shadow: 0 4rpx 16rpx rgba(255, 215, 0, 0.4);
-  animation: btn-glow-pulse 2s ease-in-out infinite;
+  position: relative;
+  background: linear-gradient(135deg, #FF6B00 0%, #FF8C00 100%) !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  border: 3px solid transparent !important;
+  overflow: hidden;
+  animation: btn-glow-pulse 1.5s ease-in-out infinite;
 }
 
+/* 流动鎏金边框 */
+.btn-confirm-glow::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(
+    90deg,
+    #FFD700 0%,
+    #FF8C00 25%,
+    #FFD700 50%,
+    #FFED4E 75%,
+    #FFD700 100%
+  );
+  background-size: 200% 100%;
+  border-radius: inherit;
+  z-index: -1;
+  animation: btn-border-flow 2s linear infinite;
+}
+
+/* 流动动画 */
+@keyframes btn-border-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+/* 呼吸脉冲 + 放大效果 */
 @keyframes btn-glow-pulse {
   0%, 100% {
-    box-shadow: 0 4rpx 16rpx rgba(255, 215, 0, 0.4);
+    box-shadow: 0 0 20rpx rgba(255, 140, 0, 0.6),
+                0 0 40rpx rgba(255, 215, 0, 0.4),
+                0 0 60rpx rgba(255, 215, 0, 0.2);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 6rpx 24rpx rgba(255, 215, 0, 0.6);
-    transform: scale(1.02);
+    box-shadow: 0 0 30rpx rgba(255, 140, 0, 0.8),
+                0 0 60rpx rgba(255, 215, 0, 0.6),
+                0 0 90rpx rgba(255, 215, 0, 0.3);
+    transform: scale(1.05);
   }
 }
 
 .btn-confirm-glow:active {
-  transform: scale(0.98);
-  box-shadow: 0 2rpx 8rpx rgba(255, 215, 0, 0.3);
+  transform: scale(0.95) !important;
+  box-shadow: 0 0 10rpx rgba(255, 140, 0, 0.5) !important;
 }
 
 /* ========================================
