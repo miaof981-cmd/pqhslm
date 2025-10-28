@@ -315,7 +315,7 @@ Page({
         
         if (diffTime < 0) {
           isOverdue = true
-          businessStatus = '已逾期'
+          businessStatus = '已拖稿'
         } else if (diffDays <= 2) {
           businessStatus = '临近截稿'
         } else if (order.status === 'waitingConfirm') {

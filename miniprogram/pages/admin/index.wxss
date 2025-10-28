@@ -1,3 +1,6 @@
+/* 引入通用订单进度条样式 */
+@import "../../styles/order-progress.wxss";
+
 /* 管理后台样式 - 专业版 */
 .container {
   min-height: 100vh;
@@ -774,75 +777,13 @@
 }
 
 /* 时间进度条区域 */
-.order-progress-section {
-  margin-bottom: 16rpx;
-  padding: 16rpx;
-  background: linear-gradient(135deg, #F9FFF9 0%, #F0F9F0 100%);
-  border-radius: 12rpx;
-  border: 1rpx solid #E8F5E9;
-}
-
-.order-progress-section.overdue {
-  background: linear-gradient(135deg, #FFF5F5 0%, #FFEBEE 100%);
-  border: 1rpx solid #FFCDD2;
-}
-
-.progress-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 12rpx;
-}
-
-.progress-label {
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
-.time-title {
-  font-size: 20rpx;
-  color: #999;
-}
-
-.time-value {
-  font-size: 24rpx;
-  font-weight: 500;
-  color: #333;
-}
-
-.deadline-label.overdue .time-value {
-  color: #E53935;
-  font-weight: 700;
-}
-
-.progress-bar-container {
-  height: 8rpx;
-  background: #E0E0E0;
-  border-radius: 4rpx;
-  overflow: hidden;
-}
-
-.progress-bar-bg {
-  height: 100%;
-  background: #E0E0E0;
-  border-radius: 4rpx;
-  overflow: hidden;
-}
-
-.progress-bar-bg.overdue {
-  background: #FFCDD2;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #81C784 0%, #66BB6A 100%);
-  border-radius: 4rpx;
-  transition: width 0.3s ease;
-}
-
-.progress-bar-bg.overdue .progress-bar-fill {
-  background: linear-gradient(90deg, #E57373 0%, #EF5350 100%);
-}
+/* ========================================
+   订单进度条样式已统一到 order-progress.wxss
+   通过 @import 引入，避免重复定义和优先级冲突
+   包括: .order-progress-section、.progress-header、
+         .progress-label、.progress-bar-bg、.progress-bar-fill
+         以及 .overdue、.near-deadline 状态样式
+   ======================================== */
 
 /* 人员信息区 */
 .order-people-row {
