@@ -119,15 +119,22 @@ Page({
         return
       }
       
+      // ✅ 引入用户工具模块（方案3：创建兜底）
+      const userHelper = require('../../utils/user-helper.js')
+      
       // 获取当前用户信息
       const userInfo = wx.getStorageSync('userInfo') || {}
-      const app = getApp()
-      const userId = app.globalData.userId || wx.getStorageSync('userId')
+      
+      // 🎯 多层兜底获取 userId
+      let userId = wx.getStorageSync('userId')
+      const { userId: finalUserId, isGuest } = userHelper.getOrCreateUserId(userId)
+      userId = finalUserId
       
       console.log('📱 获取用户信息:')
       console.log('- 昵称:', userInfo.nickName)
       console.log('- 头像:', userInfo.avatarUrl ? '已设置' : '未设置')
       console.log('- 用户ID:', userId)
+      console.log('- 是否游客:', isGuest ? '是 ⚠️' : '否 ✅')
       
       // 构建订单数据
       const newOrder = {

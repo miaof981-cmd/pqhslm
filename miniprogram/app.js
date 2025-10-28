@@ -26,6 +26,21 @@ App({
     // 初始化用户信息
     this.initUserInfo()
     
+    // ✅ 引入用户助手模块
+    const userHelper = require('./utils/user-helper.js')
+    
+    // ✅ 启动时检查并同步用户信息
+    userHelper.syncUserInfo().then(userId => {
+      if (userId) {
+        console.log('[app] ✅ 用户信息同步完成:', userId)
+        
+        // ✅ 修复历史订单的 buyerId（如果有缺失）
+        userHelper.fixHistoricalOrders()
+      }
+    }).catch(err => {
+      console.log('[app] ⚠️ 用户信息同步失败:', err)
+    })
+    
     // ✅ 新增：检查画师申请状态，自动赋予权限
     this.checkArtistApplication()
     
