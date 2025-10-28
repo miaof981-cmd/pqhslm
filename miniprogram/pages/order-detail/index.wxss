@@ -675,6 +675,40 @@ page {
   text-align: center;
 }
 
+/* ========== 操作按钮区（复用订单列表样式） ========== */
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15rpx;
+  padding: 20rpx 0;
+}
+
+.action-btn {
+  font-size: 24rpx;
+  padding: 12rpx 28rpx;
+  border-radius: 25rpx;
+  border: none;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.action-btn.default {
+  background: #F5F5F5;
+  color: #666;
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
+  color: white;
+}
+
+.completed-text {
+  font-size: 28rpx;
+  color: #999;
+  text-align: center;
+  padding: 20rpx 0;
+}
+
 .btn-primary,
 .btn-secondary {
   flex: 1;

@@ -391,25 +391,90 @@ Page({
     })
   },
 
+  // 联系客服
+  contactService() {
+    const serviceQRCode = wx.getStorageSync('service_qrcode') || '/assets/default-service-qr.png'
+    
+    wx.showModal({
+      title: '联系客服',
+      content: '请添加客服微信咨询',
+      showCancel: false
+    })
+  },
+
+  // 投诉
+  showComplaint() {
+    const complaintQRCode = wx.getStorageSync('complaint_qrcode') || '/assets/default-complaint-qr.png'
+    
+    wx.showModal({
+      title: '投诉',
+      content: '如有问题，请联系客服投诉',
+      showCancel: false
+    })
+  },
+
   // 确认完成
   confirmComplete() {
+    const orderId = this.data.order.id
+    
     wx.showModal({
       title: '确认完成',
-      content: '确认订单已完成？',
+      content: '确认订单已完成？完成后将无法撤销',
+      confirmColor: '#A8E6CF',
       success: (res) => {
         if (res.confirm) {
-          const order = this.data.order
-          order.status = 'completed'
-          order.statusText = '已完成'
-          order.step = 3
-          order.completedTime = new Date().toLocaleString()
+          // 从本地存储读取订单
+          const orders = wx.getStorageSync('orders') || []
+          const pendingOrders = wx.getStorageSync('pending_orders') || []
           
-          this.setData({ order })
+          // 在两个存储中都查找并更新
+          let updated = false
           
-          wx.showToast({
-            title: '已确认完成',
-            icon: 'success'
-          })
+          const updateOrderStatus = (orderList) => {
+            return orderList.map(order => {
+              if (order.id === orderId) {
+                updated = true
+                return {
+                  ...order,
+                  status: 'completed',
+                  completedAt: new Date().toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                  }).replace(/\//g, '-')
+                }
+              }
+              return order
+            })
+          }
+          
+          const updatedOrders = updateOrderStatus(orders)
+          const updatedPendingOrders = updateOrderStatus(pendingOrders)
+          
+          if (updated) {
+            // 保存更新后的订单
+            wx.setStorageSync('orders', updatedOrders)
+            wx.setStorageSync('pending_orders', updatedPendingOrders)
+            
+            wx.showToast({
+              title: '订单已完成',
+              icon: 'success'
+            })
+            
+            // 延迟刷新页面
+            setTimeout(() => {
+              this.loadOrderDetail(orderId)
+            }, 500)
+          } else {
+            wx.showToast({
+              title: '订单未找到',
+              icon: 'error'
+            })
+          }
         }
       }
     })

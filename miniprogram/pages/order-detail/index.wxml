@@ -182,9 +182,16 @@
       
       <!-- 买家操作 -->
       <view wx:if="{{userRole === 'customer'}}" class="button-group">
-        <button wx:if="{{order.status === 'inProgress'}}" class="btn-primary btn-full" bindtap="confirmComplete">
-          确认完成
-        </button>
+        <!-- 进行中/待确认状态 -->
+        <block wx:if="{{order.status === 'inProgress' || order.status === 'processing' || order.status === 'overdue' || order.status === 'nearDeadline' || order.status === 'waitingConfirm'}}">
+          <button class="action-btn default" bindtap="contactService">联系客服</button>
+          <button class="action-btn default" bindtap="showComplaint">投诉</button>
+          <button class="action-btn primary" bindtap="confirmComplete">确认完成</button>
+        </block>
+        <!-- 已完成状态 -->
+        <block wx:elif="{{order.status === 'completed'}}">
+          <text class="completed-text">订单已完成</text>
+        </block>
       </view>
     </view>
   </view>
