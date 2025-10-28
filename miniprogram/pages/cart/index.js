@@ -46,10 +46,21 @@ Page({
             }
           }
           
+          // 确保图片路径有效（优先使用商品图片，其次购物车图片，最后使用默认图片）
+          let productImage = ''
+          if (product.images && product.images.length > 0 && product.images[0]) {
+            productImage = product.images[0]
+          } else if (cartItem.productImage && !cartItem.productImage.includes('tmp')) {
+            productImage = cartItem.productImage
+          } else {
+            // 使用默认占位图（本地资源）
+            productImage = '/assets/default-product.png'
+          }
+          
           return {
             ...cartItem,
-            productName: product.name || cartItem.productName,
-            productImage: (product.images && product.images[0]) || cartItem.productImage || 'https://via.placeholder.com/150',
+            productName: product.name || cartItem.productName || '商品',
+            productImage: productImage,
             artistName: product.artistName || '画师',
             // 如果购物车中没有价格，从商品中获取
             price: cartItem.price || this.getProductPrice(product, cartItem.spec1, cartItem.spec2),
@@ -57,7 +68,11 @@ Page({
             specText: specText
           }
         }
-        return cartItem
+        // 如果找不到商品，也要确保有默认图片
+        return {
+          ...cartItem,
+          productImage: cartItem.productImage && !cartItem.productImage.includes('tmp') ? cartItem.productImage : '/assets/default-product.png'
+        }
       })
       
       // 保存更新后的购物车
@@ -138,10 +153,16 @@ Page({
           }
         }
         
+        // 确保图片路径有效
+        let productImage = '/assets/default-product.png'
+        if (product.images && product.images.length > 0 && product.images[0] && !product.images[0].includes('tmp')) {
+          productImage = product.images[0]
+        }
+        
         return {
           _id: product.id,
           name: product.name,
-          image: (product.images && product.images[0]) || 'https://via.placeholder.com/200',
+          image: productImage,
           price: displayPrice,
           deliveryDays: product.deliveryDays || 7 // 添加出稿天数
         }

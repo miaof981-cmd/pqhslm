@@ -329,12 +329,22 @@ Page({
       // 已存在，增加数量
       cartItems[existingIndex].quantity += quantity
     } else {
+      // 获取商品图片（确保不是临时路径）
+      let productImage = '/assets/default-product.png'
+      if (product.images && product.images.length > 0 && product.images[0]) {
+        const img = product.images[0]
+        // 检查是否是临时路径
+        if (!img.includes('tmp') && !img.includes('wxfile://')) {
+          productImage = img
+        }
+      }
+      
       // 不存在，添加新项
       const cartItem = {
         _id: cartItemId,
         productId: product.id,
         productName: product.name,
-        productImage: (product.images && product.images[0]) || 'https://via.placeholder.com/150',
+        productImage: productImage,
         artistName: product.artistName || '画师',
         price: price.toFixed(2),
         quantity: quantity,
@@ -562,8 +572,24 @@ Page({
       setTimeout(() => {
         wx.hideLoading()
         
-        // 获取商品图片（使用 base64 或空字符串）
-        const productImage = (product.images && product.images[0]) || ''
+        // 获取商品图片（确保不是临时路径）
+        let productImage = ''
+        if (product.images && product.images.length > 0 && product.images[0]) {
+          const img = product.images[0]
+          // 检查是否是临时路径
+          if (img.includes('tmp') || img.includes('wxfile://')) {
+            console.warn('⚠️ 商品图片是临时路径，使用默认图片')
+            productImage = '/assets/default-product.png'
+          } else {
+            productImage = img
+          }
+        } else {
+          productImage = '/assets/default-product.png'
+        }
+        
+        console.log('=== 创建订单 - 图片处理 ===')
+        console.log('原始图片:', product.images && product.images[0])
+        console.log('最终图片:', productImage)
         
         // 获取画师完整信息
         const artistName = product.artistName || '画师'

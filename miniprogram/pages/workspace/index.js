@@ -332,11 +332,23 @@ Page({
     const { userRole } = this.data
     const currentUserId = wx.getStorageSync('userId')
     
-    // 从本地存储加载真实订单
-    let allOrders = wx.getStorageSync('pending_orders') || []
+    // 从本地存储加载真实订单（同时读取 orders 和 pending_orders）
+    const orders = wx.getStorageSync('orders') || []
+    const pendingOrders = wx.getStorageSync('pending_orders') || []
+    
+    // 合并订单（去重，以 id 为准）
+    const orderMap = new Map()
+    ;[...orders, ...pendingOrders].forEach(order => {
+      if (order.id && !orderMap.has(order.id)) {
+        orderMap.set(order.id, order)
+      }
+    })
+    let allOrders = Array.from(orderMap.values())
     
     console.log('=== 工作台加载订单 ===')
-    console.log('原始订单数量:', allOrders.length)
+    console.log('orders 数量:', orders.length)
+    console.log('pending_orders 数量:', pendingOrders.length)
+    console.log('合并后订单数量:', allOrders.length)
     console.log('当前用户ID:', currentUserId)
     console.log('当前角色:', userRole)
     

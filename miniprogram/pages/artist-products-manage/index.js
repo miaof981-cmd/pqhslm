@@ -155,8 +155,8 @@ Page({
     console.log('该画师商品数量:', artistProducts.length)
     console.log('商品列表:', artistProducts.map(p => `${p.name}(isOnSale:${p.isOnSale})`))
     
-    // 统计上下架数量（使用 isOnSale 字段）
-    const onlineCount = artistProducts.filter(p => p.isOnSale !== false).length
+    // 统计上下架数量（使用 isOnSale 字段，严格判断）
+    const onlineCount = artistProducts.filter(p => p.isOnSale === true).length
     const offlineCount = artistProducts.filter(p => p.isOnSale === false).length
     
     console.log('已上架:', onlineCount, '已下架:', offlineCount)
@@ -186,7 +186,7 @@ Page({
     let filtered = products
     
     if (currentTab === 'online') {
-      filtered = products.filter(p => p.isOnSale !== false)
+      filtered = products.filter(p => p.isOnSale === true)
     } else if (currentTab === 'offline') {
       filtered = products.filter(p => p.isOnSale === false)
     }

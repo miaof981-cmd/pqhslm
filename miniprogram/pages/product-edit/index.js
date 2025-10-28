@@ -287,35 +287,51 @@ Page({
   
   // 实际执行保存
   _performSaveDraft() {
-    const draftData = {
-      currentStep: this.data.currentStep,
-      progress: this.data.progress,
-      formData: JSON.parse(JSON.stringify(this.data.formData)), // 深拷贝
-      categoryIndex: this.data.categoryIndex,
-      categoryName: this.data.categoryName,
-      deliveryDays: this.data.deliveryDays,
-      enableStockLimit: this.data.enableStockLimit,
-      spec1Selected: this.data.spec1Selected,
-      spec1Name: this.data.spec1Name,
-      spec1Values: JSON.parse(JSON.stringify(this.data.spec1Values)), // 深拷贝
-      spec2Selected: this.data.spec2Selected,
-      spec2Name: this.data.spec2Name,
-      spec2Values: JSON.parse(JSON.stringify(this.data.spec2Values)), // 深拷贝
-      pricePreviewTable: this.data.pricePreviewTable,
-      timestamp: Date.now()
-    }
-    
     try {
-      wx.setStorageSync('product_draft', draftData)
-      console.log('草稿已保存', draftData)
+      const draftData = {
+        currentStep: this.data.currentStep,
+        progress: this.data.progress,
+        formData: JSON.parse(JSON.stringify(this.data.formData)), // 深拷贝
+        categoryIndex: this.data.categoryIndex,
+        categoryName: this.data.categoryName,
+        deliveryDays: this.data.deliveryDays,
+        enableStockLimit: this.data.enableStockLimit,
+        spec1Selected: this.data.spec1Selected,
+        spec1Name: this.data.spec1Name,
+        spec1Values: JSON.parse(JSON.stringify(this.data.spec1Values)), // 深拷贝
+        spec2Selected: this.data.spec2Selected,
+        spec2Name: this.data.spec2Name,
+        spec2Values: JSON.parse(JSON.stringify(this.data.spec2Values)), // 深拷贝
+        pricePreviewTable: this.data.pricePreviewTable,
+        timestamp: Date.now()
+      }
       
-      // 显示保存提示
-      this.setData({ draftSaved: true })
-      setTimeout(() => {
-        this.setData({ draftSaved: false })
-      }, 2000)
+      console.log('=== 保存草稿 ===')
+      console.log('商品名称:', draftData.formData.name)
+      console.log('图片数量:', draftData.formData.images.length)
+      console.log('当前步骤:', draftData.currentStep)
+      
+      wx.setStorageSync('product_draft', draftData)
+      
+      // 验证保存是否成功
+      const savedDraft = wx.getStorageSync('product_draft')
+      if (savedDraft && savedDraft.timestamp === draftData.timestamp) {
+        console.log('✅ 草稿保存成功')
+        
+        // 显示保存提示
+        this.setData({ draftSaved: true })
+        setTimeout(() => {
+          this.setData({ draftSaved: false })
+        }, 2000)
+      } else {
+        console.error('❌ 草稿保存验证失败')
+      }
     } catch (error) {
-      console.error('保存草稿失败', error)
+      console.error('❌ 保存草稿失败', error)
+      wx.showToast({
+        title: '草稿保存失败',
+        icon: 'none'
+      })
     }
   },
 
@@ -761,14 +777,26 @@ Page({
   // 删除一级规格值
   deleteSpec1Value(e) {
     const index = e.currentTarget.dataset.index
+    console.log('删除一级规格，索引:', index)
+    
     if (this.data.spec1Values.length <= 1) {
       wx.showToast({ title: '至少保留一个选项', icon: 'none' })
       return
     }
+    
     const spec1Values = [...this.data.spec1Values]
     spec1Values.splice(index, 1)
-    this.setData({ spec1Values })
-    this.updatePricePreview()
+    
+    console.log('删除后剩余:', spec1Values.length, '个选项')
+    
+    // 立即更新UI
+    this.setData({ 
+      spec1Values: spec1Values 
+    }, () => {
+      // setData 完成后更新价格预览
+      this.updatePricePreview()
+      this.saveDraft()
+    })
   },
 
   // 显示二级规格选择
@@ -868,14 +896,26 @@ Page({
   // 删除二级规格值
   deleteSpec2Value(e) {
     const index = e.currentTarget.dataset.index
+    console.log('删除二级规格，索引:', index)
+    
     if (this.data.spec2Values.length <= 1) {
       wx.showToast({ title: '至少保留一个选项', icon: 'none' })
       return
     }
+    
     const spec2Values = [...this.data.spec2Values]
     spec2Values.splice(index, 1)
-    this.setData({ spec2Values })
-    this.updatePricePreview()
+    
+    console.log('删除后剩余:', spec2Values.length, '个选项')
+    
+    // 立即更新UI
+    this.setData({ 
+      spec2Values: spec2Values 
+    }, () => {
+      // setData 完成后更新价格预览
+      this.updatePricePreview()
+      this.saveDraft()
+    })
   },
 
   // 更新价格预览表

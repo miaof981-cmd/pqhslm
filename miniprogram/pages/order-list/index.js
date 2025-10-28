@@ -45,34 +45,48 @@ Page({
       // 模拟加载订单数据
       await new Promise(resolve => setTimeout(resolve, 500))
       
-      // 从本地存储加载真实订单
+      // 从本地存储加载真实订单（同时读取 orders 和 pending_orders）
+      const orders = wx.getStorageSync('orders') || []
       const pendingOrders = wx.getStorageSync('pending_orders') || []
       const completedOrders = wx.getStorageSync('completed_orders') || []
       
       console.log('========================================')
       console.log('📦 我的订单页 - 数据加载')
       console.log('========================================')
-      console.log('进行中订单数量:', pendingOrders.length)
-      console.log('已完成订单数量:', completedOrders.length)
+      console.log('orders 数量:', orders.length)
+      console.log('pending_orders 数量:', pendingOrders.length)
+      console.log('completed_orders 数量:', completedOrders.length)
       
-      if (pendingOrders.length === 0 && completedOrders.length === 0) {
+      if (orders.length === 0 && pendingOrders.length === 0 && completedOrders.length === 0) {
         console.error('❌ 没有加载到任何订单！')
         console.log('可能原因:')
-        console.log('1. 订单未保存到 pending_orders')
+        console.log('1. 订单未保存到 orders/pending_orders')
         console.log('2. 本地存储被清空')
         console.log('3. 订单保存逻辑未执行')
       } else {
         console.log('✅ 成功加载订单数据')
+        if (orders.length > 0) {
+          console.log('\norders 订单详情:')
+          orders.forEach((o, i) => {
+            console.log(`  ${i + 1}. ID: ${o.id}, 商品: ${o.productName}, 价格: ${o.price}`)
+          })
+        }
         if (pendingOrders.length > 0) {
-          console.log('\n进行中订单详情:')
+          console.log('\npending_orders 订单详情:')
           pendingOrders.forEach((o, i) => {
             console.log(`  ${i + 1}. ID: ${o.id}, 商品: ${o.productName}, 价格: ${o.price}`)
           })
         }
       }
       
-      // 合并所有订单
-      let allOrders = [...pendingOrders, ...completedOrders]
+      // 合并所有订单（去重，以 id 为准）
+      const orderMap = new Map()
+      ;[...orders, ...pendingOrders, ...completedOrders].forEach(order => {
+        if (order.id && !orderMap.has(order.id)) {
+          orderMap.set(order.id, order)
+        }
+      })
+      let allOrders = Array.from(orderMap.values())
       
       // 转换为订单列表需要的格式
       const mockOrders = allOrders.map(order => {
