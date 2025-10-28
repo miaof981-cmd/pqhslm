@@ -110,7 +110,7 @@ Page({
         progressPercent,
         statusText: this.getStatusText(order.status),
         businessStatus: this.getBusinessStatus(order),
-        createTime: this.formatTime(order.createdAt),
+        createTime: this.formatTime(order.createTime || order.createdAt),
         deadline: this.formatTime(order.deadline)
       }
     })
@@ -157,9 +157,10 @@ Page({
 
   // 计算进度百分比
   calculateProgressPercent(order) {
-    if (!order.createdAt || !order.deadline) return 0
+    const createTimeStr = order.createTime || order.createdAt
+    if (!createTimeStr || !order.deadline) return 0
     
-    const createTime = new Date(order.createdAt).getTime()
+    const createTime = new Date(createTimeStr).getTime()
     const deadline = new Date(order.deadline).getTime()
     const now = Date.now()
     const totalTime = deadline - createTime
