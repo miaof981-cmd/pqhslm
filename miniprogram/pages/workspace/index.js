@@ -751,13 +751,31 @@ Page({
 
   // 更新订单到本地存储
   updateOrderInStorage(order) {
-    const pendingOrders = wx.getStorageSync('pending_orders') || []
-    const index = pendingOrders.findIndex(o => o.id === order.id)
+    // 🎯 同时更新 orders 和 pending_orders 两个存储
+    let updated = false
     
-    if (index !== -1) {
-      pendingOrders[index] = order
+    // 更新 orders
+    const orders = wx.getStorageSync('orders') || []
+    const ordersIndex = orders.findIndex(o => o.id === order.id)
+    if (ordersIndex !== -1) {
+      orders[ordersIndex] = order
+      wx.setStorageSync('orders', orders)
+      updated = true
+      console.log('✅ 订单已更新到 orders')
+    }
+    
+    // 更新 pending_orders
+    const pendingOrders = wx.getStorageSync('pending_orders') || []
+    const pendingIndex = pendingOrders.findIndex(o => o.id === order.id)
+    if (pendingIndex !== -1) {
+      pendingOrders[pendingIndex] = order
       wx.setStorageSync('pending_orders', pendingOrders)
-      console.log('✅ 订单已更新到本地存储')
+      updated = true
+      console.log('✅ 订单已更新到 pending_orders')
+    }
+    
+    if (!updated) {
+      console.warn('⚠️ 订单未找到:', order.id)
     }
   },
   
