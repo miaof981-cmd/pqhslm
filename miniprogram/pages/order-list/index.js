@@ -227,6 +227,20 @@ Page({
       emptyText = `暂无${tabItem ? tabItem.label : ''}订单`
     }
 
+    // 🎯 排序：已完成的订单优先级最低（排在最后）
+    if (currentTab === 'all') {
+      orders = orders.sort((a, b) => {
+        // 已完成订单排在最后
+        if (a.status === 'completed' && b.status !== 'completed') return 1
+        if (a.status !== 'completed' && b.status === 'completed') return -1
+        
+        // 都是已完成或都不是已完成时，按创建时间倒序（新订单在前）
+        const timeA = new Date(a.createTime.replace(/-/g, '/')).getTime()
+        const timeB = new Date(b.createTime.replace(/-/g, '/')).getTime()
+        return timeB - timeA
+      })
+    }
+
     this.setData({ orders, emptyText })
   },
 
