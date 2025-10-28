@@ -2,57 +2,57 @@
   <view wx:if="{{loading}}" class="loading">加载中...</view>
   
   <view wx:else class="detail-content">
-    <!-- 订单状态卡片 -->
-    <view class="status-card">
-      <view class="status-header">
+    <!-- 订单标题卡片 -->
+    <view class="order-header-card">
+      <view class="order-title-row">
+        <text class="order-title">订单详情</text>
         <view class="status-badge status-{{order.statusClass || order.status}}">
           {{order.statusText}}
         </view>
-        <view class="order-id-row">
-          <text class="order-id-label">订单号：{{order.id}}</text>
-          <view class="copy-actions">
-            <view class="copy-btn" bindtap="copyOrderNo" catchtap="copyOrderNo">
-              <view class="copy-icon"></view>
-            </view>
-            <view class="copy-btn copy-group" bindtap="copyGroupName" catchtap="copyGroupName">
-              <view class="group-icon"></view>
-            </view>
+      </view>
+      <view class="order-id-row">
+        <text class="order-id-label">订单号：{{order.id}}</text>
+        <view class="copy-actions">
+          <view class="copy-btn" bindtap="copyOrderNo" catchtap="copyOrderNo">
+            <view class="copy-icon"></view>
+          </view>
+          <view class="copy-btn copy-group" bindtap="copyGroupName" catchtap="copyGroupName">
+            <view class="group-icon"></view>
           </view>
         </view>
       </view>
-      
-      <!-- 待确认提示卡片 -->
-      <view wx:if="{{order.status === 'waitingConfirm'}}" class="waiting-confirm-hint">
-        <view class="hint-icon">✓</view>
-        <view class="hint-content">
-          <view class="hint-title">画师已完成制作</view>
-          <view class="hint-desc">请前往群聊查看作品，满意后点击下方"确认完成"</view>
+    </view>
+
+    <!-- 待确认提示卡片 -->
+    <view wx:if="{{order.status === 'waitingConfirm'}}" class="waiting-confirm-hint">
+      <view class="hint-icon">✓</view>
+      <view class="hint-content">
+        <view class="hint-title">画师已完成制作</view>
+        <view class="hint-desc">请前往群聊查看作品，满意后点击下方"确认完成"</view>
+      </view>
+    </view>
+    
+    <!-- 订单进度条（复用通用组件） -->
+    <view wx:if="{{order.status !== 'completed'}}" class="order-progress-section {{order.isOverdue ? 'overdue' : (order.isNearDeadline ? 'near-deadline' : '')}}">
+      <view class="progress-header">
+        <view class="progress-label">
+          <text class="time-title">下单时间</text>
+          <text class="time-value">{{order.createTime}}</text>
+        </view>
+        <view class="progress-label deadline-label {{order.isOverdue ? 'overdue' : ''}}">
+          <text class="time-title">截稿时间</text>
+          <text class="time-value">{{order.deadline}}</text>
         </view>
       </view>
-      
-      <!-- 时间进度条（所有状态都显示，除了已完成） -->
-      <view wx:if="{{order.status !== 'completed'}}" class="time-progress-section {{order.isOverdue ? 'overdue' : (order.isNearDeadline ? 'near-deadline' : '')}}">
-        <view class="time-progress-header">
-          <view class="time-label">
-            <text class="time-title">下单时间</text>
-            <text class="time-value">{{order.createTimeShort}}</text>
-          </view>
-          <view class="time-label deadline-label {{order.isOverdue ? 'overdue' : ''}}">
-            <text class="time-title">截稿时间</text>
-            <text class="time-value">{{order.deadlineShort}}</text>
-          </view>
+      <view class="progress-bar-container">
+        <view class="progress-bar-bg {{order.isOverdue ? 'overdue' : (order.isNearDeadline ? 'near-deadline' : '')}}">
+          <view class="progress-bar-fill {{order.isOverdue ? 'overdue' : (order.isNearDeadline ? 'near-deadline' : '')}}" 
+                style="width: {{order.progressPercent || 50}}%;"></view>
         </view>
-        <view class="time-progress-bar-container">
-          <view class="time-progress-bar-bg {{order.isOverdue ? 'overdue' : (order.isNearDeadline ? 'near-deadline' : '')}}">
-            <view class="time-progress-bar-fill {{order.isOverdue ? 'overdue' : (order.isNearDeadline ? 'near-deadline' : '')}}" 
-                  style="width: {{order.progressPercent || 50}}%;"></view>
-            <view class="time-progress-strip"></view>
-          </view>
-        </view>
-        <!-- 脱稿提示 -->
-        <view wx:if="{{order.isOverdue && order.overdueDays > 0}}" class="overdue-warning">
-          已脱稿 {{order.overdueDays}} 天
-        </view>
+      </view>
+      <!-- 脱稿天数提示 -->
+      <view wx:if="{{order.isOverdue && order.overdueDays > 0}}" class="overdue-days-tip">
+        已脱稿 {{order.overdueDays}} 天
       </view>
     </view>
 

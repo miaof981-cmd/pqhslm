@@ -46,12 +46,8 @@ Page({
       // 自动计算订单状态
       order = orderStatusUtil.calculateOrderStatus(order)
       
-      // 计算进度百分比和脱稿信息
+      // 计算进度百分比和脱稿信息（复用订单列表页的逻辑）
       const progressData = this.calculateProgress(order)
-      
-      // 格式化时间显示（短格式）
-      const createTimeShort = this.formatShortTime(order.createTime)
-      const deadlineShort = this.formatShortTime(order.deadline)
       
       // 添加状态 CSS 类名
       order.statusClass = orderStatusUtil.classOf(order.status)
@@ -62,9 +58,7 @@ Page({
       this.setData({
         order: { 
           ...order, 
-          ...progressData,
-          createTimeShort,
-          deadlineShort
+          ...progressData
         },
         loading: false
       })
@@ -421,7 +415,7 @@ Page({
     })
   },
 
-  // 计算订单进度百分比（精确到小时和分钟）
+  // 计算订单进度百分比（复用订单列表页逻辑）
   calculateProgress(order) {
     if (order.status === 'completed') {
       return { 
@@ -483,27 +477,6 @@ Page({
         isNearDeadline: false,
         overdueDays: 0 
       }
-    }
-  },
-
-  // 格式化短时间（10-25 17:47）
-  formatShortTime(dateStr) {
-    if (!dateStr) return ''
-    
-    try {
-      const iosCompatibleDate = dateStr.replace(/-/g, '/')
-      const date = new Date(iosCompatibleDate)
-      
-      if (isNaN(date.getTime())) return dateStr
-      
-      const month = date.getMonth() + 1
-      const day = date.getDate()
-      const hours = String(date.getHours()).padStart(2, '0')
-      const minutes = String(date.getMinutes()).padStart(2, '0')
-      
-      return `${month}-${day} ${hours}:${minutes}`
-    } catch (error) {
-      return dateStr
     }
   }
 })
