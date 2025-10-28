@@ -299,20 +299,20 @@
           </view>
 
           <!-- 时间进度条 -->
-          <view class="order-progress-section {{item.businessStatus === '已拖稿' ? 'overdue' : (item.businessStatus === '临近截稿' ? 'near-deadline' : '')}}">
+          <view class="order-progress-section {{item.status === 'overdue' ? 'overdue' : (item.status === 'nearDeadline' ? 'near-deadline' : '')}}">
             <view class="progress-header">
               <view class="progress-label">
                 <text class="time-title">下单时间</text>
                 <text class="time-value">{{item.createTime}}</text>
               </view>
-              <view class="progress-label deadline-label {{item.businessStatus === '已拖稿' ? 'overdue' : ''}}">
+              <view class="progress-label deadline-label {{item.status === 'overdue' ? 'overdue' : ''}}">
                 <text class="time-title">截稿时间</text>
                 <text class="time-value">{{item.deadline || '无'}}</text>
               </view>
             </view>
             <view wx:if="{{item.deadline}}" class="progress-bar-container">
-              <view class="progress-bar-bg {{item.businessStatus === '已拖稿' ? 'overdue' : (item.businessStatus === '临近截稿' ? 'near-deadline' : '')}}">
-                <view class="progress-bar-fill {{item.businessStatus === '已拖稿' ? 'overdue' : (item.businessStatus === '临近截稿' ? 'near-deadline' : '')}}" style="width: {{item.progressPercent || 50}}%;"></view>
+              <view class="progress-bar-bg {{item.status === 'overdue' ? 'overdue' : (item.status === 'nearDeadline' ? 'near-deadline' : '')}}">
+                <view class="progress-bar-fill {{item.status === 'overdue' ? 'overdue' : (item.status === 'nearDeadline' ? 'near-deadline' : '')}}" style="width: {{item.progressPercent || 50}}%;"></view>
               </view>
             </view>
           </view>

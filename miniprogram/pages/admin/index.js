@@ -245,6 +245,8 @@ Page({
 
   // 加载订单列表
   async loadOrders() {
+    const orderStatusUtil = require('../../utils/order-status.js')
+    
     // 🔧 同时读取两个存储源
     const ordersFromOrders = wx.getStorageSync('orders') || []
     const ordersFromPending = wx.getStorageSync('pending_orders') || []
@@ -267,7 +269,10 @@ Page({
     })
     
     // 转换为数组
-    const allOrders = Array.from(orderMap.values())
+    let allOrders = Array.from(orderMap.values())
+    
+    // ✅ 使用工具自动计算订单状态（overdue/nearDeadline/inProgress）
+    allOrders = orderStatusUtil.calculateOrdersStatus(allOrders)
     
     console.log('━━━━━━━━━━━━━━━━━━━━━━')
     console.log('📦 [管理后台] 加载订单列表')
