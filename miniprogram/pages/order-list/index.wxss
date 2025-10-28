@@ -176,6 +176,12 @@
   color: #721C24;
 }
 
+/* 订单进度条 - 为本页面添加左右边距 */
+.order-item .order-progress-section {
+  margin-left: 20rpx;
+  margin-right: 20rpx;
+}
+
 /* 商品信息 */
 .order-content {
   display: flex;

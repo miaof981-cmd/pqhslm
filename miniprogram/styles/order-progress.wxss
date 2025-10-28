@@ -6,7 +6,7 @@
 /* 时间进度条区 - 统一样式 */
 .order-progress-section {
   padding: 24rpx;
-  margin: 16rpx 0;
+  margin: 16rpx 0;  /* 默认上下margin，左右由父容器padding控制 */
   background: linear-gradient(135deg, #F8FFF9 0%, #F0F9F1 100%);
   border-radius: 16rpx;
   position: relative;
