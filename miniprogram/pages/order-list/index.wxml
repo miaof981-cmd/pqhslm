@@ -119,9 +119,7 @@
         <block wx:elif="{{item.status === 'waitingConfirm'}}">
           <button class="action-btn default" bindtap="contactService" data-id="{{item._id}}">联系客服</button>
           <button class="action-btn default" bindtap="showComplaint" data-id="{{item._id}}">投诉</button>
-          <view class="btn-glow-wrapper">
-            <button class="action-btn primary" bindtap="confirmComplete" data-id="{{item._id}}">确认完成</button>
-          </view>
+          <button class="action-btn primary btn-with-glow" bindtap="confirmComplete" data-id="{{item._id}}">确认完成</button>
         </block>
 
         <!-- 已完成 -->
