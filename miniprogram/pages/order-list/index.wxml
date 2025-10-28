@@ -47,6 +47,7 @@
         <view class="product-info">
           <text class="product-name">{{item.productName}}</text>
           <text class="product-artist">画师：{{item.artistName}}</text>
+          <text class="product-service">客服：{{item.serviceName || '待分配'}}</text>
           <view class="product-meta">
             <text class="product-delivery">{{item.deliveryDays}}天出稿</text>
             <text class="product-price">¥{{item.amount}}</text>

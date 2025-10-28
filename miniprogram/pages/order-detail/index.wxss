@@ -415,6 +415,30 @@ page {
   margin-bottom: 24rpx;
 }
 
+.qr-placeholder {
+  width: 400rpx;
+  height: 400rpx;
+  border-radius: 16rpx;
+  background: linear-gradient(135deg, #F5F5F5 0%, #FAFAFA 100%);
+  border: 2rpx dashed #E0E0E0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24rpx;
+}
+
+.qr-placeholder .placeholder-text {
+  font-size: 28rpx;
+  color: #999;
+  margin-bottom: 12rpx;
+}
+
+.qr-placeholder .placeholder-hint {
+  font-size: 24rpx;
+  color: #CCC;
+}
+
 .qr-hint {
   font-size: 28rpx;
   color: #2D5C3F;

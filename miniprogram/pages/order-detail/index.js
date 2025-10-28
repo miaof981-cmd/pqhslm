@@ -54,19 +54,49 @@ Page({
         step = 3
       }
       
+      // 加载客服二维码
+      this.loadServiceQRCode(order)
+      
       this.setData({
         order: { ...order, step },
         loading: false
       })
       
-      console.log('订单详情:', {
+      console.log('📦 订单详情加载:', {
         id: order.id,
         deadline: order.deadline,
         status: order.status,
-        statusText: order.statusText
+        statusText: order.statusText,
+        serviceName: order.serviceName,
+        serviceId: order.serviceId
       })
     } else {
       this.loadMockOrder(orderId)
+    }
+  },
+  
+  // 加载客服二维码
+  loadServiceQRCode(order) {
+    if (!order.serviceId) {
+      console.warn('⚠️ 订单未分配客服，无法加载二维码')
+      return
+    }
+    
+    // 从本地存储读取客服列表
+    const serviceList = wx.getStorageSync('customer_service_list') || []
+    const service = serviceList.find(s => s.id === order.serviceId || s.userId === order.serviceId)
+    
+    if (service && service.qrCode) {
+      console.log('✅ 成功加载客服二维码:', service.name)
+      this.setData({
+        'order.serviceQRCode': service.qrCode
+      })
+    } else {
+      console.warn('⚠️ 客服二维码未找到:', {
+        serviceId: order.serviceId,
+        serviceName: order.serviceName,
+        找到的客服: service ? service.name : '未找到'
+      })
     }
   },
   

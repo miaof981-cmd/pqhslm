@@ -113,9 +113,18 @@
 
     <!-- 客服二维码（买家可见） -->
     <view wx:if="{{userRole === 'customer'}}" class="section-card qr-section">
-      <view class="section-title">联系客服</view>
+      <view class="section-title">联系客服{{order.serviceName ? ' - ' + order.serviceName : ''}}</view>
       <view class="qr-container">
-        <image class="qr-image" src="https://via.placeholder.com/400x400.png?text=客服二维码" mode="aspectFit"/>
+        <image 
+          wx:if="{{order.serviceQRCode}}"
+          class="qr-image" 
+          src="{{order.serviceQRCode}}" 
+          mode="aspectFit"
+        />
+        <view wx:else class="qr-placeholder">
+          <text class="placeholder-text">客服二维码加载中...</text>
+          <text class="placeholder-hint">请稍后刷新页面</text>
+        </view>
         <text class="qr-hint">长按识别二维码添加客服微信</text>
         <text class="qr-desc">客服会与您进一步沟通绘画要求</text>
       </view>
