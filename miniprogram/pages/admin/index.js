@@ -299,7 +299,7 @@ Page({
       'inProgress': '进行中',
       'waitingConfirm': '待客户确认',
       'nearDeadline': '临近截稿',
-      'overdue': '已逾期',
+      'overdue': '已拖稿',
       'completed': '已完成',
       'refunding': '退款中',
       'refunded': '已退款',

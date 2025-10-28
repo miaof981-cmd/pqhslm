@@ -598,23 +598,19 @@
   gap: 12rpx;
 }
 
-/* 订单号区域（可点击复制） */
-.order-id-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 6rpx;
-  padding: 8rpx 16rpx;
-  background: linear-gradient(135deg, #F5F5F5 0%, #FAFAFA 100%);
-  border-radius: 12rpx;
-  border: 1rpx dashed #E0E0E0;
+/* 订单号单行显示（可点击复制） */
+.order-id-inline {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+  font-family: 'Courier New', Consolas, monospace;
+  letter-spacing: 0.5rpx;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: color 0.2s;
 }
 
-.order-id-wrapper:active {
-  transform: scale(0.98);
-  background: linear-gradient(135deg, #E8F5E9 0%, #F1F8F2 100%);
-  border-color: #A8E6CF;
+.order-id-inline:active {
+  color: #66BB6A;
 }
 
 /* 复制群名图标 */
