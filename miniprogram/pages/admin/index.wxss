@@ -675,25 +675,32 @@
   letter-spacing: 0.5rpx;
 }
 
+/* 订单状态标签 - 统一胶囊气泡样式 */
 .order-status {
   padding: 6rpx 16rpx;
   border-radius: 20rpx;
   font-size: 22rpx;
   font-weight: 500;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rpx;
 }
 
-.business-status-text {
-  font-size: 18rpx;
-  opacity: 0.8;
-}
-
-.order-status.status-processing {
+.order-status.status-inProgress {
   background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
   color: #43A047;
+}
+
+.order-status.status-nearDeadline {
+  background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+  color: #F57C00;
+}
+
+.order-status.status-overdue {
+  background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+  color: #E57373;
+}
+
+.order-status.status-completed {
+  background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%);
+  color: #8E24AA;
 }
 
 .order-status.status-waitingConfirm {
@@ -701,9 +708,9 @@
   color: #1976D2;
 }
 
-.order-status.status-completed {
-  background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%);
-  color: #8E24AA;
+.order-status.status-processing {
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  color: #43A047;
 }
 
 .order-status.status-refunded {
@@ -847,89 +854,7 @@
   border: 1rpx solid #E0E0E0;
 }
 
-.order-status {
-  font-size: 22rpx;
-  padding: 6rpx 12rpx;
-  border-radius: 8rpx;
-}
-
-.order-status.status-unpaid {
-  background: #F5F5F5;
-  color: #999;
-}
-
-.order-status.status-paid {
-  background: #FFF3CD;
-  color: #856404;
-}
-
-.order-status.status-processing {
-  background: #D1ECF1;
-  color: #0C5460;
-}
-
-.order-status.status-completed {
-  background: #D4EDDA;
-  color: #155724;
-}
-
-.order-status.status-refunding {
-  background: #FFE5E5;
-  color: #FF6B6B;
-}
-
-.order-status.status-refunded {
-  background: #F8D7DA;
-  color: #721C24;
-}
-
-/* 新版状态徽章 */
-.order-status-badge {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6rpx;
-}
-
-.order-status-badge .status-text {
-  font-size: 26rpx;
-  font-weight: 600;
-  padding: 8rpx 20rpx;
-  border-radius: 20rpx;
-}
-
-.order-status-badge.status-unpaid .status-text {
-  background: #F5F5F5;
-  color: #999;
-}
-
-.order-status-badge.status-processing .status-text {
-  background: linear-gradient(135deg, #D1ECF1 0%, #BEE5EB 100%);
-  color: #0C5460;
-}
-
-.order-status-badge.status-waitingConfirm .status-text {
-  background: linear-gradient(135deg, #FFF3CD 0%, #FFE69C 100%);
-  color: #856404;
-}
-
-.order-status-badge.status-completed .status-text {
-  background: linear-gradient(135deg, #D4EDDA 0%, #C3E6CB 100%);
-  color: #155724;
-}
-
-.order-status-badge.status-refunded .status-text {
-  background: linear-gradient(135deg, #F8D7DA 0%, #F5C6CB 100%);
-  color: #721C24;
-}
-
-.business-status {
-  font-size: 22rpx;
-  color: #666;
-  padding: 4rpx 12rpx;
-  background: rgba(255,255,255,0.8);
-  border-radius: 12rpx;
-}
+/* 旧版状态样式已删除，统一使用顶部的 .order-status 样式 */
 
 /* 订单卡片主体 */
 .order-card-body {
