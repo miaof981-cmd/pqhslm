@@ -183,70 +183,35 @@
 }
 
 /* ========================================
-   确认按钮增强（鎏金流动边框 + 高亮）
+   确认按钮增强（清新优雅的高亮效果）
    ======================================== */
 
 .btn-confirm-glow {
   position: relative;
-  background: linear-gradient(135deg, #FF6B00 0%, #FF8C00 100%) !important;
-  color: #FFFFFF !important;
+  background: linear-gradient(135deg, #A8E6CF 0%, #7ED6B0 100%) !important;
+  color: #2D5940 !important;
   font-weight: 600 !important;
-  border: 3px solid transparent !important;
-  overflow: hidden;
-  animation: btn-glow-pulse 1.5s ease-in-out infinite;
+  border: 2px solid #7ED6B0 !important;
+  box-shadow: 0 4rpx 12rpx rgba(126, 214, 176, 0.25),
+              0 0 0 4rpx rgba(168, 230, 207, 0.2);
+  animation: btn-soft-glow 3s ease-in-out infinite;
 }
 
-/* 流动鎏金边框 */
-.btn-confirm-glow::before {
-  content: '';
-  position: absolute;
-  top: -3px;
-  left: -3px;
-  right: -3px;
-  bottom: -3px;
-  background: linear-gradient(
-    90deg,
-    #FFD700 0%,
-    #FF8C00 25%,
-    #FFD700 50%,
-    #FFED4E 75%,
-    #FFD700 100%
-  );
-  background-size: 200% 100%;
-  border-radius: inherit;
-  z-index: -1;
-  animation: btn-border-flow 2s linear infinite;
-}
-
-/* 流动动画 */
-@keyframes btn-border-flow {
-  0% {
-    background-position: 0% 50%;
-  }
-  100% {
-    background-position: 200% 50%;
-  }
-}
-
-/* 呼吸脉冲 + 放大效果 */
-@keyframes btn-glow-pulse {
+/* 柔和的呼吸光效（不刺眼） */
+@keyframes btn-soft-glow {
   0%, 100% {
-    box-shadow: 0 0 20rpx rgba(255, 140, 0, 0.6),
-                0 0 40rpx rgba(255, 215, 0, 0.4),
-                0 0 60rpx rgba(255, 215, 0, 0.2);
-    transform: scale(1);
+    box-shadow: 0 4rpx 12rpx rgba(126, 214, 176, 0.25),
+                0 0 0 4rpx rgba(168, 230, 207, 0.2);
   }
   50% {
-    box-shadow: 0 0 30rpx rgba(255, 140, 0, 0.8),
-                0 0 60rpx rgba(255, 215, 0, 0.6),
-                0 0 90rpx rgba(255, 215, 0, 0.3);
-    transform: scale(1.05);
+    box-shadow: 0 6rpx 16rpx rgba(126, 214, 176, 0.35),
+                0 0 0 6rpx rgba(168, 230, 207, 0.3);
   }
 }
 
 .btn-confirm-glow:active {
-  transform: scale(0.95) !important;
-  box-shadow: 0 0 10rpx rgba(255, 140, 0, 0.5) !important;
+  transform: scale(0.98) !important;
+  box-shadow: 0 2rpx 8rpx rgba(126, 214, 176, 0.3) !important;
 }
 
 /* ========================================
