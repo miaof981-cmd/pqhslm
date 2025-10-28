@@ -834,30 +834,30 @@
 /* 操作按钮区 */
 .order-actions {
   display: flex;
-  gap: 16rpx;
+  gap: 12rpx;
   justify-content: flex-end;
-  margin-top: 8rpx;
+  margin-top: 12rpx;
 }
 
 .btn-action {
-  flex: 1;
-  padding: 16rpx 24rpx;
-  border-radius: 12rpx;
-  font-size: 26rpx;
-  font-weight: 500;
-  border: none;
-  line-height: 1.2;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  padding: 8rpx 20rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  font-weight: 400;
+  border: 1rpx solid #E0E0E0;
+  line-height: 1.3;
+  background: white;
+  color: #666;
 }
 
 .btn-service {
-  background: linear-gradient(135deg, #A8E6CF 0%, #66BB6A 100%);
-  color: white;
+  border-color: #C8E6C9;
+  color: #4CAF50;
 }
 
 .btn-refund {
-  background: linear-gradient(135deg, #FFB6B6 0%, #FF8A80 100%);
-  color: white;
+  border-color: #FFCDD2;
+  color: #E57373;
 }
 
 /* 旧版状态样式已删除，统一使用顶部的 .order-status 样式 */
