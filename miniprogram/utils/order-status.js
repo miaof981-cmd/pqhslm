@@ -3,6 +3,20 @@
  */
 
 /**
+ * 将日期字符串转换为 iOS 兼容格式
+ * @param {string} dateStr - 日期字符串
+ * @returns {Date} Date 对象
+ */
+function parseDate(dateStr) {
+  if (!dateStr) return new Date()
+  
+  // 将 "yyyy-MM-dd HH:mm:ss" 或 "yyyy-MM-dd HH:mm" 转换为 "yyyy/MM/dd HH:mm:ss"
+  // iOS 不支持 "yyyy-MM-dd HH:mm:ss" 格式，需要将 - 替换为 /
+  const iosCompatibleDate = dateStr.replace(/-/g, '/')
+  return new Date(iosCompatibleDate)
+}
+
+/**
  * 根据截稿时间计算订单状态
  * @param {Object} order - 订单对象
  * @returns {Object} 更新后的订单对象
@@ -24,7 +38,7 @@ function calculateOrderStatus(order) {
   }
   
   const now = new Date()
-  const deadline = new Date(order.deadline)
+  const deadline = parseDate(order.deadline)
   
   // 计算剩余时间（毫秒）
   const timeLeft = deadline.getTime() - now.getTime()
@@ -112,7 +126,7 @@ function countOrderStatus(orders) {
  */
 function formatDeadline(deadline) {
   const now = new Date()
-  const deadlineDate = new Date(deadline)
+  const deadlineDate = parseDate(deadline)
   const timeLeft = deadlineDate.getTime() - now.getTime()
   
   if (timeLeft < 0) {
