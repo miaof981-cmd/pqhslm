@@ -73,6 +73,15 @@
         </view>
       </view>
 
+      <!-- 待确认提示卡片（代替进度条区域） -->
+      <view wx:if="{{item.status === 'waitingConfirm'}}" class="order-waiting-hint">
+        <view class="waiting-hint-icon">✓</view>
+        <view class="waiting-hint-content">
+          <view class="waiting-hint-title">画师已完成制作</view>
+          <view class="waiting-hint-desc">请前往群聊查看作品，满意后点击下方"确认完成"</view>
+        </view>
+      </view>
+
       <!-- 人员信息区（画师、客服） -->
       <view class="order-people-row">
         <view class="people-item">
@@ -105,12 +114,14 @@
         </block>
 
         <!-- 待确认（画师已完成，等待买家确认） -->
-        <!-- 🌟 清新高亮效果：画师标记完成后，引导单主确认 -->
+        <!-- 🌟 流光特效：画师标记完成后，引导单主确认 -->
         <!-- ⚠️ 重要：投诉按钮始终保留，此时最容易产生纠纷 -->
         <block wx:elif="{{item.status === 'waitingConfirm'}}">
           <button class="action-btn default" bindtap="contactService" data-id="{{item._id}}">联系客服</button>
           <button class="action-btn default" bindtap="showComplaint" data-id="{{item._id}}">投诉</button>
-          <button class="action-btn primary btn-confirm-glow" bindtap="confirmComplete" data-id="{{item._id}}">确认完成</button>
+          <view class="btn-glow-wrapper">
+            <button class="action-btn primary" bindtap="confirmComplete" data-id="{{item._id}}">确认完成</button>
+          </view>
         </block>
 
         <!-- 已完成 -->

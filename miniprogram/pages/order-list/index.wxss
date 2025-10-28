@@ -561,3 +561,98 @@
   text-align: center;
   line-height: 1.6;
 }
+
+/* ========================
+   待确认提示卡片（代替进度条）
+   ======================== */
+.order-waiting-hint {
+  margin: 20rpx;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #E8F5E9 0%, #F1F8F4 100%);
+  border-radius: 16rpx;
+  border: 2rpx solid #A8E6CF;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.waiting-hint-icon {
+  width: 64rpx;
+  height: 64rpx;
+  background: linear-gradient(135deg, #A8E6CF 0%, #7ED6B0 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: white;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.waiting-hint-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.waiting-hint-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2D5940;
+  line-height: 1.3;
+}
+
+.waiting-hint-desc {
+  font-size: 24rpx;
+  color: #5A8B6F;
+  line-height: 1.5;
+}
+
+/* ========================
+   确认按钮流光特效（外圈包裹）
+   ======================== */
+.btn-glow-wrapper {
+  position: relative;
+  display: inline-block;
+  border-radius: 12rpx;
+  padding: 4rpx;
+  background: linear-gradient(90deg, 
+    #A8E6CF 0%, 
+    #7ED6B0 25%, 
+    #A8E6CF 50%, 
+    #7ED6B0 75%, 
+    #A8E6CF 100%);
+  background-size: 300% 100%;
+  animation: flowing-glow 3s linear infinite;
+  box-shadow: 0 0 20rpx rgba(126, 214, 176, 0.4),
+              0 0 40rpx rgba(126, 214, 176, 0.2);
+}
+
+@keyframes flowing-glow {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 300% 0%;
+  }
+}
+
+/* 确认按钮本身保持原样式 */
+.btn-glow-wrapper .action-btn {
+  position: relative;
+  margin: 0 !important;
+  background: white !important;
+  color: #2D5940 !important;
+  font-weight: 600 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* 按下效果 */
+.btn-glow-wrapper:active {
+  transform: scale(0.98);
+  box-shadow: 0 0 15rpx rgba(126, 214, 176, 0.3),
+              0 0 30rpx rgba(126, 214, 176, 0.15);
+}
