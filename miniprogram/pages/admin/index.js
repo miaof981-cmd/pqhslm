@@ -750,8 +750,8 @@ Page({
     // 获取商品名
     const productName = order.productName || '商品'
 
-    // 生成群名：【联盟xxxx】x月x日出图➕商品名
-    const groupName = `【联盟${last4Digits}】${deadlineText}出图➕${productName}`
+    // 生成群名：【联盟xxxx】x月x日出商品名
+    const groupName = `【联盟${last4Digits}】${deadlineText}出${productName}`
 
     wx.setClipboardData({
       data: groupName,

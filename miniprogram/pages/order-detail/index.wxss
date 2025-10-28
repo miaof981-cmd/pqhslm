@@ -90,13 +90,97 @@ page {
   font-size: 36rpx;
   font-weight: 700;
   color: #2D5C3F;
-  margin-bottom: 8rpx;
+  margin-bottom: 12rpx;
 }
 
-.order-id {
-  display: block;
+.order-id-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order-id-label {
   font-size: 24rpx;
   color: #999;
+}
+
+.copy-actions {
+  display: flex;
+  gap: 12rpx;
+}
+
+.copy-btn {
+  width: 36rpx;
+  height: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  border-radius: 8rpx;
+  transition: all 0.2s;
+}
+
+.copy-btn:active {
+  transform: scale(0.9);
+  background: linear-gradient(135deg, #C8E6C9 0%, #A5D6A7 100%);
+}
+
+.copy-btn.copy-group {
+  background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
+}
+
+.copy-btn.copy-group:active {
+  background: linear-gradient(135deg, #FFF59D 0%, #FFEE58 100%);
+}
+
+/* CSS绘制复制图标 */
+.copy-icon {
+  width: 18rpx;
+  height: 18rpx;
+  position: relative;
+  border: 2rpx solid #4CAF50;
+  border-radius: 3rpx;
+}
+
+.copy-icon::before {
+  content: '';
+  position: absolute;
+  width: 18rpx;
+  height: 18rpx;
+  top: -4rpx;
+  left: -4rpx;
+  border: 2rpx solid #4CAF50;
+  border-radius: 3rpx;
+  background: #fff;
+}
+
+/* CSS绘制群组图标 */
+.group-icon {
+  width: 20rpx;
+  height: 20rpx;
+  position: relative;
+}
+
+.group-icon::before {
+  content: '';
+  position: absolute;
+  width: 10rpx;
+  height: 10rpx;
+  top: 0;
+  left: 0;
+  border: 2rpx solid #F57F17;
+  border-radius: 50%;
+}
+
+.group-icon::after {
+  content: '';
+  position: absolute;
+  width: 10rpx;
+  height: 10rpx;
+  bottom: 0;
+  right: 0;
+  border: 2rpx solid #F57F17;
+  border-radius: 50%;
 }
 
 /* 进度条 */

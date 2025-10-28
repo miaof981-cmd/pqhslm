@@ -299,7 +299,54 @@ Page({
     }
   },
 
+  // 复制订单号
+  copyOrderNo() {
+    const orderId = this.data.order.id || this.data.order.orderNumber
+    wx.setClipboardData({
+      data: orderId.toString(),
+      success: () => {
+        wx.showToast({
+          title: '订单号已复制',
+          icon: 'success'
+        })
+      }
+    })
+  },
 
+  // 复制群名
+  copyGroupName() {
+    const order = this.data.order
+    if (!order) return
+
+    // 获取订单号后四位
+    const orderId = order.id || order.orderNumber || ''
+    const last4Digits = orderId.toString().slice(-4)
+
+    // 获取截稿日期（格式：x月x日）
+    let deadlineText = ''
+    if (order.deadline) {
+      const deadlineDate = new Date(order.deadline)
+      const month = deadlineDate.getMonth() + 1
+      const day = deadlineDate.getDate()
+      deadlineText = `${month}月${day}日`
+    }
+
+    // 获取商品名
+    const productName = order.productName || '商品'
+
+    // 生成群名：【联盟xxxx】x月x日出商品名
+    const groupName = `【联盟${last4Digits}】${deadlineText}出${productName}`
+
+    wx.setClipboardData({
+      data: groupName,
+      success: () => {
+        wx.showToast({
+          title: '群名已复制',
+          icon: 'success'
+        })
+      }
+    })
+  },
 
   // 确认完成
   confirmComplete() {
