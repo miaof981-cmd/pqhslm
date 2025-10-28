@@ -415,15 +415,65 @@ Page({
 
   // 评价订单
   reviewOrder(e) {
-    const id = e.currentTarget.dataset.id
+    const orderId = e.currentTarget.dataset.id
+    
     wx.showModal({
       title: '评价订单',
-      content: '请对本次服务进行评价（评价功能待完善）',
-      confirmText: '去评价',
+      content: '请对本次服务进行评价（评价功能开发中，评价后将显示"已评价"）',
+      confirmText: '提交评价',
       success: (res) => {
         if (res.confirm) {
-          // 可以跳转到评价页面或显示评价弹窗
-          wx.showToast({ title: '感谢您的评价', icon: 'success' })
+          // 🎯 从本地存储读取订单并标记为已评价
+          const orders = wx.getStorageSync('orders') || []
+          const pendingOrders = wx.getStorageSync('pending_orders') || []
+          
+          let updated = false
+          
+          const markAsReviewed = (orderList) => {
+            return orderList.map(order => {
+              if (order.id === orderId) {
+                updated = true
+                return {
+                  ...order,
+                  reviewed: true,
+                  reviewedAt: new Date().toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                  }).replace(/\//g, '-')
+                }
+              }
+              return order
+            })
+          }
+          
+          const updatedOrders = markAsReviewed(orders)
+          const updatedPendingOrders = markAsReviewed(pendingOrders)
+          
+          if (updated) {
+            // 保存更新后的订单
+            wx.setStorageSync('orders', updatedOrders)
+            wx.setStorageSync('pending_orders', updatedPendingOrders)
+            
+            wx.showToast({
+              title: '感谢您的评价',
+              icon: 'success'
+            })
+            
+            // 延迟刷新，让用户看到提示
+            setTimeout(() => {
+              this.loadOrders()
+            }, 500)
+          } else {
+            wx.showToast({
+              title: '订单未找到',
+              icon: 'error'
+            })
+          }
         }
       }
     })
@@ -432,9 +482,14 @@ Page({
   // 查看评价
   viewReview(e) {
     const id = e.currentTarget.dataset.id
-    wx.navigateTo({
-      url: `/pages/order-detail/index?id=${id}`
+    wx.showToast({
+      title: '已评价',
+      icon: 'success'
     })
+    // 🔗 预留接口：将来可以跳转到评价详情页
+    // wx.navigateTo({
+    //   url: `/pages/review-detail/index?id=${id}`
+    // })
   },
 
   // 再次购买

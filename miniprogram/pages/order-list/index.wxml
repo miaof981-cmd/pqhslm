@@ -97,12 +97,15 @@
         </block>
 
         <!-- 已支付/制作中（包括所有进行中的状态） -->
+        <!-- 🎯 逻辑调整：单主任何时候都可以确认完成，不需要等待画师标记 -->
         <block wx:elif="{{item.status === 'paid' || item.status === 'processing' || item.status === 'inProgress' || item.status === 'overdue' || item.status === 'nearDeadline'}}">
           <button class="action-btn default" bindtap="contactService" data-id="{{item._id}}">联系客服</button>
           <button class="action-btn default" bindtap="showComplaint" data-id="{{item._id}}">投诉</button>
+          <button class="action-btn primary" bindtap="confirmComplete" data-id="{{item._id}}">确认完成</button>
         </block>
 
         <!-- 待确认（画师已完成，等待买家确认） -->
+        <!-- 🌟 鎏金高亮效果：画师标记完成后，引导单主确认 -->
         <block wx:elif="{{item.status === 'waitingConfirm'}}">
           <button class="action-btn default" bindtap="contactService" data-id="{{item._id}}">联系客服</button>
           <button class="action-btn primary btn-confirm-glow" bindtap="confirmComplete" data-id="{{item._id}}">确认完成</button>
