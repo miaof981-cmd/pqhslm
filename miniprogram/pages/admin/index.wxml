@@ -268,7 +268,7 @@
 
       <!-- 订单列表 -->
       <view class="order-list">
-        <view wx:for="{{orders}}" wx:key="_id" class="order-card">
+        <view wx:for="{{orders}}" wx:key="_id" class="order-card {{item.status === 'waitingConfirm' ? 'order-card-waiting' : ''}}">
           <!-- 订单头部：订单号 + 状态 -->
           <view class="order-header">
             <view class="order-id-actions">

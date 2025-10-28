@@ -1,0 +1,230 @@
+/**
+ * 鎏金流动光效样式
+ * 用于"待确认"状态的订单卡片
+ */
+
+/* ========================================
+   鎏金渐变流动边框
+   ======================================== */
+
+.order-card-waiting {
+  position: relative;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  animation: golden-pulse 2s ease-in-out infinite;
+}
+
+/* 鎏金流动边框 - 使用伪元素实现 */
+.order-card-waiting::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(
+    90deg,
+    #FFD700 0%,      /* 金色 */
+    #FFA500 25%,     /* 橙金 */
+    #FFD700 50%,     /* 金色 */
+    #FFED4E 75%,     /* 亮金 */
+    #FFD700 100%     /* 金色 */
+  );
+  background-size: 200% 100%;
+  border-radius: 16rpx;
+  z-index: -1;
+  animation: golden-flow 3s linear infinite;
+}
+
+/* 内层白色背景（确保内容可见） */
+.order-card-waiting::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #FFFFFF;
+  border-radius: 14rpx;
+  z-index: -1;
+}
+
+/* 流动动画 */
+@keyframes golden-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+/* 呼吸光效 */
+@keyframes golden-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20rpx rgba(255, 215, 0, 0.3),
+                0 0 40rpx rgba(255, 215, 0, 0.2),
+                0 0 60rpx rgba(255, 215, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30rpx rgba(255, 215, 0, 0.5),
+                0 0 60rpx rgba(255, 215, 0, 0.3),
+                0 0 90rpx rgba(255, 215, 0, 0.2);
+  }
+}
+
+/* ========================================
+   增强版：双层流动光效（可选）
+   ======================================== */
+
+.order-card-waiting-enhanced {
+  position: relative;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  animation: golden-pulse-enhanced 2.5s ease-in-out infinite;
+}
+
+/* 外层流动边框 */
+.order-card-waiting-enhanced::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(
+    90deg,
+    #FFD700 0%,
+    #FFA500 20%,
+    #FFD700 40%,
+    #FFED4E 60%,
+    #FFD700 80%,
+    #FFA500 100%
+  );
+  background-size: 300% 100%;
+  border-radius: 16rpx;
+  z-index: -2;
+  animation: golden-flow-fast 2s linear infinite;
+  filter: blur(2rpx);
+}
+
+/* 内层白色背景 */
+.order-card-waiting-enhanced::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #FFFFFF;
+  border-radius: 14rpx;
+  z-index: -1;
+}
+
+/* 快速流动 */
+@keyframes golden-flow-fast {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
+}
+
+/* 增强呼吸光效 */
+@keyframes golden-pulse-enhanced {
+  0%, 100% {
+    box-shadow: 0 0 25rpx rgba(255, 215, 0, 0.4),
+                0 0 50rpx rgba(255, 215, 0, 0.3),
+                0 0 75rpx rgba(255, 215, 0, 0.2),
+                0 0 100rpx rgba(255, 215, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 35rpx rgba(255, 215, 0, 0.6),
+                0 0 70rpx rgba(255, 215, 0, 0.4),
+                0 0 105rpx rgba(255, 215, 0, 0.3),
+                0 0 140rpx rgba(255, 215, 0, 0.2);
+  }
+}
+
+/* ========================================
+   简化版：静态鎏金边框（性能优先）
+   ======================================== */
+
+.order-card-waiting-simple {
+  border: 2px solid transparent;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(90deg, #FFD700, #FFA500, #FFD700) border-box;
+  border-radius: 16rpx;
+  box-shadow: 0 0 20rpx rgba(255, 215, 0, 0.3);
+}
+
+/* ========================================
+   状态标签增强（配合光效）
+   ======================================== */
+
+.status-waiting-glow {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 8rpx 20rpx;
+  border-radius: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(255, 215, 0, 0.3);
+  animation: status-shine 2s ease-in-out infinite;
+}
+
+@keyframes status-shine {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* ========================================
+   确认按钮增强（配合光效）
+   ======================================== */
+
+.btn-confirm-glow {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #FFFFFF;
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 4rpx 16rpx rgba(255, 215, 0, 0.4);
+  animation: btn-glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes btn-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 4rpx 16rpx rgba(255, 215, 0, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 6rpx 24rpx rgba(255, 215, 0, 0.6);
+    transform: scale(1.02);
+  }
+}
+
+.btn-confirm-glow:active {
+  transform: scale(0.98);
+  box-shadow: 0 2rpx 8rpx rgba(255, 215, 0, 0.3);
+}
+
+/* ========================================
+   响应式优化（低端设备降级）
+   ======================================== */
+
+/* 如果设备性能较低，可以通过 JS 添加 .low-performance 类来禁用动画 */
+.low-performance .order-card-waiting::before,
+.low-performance .order-card-waiting-enhanced::before {
+  animation: none;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+}
+
+.low-performance .order-card-waiting,
+.low-performance .order-card-waiting-enhanced {
+  animation: none;
+  box-shadow: 0 0 20rpx rgba(255, 215, 0, 0.3);
+}
+

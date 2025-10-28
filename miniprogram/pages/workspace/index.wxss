@@ -1,5 +1,7 @@
 /* 引入通用订单进度条样式 */
 @import "../../styles/order-progress.wxss";
+/* 引入鎏金流动光效样式 */
+@import "../../styles/golden-glow.wxss";
 
 page {
   background: linear-gradient(180deg, #A8E6CF 0%, #D0F0C0 50%, #E6FFEB 100%);

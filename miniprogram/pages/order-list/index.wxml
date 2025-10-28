@@ -17,7 +17,7 @@
 
   <!-- 订单列表 -->
   <view wx:elif="{{orders.length > 0}}" class="order-list">
-    <view wx:for="{{orders}}" wx:key="_id" class="order-item">
+    <view wx:for="{{orders}}" wx:key="_id" class="order-item {{item.status === 'waitingConfirm' ? 'order-card-waiting' : ''}}">
       <!-- 订单头部 -->
       <view class="order-header">
         <view class="order-info">
@@ -105,7 +105,7 @@
         <!-- 待确认（画师已完成，等待买家确认） -->
         <block wx:elif="{{item.status === 'waitingConfirm'}}">
           <button class="action-btn default" bindtap="contactService" data-id="{{item._id}}">联系客服</button>
-          <button class="action-btn primary" bindtap="confirmComplete" data-id="{{item._id}}">确认完成</button>
+          <button class="action-btn primary btn-confirm-glow" bindtap="confirmComplete" data-id="{{item._id}}">确认完成</button>
         </block>
 
         <!-- 已完成 -->

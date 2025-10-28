@@ -1,5 +1,7 @@
 /* 引入通用订单进度条样式 */
 @import "../../styles/order-progress.wxss";
+/* 引入鎏金流动光效样式 */
+@import "../../styles/golden-glow.wxss";
 
 /* 管理后台样式 - 专业版 */
 .container {
