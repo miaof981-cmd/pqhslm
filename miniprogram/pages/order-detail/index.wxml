@@ -196,3 +196,32 @@
     </view>
   </view>
 </view>
+
+<!-- 客服二维码弹窗 -->
+<view wx:if="{{showServiceQR}}" class="qr-modal" bindtap="hideQRModal">
+  <view class="qr-modal-content" catchtap="stopPropagation">
+    <view class="qr-modal-header">
+      <text class="qr-modal-title">联系客服</text>
+      <view class="qr-modal-close" catchtap="hideQRModal">✕</view>
+    </view>
+    <view class="qr-modal-body">
+      <image class="qr-modal-image" src="{{serviceQRCode}}" mode="aspectFit"/>
+      <text class="qr-modal-hint">长按识别二维码添加客服微信</text>
+    </view>
+  </view>
+</view>
+
+<!-- 投诉二维码弹窗 -->
+<view wx:if="{{showComplaintQR}}" class="qr-modal" bindtap="hideQRModal">
+  <view class="qr-modal-content" catchtap="stopPropagation">
+    <view class="qr-modal-header">
+      <text class="qr-modal-title">投诉通道</text>
+      <view class="qr-modal-close" catchtap="hideQRModal">✕</view>
+    </view>
+    <view class="qr-modal-body">
+      <image class="qr-modal-image" src="{{complaintQRCode}}" mode="aspectFit"/>
+      <text class="qr-modal-hint">长按识别二维码联系投诉专员</text>
+      <text class="qr-modal-desc">我们会认真处理每一条投诉</text>
+    </view>
+  </view>
+</view>

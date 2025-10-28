@@ -9,7 +9,13 @@ Page({
     
     // 打赏选项
     rewardOptions: [6, 10, 20, 50, 100],
-    selectedReward: 0
+    selectedReward: 0,
+    
+    // 二维码弹窗
+    showServiceQR: false,
+    showComplaintQR: false,
+    serviceQRCode: '',
+    complaintQRCode: ''
   },
 
   onLoad(options) {
@@ -393,24 +399,37 @@ Page({
 
   // 联系客服
   contactService() {
+    // 从本地存储读取客服二维码
     const serviceQRCode = wx.getStorageSync('service_qrcode') || '/assets/default-service-qr.png'
     
-    wx.showModal({
-      title: '联系客服',
-      content: '请添加客服微信咨询',
-      showCancel: false
+    this.setData({
+      serviceQRCode: serviceQRCode,
+      showServiceQR: true
     })
   },
 
   // 投诉
   showComplaint() {
+    // 从本地存储读取投诉二维码
     const complaintQRCode = wx.getStorageSync('complaint_qrcode') || '/assets/default-complaint-qr.png'
     
-    wx.showModal({
-      title: '投诉',
-      content: '如有问题，请联系客服投诉',
-      showCancel: false
+    this.setData({
+      complaintQRCode: complaintQRCode,
+      showComplaintQR: true
     })
+  },
+
+  // 隐藏二维码弹窗
+  hideQRModal() {
+    this.setData({
+      showServiceQR: false,
+      showComplaintQR: false
+    })
+  },
+
+  // 阻止事件冒泡
+  stopPropagation() {
+    // 空函数，用于阻止点击弹窗内容时关闭
   },
 
   // 确认完成
