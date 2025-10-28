@@ -1,3 +1,6 @@
+/* 引入订单进度条通用样式 */
+@import "../../styles/order-progress.wxss";
+
 .service-container {
   min-height: 100vh;
   background: linear-gradient(180deg, #E3F2FD 0%, #F5F9FF 50%, #FAFAFA 100%);

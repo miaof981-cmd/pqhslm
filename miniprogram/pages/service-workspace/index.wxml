@@ -80,10 +80,26 @@
           <text class="product-name-new">{{item.productName}}</text>
           <view class="order-meta-new">
             <text class="meta-text">买家：{{item.buyerName}}</text>
-            <text class="meta-text">下单：{{item.createTime}}</text>
-            <text wx:if="{{item.deadline}}" class="meta-text deadline {{item.isOverdue ? 'overdue' : ''}}">
-              截稿：{{item.deadline}} {{item.isOverdue ? '⚠️已超时' : ''}}
-            </text>
+          </view>
+          
+          <!-- 时间进度条 -->
+          <view class="order-progress-section {{item.isOverdue ? 'overdue' : (item.businessStatus === '临近截稿' ? 'near-deadline' : '')}}">
+            <view class="progress-header">
+              <view class="progress-label">
+                <text class="time-title">下单时间</text>
+                <text class="time-value">{{item.createTime}}</text>
+              </view>
+              <view class="progress-label deadline-label {{item.isOverdue ? 'overdue' : ''}}">
+                <text class="time-title">截稿时间</text>
+                <text class="time-value">{{item.deadline}}</text>
+              </view>
+            </view>
+            <view class="progress-bar-container">
+              <view class="progress-bar-bg {{item.isOverdue ? 'overdue' : (item.businessStatus === '临近截稿' ? 'near-deadline' : '')}}">
+                <view class="progress-bar-fill {{item.isOverdue ? 'overdue' : (item.businessStatus === '临近截稿' ? 'near-deadline' : '')}}" 
+                      style="width: {{item.progressPercent || 0}}%;"></view>
+              </view>
+            </view>
           </view>
         </view>
       </view>

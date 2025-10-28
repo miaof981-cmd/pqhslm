@@ -115,11 +115,25 @@ Page({
         
         if (diffTime < 0) {
           isOverdue = true
-          businessStatus = '已逾期'
+          businessStatus = '已拖稿'
         } else if (diffDays <= 2) {
           businessStatus = '临近截稿'
         } else if (order.status === 'waitingConfirm') {
           businessStatus = '待客户确认'
+        }
+      }
+      
+      // 计算进度百分比
+      let progressPercent = 0
+      if (order.createdAt && order.deadline) {
+        const createTime = new Date(order.createdAt).getTime()
+        const deadline = new Date(order.deadline).getTime()
+        const now = Date.now()
+        const totalTime = deadline - createTime
+        const elapsedTime = now - createTime
+        
+        if (totalTime > 0) {
+          progressPercent = Math.min(Math.max((elapsedTime / totalTime) * 100, 0), 100)
         }
       }
       
@@ -128,7 +142,9 @@ Page({
         statusText: this.getStatusText(order.status),
         businessStatus: businessStatus,
         isOverdue: isOverdue,
-        createTime: this.formatTime(order.createdAt)
+        progressPercent: progressPercent,
+        createTime: this.formatTime(order.createdAt),
+        deadline: this.formatTime(order.deadline)
       }
     })
 
@@ -357,7 +373,7 @@ Page({
       'inProgress': '进行中',
       'waitingConfirm': '待确认',
       'nearDeadline': '临近截稿',
-      'overdue': '已逾期',
+      'overdue': '已拖稿',
       'completed': '已完成',
       'cancelled': '已取消',
       'refunded': '已退款',
