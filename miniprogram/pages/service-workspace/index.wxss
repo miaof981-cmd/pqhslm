@@ -810,16 +810,16 @@ page {
   justify-content: flex-end;
 }
 
-/* 客服按钮样式 */
+/* 客服按钮样式 - 低饱和度版本 */
 .btn-secondary {
   padding: 16rpx 40rpx;
-  background: linear-gradient(135deg, #64B5F6 0%, #42A5F5 100%);
-  color: #fff;
+  background: linear-gradient(135deg, #B3E5FC 0%, #81D4FA 100%);
+  color: #0277BD;
   font-size: 26rpx;
-  font-weight: 600;
+  font-weight: 500;
   border: none;
   border-radius: 30rpx;
-  box-shadow: 0 6rpx 16rpx rgba(66, 165, 245, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(129, 212, 250, 0.15);
   transition: all 0.2s;
   display: flex;
   align-items: center;
@@ -833,18 +833,18 @@ page {
 
 .btn-secondary:active {
   transform: scale(0.96);
-  box-shadow: 0 4rpx 12rpx rgba(66, 165, 245, 0.2);
+  box-shadow: 0 2rpx 8rpx rgba(129, 212, 250, 0.1);
 }
 
 .btn-danger {
   padding: 16rpx 40rpx;
-  background: linear-gradient(135deg, #EF5350 0%, #E53935 100%);
-  color: #fff;
+  background: linear-gradient(135deg, #FFCDD2 0%, #EF9A9A 100%);
+  color: #C62828;
   font-size: 26rpx;
-  font-weight: 600;
+  font-weight: 500;
   border: none;
   border-radius: 30rpx;
-  box-shadow: 0 6rpx 16rpx rgba(229, 57, 53, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(239, 154, 154, 0.15);
   transition: all 0.2s;
   display: flex;
   align-items: center;
@@ -858,7 +858,7 @@ page {
 
 .btn-danger:active {
   transform: scale(0.96);
-  box-shadow: 0 4rpx 12rpx rgba(229, 57, 53, 0.2);
+  box-shadow: 0 2rpx 8rpx rgba(239, 154, 154, 0.1);
 }
 
 /* 画师标记完成按钮（保留） */
