@@ -105,9 +105,11 @@
         </block>
 
         <!-- 待确认（画师已完成，等待买家确认） -->
-        <!-- 🌟 鎏金高亮效果：画师标记完成后，引导单主确认 -->
+        <!-- 🌟 清新高亮效果：画师标记完成后，引导单主确认 -->
+        <!-- ⚠️ 重要：投诉按钮始终保留，此时最容易产生纠纷 -->
         <block wx:elif="{{item.status === 'waitingConfirm'}}">
           <button class="action-btn default" bindtap="contactService" data-id="{{item._id}}">联系客服</button>
+          <button class="action-btn default" bindtap="showComplaint" data-id="{{item._id}}">投诉</button>
           <button class="action-btn primary btn-confirm-glow" bindtap="confirmComplete" data-id="{{item._id}}">确认完成</button>
         </block>
 
