@@ -358,7 +358,7 @@ Page({
     
     wx.showModal({
       title: '确认退款',
-      content: `确定要为订单 #${order.id} 处理退款吗？`,
+      content: `确定要为订单 ${order.id} 处理退款吗？`,
       success: (res) => {
         if (res.confirm) {
           this.doRefund(orderId)

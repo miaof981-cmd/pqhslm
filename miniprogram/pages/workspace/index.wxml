@@ -133,7 +133,7 @@
           <view wx:for="{{filteredOrders}}" wx:key="id" class="order-card">
             <!-- 订单头部：订单号 + 状态 -->
             <view class="order-header" bindtap="viewOrderDetail" data-id="{{item.id}}">
-              <view class="order-id">订单 #{{item.id}}</view>
+              <view class="order-id">订单 {{item.id}}</view>
               <view class="order-status status-{{item.status}}">{{item.statusText}}</view>
             </view>
 

@@ -272,7 +272,7 @@
           <!-- 订单头部：订单号 + 状态 -->
           <view class="order-header">
             <view class="order-id-actions">
-              <text class="order-id-inline" catchtap="copyOrderNo" data-orderno="{{item.fullOrderNo}}">订单 #{{item.fullOrderNo}}</text>
+              <text class="order-id-inline" catchtap="copyOrderNo" data-orderno="{{item.fullOrderNo}}">订单 {{item.fullOrderNo}}</text>
               <view class="copy-group-name-icon" bindtap="copyGroupName" data-order="{{item}}" catchtap="copyGroupName">
                 <view class="icon-group"></view>
               </view>
