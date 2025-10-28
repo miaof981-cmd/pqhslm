@@ -73,19 +73,16 @@
         </view>
       </view>
 
-      <!-- 人员信息区（单行显示：买家、画师、客服） -->
+      <!-- 人员信息区（画师、客服） -->
       <view class="order-people-row">
         <view class="people-item">
-          <image class="people-avatar-small" src="{{item.buyerAvatar}}" mode="aspectFill"/>
-          <text class="people-name-compact">{{item.buyerName}}</text>
-        </view>
-        <view class="people-divider-compact"></view>
-        <view class="people-item">
+          <text class="people-label">画师</text>
           <image class="people-avatar-small" src="{{item.artistAvatar}}" mode="aspectFill"/>
           <text class="people-name-compact">{{item.artistName}}</text>
         </view>
         <view class="people-divider-compact"></view>
         <view class="people-item">
+          <text class="people-label">客服</text>
           <image class="people-avatar-small" src="{{item.serviceAvatar}}" mode="aspectFill"/>
           <text class="people-name-compact">{{item.serviceName}}</text>
         </view>
@@ -103,6 +100,12 @@
         <block wx:elif="{{item.status === 'paid' || item.status === 'processing'}}">
           <button class="action-btn default" bindtap="contactService" data-id="{{item._id}}">联系客服</button>
           <button class="action-btn default" bindtap="showComplaint" data-id="{{item._id}}">投诉</button>
+        </block>
+
+        <!-- 待确认（画师已完成，等待买家确认） -->
+        <block wx:elif="{{item.status === 'waitingConfirm'}}">
+          <button class="action-btn default" bindtap="contactService" data-id="{{item._id}}">联系客服</button>
+          <button class="action-btn primary" bindtap="confirmComplete" data-id="{{item._id}}">确认完成</button>
         </block>
 
         <!-- 已完成 -->

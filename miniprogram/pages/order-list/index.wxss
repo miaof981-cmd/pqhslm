@@ -308,7 +308,7 @@
   box-shadow: 0 2rpx 6rpx rgba(102, 187, 106, 0.2);
 }
 
-/* 人员信息区域（买家、画师、客服） */
+/* 人员信息区域（画师、客服） */
 .order-people-row {
   display: flex;
   align-items: center;
@@ -324,6 +324,12 @@
   gap: 10rpx;
   flex: 1;
   justify-content: center;
+}
+
+.people-label {
+  font-size: 22rpx;
+  color: #999;
+  margin-right: 4rpx;
 }
 
 .people-avatar-small {

@@ -97,6 +97,9 @@ Page({
         if (order.status === 'completed') {
           status = 'completed'
           statusText = '已完成'
+        } else if (order.status === 'waitingConfirm') {
+          status = 'waitingConfirm'
+          statusText = '待确认'
         } else if (order.status === 'inProgress' || order.status === 'nearDeadline' || order.status === 'overdue') {
           status = 'processing'
           statusText = '制作中'
@@ -318,6 +321,73 @@ Page({
     this.setData({
       complaintQRCode: complaintQRCode,
       showComplaintQR: true
+    })
+  },
+
+  // 确认完成订单
+  confirmComplete(e) {
+    const orderId = e.currentTarget.dataset.id
+    
+    wx.showModal({
+      title: '确认完成',
+      content: '确认订单已完成？完成后将无法撤销',
+      confirmColor: '#A8E6CF',
+      success: (res) => {
+        if (res.confirm) {
+          // 从本地存储读取订单
+          const orders = wx.getStorageSync('orders') || []
+          const pendingOrders = wx.getStorageSync('pending_orders') || []
+          
+          // 在两个存储中都查找并更新
+          let updated = false
+          
+          const updateOrderStatus = (orderList) => {
+            return orderList.map(order => {
+              if (order.id === orderId) {
+                updated = true
+                return {
+                  ...order,
+                  status: 'completed',
+                  completedAt: new Date().toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                  }).replace(/\//g, '-')
+                }
+              }
+              return order
+            })
+          }
+          
+          const updatedOrders = updateOrderStatus(orders)
+          const updatedPendingOrders = updateOrderStatus(pendingOrders)
+          
+          if (updated) {
+            // 保存更新后的订单
+            wx.setStorageSync('orders', updatedOrders)
+            wx.setStorageSync('pending_orders', updatedPendingOrders)
+            
+            wx.showToast({
+              title: '订单已完成',
+              icon: 'success'
+            })
+            
+            // 延迟刷新，让用户看到提示
+            setTimeout(() => {
+              this.loadOrders()
+            }, 500)
+          } else {
+            wx.showToast({
+              title: '订单未找到',
+              icon: 'error'
+            })
+          }
+        }
+      }
     })
   },
 
