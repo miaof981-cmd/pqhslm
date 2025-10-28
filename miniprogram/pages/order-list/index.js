@@ -101,9 +101,13 @@ Page({
         // 计算进度百分比和是否脱稿
         const progressData = this.calculateProgress(order)
         
+        // ✅ 使用工具函数计算的状态判断是否脱稿（优先级更高）
+        const isOverdue = order.status === 'overdue' || progressData.isOverdue
+        const isNearDeadline = order.status === 'nearDeadline' || progressData.isNearDeadline
+        
         // 如果脱稿，更新截稿时间显示
         let deadlineText = deadlineDisplay
-        if (progressData.isOverdue && progressData.overdueDays > 0) {
+        if (isOverdue && progressData.overdueDays > 0) {
           deadlineText = `${deadlineDisplay} (已脱稿${progressData.overdueDays}天)`
         }
         
@@ -135,8 +139,8 @@ Page({
           createTime: createTimeDisplay,
           deadline: deadlineText,
           progressPercent: progressData.percent,
-          isOverdue: progressData.isOverdue,
-          isNearDeadline: progressData.isNearDeadline,
+          isOverdue: isOverdue,  // ✅ 结合工具函数状态和本地计算
+          isNearDeadline: isNearDeadline,  // ✅ 结合工具函数状态和本地计算
           overdueDays: progressData.overdueDays,
           reviewed: false
         }
