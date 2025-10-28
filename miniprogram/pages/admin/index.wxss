@@ -581,6 +581,13 @@
   padding: 24rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 4rpx 16rpx rgba(102, 187, 106, 0.08);
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+.order-card:active {
+  transform: scale(0.99);
+  box-shadow: 0 2rpx 8rpx rgba(102, 187, 106, 0.12);
 }
 
 /* 订单头部 */
@@ -827,33 +834,30 @@
 /* 操作按钮区 */
 .order-actions {
   display: flex;
-  gap: 12rpx;
+  gap: 16rpx;
   justify-content: flex-end;
+  margin-top: 8rpx;
 }
 
 .btn-action {
-  padding: 12rpx 28rpx;
-  border-radius: 25rpx;
-  font-size: 24rpx;
+  flex: 1;
+  padding: 16rpx 24rpx;
+  border-radius: 12rpx;
+  font-size: 26rpx;
   font-weight: 500;
   border: none;
   line-height: 1.2;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
 }
 
 .btn-service {
-  background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
+  background: linear-gradient(135deg, #A8E6CF 0%, #66BB6A 100%);
   color: white;
 }
 
 .btn-refund {
-  background: linear-gradient(135deg, #FFB6B6 0%, #FFC9C9 100%);
-  color: #721C24;
-}
-
-.btn-detail {
-  background: white;
-  color: #666;
-  border: 1rpx solid #E0E0E0;
+  background: linear-gradient(135deg, #FFB6B6 0%, #FF8A80 100%);
+  color: white;
 }
 
 /* 旧版状态样式已删除，统一使用顶部的 .order-status 样式 */

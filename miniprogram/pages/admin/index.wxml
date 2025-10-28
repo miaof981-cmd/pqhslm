@@ -268,7 +268,7 @@
 
       <!-- 订单列表 -->
       <view class="order-list">
-        <view wx:for="{{orders}}" wx:key="_id" class="order-card {{item.status === 'waitingConfirm' ? 'order-card-waiting' : ''}}">
+        <view wx:for="{{orders}}" wx:key="_id" class="order-card {{item.status === 'waitingConfirm' ? 'order-card-waiting' : ''}}" bindtap="viewOrderDetail" data-id="{{item._id}}">
           <!-- 订单头部：订单号 + 状态 -->
           <view class="order-header">
             <view class="order-id-actions">
@@ -283,7 +283,7 @@
           </view>
 
           <!-- 商品信息区 -->
-          <view class="order-product" bindtap="viewOrderDetail" data-id="{{item._id}}">
+          <view class="order-product">
             <image class="product-thumb" src="{{item.productImage}}" mode="aspectFill"/>
             <view class="product-info">
               <text class="product-name">{{item.productName}}</text>
@@ -339,7 +339,6 @@
                     class="btn-action btn-refund" 
                     data-id="{{item._id}}" 
                     catchtap="initiateRefund">退款</button>
-            <button class="btn-action btn-detail" data-id="{{item._id}}" catchtap="viewOrderDetail">详情</button>
           </view>
         </view>
 
