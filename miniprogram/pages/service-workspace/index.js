@@ -11,6 +11,7 @@ Page({
       urgent: 0
     },
     currentFilter: 'all',
+    searchKeyword: '',
     allOrders: [],
     filteredOrders: []
   },
@@ -75,7 +76,19 @@ Page({
   // 加载订单
   loadOrders() {
     const userId = wx.getStorageSync('userId')
-    const allOrders = wx.getStorageSync('orders') || []
+    
+    // 从本地存储加载真实订单（同时读取 orders 和 pending_orders）
+    const orders = wx.getStorageSync('orders') || []
+    const pendingOrders = wx.getStorageSync('pending_orders') || []
+    
+    // 合并订单（去重，以 id 为准）
+    const orderMap = new Map()
+    ;[...orders, ...pendingOrders].forEach(order => {
+      if (order.id && !orderMap.has(order.id)) {
+        orderMap.set(order.id, order)
+      }
+    })
+    const allOrders = Array.from(orderMap.values())
     
     // 筛选属于该客服的订单
     const myOrders = allOrders.filter(order => {
@@ -83,6 +96,9 @@ Page({
     })
 
     console.log('📦 客服订单加载:')
+    console.log('  - orders 数量:', orders.length)
+    console.log('  - pending_orders 数量:', pendingOrders.length)
+    console.log('  - 合并后订单数量:', allOrders.length)
     console.log('  - 客服ID:', userId)
     console.log('  - 我的订单数:', myOrders.length)
 
@@ -150,20 +166,53 @@ Page({
 
   // 应用筛选
   applyFilter() {
-    const { currentFilter, allOrders } = this.data
+    const { currentFilter, searchKeyword, allOrders } = this.data
     let filtered = allOrders
 
+    // 1. 按状态筛选
     if (currentFilter === 'processing') {
       filtered = allOrders.filter(o => o.status === 'created' || o.status === 'processing')
     } else if (currentFilter === 'completed') {
       filtered = allOrders.filter(o => o.status === 'completed')
     }
 
+    // 2. 按搜索关键词筛选
+    if (searchKeyword && searchKeyword.trim()) {
+      const keyword = searchKeyword.trim().toLowerCase()
+      filtered = filtered.filter(order => {
+        const orderNo = (order.orderNumber || order.id || '').toLowerCase()
+        const productName = (order.productName || '').toLowerCase()
+        return orderNo.includes(keyword) || productName.includes(keyword)
+      })
+    }
+
     this.setData({
       filteredOrders: filtered
     })
 
-    console.log('🔍 筛选结果:', currentFilter, '共', filtered.length, '条')
+    console.log('🔍 筛选结果:', currentFilter, '搜索:', searchKeyword, '共', filtered.length, '条')
+  },
+
+  // 搜索输入
+  onSearchInput(e) {
+    this.setData({
+      searchKeyword: e.detail.value
+    })
+    // 实时搜索
+    this.applyFilter()
+  },
+
+  // 搜索确认
+  onSearchConfirm() {
+    this.applyFilter()
+  },
+
+  // 清除搜索
+  clearSearch() {
+    this.setData({
+      searchKeyword: ''
+    })
+    this.applyFilter()
   },
 
   // 快速筛选（点击统计卡片）
@@ -303,13 +352,18 @@ Page({
   getStatusText(status) {
     const statusMap = {
       'created': '待处理',
+      'paid': '已支付',
       'processing': '进行中',
+      'inProgress': '进行中',
       'waitingConfirm': '待确认',
+      'nearDeadline': '临近截稿',
+      'overdue': '已逾期',
       'completed': '已完成',
       'cancelled': '已取消',
-      'refunded': '已退款'
+      'refunded': '已退款',
+      'refunding': '退款中'
     }
-    return statusMap[status] || '未知'
+    return statusMap[status] || '待处理'
   },
 
   // 格式化时间

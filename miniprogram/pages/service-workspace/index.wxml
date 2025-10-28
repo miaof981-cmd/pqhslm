@@ -28,6 +28,20 @@
     </view>
   </view>
 
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrapper">
+      <view class="search-icon"></view>
+      <input class="search-input" 
+             placeholder="搜索订单号或商品名称" 
+             value="{{searchKeyword}}"
+             bindinput="onSearchInput"
+             confirm-type="search"
+             bindconfirm="onSearchConfirm" />
+      <view wx:if="{{searchKeyword}}" class="clear-icon" bindtap="clearSearch">×</view>
+    </view>
+  </view>
+
   <!-- 订单筛选 -->
   <view class="filter-bar">
     <text class="filter-item {{currentFilter === 'all' ? 'active' : ''}}" 
@@ -55,8 +69,7 @@
           <text class="order-no-value">{{item.orderNumber || item.id}}</text>
         </view>
         <view class="order-status-badge status-{{item.status}}">
-          <text class="status-text">{{item.statusText}}</text>
-          <text wx:if="{{item.businessStatus}}" class="business-status">{{item.businessStatus}}</text>
+          <text class="status-text">{{item.businessStatus || item.statusText}}</text>
         </view>
       </view>
 
