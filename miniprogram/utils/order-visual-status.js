@@ -4,7 +4,9 @@ function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
 function ts(v){
   if(!v) return NaN;
   if(typeof v === 'number') return v;
-  const d = new Date(v);
+  // iOS兼容：将 "yyyy-MM-dd HH:mm:ss" 转为 "yyyy/MM/dd HH:mm:ss"
+  const iosCompatible = typeof v === 'string' ? v.replace(/-/g, '/') : v;
+  const d = new Date(iosCompatible);
   return isNaN(d.getTime()) ? NaN : d.getTime();
 }
 

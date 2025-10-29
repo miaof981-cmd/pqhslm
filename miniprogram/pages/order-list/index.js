@@ -1,6 +1,7 @@
 // 引入统一工具函数
 const orderHelper = require('../../utils/order-helper.js')
 const orderStatusUtil = require('../../utils/order-status.js')
+const { computeVisualStatus } = require('../../utils/order-visual-status')
 
 Page({
   data: {
@@ -98,17 +99,15 @@ Page({
           }
         }
         
-        // 计算进度百分比和是否脱稿
-        const progressData = this.calculateProgress(order)
-        
-        // ✅ 使用工具函数计算的状态判断是否脱稿（优先级更高）
-        const isOverdue = order.status === 'overdue' || progressData.isOverdue
-        const isNearDeadline = order.status === 'nearDeadline' || progressData.isNearDeadline
+        // 使用统一的视觉状态计算
+        const { statusKey, statusColor, progressPercent } = computeVisualStatus(order)
+        const isOverdue = statusKey === 'overdue'
+        const isNearDeadline = statusKey === 'nearDeadline'
         
         // 如果脱稿，更新截稿时间显示
         let deadlineText = deadlineDisplay
-        if (isOverdue && progressData.overdueDays > 0) {
-          deadlineText = `${deadlineDisplay} (已脱稿${progressData.overdueDays}天)`
+        if (isOverdue && order.overdueDays > 0) {
+          deadlineText = `${deadlineDisplay} (已脱稿${order.overdueDays}天)`
         }
         
         // 获取买家信息（当前用户）
@@ -127,21 +126,23 @@ Page({
           productImage: order.productImage,
           artistName: artistName,
           artistAvatar: artistAvatar,
-          serviceName: order.serviceName,  // ✅ 已由工具函数处理
-          serviceAvatar: order.serviceAvatar,  // ✅ 已由工具函数处理
+          serviceName: order.serviceName,
+          serviceAvatar: order.serviceAvatar,
           buyerName: buyerName,
           buyerAvatar: buyerAvatar,
           deliveryDays: order.deliveryDays || 7,
           amount: order.price,
-          status: order.status,  // ✅ 使用工具函数处理后的状态
-          statusText: order.statusText,  // ✅ 使用工具函数处理后的状态文本
+          status: order.status,
+          statusText: order.statusText,
+          statusKey,
+          statusColor,
           progress: order.status === 'completed' ? 100 : 60,
           createTime: createTimeDisplay,
           deadline: deadlineText,
-          progressPercent: progressData.percent,
-          isOverdue: isOverdue,  // ✅ 结合工具函数状态和本地计算
-          isNearDeadline: isNearDeadline,  // ✅ 结合工具函数状态和本地计算
-          overdueDays: progressData.overdueDays,
+          progressPercent,
+          isOverdue,
+          isNearDeadline,
+          overdueDays: order.overdueDays || 0,
           reviewed: false
         }
       })
