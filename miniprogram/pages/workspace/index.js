@@ -818,6 +818,12 @@ Page({
     // 3. 🎯 智能排序（优先级 + 时间）
     filtered = this.sortOrdersByPriority(filtered)
     
+    // 4. 🔄 重新计算进度百分比（确保实时更新）
+    filtered = filtered.map(order => {
+      const progressPercent = this.calculateProgressPercent(order)
+      return { ...order, progressPercent }
+    })
+    
     this.setData({
       filteredOrders: filtered
     })
