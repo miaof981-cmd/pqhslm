@@ -334,24 +334,29 @@ Page({
         return `${month}-${day} ${hour}:${minute}`
       }
       
+      // 计算进度百分比
+      const progressPercent = this.calculateProgressPercent(order)
+      
       // 完整订单号
       const fullOrderNo = order.orderNumber || order.orderNo || order.id || ''
       
       return {
         _id: order.id,
-        fullOrderNo: fullOrderNo,  // 完整订单号，用于显示和复制
+        fullOrderNo: fullOrderNo,
         productName: order.productName,
         productImage: order.productImage || '',
         userName: order.buyerName || order.buyer || '未知用户',
         userPhone: order.buyerPhone || '',
         artistName: order.artistName || '未分配',
-        serviceName: order.serviceName,  // ✅ 已由工具函数处理
+        serviceName: order.serviceName,
         amount: parseFloat(order.price || order.totalPrice || 0).toFixed(2),
-        status: order.status,  // ✅ 已由工具函数处理
-        statusText: order.statusText,  // ✅ 已由工具函数处理
+        status: order.status,
+        statusText: order.statusText,
         createTime: formatTime(order.createdAt || order.createTime),
         deadline: order.deadline ? formatTime(order.deadline) : '',
-        isOverdue: order.status === 'overdue',  // ✅ 使用工具函数计算的状态
+        progressPercent: progressPercent,
+        isOverdue: order.status === 'overdue',
+        wasOverdue: order.wasOverdue || false,
         buyerId: order.buyerId,
         productId: order.productId,
         specs: order.specs || []
@@ -1302,5 +1307,41 @@ Page({
     wx.navigateTo({
       url: '/pages/system-settings/index'
     })
+  },
+
+  // 计算订单进度百分比
+  calculateProgressPercent(order) {
+    if (order.status === 'completed') {
+      return 100
+    }
+    
+    try {
+      const now = new Date()
+      const createDate = new Date((order.createTime || order.createdAt || '').replace(/-/g, '/'))
+      const deadlineDate = new Date((order.deadline || '').replace(/-/g, '/'))
+      
+      if (isNaN(createDate.getTime()) || isNaN(deadlineDate.getTime())) {
+        return 5
+      }
+      
+      const totalTime = deadlineDate.getTime() - createDate.getTime()
+      const elapsedTime = now.getTime() - createDate.getTime()
+      
+      if (totalTime <= 0) return 5
+      
+      let percent = Math.round((elapsedTime / totalTime) * 100)
+      
+      if (now >= deadlineDate) {
+        percent = 100
+      }
+      
+      if (percent < 5) percent = 5
+      if (percent > 100) percent = 100
+      
+      return percent
+    } catch (error) {
+      console.error('计算进度百分比失败:', error)
+      return 5
+    }
   }
 })
