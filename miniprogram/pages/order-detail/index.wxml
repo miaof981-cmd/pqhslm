@@ -45,9 +45,9 @@
         </view>
       </view>
       <view class="progress-bar-container">
-        <view class="progress-bar-bg {{order.isOverdue ? 'overdue' : (order.isNearDeadline ? 'near-deadline' : '')}}">
-          <view class="progress-bar-fill {{order.isOverdue ? 'overdue' : (order.isNearDeadline ? 'near-deadline' : '')}}" 
-                style="width: {{order.progressPercent || 50}}%;"></view>
+        <view class="progress-bar-bg">
+          <view class="progress-bar-fill" 
+                style="width: {{order.progressPercent || 50}}%; background: {{order.statusColor || '#4CAF50'}};"></view>
         </view>
       </view>
       <!-- 脱稿天数提示 -->
