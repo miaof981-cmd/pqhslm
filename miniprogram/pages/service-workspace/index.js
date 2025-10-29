@@ -185,8 +185,13 @@ Page({
     
     if (totalTime <= 0) return 0
     
-    const percent = (elapsedTime / totalTime) * 100
-    return Math.min(Math.max(percent, 0), 100)
+    let percent = (elapsedTime / totalTime) * 100
+    
+    // 临近截稿或已拖稿时，进度条显示100%
+    if (percent >= 100) percent = 100
+    if (percent < 0) percent = 0
+    
+    return percent
   },
 
   // 获取状态文本

@@ -874,34 +874,23 @@ Page({
     }
     
     try {
-      // 只取日期部分，忽略具体时间，避免频繁重新计算
       const createDate = new Date(order.createTime.split(' ')[0]).getTime()
       const deadlineDate = new Date(order.deadline.split(' ')[0]).getTime()
       const todayDate = new Date(new Date().toLocaleDateString()).getTime()
       
       if (isNaN(createDate) || isNaN(deadlineDate)) {
-        return 5 // 默认显示一点点进度
+        return 5
       }
       
-      // 计算整天数
       const oneDayMs = 24 * 60 * 60 * 1000
       const totalDays = Math.round((deadlineDate - createDate) / oneDayMs)
       const elapsedDays = Math.round((todayDate - createDate) / oneDayMs)
       
-      // 按天数比例计算进度
       let percent = Math.round((elapsedDays / totalDays) * 100)
       
-      // 限制范围
-      if (percent < 5) percent = 5    // 最小显示5%，确保有可见进度
-      if (percent > 100) percent = 100
-      
-      console.log(`订单 ${order.id} 进度计算:`, {
-        下单日期: order.createTime.split(' ')[0],
-        截稿日期: order.deadline.split(' ')[0],
-        总天数: totalDays,
-        已过天数: elapsedDays,
-        进度: `${percent}%`
-      })
+      // 临近截稿或已拖稿时，进度条显示100%
+      if (percent >= 100) percent = 100
+      if (percent < 5) percent = 5
       
       return percent
     } catch (error) {
