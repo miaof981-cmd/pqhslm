@@ -1,4 +1,5 @@
 const orderStatusUtil = require('../../utils/order-status.js')
+const { computeVisualStatus } = require('../../utils/order-visual-status')
 
 Page({
   data: {
@@ -104,7 +105,8 @@ Page({
 
     // 为每个订单计算进度百分比和格式化时间，并补充头像信息
     const finalOrders = processedOrders.map(order => {
-      const progressPercent = this.calculateProgressPercent(order)
+      const { statusKey, statusColor, progressPercent } = computeVisualStatus(order)
+      console.log('VISUAL_STATUS_SAMPLE', order.id, { statusKey, statusColor, progressPercent })
       
       // 获取买家头像（从用户信息或使用默认头像）
       let buyerAvatar = order.buyerAvatar || '/assets/default-avatar.png'
@@ -120,6 +122,8 @@ Page({
       
       return {
         ...order,
+        statusKey,
+        statusColor,
         progressPercent,
         statusText: this.getStatusText(order.status),
         businessStatus: this.getBusinessStatus(order),
@@ -172,35 +176,11 @@ Page({
     return ''
   },
 
-  // 计算进度百分比
-  calculateProgressPercent(order) {
-    const createTimeStr = order.createTime || order.createdAt
-    if (!createTimeStr || !order.deadline) return 0
-    
-    const now = new Date()
-    const createDate = new Date((createTimeStr).replace(/-/g, '/'))
-    const deadlineDate = new Date((order.deadline).replace(/-/g, '/'))
-    
-    if (isNaN(createDate.getTime()) || isNaN(deadlineDate.getTime())) {
-      return 0
-    }
-    
-    const totalTime = deadlineDate.getTime() - createDate.getTime()
-    const elapsedTime = now.getTime() - createDate.getTime()
-    
-    if (totalTime <= 0) return 0
-    
-    let percent = Math.round((elapsedTime / totalTime) * 100)
-    
-    if (now >= deadlineDate) {
-      percent = 100
-    }
-    
-    if (percent < 0) percent = 0
-    if (percent > 100) percent = 100
-    
-    return percent
-  },
+  // ❌ 已废弃：使用 computeVisualStatus 替代
+  // calculateProgressPercent(order) {
+  //   // 此函数已被 utils/order-visual-status.js 中的 computeVisualStatus 替代
+  //   // 请勿再调用此函数
+  // },
 
   // 获取状态文本
   getStatusText(status) {

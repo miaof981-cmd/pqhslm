@@ -1,6 +1,7 @@
 // 引入统一工具函数
 const orderHelper = require('../../utils/order-helper.js')
 const orderStatusUtil = require('../../utils/order-status.js')
+const { computeVisualStatus } = require('../../utils/order-visual-status')
 
 Page({
   data: {
@@ -334,8 +335,9 @@ Page({
         return `${month}-${day} ${hour}:${minute}`
       }
       
-      // 计算进度百分比
-      const progressPercent = this.calculateProgressPercent(order)
+      // 计算进度百分比和视觉状态
+      const { statusKey, statusColor, progressPercent } = computeVisualStatus(order)
+      console.log('VISUAL_STATUS_SAMPLE', order.id, { statusKey, statusColor, progressPercent })
       
       // 完整订单号
       const fullOrderNo = order.orderNumber || order.orderNo || order.id || ''
@@ -354,6 +356,8 @@ Page({
         statusText: order.statusText,
         createTime: formatTime(order.createdAt || order.createTime),
         deadline: order.deadline ? formatTime(order.deadline) : '',
+        statusKey,
+        statusColor,
         progressPercent: progressPercent,
         isOverdue: order.status === 'overdue',
         wasOverdue: order.wasOverdue || false,
@@ -1309,39 +1313,9 @@ Page({
     })
   },
 
-  // 计算订单进度百分比
-  calculateProgressPercent(order) {
-    if (order.status === 'completed') {
-      return 100
-    }
-    
-    try {
-      const now = new Date()
-      const createDate = new Date((order.createTime || order.createdAt || '').replace(/-/g, '/'))
-      const deadlineDate = new Date((order.deadline || '').replace(/-/g, '/'))
-      
-      if (isNaN(createDate.getTime()) || isNaN(deadlineDate.getTime())) {
-        return 5
-      }
-      
-      const totalTime = deadlineDate.getTime() - createDate.getTime()
-      const elapsedTime = now.getTime() - createDate.getTime()
-      
-      if (totalTime <= 0) return 5
-      
-      let percent = Math.round((elapsedTime / totalTime) * 100)
-      
-      if (now >= deadlineDate) {
-        percent = 100
-      }
-      
-      if (percent < 5) percent = 5
-      if (percent > 100) percent = 100
-      
-      return percent
-    } catch (error) {
-      console.error('计算进度百分比失败:', error)
-      return 5
-    }
-  }
+  // ❌ 已废弃：使用 computeVisualStatus 替代
+  // calculateProgressPercent(order) {
+  //   // 此函数已被 utils/order-visual-status.js 中的 computeVisualStatus 替代
+  //   // 请勿再调用此函数
+  // }
 })

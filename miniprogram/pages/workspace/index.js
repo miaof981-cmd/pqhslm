@@ -1,6 +1,7 @@
 // 引入统一工具函数
 const orderHelper = require('../../utils/order-helper.js')
 const orderStatusUtil = require('../../utils/order-status')
+const { computeVisualStatus } = require('../../utils/order-visual-status')
 
 Page({
   data: {
@@ -357,10 +358,11 @@ Page({
       })
     }
     
-    // 为每个订单计算进度百分比
+    // 为每个订单计算进度百分比和视觉状态
     myOrders = myOrders.map(order => {
-      const progressPercent = this.calculateProgressPercent(order)
-      return { ...order, progressPercent }
+      const { statusKey, statusColor, progressPercent } = computeVisualStatus(order)
+      console.log('VISUAL_STATUS_SAMPLE', order.id, { statusKey, statusColor, progressPercent })
+      return { ...order, statusKey, statusColor, progressPercent }
     })
     
     // ✅ 订单状态已由工具函数处理，无需再次保存
@@ -818,10 +820,10 @@ Page({
     // 3. 🎯 智能排序（优先级 + 时间）
     filtered = this.sortOrdersByPriority(filtered)
     
-    // 4. 🔄 重新计算进度百分比（确保实时更新）
+    // 4. 🔄 重新计算进度百分比和视觉状态（确保实时更新）
     filtered = filtered.map(order => {
-      const progressPercent = this.calculateProgressPercent(order)
-      return { ...order, progressPercent }
+      const { statusKey, statusColor, progressPercent } = computeVisualStatus(order)
+      return { ...order, statusKey, statusColor, progressPercent }
     })
     
     this.setData({
@@ -873,59 +875,11 @@ Page({
     this.applyFilter()
   },
   
-  // 计算订单进度百分比（按整天数比例）
-  calculateProgressPercent(order) {
-    if (order.status === 'completed') {
-      return 100
-    }
-    
-    try {
-      const now = new Date()
-      const createDate = new Date(order.createTime.replace(/-/g, '/'))
-      const deadlineDate = new Date(order.deadline.replace(/-/g, '/'))
-      
-      console.log(`📊 订单进度计算 [${order.productName}]:`)
-      console.log('  当前日期:', now.toLocaleString())
-      console.log('  下单日期:', order.createTime, '→', createDate.toLocaleString())
-      console.log('  截稿日期:', order.deadline, '→', deadlineDate.toLocaleString())
-      
-      if (isNaN(createDate.getTime()) || isNaN(deadlineDate.getTime())) {
-        console.log('  ❌ 日期解析失败')
-        return 5
-      }
-      
-      const totalTime = deadlineDate.getTime() - createDate.getTime()
-      const elapsedTime = now.getTime() - createDate.getTime()
-      
-      console.log('  总时长(ms):', totalTime)
-      console.log('  已过时长(ms):', elapsedTime)
-      
-      if (totalTime <= 0) {
-        console.log('  ❌ 总时长<=0')
-        return 5
-      }
-      
-      let percent = Math.round((elapsedTime / totalTime) * 100)
-      
-      console.log('  初始进度:', percent + '%')
-      
-      if (now >= deadlineDate) {
-        console.log('  ⚠️ 已超期，强制100%')
-        percent = 100
-      }
-      
-      if (percent < 5) percent = 5
-      if (percent > 100) percent = 100
-      
-      console.log('  ✅ 最终进度:', percent + '%')
-      console.log('---')
-      
-      return percent
-    } catch (error) {
-      console.error('计算进度百分比失败:', error)
-      return 5
-    }
-  },
+  // ❌ 已废弃：使用 computeVisualStatus 替代
+  // calculateProgressPercent(order) {
+  //   // 此函数已被 utils/order-visual-status.js 中的 computeVisualStatus 替代
+  //   // 请勿再调用此函数
+  // },
   
   // 清除搜索
   clearSearch() {
