@@ -343,16 +343,19 @@
           <!-- 人员信息区（买家+画师+客服） -->
           <view class="order-people-row">
             <view class="people-item">
+              <image class="people-avatar-tiny" src="{{item.userAvatar}}" mode="aspectFill"></image>
               <text class="people-label-small">买家</text>
               <text class="people-name-compact">{{item.userName}}</text>
             </view>
             <view class="people-divider-compact"></view>
             <view class="people-item">
+              <image class="people-avatar-tiny" src="{{item.artistAvatar}}" mode="aspectFill"></image>
               <text class="people-label-small">画师</text>
               <text class="people-name-compact">{{item.artistName}}</text>
             </view>
             <view class="people-divider-compact"></view>
             <view class="people-item">
+              <image class="people-avatar-tiny" src="{{item.serviceAvatar}}" mode="aspectFill"></image>
               <text class="people-label-small">客服</text>
               <text class="people-name-compact">{{item.serviceName}}</text>
             </view>

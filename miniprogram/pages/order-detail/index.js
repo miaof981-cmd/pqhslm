@@ -453,6 +453,12 @@ Page({
             return orderList.map(order => {
               if (order.id === orderId) {
                 updated = true
+                // 检查是否脱稿
+                const now = new Date()
+                const deadline = new Date(order.deadline)
+                const wasOverdue = now > deadline
+                const overdueDays = wasOverdue ? Math.ceil((now - deadline) / (24 * 60 * 60 * 1000)) : 0
+                
                 return {
                   ...order,
                   status: 'completed',
@@ -464,7 +470,9 @@ Page({
                     minute: '2-digit',
                     second: '2-digit',
                     hour12: false
-                  }).replace(/\//g, '-')
+                  }).replace(/\//g, '-'),
+                  wasOverdue,
+                  overdueDays
                 }
               }
               return order
