@@ -230,7 +230,17 @@ Page({
       
       // 获取画师名称
       const artist = allUsers.find(u => u.userId == product.artistId)
-      const artistName = artist ? artist.nickname || `用户${artist.userId}` : '未知'
+      const artistName = artist ? (artist.nickname || `用户${artist.userId}`) : '未知'
+      
+      // 调试日志
+      if (!artist) {
+        console.log(`⚠️ 商品 "${product.name}" 找不到画师:`)
+        console.log('  - 商品artistId:', product.artistId)
+        console.log('  - 用户列表数量:', allUsers.length)
+        if (allUsers.length > 0) {
+          console.log('  - 用户列表示例:', allUsers.slice(0, 3).map(u => ({ userId: u.userId, nickname: u.nickname })))
+        }
+      }
       
       // 生成规格信息摘要
       let specInfo = '无规格'

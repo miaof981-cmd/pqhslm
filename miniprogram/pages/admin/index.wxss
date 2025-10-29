@@ -445,240 +445,194 @@
   border: 1rpx solid #E0E0E0;
 }
 
-/* 商品列表 - 管理后台专用 */
-.product-list-admin {
-  display: flex;
-  flex-direction: column;
-  gap: 24rpx;
+/* 商品列表 - 横向卡片布局 */
+.product-list {
   padding: 20rpx;
 }
 
-.product-card-admin {
+.product-card {
   background: white;
   border-radius: 16rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.08);
-  overflow: hidden;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
   display: flex;
-  flex-direction: column;
+  gap: 20rpx;
 }
 
-.product-image-admin {
-  width: 100%;
-  height: 400rpx;
+.product-image {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 12rpx;
   background: #F5F5F5;
-  object-fit: cover;
-}
-
-.product-info-admin {
-  padding: 24rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-}
-
-/* 第一行：商品名称 + 状态 */
-.product-row-1 {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16rpx;
-}
-
-.product-name-admin {
-  flex: 1;
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #222;
-  line-height: 1.4;
-}
-
-.product-status-badge {
-  font-size: 22rpx;
-  padding: 8rpx 16rpx;
-  border-radius: 20rpx;
   flex-shrink: 0;
-  font-weight: 500;
 }
 
-.product-status-badge.status-online {
-  background: #E8F5E9;
-  color: #2E7D32;
-}
-
-.product-status-badge.status-offline {
-  background: #FFEBEE;
-  color: #C62828;
-}
-
-/* 第二行：画师信息 */
-.product-row-2 {
-  display: flex;
-  align-items: center;
-}
-
-.product-artist {
-  font-size: 26rpx;
-  color: #666;
-  background: #F5F5F5;
-  padding: 8rpx 16rpx;
-  border-radius: 8rpx;
-}
-
-/* 第三行：分类 + 价格 */
-.product-row-3 {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.product-category-admin {
-  font-size: 24rpx;
-  color: #999;
-  background: #F0F0F0;
-  padding: 6rpx 12rpx;
-  border-radius: 6rpx;
-}
-
-.product-price-admin {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #E53935;
-}
-
-/* 第四行：规格 + 出稿天数 */
-.product-row-4 {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.product-spec {
+.product-info {
   flex: 1;
-  font-size: 24rpx;
-  color: #666;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.product-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.product-name {
+  flex: 1;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.product-delivery {
-  font-size: 24rpx;
-  color: #4CAF50;
+.status-badge {
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  white-space: nowrap;
+}
+
+.status-badge.online {
   background: #E8F5E9;
-  padding: 6rpx 12rpx;
-  border-radius: 6rpx;
-  flex-shrink: 0;
+  color: #66BB6A;
 }
 
-/* 第五行：销量 + 库存 + 浏览 */
-.product-row-5 {
+.status-badge.offline {
+  background: #FFEBEE;
+  color: #FF6B6B;
+}
+
+.product-meta {
   display: flex;
-  gap: 24rpx;
-  padding-top: 8rpx;
-  border-top: 1rpx solid #F0F0F0;
+  align-items: center;
+  gap: 20rpx;
 }
 
-.product-stat {
+.product-artist {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.product-category {
   font-size: 24rpx;
   color: #999;
 }
 
-/* 标签 */
-.product-tags-admin {
+.product-details {
   display: flex;
-  gap: 12rpx;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.tag-admin {
+.product-price {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #FF6B6B;
+}
+
+.product-delivery {
   font-size: 22rpx;
-  padding: 6rpx 14rpx;
-  border-radius: 8rpx;
-  font-weight: 500;
+  color: #4CAF50;
+  background: #E8F5E9;
+  padding: 4rpx 10rpx;
+  border-radius: 6rpx;
 }
 
-.tag-admin.hot {
+.product-stats {
+  display: flex;
+  gap: 20rpx;
+}
+
+.stat-text {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.product-tags {
+  display: flex;
+  gap: 10rpx;
+}
+
+.tag {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.tag.hot {
   background: #FFE5E5;
   color: #FF6B6B;
 }
 
-.tag-admin.recommend {
+.tag.recommend {
   background: #E8F5E9;
   color: #4CAF50;
 }
 
-.tag-admin.special {
+.tag.special {
   background: #FFF3CD;
   color: #FF9800;
 }
 
-/* 操作按钮 */
-.product-actions-admin {
+.product-actions {
   display: flex;
-  gap: 0;
-  border-top: 1rpx solid #F0F0F0;
+  flex-direction: column;
+  gap: 10rpx;
+  justify-content: center;
 }
 
-.action-btn-admin {
-  flex: 1;
-  padding: 24rpx;
-  font-size: 28rpx;
-  text-align: center;
+.action-btn {
+  padding: 10rpx 20rpx;
+  font-size: 24rpx;
+  border-radius: 8rpx;
+  border: none;
   background: white;
-  border: none;
-  border-radius: 0;
-  color: #666;
-  font-weight: 500;
+  white-space: nowrap;
 }
 
-.action-btn-admin::after {
+.action-btn::after {
   border: none;
 }
 
-.action-btn-admin:not(:last-child) {
-  border-right: 1rpx solid #F0F0F0;
+.edit-btn {
+  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+  color: white;
 }
 
-.action-btn-admin.edit {
-  color: #2196F3;
+.toggle-btn {
+  background: linear-gradient(135deg, #A8E6CF 0%, #66BB6A 100%);
+  color: white;
 }
 
-.action-btn-admin.toggle {
-  color: #4CAF50;
-}
-
-.action-btn-admin.delete {
-  color: #FF6B6B;
-}
-
-.action-btn-admin:active {
-  background: #F5F5F5;
+.delete-btn {
+  background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);
+  color: white;
 }
 
 /* 空状态 */
-.empty-state-admin {
+.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 120rpx 40rpx;
-  color: #999;
 }
 
-.empty-icon-admin {
+.empty-icon {
   font-size: 120rpx;
   margin-bottom: 20rpx;
 }
 
-.empty-text-admin {
+.empty-text {
   font-size: 28rpx;
   color: #999;
-}
-
-.product-status.status-offline {
-  background: #F8D7DA;
-  color: #721C24;
 }
 
 .action-btn {
