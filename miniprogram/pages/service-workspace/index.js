@@ -177,19 +177,27 @@ Page({
     const createTimeStr = order.createTime || order.createdAt
     if (!createTimeStr || !order.deadline) return 0
     
-    const createTime = new Date(createTimeStr).getTime()
-    const deadline = new Date(order.deadline).getTime()
-    const now = Date.now()
-    const totalTime = deadline - createTime
-    const elapsedTime = now - createTime
+    const now = new Date()
+    const createDate = new Date((createTimeStr).replace(/-/g, '/'))
+    const deadlineDate = new Date((order.deadline).replace(/-/g, '/'))
+    
+    if (isNaN(createDate.getTime()) || isNaN(deadlineDate.getTime())) {
+      return 0
+    }
+    
+    const totalTime = deadlineDate.getTime() - createDate.getTime()
+    const elapsedTime = now.getTime() - createDate.getTime()
     
     if (totalTime <= 0) return 0
     
-    let percent = (elapsedTime / totalTime) * 100
+    let percent = Math.round((elapsedTime / totalTime) * 100)
     
-    // 临近截稿或已拖稿时，进度条显示100%
-    if (percent >= 100) percent = 100
+    if (now >= deadlineDate) {
+      percent = 100
+    }
+    
     if (percent < 0) percent = 0
+    if (percent > 100) percent = 100
     
     return percent
   },

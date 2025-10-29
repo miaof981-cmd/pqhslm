@@ -874,23 +874,27 @@ Page({
     }
     
     try {
-      const createDate = new Date(order.createTime.split(' ')[0]).getTime()
-      const deadlineDate = new Date(order.deadline.split(' ')[0]).getTime()
-      const todayDate = new Date(new Date().toLocaleDateString()).getTime()
+      const now = new Date()
+      const createDate = new Date(order.createTime.replace(/-/g, '/'))
+      const deadlineDate = new Date(order.deadline.replace(/-/g, '/'))
       
-      if (isNaN(createDate) || isNaN(deadlineDate)) {
+      if (isNaN(createDate.getTime()) || isNaN(deadlineDate.getTime())) {
         return 5
       }
       
-      const oneDayMs = 24 * 60 * 60 * 1000
-      const totalDays = Math.round((deadlineDate - createDate) / oneDayMs)
-      const elapsedDays = Math.round((todayDate - createDate) / oneDayMs)
+      const totalTime = deadlineDate.getTime() - createDate.getTime()
+      const elapsedTime = now.getTime() - createDate.getTime()
       
-      let percent = Math.round((elapsedDays / totalDays) * 100)
+      if (totalTime <= 0) return 5
       
-      // 临近截稿或已拖稿时，进度条显示100%
-      if (percent >= 100) percent = 100
+      let percent = Math.round((elapsedTime / totalTime) * 100)
+      
+      if (now >= deadlineDate) {
+        percent = 100
+      }
+      
       if (percent < 5) percent = 5
+      if (percent > 100) percent = 100
       
       return percent
     } catch (error) {
