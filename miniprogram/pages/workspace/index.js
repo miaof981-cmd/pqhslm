@@ -884,23 +884,41 @@ Page({
       const createDate = new Date(order.createTime.replace(/-/g, '/'))
       const deadlineDate = new Date(order.deadline.replace(/-/g, '/'))
       
+      console.log(`📊 订单进度计算 [${order.productName}]:`)
+      console.log('  当前日期:', now.toLocaleString())
+      console.log('  下单日期:', order.createTime, '→', createDate.toLocaleString())
+      console.log('  截稿日期:', order.deadline, '→', deadlineDate.toLocaleString())
+      
       if (isNaN(createDate.getTime()) || isNaN(deadlineDate.getTime())) {
+        console.log('  ❌ 日期解析失败')
         return 5
       }
       
       const totalTime = deadlineDate.getTime() - createDate.getTime()
       const elapsedTime = now.getTime() - createDate.getTime()
       
-      if (totalTime <= 0) return 5
+      console.log('  总时长(ms):', totalTime)
+      console.log('  已过时长(ms):', elapsedTime)
+      
+      if (totalTime <= 0) {
+        console.log('  ❌ 总时长<=0')
+        return 5
+      }
       
       let percent = Math.round((elapsedTime / totalTime) * 100)
       
+      console.log('  初始进度:', percent + '%')
+      
       if (now >= deadlineDate) {
+        console.log('  ⚠️ 已超期，强制100%')
         percent = 100
       }
       
       if (percent < 5) percent = 5
       if (percent > 100) percent = 100
+      
+      console.log('  ✅ 最终进度:', percent + '%')
+      console.log('---')
       
       return percent
     } catch (error) {
