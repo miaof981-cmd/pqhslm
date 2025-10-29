@@ -360,7 +360,10 @@
 
           <!-- 操作按钮 -->
           <view class="order-actions">
-            <button class="btn-action btn-service" data-id="{{item._id}}" catchtap="changeService">换客服</button>
+            <button wx:if="{{item.status !== 'completed' && item.status !== 'refunded'}}" 
+                    class="btn-action btn-service" 
+                    data-id="{{item._id}}" 
+                    catchtap="changeService">换客服</button>
             <button wx:if="{{item.status !== 'completed' && item.status !== 'refunded'}}" 
                     class="btn-action btn-refund" 
                     data-id="{{item._id}}" 

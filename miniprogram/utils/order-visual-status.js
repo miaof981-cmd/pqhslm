@@ -25,7 +25,14 @@ function computeVisualStatus(order){
   let statusColor = '#4CAF50'; // 绿
   let progressPercent = computeProgressPercent(order, now);
 
-  if(!isNaN(end)){
+  // 已完成订单：检查wasOverdue标记
+  if(order.status === 'completed' && order.wasOverdue){
+    statusKey = 'overdue';
+    statusColor = '#E74C3C'; // 红
+    progressPercent = 100;
+  }
+  // 进行中订单：按实时时间判断
+  else if(!isNaN(end)){
     const diffDays = Math.ceil((end - now)/86400000);
     if(diffDays < 0){
       statusKey = 'overdue';
