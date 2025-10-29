@@ -192,6 +192,9 @@ Page({
     // 从本地存储读取真实商品数据
     const allProducts = wx.getStorageSync('mock_products') || []
     
+    // 获取所有用户信息（用于匹配画师名称）
+    const allUsers = wx.getStorageSync('mock_users') || []
+    
     // 转换为管理后台需要的格式
     const formattedProducts = allProducts.map(product => {
       // 计算显示价格
@@ -225,17 +228,51 @@ Page({
         }
       }
       
+      // 获取画师名称
+      const artist = allUsers.find(u => u.userId == product.artistId)
+      const artistName = artist ? artist.nickname || `用户${artist.userId}` : '未知'
+      
+      // 生成规格信息摘要
+      let specInfo = '无规格'
+      if (product.spec && product.spec.length > 0) {
+        const specNames = []
+        product.spec.forEach(spec1 => {
+          if (spec1.name) {
+            specNames.push(spec1.name)
+          }
+          if (spec1.subSpecs && spec1.subSpecs.length > 0) {
+            spec1.subSpecs.forEach(spec2 => {
+              if (spec2.name) {
+                specNames.push(spec2.name)
+              }
+            })
+          }
+        })
+        if (specNames.length > 0) {
+          specInfo = specNames.join('、')
+          if (specInfo.length > 20) {
+            specInfo = specInfo.substring(0, 20) + '...'
+          }
+        }
+      }
+      
       return {
         _id: product.id,
         name: product.name || '未命名商品',
         image: (product.images && product.images[0]) || '',
         category: product.category || '未分类',
         price: displayPrice,
-        status: product.onSale ? 'online' : 'offline',
+        status: product.isOnSale !== false ? 'online' : 'offline',
         isHot: product.tags && product.tags.includes('hot'),
         isRecommend: product.tags && product.tags.includes('recommend'),
         isSpecial: product.tags && product.tags.includes('special'),
-        deliveryDays: product.deliveryDays || 7
+        deliveryDays: product.deliveryDays || 7,
+        artistId: product.artistId,
+        artistName: artistName,
+        specInfo: specInfo,
+        sales: product.sales || 0,
+        stock: product.stock || 0,
+        views: product.views || 0
       }
     })
     
@@ -617,8 +654,33 @@ Page({
 
   // 商品操作
   addProduct() {
-    wx.navigateTo({
-      url: '/pages/product-edit/index'
+    // 获取所有画师列表
+    const allUsers = wx.getStorageSync('mock_users') || []
+    const artists = allUsers.filter(u => u.roles && u.roles.includes('artist'))
+    
+    if (artists.length === 0) {
+      wx.showModal({
+        title: '提示',
+        content: '当前没有画师，请先审核画师申请',
+        showCancel: false
+      })
+      return
+    }
+    
+    // 准备画师列表
+    const itemList = artists.map(a => 
+      `${a.nickname || `用户${a.userId}`} (ID: ${a.userId})`
+    )
+    
+    wx.showActionSheet({
+      itemList: itemList,
+      success: (res) => {
+        const selectedArtist = artists[res.tapIndex]
+        // 跳转到商品编辑页，传入画师ID
+        wx.navigateTo({
+          url: `/pages/product-edit/index?artistId=${selectedArtist.userId}`
+        })
+      }
     })
   },
 
@@ -632,13 +694,60 @@ Page({
   toggleProductStatus(e) {
     const { id, status } = e.currentTarget.dataset
     const action = status === 'online' ? '下架' : '上架'
+    const newStatus = status === 'online' ? false : true
     
     wx.showModal({
       title: `${action}商品`,
       content: `确认${action}此商品？`,
       success: (res) => {
         if (res.confirm) {
-          wx.showToast({ title: `已${action}`, icon: 'success' })
+          // 更新本地存储
+          const allProducts = wx.getStorageSync('mock_products') || []
+          const productIndex = allProducts.findIndex(p => (p.id || p._id) === id)
+          
+          if (productIndex !== -1) {
+            allProducts[productIndex].isOnSale = newStatus
+            wx.setStorageSync('mock_products', allProducts)
+            
+            wx.showToast({ 
+              title: `已${action}`, 
+              icon: 'success' 
+            })
+            
+            // 重新加载商品列表
+            this.loadProducts()
+          } else {
+            wx.showToast({
+              title: '商品不存在',
+              icon: 'none'
+            })
+          }
+        }
+      }
+    })
+  },
+  
+  // 删除商品
+  deleteProduct(e) {
+    const id = e.currentTarget.dataset.id
+    
+    wx.showModal({
+      title: '确认删除',
+      content: '确认删除该商品？删除后无法恢复',
+      confirmColor: '#FF6B6B',
+      success: (res) => {
+        if (res.confirm) {
+          // 从本地存储删除
+          let allProducts = wx.getStorageSync('mock_products') || []
+          allProducts = allProducts.filter(p => (p.id || p._id) !== id)
+          wx.setStorageSync('mock_products', allProducts)
+          
+          wx.showToast({
+            title: '已删除',
+            icon: 'success'
+          })
+          
+          // 重新加载
           this.loadProducts()
         }
       }

@@ -208,28 +208,67 @@
       </view>
 
       <!-- 商品列表 -->
-      <view class="product-list">
-        <view wx:for="{{products}}" wx:key="_id" class="product-item">
-          <image class="product-image" src="{{item.image}}" mode="aspectFill" />
-          <view class="product-info">
-            <text class="product-name">{{item.name}}</text>
-            <view class="product-meta">
-              <text class="product-category">{{item.category}}</text>
-              <text class="product-price">¥{{item.price}}</text>
+      <view class="product-list-admin">
+        <view wx:for="{{products}}" wx:key="_id" class="product-card-admin">
+          <!-- 商品图片 -->
+          <image class="product-image-admin" src="{{item.image}}" mode="aspectFill" />
+          
+          <!-- 商品信息 -->
+          <view class="product-info-admin">
+            <!-- 第一行：商品名称 + 状态 -->
+            <view class="product-row-1">
+              <text class="product-name-admin">{{item.name}}</text>
+              <view class="product-status-badge status-{{item.status}}">
+                {{item.status === 'online' ? '已上架' : '已下架'}}
+              </view>
             </view>
-            <view class="product-tags">
-              <text wx:if="{{item.isHot}}" class="tag hot">热销</text>
-              <text wx:if="{{item.isRecommend}}" class="tag recommend">推荐</text>
-              <text wx:if="{{item.isSpecial}}" class="tag special">特价</text>
+            
+            <!-- 第二行：画师信息 -->
+            <view class="product-row-2">
+              <text class="product-artist">画师：{{item.artistName || '未知'}}</text>
+            </view>
+            
+            <!-- 第三行：分类 + 价格 -->
+            <view class="product-row-3">
+              <text class="product-category-admin">{{item.category}}</text>
+              <text class="product-price-admin">¥{{item.price}}</text>
+            </view>
+            
+            <!-- 第四行：规格 + 出稿天数 -->
+            <view class="product-row-4">
+              <text class="product-spec">规格：{{item.specInfo || '无规格'}}</text>
+              <text class="product-delivery">{{item.deliveryDays}}天出稿</text>
+            </view>
+            
+            <!-- 第五行：销量 + 库存 + 浏览 -->
+            <view class="product-row-5">
+              <text class="product-stat">销量：{{item.sales || 0}}</text>
+              <text class="product-stat">库存：{{item.stock === 0 ? '♾️' : item.stock}}</text>
+              <text class="product-stat">浏览：{{item.views || 0}}</text>
+            </view>
+            
+            <!-- 标签 -->
+            <view wx:if="{{item.isHot || item.isRecommend || item.isSpecial}}" class="product-tags-admin">
+              <text wx:if="{{item.isHot}}" class="tag-admin hot">热销</text>
+              <text wx:if="{{item.isRecommend}}" class="tag-admin recommend">推荐</text>
+              <text wx:if="{{item.isSpecial}}" class="tag-admin special">特价</text>
             </view>
           </view>
-          <view class="product-actions">
-            <view class="product-status status-{{item.status}}">{{item.status === 'online' ? '已上架' : '已下架'}}</view>
-            <button class="action-btn" data-id="{{item._id}}" bindtap="editProduct">编辑</button>
-            <button class="action-btn" data-id="{{item._id}}" data-status="{{item.status}}" bindtap="toggleProductStatus">
+          
+          <!-- 操作按钮 -->
+          <view class="product-actions-admin">
+            <button class="action-btn-admin edit" data-id="{{item._id}}" bindtap="editProduct">编辑</button>
+            <button class="action-btn-admin toggle" data-id="{{item._id}}" data-status="{{item.status}}" bindtap="toggleProductStatus">
               {{item.status === 'online' ? '下架' : '上架'}}
             </button>
+            <button class="action-btn-admin delete" data-id="{{item._id}}" bindtap="deleteProduct">删除</button>
           </view>
+        </view>
+        
+        <!-- 空状态 -->
+        <view wx:if="{{products.length === 0}}" class="empty-state-admin">
+          <text class="empty-icon-admin">📦</text>
+          <text class="empty-text-admin">暂无商品</text>
         </view>
       </view>
     </view>
