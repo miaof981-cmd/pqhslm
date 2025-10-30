@@ -89,15 +89,8 @@ Page({
           deadlineDisplay = deadlineDisplay.split(' ')[0]
         }
         
-        // 下单时间格式化显示
-        let createTimeDisplay = order.createTime
-        if (createTimeDisplay) {
-          const parts = createTimeDisplay.split(' ')
-          if (parts.length === 2) {
-            const timePart = parts[1].split(':')
-            createTimeDisplay = `${parts[0]} ${timePart[0]}:${timePart[1]}`
-          }
-        }
+        // 下单时间格式化显示（保持原始格式）
+        let createTimeDisplay = order.createTime || ''
         
         // 使用统一的视觉状态计算
         const { statusKey, statusColor, progressPercent } = computeVisualStatus(order)

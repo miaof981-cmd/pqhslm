@@ -66,9 +66,9 @@
           </view>
         </view>
         <view class="progress-bar-container">
-          <view class="progress-bar-bg {{item.isOverdue ? 'overdue' : (item.isNearDeadline ? 'near-deadline' : '')}}">
-            <view class="progress-bar-fill {{item.isOverdue ? 'overdue' : (item.isNearDeadline ? 'near-deadline' : '')}}" 
-                  style="width: {{item.progressPercent || 50}}%;"></view>
+          <view class="progress-bar-bg">
+            <view class="progress-bar-fill" 
+                  style="width: {{item.progressPercent || 50}}%; background: {{item.statusColor || '#4CAF50'}};"></view>
           </view>
         </view>
       </view>
