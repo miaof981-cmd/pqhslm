@@ -130,7 +130,7 @@
         </view>
 
         <view wx:else class="orders-list">
-          <view wx:for="{{filteredOrders}}" wx:key="id" class="order-card {{item.status === 'waitingConfirm' ? 'order-card-waiting' : ''}}">
+          <view wx:for="{{filteredOrders}}" wx:key="id" class="order-card order-card-{{item.statusKey || 'normal'}}">
             <!-- 订单头部：订单号 + 状态 -->
             <view class="order-header" bindtap="viewOrderDetail" data-id="{{item.id}}">
               <view class="order-id">订单 {{item.id}}</view>
@@ -151,21 +151,21 @@
             </view>
 
             <!-- 时间进度条 -->
-            <view class="order-progress-section {{item.status === 'overdue' ? 'overdue' : (item.status === 'nearDeadline' ? 'near-deadline' : '')}}">
+            <view class="order-progress-section {{item.statusKey === 'overdue' ? 'overdue' : (item.statusKey === 'nearDeadline' ? 'near-deadline' : '')}}">
               <view class="progress-header">
                 <view class="progress-label">
                   <text class="time-title">下单时间</text>
                   <text class="time-value">{{item.createTime}}</text>
                 </view>
-                <view class="progress-label deadline-label {{item.status === 'overdue' ? 'overdue' : ''}}">
+                <view class="progress-label deadline-label {{item.statusKey === 'overdue' ? 'overdue' : ''}}">
                   <text class="time-title">截稿时间</text>
                   <text class="time-value">{{item.deadline}}</text>
                 </view>
               </view>
               <view class="progress-bar-container">
-                <view class="progress-bar-bg {{item.status === 'overdue' ? 'overdue' : (item.status === 'nearDeadline' ? 'near-deadline' : '')}}">
-                  <view class="progress-bar-fill {{item.status === 'overdue' ? 'overdue' : (item.status === 'nearDeadline' ? 'near-deadline' : '')}}" 
-                        style="width: {{item.progressPercent || 50}}%;"></view>
+                <view class="progress-bar-bg">
+                  <view class="progress-bar-fill" 
+                        style="width: {{item.progressPercent || 50}}%; background: {{item.statusColor || '#4CAF50'}};"></view>
                 </view>
               </view>
             </view>
