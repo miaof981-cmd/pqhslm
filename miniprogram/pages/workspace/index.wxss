@@ -489,18 +489,6 @@ page {
   transition: box-shadow 0.3s ease;
 }
 
-/* 脱稿订单卡片 - 红色边框和阴影 */
-.order-card-overdue {
-  box-shadow: 0 4rpx 16rpx rgba(231, 76, 60, 0.15);
-  border-left: 6rpx solid #E74C3C;
-}
-
-/* 临近截稿订单卡片 - 橙色边框和阴影 */
-.order-card-nearDeadline {
-  box-shadow: 0 4rpx 16rpx rgba(243, 156, 18, 0.12);
-  border-left: 6rpx solid #F39C12;
-}
-
 /* 列表底部提示 */
 .list-footer {
   display: flex;
