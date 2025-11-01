@@ -5,10 +5,8 @@ Page({
     loading: true,
     memberInfo: null,
     orderStats: {
-      created: 0,
-      completed: 0,
-      refunded: 0,
-      total: 0
+      processing: 0,  // 只统计制作中的数量
+      // 其他状态不显示数字，节省性能
     },
     userId: 0,
     // 改为多角色支持
@@ -380,17 +378,22 @@ Page({
       }
     ]
     
-    // 计算订单统计
-    const stats = {
-      created: orders.filter(o => o.status === 'created').length,
-      completed: orders.filter(o => o.status === 'completed').length,
-      refunded: 0,
-      total: orders.length
-    }
+    // 只统计制作中的订单数量（其他状态不统计，避免性能问题）
+    const userId = wx.getStorageSync('userId')
+    const allOrders = wx.getStorageSync('orders') || []
+    const pendingOrders = wx.getStorageSync('pending_orders') || []
+    const userOrders = [...allOrders, ...pendingOrders].filter(o => o.buyerId === userId)
+    
+    // 只统计制作中：排除unpaid和completed的都算制作中
+    const processingCount = userOrders.filter(o => {
+      return o.status !== 'unpaid' && o.status !== 'completed'
+    }).length
     
     this.setData({
       orders: orders,
-      orderStats: stats
+      orderStats: {
+        processing: processingCount
+      }
     })
   },
 
