@@ -6,12 +6,7 @@ const { computeVisualStatus } = require('../../utils/order-visual-status')
 Page({
   data: {
     currentTab: 'all',
-    tabs: [
-      { label: '全部', value: 'all', count: 0 },
-      { label: '待支付', value: 'unpaid', count: 0 },
-      { label: '制作中', value: 'processing', count: 0 },
-      { label: '已完成', value: 'completed', count: 0 }
-    ],
+    tabs: [],  // 动态生成，只显示有订单的Tab
     orders: [],
     allOrders: [],
     loading: true,
@@ -23,6 +18,7 @@ Page({
   },
 
   onLoad(options) {
+    // 如果从用户中心点击进入，设置默认Tab
     if (options.status) {
       this.setData({ currentTab: options.status })
     }
@@ -177,16 +173,22 @@ Page({
         }
       })
 
-      const tabs = this.data.tabs.map(tab => {
-        if (tab.value === 'all') {
-          return { ...tab, count: mockOrders.length }
-        }
-        return { ...tab, count: statusCounts[tab.value] || 0 }
+      // 🎯 动态生成Tabs：只显示有订单的分类
+      const allTabs = [
+        { label: '全部', value: 'all', count: mockOrders.length },
+        { label: '待支付', value: 'unpaid', count: statusCounts.unpaid },
+        { label: '制作中', value: 'processing', count: statusCounts.processing },
+        { label: '已完成', value: 'completed', count: statusCounts.completed }
+      ]
+      
+      // 过滤掉数量为0的Tab（"全部"除外）
+      const visibleTabs = allTabs.filter(tab => {
+        return tab.value === 'all' || tab.count > 0
       })
 
       this.setData({
         allOrders: mockOrders,
-        tabs
+        tabs: visibleTabs
       })
 
       this.filterOrders()
