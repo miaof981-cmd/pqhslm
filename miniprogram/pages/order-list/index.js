@@ -161,15 +161,19 @@ Page({
       }
       
       mockOrders.forEach(order => {
-        // ✅ 将所有进行中的状态归类到 processing
-        if (order.status === 'processing' || 
-            order.status === 'inProgress' ||
-            order.status === 'overdue' ||
-            order.status === 'nearDeadline' ||
-            order.status === 'waitingConfirm') {
+        const status = order.status
+        
+        // 统计未支付
+        if (status === 'unpaid') {
+          statusCounts.unpaid++
+        }
+        // 统计已完成
+        else if (status === 'completed') {
+          statusCounts.completed++
+        }
+        // 其他所有状态都算"制作中"（包括：processing, inProgress, overdue, nearDeadline, waitingConfirm, paid, created等）
+        else {
           statusCounts.processing++
-        } else if (statusCounts[order.status] !== undefined) {
-          statusCounts[order.status]++
         }
       })
 
