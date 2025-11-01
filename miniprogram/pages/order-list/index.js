@@ -89,8 +89,11 @@ Page({
           deadlineDisplay = deadlineDisplay.split(' ')[0]
         }
         
-        // 下单时间格式化显示（保持原始格式）
+        // 下单时间格式化显示（只显示日期部分）
         let createTimeDisplay = order.createTime || ''
+        if (createTimeDisplay && createTimeDisplay.includes(' ')) {
+          createTimeDisplay = createTimeDisplay.split(' ')[0]
+        }
         
         // 使用统一的视觉状态计算
         const { statusKey, statusColor, progressPercent } = computeVisualStatus(order)
@@ -339,11 +342,20 @@ Page({
             return orderList.map(order => {
               if (order.id === orderId) {
                 updated = true
-                // 检查是否脱稿
+                // 检查是否脱稿（使用 iOS 兼容的日期解析）
                 const now = new Date()
-                const deadline = new Date(order.deadline)
-                const wasOverdue = now > deadline
+                const deadlineStr = order.deadline ? order.deadline.replace(/-/g, '/') : ''
+                const deadline = new Date(deadlineStr)
+                const wasOverdue = !isNaN(deadline.getTime()) && now > deadline
                 const overdueDays = wasOverdue ? Math.ceil((now - deadline) / (24 * 60 * 60 * 1000)) : 0
+                
+                console.log('🔍 确认完成 - 脱稿检测:', {
+                  订单ID: order.id,
+                  当前时间: now.toLocaleString(),
+                  截稿时间: deadline.toLocaleString(),
+                  是否脱稿: wasOverdue,
+                  脱稿天数: overdueDays
+                })
                 
                 return {
                   ...order,
