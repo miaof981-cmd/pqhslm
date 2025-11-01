@@ -12,8 +12,8 @@ const STATUS_TEXT_MAP = {
   'unpaid': '待支付',
   'paid': '已支付',
   'created': '待处理',
-  'inProgress': '进行中',        // ✅ 统一使用
-  'processing': '进行中',         // ⚠️ 兼容旧数据
+  'inProgress': '制作中',        // ✅ 统一使用
+  'processing': '制作中',         // ⚠️ 兼容旧数据
   'waitingConfirm': '待确认',
   'nearDeadline': '临近截稿',
   'overdue': '已拖稿',
@@ -92,7 +92,7 @@ function calculateOrderStatus(order) {
   const hoursLeft = timeLeft / (60 * 60 * 1000)
   
   let status = 'inProgress'
-  let statusText = '进行中'
+  let statusText = '制作中'
   let urgent = false
   
   if (timeLeft < 0) {
@@ -106,9 +106,9 @@ function calculateOrderStatus(order) {
     statusText = '临近截稿'
     urgent = true
   } else {
-    // 正常进行中
+    // 正常制作中
     status = 'inProgress'
-    statusText = '进行中'
+    statusText = '制作中'
     urgent = false
   }
   

@@ -44,7 +44,7 @@
         <view class="status-ring ring-green">
           <text class="status-count">{{stats.inProgress}}</text>
         </view>
-        <text class="status-label">进行中</text>
+        <text class="status-label">制作中</text>
       </view>
       <view class="status-item">
         <view class="status-ring ring-yellow">

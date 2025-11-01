@@ -35,7 +35,7 @@
       <view class="order-stats">
         <view class="stat-item" data-status="created" bindtap="viewAllOrders">
           <view class="stat-icon processing"></view>
-          <text class="stat-label">进行中</text>
+          <text class="stat-label">制作中</text>
           <text class="stat-count">{{orderStats.created}}</text>
         </view>
         <view class="stat-item" data-status="completed" bindtap="viewAllOrders">
