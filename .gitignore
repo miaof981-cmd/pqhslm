@@ -1,0 +1,14 @@
+# 微信小程序相关
+project.private.config.json
+
+# 敏感信息文件
+项目凭据信息.md
+
+# 系统文件
+.DS_Store
+.idea/
+*.log
+
+# 依赖
+node_modules/
+
