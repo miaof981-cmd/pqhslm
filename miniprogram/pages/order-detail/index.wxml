@@ -33,7 +33,8 @@
     </view>
     
     <!-- 订单进度条（复用通用组件） -->
-    <view wx:if="{{order.status !== 'completed'}}" class="order-progress-section {{order.isOverdue ? 'overdue' : (order.isNearDeadline ? 'near-deadline' : '')}}">
+    <!-- 🎯 修改：已完成的订单也显示进度条（如果有脱稿记录） -->
+    <view wx:if="{{order.status !== 'completed' || order.wasOverdue}}" class="order-progress-section {{order.isOverdue ? 'overdue' : (order.isNearDeadline ? 'near-deadline' : '')}}">
       <view class="progress-header">
         <view class="progress-label">
           <text class="time-title">下单时间</text>
