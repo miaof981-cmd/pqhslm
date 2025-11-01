@@ -474,9 +474,11 @@ Page({
   },
 
   // 查看全部订单
-  viewAllOrders() {
+  viewAllOrders(e) {
+    // 获取点击的订单状态
+    const status = e.currentTarget.dataset.status || 'all'
     wx.navigateTo({
-      url: '/pages/order-list/index'
+      url: `/pages/order-list/index?status=${status}`
     })
   },
 

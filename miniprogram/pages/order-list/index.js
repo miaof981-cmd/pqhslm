@@ -173,22 +173,17 @@ Page({
         }
       })
 
-      // 🎯 动态生成Tabs：只显示有订单的分类
-      const allTabs = [
+      // 🎯 固定Tab顺序，与用户中心保持一致
+      const tabs = [
         { label: '全部', value: 'all', count: mockOrders.length },
-        { label: '待支付', value: 'unpaid', count: statusCounts.unpaid },
         { label: '制作中', value: 'processing', count: statusCounts.processing },
-        { label: '已完成', value: 'completed', count: statusCounts.completed }
+        { label: '已完成', value: 'completed', count: statusCounts.completed },
+        { label: '待支付', value: 'unpaid', count: statusCounts.unpaid }
       ]
-      
-      // 过滤掉数量为0的Tab（"全部"除外）
-      const visibleTabs = allTabs.filter(tab => {
-        return tab.value === 'all' || tab.count > 0
-      })
 
       this.setData({
         allOrders: mockOrders,
-        tabs: visibleTabs
+        tabs: tabs
       })
 
       this.filterOrders()

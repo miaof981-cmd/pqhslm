@@ -33,6 +33,10 @@
       </view>
       
       <view class="order-stats">
+        <view class="stat-item" bindtap="viewAllOrders">
+          <view class="stat-icon all"></view>
+          <text class="stat-label">全部订单</text>
+        </view>
         <view class="stat-item" data-status="processing" bindtap="viewAllOrders">
           <view class="stat-icon-wrapper">
             <view class="stat-icon processing"></view>
@@ -44,13 +48,9 @@
           <view class="stat-icon completed"></view>
           <text class="stat-label">已完成</text>
         </view>
-        <view class="stat-item" data-status="refunded" bindtap="viewAllOrders">
-          <view class="stat-icon refunded"></view>
-          <text class="stat-label">已退款</text>
-        </view>
-        <view class="stat-item" bindtap="viewAllOrders">
-          <view class="stat-icon all"></view>
-          <text class="stat-label">全部订单</text>
+        <view class="stat-item" data-status="unpaid" bindtap="viewAllOrders">
+          <view class="stat-icon unpaid"></view>
+          <text class="stat-label">待支付</text>
         </view>
       </view>
     </view>

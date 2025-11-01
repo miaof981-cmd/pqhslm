@@ -252,6 +252,18 @@
   box-shadow: 0 5rpx 0 white, 0 10rpx 0 white;
 }
 
+.stat-icon.unpaid {
+  background: linear-gradient(135deg, #FFE082 0%, #FFD54F 100%);
+}
+
+.stat-icon.unpaid::before {
+  width: 16rpx;
+  height: 20rpx;
+  border: 3rpx solid white;
+  border-top: 6rpx solid white;
+  border-radius: 2rpx;
+}
+
 .stat-label {
   font-size: 22rpx;
   color: #666;
