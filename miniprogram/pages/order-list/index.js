@@ -2,9 +2,11 @@
 const orderHelper = require('../../utils/order-helper.js')
 const orderStatusUtil = require('../../utils/order-status.js')
 const { computeVisualStatus } = require('../../utils/order-visual-status')
+const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
 
 Page({
   data: {
+    DEFAULT_AVATAR_DATA,
     currentTab: 'all',
     tabs: [],  // 动态生成，只显示有订单的Tab
     orders: [],
@@ -655,5 +657,21 @@ Page({
         overdueDays: 0 
       }
     }
+  },
+
+  // 画师头像加载失败兜底
+  onArtistImgErr(e) {
+    const index = e.currentTarget.dataset.index
+    this.setData({
+      [`orders[${index}].artistAvatar`]: DEFAULT_AVATAR_DATA
+    })
+  },
+
+  // 客服头像加载失败兜底
+  onServiceImgErr(e) {
+    const index = e.currentTarget.dataset.index
+    this.setData({
+      [`orders[${index}].serviceAvatar`]: DEFAULT_AVATAR_DATA
+    })
   }
 })

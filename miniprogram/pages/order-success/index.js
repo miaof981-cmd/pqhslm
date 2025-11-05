@@ -7,12 +7,46 @@ Page({
   },
 
   onLoad(options) {
+    // --- 检查数据来源 ---
+    const products = wx.getStorageSync('mock_products') || []
+    const product = products.find(p => p.id === options.productId)
+    const currentUser = wx.getStorageSync('userInfo') || wx.getStorageSync('current_user') || {}
+    const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
+    
+    console.log('🔍 商品查找结果:', {
+      productId: options.productId,
+      找到商品: !!product,
+      商品名: product?.name,
+      商品画师ID: product?.artistId,
+      商品画师名: product?.artistName,
+      商品画师头像: product?.artistAvatar ? '有' : '无',
+      当前用户: currentUser?.nickName
+    })
+    
+    // --- 绑定画师信息（强制使用商品表数据，不兜底到当前用户）---
+    const artistId = product?.artistId || ''
+    const artistName = product?.artistName || '未知画师'
+    const artistAvatar = product?.artistAvatar || DEFAULT_AVATAR_DATA
+    
+    // --- 分配客服 ---
+    const service = this.assignService()
+    const serviceId = service?.serviceId || service?.id || ''
+    const serviceName = service?.serviceName || service?.name || '客服未分配'
+    const serviceAvatar = service?.serviceAvatar || service?.avatar || DEFAULT_AVATAR_DATA
+    
+    // --- 控制台打印检查 ---
+    console.log("📦 下单前检查:", { 
+      product: product ? { id: product.id, name: product.name, artistName: product.artistName } : null,
+      artistName, 
+      serviceName 
+    })
+    
     // 从URL参数获取订单信息（需要解码）
     const orderInfo = {
       orderNo: this.generateOrderNo(),
       productId: options.productId || '',
       productName: decodeURIComponent(options.productName || '商品'),
-      productImage: decodeURIComponent(options.productImage || '/assets/default-product.png'),
+      productImage: decodeURIComponent(options.productImage || ''),
       spec1: decodeURIComponent(options.spec1 || ''),
       spec2: decodeURIComponent(options.spec2 || ''),
       quantity: parseInt(options.quantity) || 1,
@@ -20,10 +54,10 @@ Page({
       totalAmount: parseFloat(options.totalAmount) || 0,
       deliveryDays: parseInt(options.deliveryDays) || 7,
       
-      // ✅ 画师完整信息
-      artistId: options.artistId || '',
-      artistName: decodeURIComponent(options.artistName || '画师'),
-      artistAvatar: options.artistAvatar ? decodeURIComponent(options.artistAvatar) : '',
+      // ✅ 画师完整信息（从商品表/当前用户获取）
+      artistId: artistId,
+      artistName: artistName,
+      artistAvatar: artistAvatar,
       
       createTime: this.formatDateTime(new Date())
     }
@@ -40,8 +74,14 @@ Page({
     console.log('订单信息:', orderInfo)
     console.log('原始参数:', options)
     
-    // ✅ 获取分配的客服信息
-    const serviceInfo = this.assignService()
+    // 构建客服信息对象
+    const serviceInfo = {
+      serviceId: serviceId,
+      serviceName: serviceName,
+      serviceAvatar: serviceAvatar,
+      serviceQrcodeUrl: service?.serviceQrcodeUrl || service?.qrcodeUrl || '',
+      serviceQrcodeNumber: service?.serviceQrcodeNumber || service?.qrcodeNumber || null
+    }
     
     // 获取客服二维码（如果有）
     const serviceQR = serviceInfo.serviceQrcodeUrl 
@@ -63,39 +103,60 @@ Page({
   
   // 自动分配客服
   assignService() {
-    // 获取所有在线客服
-    const serviceList = wx.getStorageSync('service_list') || []
+    // 获取所有客服（统一使用 customer_service_list）
+    let serviceList = wx.getStorageSync('customer_service_list') || []
+    
+    // 🎯 如果客服列表为空，自动创建默认在线客服
+    if (serviceList.length === 0) {
+      console.log('⚠️ 客服列表为空，自动创建默认在线客服')
+      const currentUser = wx.getStorageSync('userInfo') || {}
+      const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
+      
+      const defaultService = {
+        userId: currentUser.userId || 'service_default',
+        id: currentUser.userId || 'service_default',
+        name: currentUser.nickName || '在线客服',
+        nickName: currentUser.nickName || '在线客服',
+        avatar: currentUser.avatarUrl || DEFAULT_AVATAR_DATA,
+        avatarUrl: currentUser.avatarUrl || DEFAULT_AVATAR_DATA,
+        isActive: true,  // 默认客服永远在线
+        serviceNumber: 1,
+        qrcodeUrl: '',
+        qrcodeNumber: null
+      }
+      
+      serviceList = [defaultService]
+      wx.setStorageSync('customer_service_list', serviceList)
+      console.log('✅ 默认在线客服已创建:', defaultService.name)
+    }
+    
+    // 🎯 确保至少有一个客服在线（强制第一个客服在线）
     const activeServices = serviceList.filter(s => s.isActive)
+    if (activeServices.length === 0) {
+      console.log('⚠️ 所有客服都离线，强制第一个客服上线')
+      serviceList[0].isActive = true
+      wx.setStorageSync('customer_service_list', serviceList)
+    }
+    
+    // 重新获取在线客服
+    const finalActiveServices = serviceList.filter(s => s.isActive)
     
     console.log('📞 自动分配客服:')
     console.log('- 客服总数:', serviceList.length)
-    console.log('- 在线客服数:', activeServices.length)
-    
-    if (activeServices.length === 0) {
-      console.log('⚠️ 暂无在线客服，订单待分配')
-      return {
-        serviceId: '',
-        serviceName: '待分配',
-        serviceAvatar: '',
-        serviceQrcodeUrl: '',
-        serviceQrcodeNumber: null
-      }
-    }
+    console.log('- 在线客服数:', finalActiveServices.length)
     
     // 随机选择一个在线客服
-    const randomIndex = Math.floor(Math.random() * activeServices.length)
-    const assignedService = activeServices[randomIndex]
+    const randomIndex = Math.floor(Math.random() * finalActiveServices.length)
+    const assignedService = finalActiveServices[randomIndex]
     
     console.log('✅ 分配客服成功:')
-    console.log('- 客服ID:', assignedService.userId)
-    console.log('- 客服姓名:', assignedService.name)
-    console.log('- 客服编号:', assignedService.serviceNumber)
-    console.log('- 二维码编号:', assignedService.qrcodeNumber)
+    console.log('- 客服ID:', assignedService.userId || assignedService.id)
+    console.log('- 客服姓名:', assignedService.name || assignedService.nickName)
     
     return {
-      serviceId: assignedService.userId,
-      serviceName: assignedService.name,
-      serviceAvatar: assignedService.avatar || '',
+      serviceId: assignedService.userId || assignedService.id,
+      serviceName: assignedService.name || assignedService.nickName || '在线客服',
+      serviceAvatar: assignedService.avatar || assignedService.avatarUrl || '',
       serviceQrcodeUrl: assignedService.qrcodeUrl || '',
       serviceQrcodeNumber: assignedService.qrcodeNumber
     }
@@ -178,7 +239,14 @@ Page({
         serviceQrcodeNumber: serviceInfo.serviceQrcodeNumber
       }
       
-      console.log('新订单数据:', newOrder)
+      console.log('🔵 保存前订单字段检查', {
+        artistId: newOrder.artistId,
+        artistName: newOrder.artistName,
+        artistAvatar: newOrder.artistAvatar,
+        serviceId: newOrder.serviceId,
+        serviceName: newOrder.serviceName,
+        serviceAvatar: newOrder.serviceAvatar
+      })
       
       // 添加新订单
       orders.push(newOrder)

@@ -592,10 +592,14 @@ Page({
         const artistId = product.artistId || ''
         const artistAvatar = product.artistAvatar || ''
         
-        console.log('=== 创建订单传递画师信息 ===')
-        console.log('artistId:', artistId)
-        console.log('artistName:', artistName)
-        console.log('artistAvatar:', artistAvatar)
+        console.log('🟢 下单参数检查', {
+          artistId: product.artistId,
+          artistName: product.artistName,
+          artistAvatar: product.artistAvatar,
+          serviceId: undefined, // 当前页面没有客服信息
+          serviceName: undefined,
+          serviceAvatar: undefined
+        })
         
         // 跳转到订单成功页面
         wx.redirectTo({

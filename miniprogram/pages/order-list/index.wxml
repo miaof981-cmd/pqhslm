@@ -86,13 +86,13 @@
       <view class="order-people-row">
         <view class="people-item">
           <text class="people-label">画师</text>
-          <image class="people-avatar-small" src="{{item.artistAvatar}}" mode="aspectFill"/>
+          <image class="people-avatar-small" src="{{item.artistAvatar || DEFAULT_AVATAR_DATA}}" mode="aspectFill" binderror="onArtistImgErr" data-index="{{index}}"/>
           <text class="people-name-compact">{{item.artistName}}</text>
         </view>
         <view class="people-divider-compact"></view>
         <view class="people-item">
           <text class="people-label">客服</text>
-          <image class="people-avatar-small" src="{{item.serviceAvatar}}" mode="aspectFill"/>
+          <image class="people-avatar-small" src="{{item.serviceAvatar || DEFAULT_AVATAR_DATA}}" mode="aspectFill" binderror="onServiceImgErr" data-index="{{index}}"/>
           <text class="people-name-compact">{{item.serviceName}}</text>
         </view>
       </view>
