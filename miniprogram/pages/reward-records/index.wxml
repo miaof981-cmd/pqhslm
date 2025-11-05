@@ -9,14 +9,15 @@
   </view>
 
   <view wx:else>
-    <view wx:if="{{recentOrders.length === 0 && historyOrders.length === 0}}" class="empty">
+    <view wx:if="{{pendingOrders.length === 0 && rewardedOrders.length === 0}}" class="empty">
       <text>暂无可打赏的订单</text>
     </view>
 
-    <block wx:if="{{recentOrders.length > 0}}">
+    <!-- 可打赏订单 -->
+    <block wx:if="{{pendingOrders.length > 0}}">
       <view class="section-title">可打赏订单</view>
 
-      <block wx:for="{{recentOrders}}" wx:key="id">
+      <block wx:for="{{pendingOrders}}" wx:key="id">
         <view class="order-card">
           <image class="artist-avatar" src="{{item.artistAvatar || defaultAvatar}}" mode="aspectFill"></image>
           <view class="card-body">
@@ -26,27 +27,23 @@
               <text class="meta-text">完成于 {{item.completedText}}</text>
             </view>
           </view>
-          <button
-            class="reward-btn"
-            data-order-id="{{item.id}}"
-            bindtap="onRewardTap"
-            disabled="{{item.rewarded}}"
-          >
-            {{item.rewarded ? ('已打赏 ¥' + item.rewardAmount) : '打赏'}}
+          <button class="reward-btn" data-order-id="{{item.id}}" bindtap="onRewardTap">
+            打赏
           </button>
         </view>
       </block>
     </block>
 
-    <block wx:if="{{historyOrders.length > 0}}">
-      <view class="history-separator">
+    <!-- 已打赏订单 -->
+    <block wx:if="{{rewardedOrders.length > 0}}">
+      <view class="rewarded-separator">
         <view class="line"></view>
-        <text class="history-text">历史订单</text>
+        <text class="rewarded-text">已打赏记录</text>
         <view class="line"></view>
       </view>
 
-      <block wx:for="{{historyOrders}}" wx:key="id">
-        <view class="order-card history">
+      <block wx:for="{{rewardedOrders}}" wx:key="id">
+        <view class="order-card rewarded">
           <image class="artist-avatar" src="{{item.artistAvatar || defaultAvatar}}" mode="aspectFill"></image>
           <view class="card-body">
             <view class="artist-name">{{item.artistName}}</view>
@@ -55,9 +52,46 @@
               <text class="meta-text">完成于 {{item.completedText}}</text>
             </view>
           </view>
-          <view class="expired-flag">超出30天，无法打赏</view>
+          <view class="rewarded-badge">
+            <text class="badge-icon">✓</text>
+            <text class="badge-text">¥{{item.rewardAmount}}</text>
+          </view>
         </view>
       </block>
     </block>
+  </view>
+
+  <!-- 美观的打赏弹窗 -->
+  <view wx:if="{{showRewardModal}}" class="reward-modal-mask" bindtap="hideRewardModal">
+    <view class="reward-modal" catchtap="stopPropagation">
+      <view class="modal-header">
+        <image class="modal-avatar" src="{{currentOrder.artistAvatar || defaultAvatar}}" mode="aspectFill"></image>
+        <view class="modal-title">打赏 {{currentOrder.artistName}}</view>
+        <view class="modal-subtitle">感谢画师的精彩创作</view>
+      </view>
+
+      <view class="amount-grid">
+        <block wx:for="{{rewardOptions}}" wx:key="*this">
+          <view 
+            class="amount-item {{selectedAmount === item ? 'selected' : ''}}" 
+            data-amount="{{item}}"
+            bindtap="selectAmount"
+          >
+            <text class="amount-value">¥{{item}}</text>
+          </view>
+        </block>
+        <view 
+          class="amount-item custom {{selectedAmount === -1 ? 'selected' : ''}}"
+          bindtap="selectCustomAmount"
+        >
+          <text class="amount-value">自定义</text>
+        </view>
+      </view>
+
+      <view class="modal-actions">
+        <button class="modal-btn cancel" bindtap="hideRewardModal">取消</button>
+        <button class="modal-btn confirm" bindtap="confirmRewardFromModal">确认打赏</button>
+      </view>
+    </view>
   </view>
 </view>

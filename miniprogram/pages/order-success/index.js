@@ -78,7 +78,20 @@ Page({
     console.log('✅ 画师信息验证通过:', { artistId, artistName, artistAvatar: artistAvatar.substring(0, 50) + '...' })
     
     // === 2️⃣ 分配客服（异步，确保头像转换完成）===
-    const service = await this.assignService()
+    let service = null
+    try {
+      service = await this.assignService()
+    } catch (err) {
+      console.error('❌ 客服分配异常:', err)
+      const hint = err && err.displayMessage ? err.displayMessage : '客服分配失败，请稍后再试'
+      wx.showModal({
+        title: '客服未就绪',
+        content: hint,
+        showCancel: false,
+        complete: () => wx.navigateBack()
+      })
+      return
+    }
     
     // ⚠️ 验证客服分配
     if (!service || !service.serviceId || !service.serviceName || !service.serviceAvatar) {

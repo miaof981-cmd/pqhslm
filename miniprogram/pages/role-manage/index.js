@@ -60,7 +60,9 @@ Page({
 
   // 加载当前角色
   loadRoles() {
-    const userId = wx.getStorageSync('userId') || 1001
+    const app = getApp()
+    const storedUserId = wx.getStorageSync('userId')
+    const userId = storedUserId || app.globalData.userId || ''
     let roles = wx.getStorageSync('userRoles') || ['customer']
     
     // 确保roles是数组
@@ -209,38 +211,17 @@ Page({
     }, 1000)
   },
 
-  // 重置用户ID为1001
+  // 重置用户ID
   resetUserId() {
     wx.showModal({
       title: '重置用户ID',
-      content: '将用户ID重置为固定的开发测试ID: 1001',
+      content: '将清除当前账号数据，并在重启后生成一个全新的用户ID。是否继续？',
       confirmText: '确定',
       cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
-          const fixedUserId = 1001
-          const fixedOpenid = 'dev-openid-1001'
-          
-          // 保存到本地存储
-          wx.setStorageSync('userId', fixedUserId)
-          wx.setStorageSync('openid', fixedOpenid)
-          
-          // 更新全局数据
           const app = getApp()
-          app.globalData.userId = fixedUserId
-          app.globalData.openid = fixedOpenid
-          
-          // 更新页面显示
-          this.setData({
-            userId: fixedUserId
-          })
-          
-          wx.showToast({
-            title: 'ID已重置为1001',
-            icon: 'success'
-          })
-          
-          console.log('✅ 用户ID已重置为:', fixedUserId)
+          app.resetUserId()
         }
       }
     })
@@ -251,4 +232,3 @@ Page({
     wx.navigateBack()
   }
 })
-

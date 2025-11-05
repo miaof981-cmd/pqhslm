@@ -74,10 +74,13 @@ function buildRewardMap(records = []) {
 Page({
   data: {
     loading: true,
-    recentOrders: [],
-    historyOrders: [],
+    pendingOrders: [],      // 可打赏订单
+    rewardedOrders: [],     // 已打赏订单
     rewardOptions: [6, 10, 20, 50, 100],
-    defaultAvatar: DEFAULT_AVATAR_DATA
+    defaultAvatar: DEFAULT_AVATAR_DATA,
+    showRewardModal: false,
+    currentOrder: {},
+    selectedAmount: null
   },
 
   onShow() {
@@ -140,8 +143,8 @@ Page({
       const rewardMap = buildRewardMap(rewardRecords)
 
       const now = Date.now()
-      const recentOrders = []
-      const historyOrders = []
+      const pendingOrders = []   // 未打赏的30天内订单
+      const rewardedOrders = []  // 已打赏的30天内订单
 
       orders.forEach(order => {
         if (!order || order.status !== 'completed') return
@@ -154,6 +157,11 @@ Page({
           parseTimestamp(order.deliveryTime) ||
           parseTimestamp(order.updateTime) ||
           parseTimestamp(order.createTime)
+
+        // 🎯 只显示30天内的订单
+        if (!completedTs || now - completedTs > THIRTY_DAYS_MS) {
+          return
+        }
 
         const display = {
           id: order.id,
@@ -172,21 +180,18 @@ Page({
           display.rewarded = true
           display.rewardAmount = rewardRecord.amount
           display.rewardTime = rewardRecord.time || ''
-        }
-
-        if (completedTs && now - completedTs <= THIRTY_DAYS_MS) {
-          recentOrders.push(display)
+          rewardedOrders.push(display)
         } else {
-          historyOrders.push(display)
+          pendingOrders.push(display)
         }
       })
 
-      recentOrders.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0))
-      historyOrders.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0))
+      pendingOrders.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0))
+      rewardedOrders.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0))
 
       this.setData({
-        recentOrders,
-        historyOrders
+        pendingOrders,
+        rewardedOrders
       })
     } catch (error) {
       console.error('[reward-records] 加载打赏数据失败', error)
@@ -201,7 +206,7 @@ Page({
 
   onRewardTap(event) {
     const orderId = event.currentTarget.dataset.orderId
-    const target = this.data.recentOrders.find(item => String(item.id) === String(orderId))
+    const target = this.data.pendingOrders.find(item => String(item.id) === String(orderId))
 
     if (!target) {
       wx.showToast({
@@ -211,32 +216,32 @@ Page({
       return
     }
 
-    if (target.rewarded) {
-      wx.showToast({
-        title: '已打赏该订单',
-        icon: 'none'
-      })
-      return
-    }
-
-    const itemList = [...this.data.rewardOptions.map(amount => `¥${amount}`), '自定义金额']
-
-    wx.showActionSheet({
-      itemList,
-      success: (res) => {
-        if (res.cancel) return
-
-        if (res.tapIndex === this.data.rewardOptions.length) {
-          this.promptCustomAmount(target)
-        } else {
-          const amount = this.data.rewardOptions[res.tapIndex]
-          this.confirmReward(target, amount)
-        }
-      }
+    // 显示美观弹窗
+    this.setData({
+      showRewardModal: true,
+      currentOrder: target,
+      selectedAmount: null
     })
   },
 
-  promptCustomAmount(order) {
+  hideRewardModal() {
+    this.setData({
+      showRewardModal: false,
+      currentOrder: {},
+      selectedAmount: null
+    })
+  },
+
+  stopPropagation() {
+    // 阻止事件冒泡，避免点击弹窗内容关闭弹窗
+  },
+
+  selectAmount(event) {
+    const amount = event.currentTarget.dataset.amount
+    this.setData({ selectedAmount: amount })
+  },
+
+  selectCustomAmount() {
     wx.showModal({
       title: '自定义金额',
       editable: true,
@@ -253,33 +258,40 @@ Page({
           return
         }
 
-        this.confirmReward(order, Math.round(value * 100) / 100)
+        this.setData({ 
+          selectedAmount: Math.round(value * 100) / 100
+        })
       }
     })
   },
 
-  confirmReward(order, amount) {
-    wx.showModal({
-      title: '确认打赏',
-      content: `确认打赏 ¥${amount} 给 ${order.artistName} 吗？`,
-      success: (res) => {
-        if (!res.confirm) return
+  confirmRewardFromModal() {
+    const { selectedAmount, currentOrder } = this.data
 
-        wx.showLoading({
-          title: '打赏中...',
-          mask: true
-        })
+    if (!selectedAmount) {
+      wx.showToast({
+        title: '请选择打赏金额',
+        icon: 'none'
+      })
+      return
+    }
 
-        setTimeout(() => {
-          wx.hideLoading()
-          this.persistReward(order, amount)
-          wx.showToast({
-            title: '打赏成功',
-            icon: 'success'
-          })
-        }, 600)
-      }
+    this.hideRewardModal()
+    
+    wx.showLoading({
+      title: '打赏中...',
+      mask: true
     })
+
+    setTimeout(() => {
+      wx.hideLoading()
+      this.persistReward(currentOrder, selectedAmount)
+      wx.showToast({
+        title: '打赏成功！',
+        icon: 'success',
+        duration: 2000
+      })
+    }, 800)
   },
 
   persistReward(order, amount) {
@@ -291,24 +303,25 @@ Page({
       amount,
       artistName: order.artistName,
       artistAvatar: order.artistAvatar,
+      productName: order.productName,
       time: formatDateTime(now)
     }
 
     rewards.push(record)
     wx.setStorageSync('reward_records', rewards)
 
-    const recentOrders = this.data.recentOrders.map(item => {
-      if (String(item.id) === String(order.id)) {
-        return {
-          ...item,
-          rewarded: true,
-          rewardAmount: amount,
-          rewardTime: record.time
-        }
-      }
-      return item
-    })
+    // 将订单从可打赏移动到已打赏
+    const pendingOrders = this.data.pendingOrders.filter(item => String(item.id) !== String(order.id))
+    const rewardedOrders = [{
+      ...order,
+      rewarded: true,
+      rewardAmount: amount,
+      rewardTime: record.time
+    }, ...this.data.rewardedOrders]
 
-    this.setData({ recentOrders })
+    this.setData({ 
+      pendingOrders,
+      rewardedOrders
+    })
   }
 })
