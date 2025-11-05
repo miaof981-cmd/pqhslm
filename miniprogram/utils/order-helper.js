@@ -97,18 +97,31 @@ function normalizeOrders(orders, options = {}) {
       }
     }
 
-    // === 6️⃣ 最后再次确保不覆盖原值（但不恢复错误值）===
-    if (rawArtistName && rawArtistName !== '画师' && rawArtistName !== '未知画师') {
+    // === 6️⃣ 最后再次确保不覆盖原值（只在有效时恢复）===
+    // 🎯 画师信息：只恢复有效值（非空、非默认、非临时路径）
+    if (rawArtistName && 
+        rawArtistName !== '画师' && 
+        rawArtistName !== '未知画师' && 
+        rawArtistName !== '待分配') {
       processed.artistName = rawArtistName
     }
-    if (rawArtistAvatar) {
+    
+    if (rawArtistAvatar && 
+        !rawArtistAvatar.startsWith('http://tmp/') && 
+        !rawArtistAvatar.startsWith('/assets/')) {
       processed.artistAvatar = rawArtistAvatar
     }
-    // ⚠️ 不恢复"待分配"和"客服未分配"，让第5步的补充逻辑生效
-    if (rawServiceName && rawServiceName !== '待分配' && rawServiceName !== '客服未分配') {
+    
+    // 🎯 客服信息：只恢复有效值（非空、非"待分配"、非临时路径）
+    if (rawServiceName && 
+        rawServiceName !== '待分配' && 
+        rawServiceName !== '客服未分配') {
       processed.serviceName = rawServiceName
     }
-    if (rawServiceAvatar) {
+    
+    if (rawServiceAvatar && 
+        !rawServiceAvatar.startsWith('http://tmp/') && 
+        !rawServiceAvatar.startsWith('/assets/')) {
       processed.serviceAvatar = rawServiceAvatar
     }
     
@@ -116,6 +129,22 @@ function normalizeOrders(orders, options = {}) {
     if (order.id && order.id.includes('202511051')) {
       console.log(`  - 最终 serviceAvatar:`, processed.serviceAvatar ? processed.serviceAvatar.substring(0, 50) + '...' : '❌ 空')
       console.log(`  - rawServiceAvatar:`, rawServiceAvatar ? rawServiceAvatar.substring(0, 50) + '...' : '❌ 空')
+    }
+    
+    // 🎯 禁止写默认头像到订单对象
+    // 如果最终仍然是临时路径或默认路径，清空让 WXML 兜底
+    if (processed.artistAvatar && 
+        (processed.artistAvatar.startsWith('http://tmp/') || 
+         processed.artistAvatar.startsWith('/assets/'))) {
+      console.warn('⚠️ 清空无效画师头像:', processed.artistAvatar.substring(0, 50))
+      processed.artistAvatar = ''
+    }
+    
+    if (processed.serviceAvatar && 
+        (processed.serviceAvatar.startsWith('http://tmp/') || 
+         processed.serviceAvatar.startsWith('/assets/'))) {
+      console.warn('⚠️ 清空无效客服头像:', processed.serviceAvatar.substring(0, 50))
+      processed.serviceAvatar = ''
     }
 
     // === 7️⃣ 状态文本 & class ===

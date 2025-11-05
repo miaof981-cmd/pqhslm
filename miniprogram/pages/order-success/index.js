@@ -6,48 +6,100 @@ Page({
     countdown: 3 // 倒计时秒数
   },
 
-  onLoad(options) {
-    // --- 检查数据来源 ---
+  async onLoad(options) {
+    console.log('========================================')
+    console.log('📦 开始创建订单')
+    console.log('========================================')
+    
+    // === 1️⃣ 从商品表获取画师信息 ===
     const products = wx.getStorageSync('mock_products') || []
-    const product = products.find(p => p.id === options.productId)
-    const currentUser = wx.getStorageSync('userInfo') || wx.getStorageSync('current_user') || {}
-    const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
+    let product = null
     
-    console.log('🔍 商品查找结果:', {
-      productId: options.productId,
-      找到商品: !!product,
-      商品名: product?.name,
-      商品画师ID: product?.artistId,
-      商品画师名: product?.artistName,
-      商品画师头像: product?.artistAvatar ? '有' : '无',
-      当前用户: currentUser?.nickName
-    })
+    if (options.productId) {
+      product = products.find(p => String(p.id) === String(options.productId))
+    }
+    if (!product && options.productName) {
+      product = products.find(p => p.name === decodeURIComponent(options.productName))
+    }
     
-    // --- 绑定画师信息（强制使用商品表数据，不兜底到当前用户）---
-    const artistId = product?.artistId || ''
-    const artistName = product?.artistName || '未知画师'
-    const artistAvatar = product?.artistAvatar || DEFAULT_AVATAR_DATA
-    
-    // --- 分配客服 ---
-    const service = this.assignService()
-    
-    // ⚠️ 如果客服分配失败，阻止下单
-    if (!service || !service.serviceId || !service.serviceName) {
-      console.error('❌ 客服分配失败:', service)
+    if (!product) {
+      console.error('❌ 商品不存在:', options.productId, options.productName)
       wx.showModal({
-        title: '系统错误',
-        content: '客服分配失败，请稍后再试或联系管理员',
+        title: '商品不存在',
+        content: '无法找到该商品信息，请返回重新选择',
         showCancel: false,
-        complete: () => {
-          wx.navigateBack()
-        }
+        complete: () => wx.navigateBack()
       })
       return
     }
     
+    // 🎯 画师信息：仅从商品表读取，禁止兜底
+    const artistId = product.artistId || ''
+    const artistName = product.artistName || ''
+    const artistAvatar = product.artistAvatar || ''
+    
+    // ⚠️ 验证画师信息完整性
+    if (!artistId || !artistName || !artistAvatar) {
+      console.error('❌ 商品缺少画师信息:', { artistId, artistName, artistAvatar: artistAvatar ? '有' : '无' })
+      wx.showModal({
+        title: '商品信息不完整',
+        content: '该商品缺少画师信息，请联系管理员完善商品资料',
+        showCancel: false,
+        complete: () => wx.navigateBack()
+      })
+      return
+    }
+    
+    // ⚠️ 禁止临时路径
+    if (artistAvatar.startsWith('http://tmp/') || artistAvatar.startsWith('/assets/')) {
+      console.error('❌ 画师头像是临时路径或本地路径:', artistAvatar)
+      wx.showModal({
+        title: '商品信息错误',
+        content: '画师头像路径无效，请联系管理员',
+        showCancel: false,
+        complete: () => wx.navigateBack()
+      })
+      return
+    }
+    
+    console.log('✅ 画师信息验证通过:', { artistId, artistName, artistAvatar: artistAvatar.substring(0, 50) + '...' })
+    
+    // === 2️⃣ 分配客服（异步，确保头像转换完成）===
+    const service = await this.assignService()
+    
+    // ⚠️ 验证客服分配
+    if (!service || !service.serviceId || !service.serviceName || !service.serviceAvatar) {
+      console.error('❌ 客服分配失败:', service)
+      wx.showModal({
+        title: '系统错误',
+        content: '客服分配失败，请稍后再试',
+        showCancel: false,
+        complete: () => wx.navigateBack()
+      })
+      return
+    }
+    
+    // ⚠️ 禁止临时路径
+    if (service.serviceAvatar.startsWith('http://tmp/') || service.serviceAvatar.startsWith('/assets/')) {
+      console.error('❌ 客服头像是临时路径或本地路径:', service.serviceAvatar)
+      wx.showModal({
+        title: '系统错误',
+        content: '客服头像路径无效，请联系管理员',
+        showCancel: false,
+        complete: () => wx.navigateBack()
+      })
+      return
+    }
+    
+    console.log('✅ 客服分配验证通过:', { 
+      serviceId: service.serviceId, 
+      serviceName: service.serviceName, 
+      serviceAvatar: service.serviceAvatar.substring(0, 50) + '...' 
+    })
+    
     const serviceId = service.serviceId
     const serviceName = service.serviceName
-    const serviceAvatar = service.serviceAvatar || DEFAULT_AVATAR_DATA
+    const serviceAvatar = service.serviceAvatar
     
     // --- 控制台打印检查 ---
     console.log("📦 下单前检查:", { 
@@ -122,25 +174,33 @@ Page({
     // wx.hideHomeButton() // 隐藏返回首页按钮
   },
   
-  // 自动分配客服
-  assignService() {
-    // 获取所有客服（统一使用 customer_service_list）
+  // 自动分配客服（异步，确保头像转换完成）
+  async assignService() {
+    console.log('📞 开始分配客服...')
+    
+    // 获取所有客服
     let serviceList = wx.getStorageSync('customer_service_list') || []
     
-    // 🎯 如果客服列表为空，自动创建默认在线客服
+    // 🎯 如果客服列表为空，自动创建默认客服
     if (serviceList.length === 0) {
-      console.log('⚠️ 客服列表为空，自动创建默认在线客服')
+      console.log('⚠️ 客服列表为空，自动创建默认客服')
       const currentUser = wx.getStorageSync('userInfo') || {}
       const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
+      
+      // 转换用户头像
+      let userAvatar = currentUser.avatarUrl || DEFAULT_AVATAR_DATA
+      if (userAvatar.startsWith('http://tmp/')) {
+        userAvatar = await this.convertTempAvatar(userAvatar)
+      }
       
       const defaultService = {
         userId: currentUser.userId || 'service_default',
         id: currentUser.userId || 'service_default',
         name: currentUser.nickName || '在线客服',
         nickName: currentUser.nickName || '在线客服',
-        avatar: currentUser.avatarUrl || DEFAULT_AVATAR_DATA,
-        avatarUrl: currentUser.avatarUrl || DEFAULT_AVATAR_DATA,
-        isActive: true,  // 默认客服永远在线
+        avatar: userAvatar,
+        avatarUrl: userAvatar,
+        isActive: true,
         serviceNumber: 1,
         qrcodeUrl: '',
         qrcodeNumber: null
@@ -148,39 +208,89 @@ Page({
       
       serviceList = [defaultService]
       wx.setStorageSync('customer_service_list', serviceList)
-      console.log('✅ 默认在线客服已创建:', defaultService.name)
+      wx.setStorageSync('service_list', serviceList)
+      console.log('✅ 默认客服已创建')
     }
     
-    // 🎯 确保至少有一个客服在线（强制第一个客服在线）
+    // 🎯 确保至少有一个客服在线
     const activeServices = serviceList.filter(s => s.isActive)
     if (activeServices.length === 0) {
-      console.log('⚠️ 所有客服都离线，强制第一个客服上线')
+      console.log('⚠️ 所有客服离线，强制第一个客服上线')
       serviceList[0].isActive = true
       wx.setStorageSync('customer_service_list', serviceList)
+      wx.setStorageSync('service_list', serviceList)
     }
     
     // 重新获取在线客服
     const finalActiveServices = serviceList.filter(s => s.isActive)
     
-    console.log('📞 自动分配客服:')
-    console.log('- 客服总数:', serviceList.length)
+    // Round-robin 分配（轮询）
+    const lastAssignedIndex = wx.getStorageSync('lastAssignedServiceIndex') || 0
+    const nextIndex = (lastAssignedIndex + 1) % finalActiveServices.length
+    wx.setStorageSync('lastAssignedServiceIndex', nextIndex)
+    
+    const assignedService = finalActiveServices[nextIndex]
+    
+    console.log('📞 客服分配结果:')
     console.log('- 在线客服数:', finalActiveServices.length)
-    
-    // 随机选择一个在线客服
-    const randomIndex = Math.floor(Math.random() * finalActiveServices.length)
-    const assignedService = finalActiveServices[randomIndex]
-    
-    console.log('✅ 分配客服成功:')
+    console.log('- 分配索引:', nextIndex)
     console.log('- 客服ID:', assignedService.userId || assignedService.id)
-    console.log('- 客服姓名:', assignedService.name || assignedService.nickName)
+    console.log('- 客服名:', assignedService.name || assignedService.nickName)
+    
+    // 🎯 确保头像是永久路径
+    let serviceAvatar = assignedService.avatar || assignedService.avatarUrl || ''
+    
+    if (serviceAvatar.startsWith('http://tmp/')) {
+      console.log('⚠️ 检测到临时头像，正在转换...')
+      serviceAvatar = await this.convertTempAvatar(serviceAvatar)
+      
+      // 更新客服列表中的头像
+      const serviceIndex = serviceList.findIndex(s => 
+        (s.userId || s.id) === (assignedService.userId || assignedService.id)
+      )
+      if (serviceIndex !== -1) {
+        serviceList[serviceIndex].avatar = serviceAvatar
+        serviceList[serviceIndex].avatarUrl = serviceAvatar
+        wx.setStorageSync('customer_service_list', serviceList)
+        wx.setStorageSync('service_list', serviceList)
+        console.log('✅ 客服头像已更新为永久路径')
+      }
+    }
     
     return {
       serviceId: assignedService.userId || assignedService.id,
-      serviceName: assignedService.name || assignedService.nickName || '在线客服',
-      serviceAvatar: assignedService.avatar || assignedService.avatarUrl || '',
+      serviceName: assignedService.name || assignedService.nickName,
+      serviceAvatar: serviceAvatar,
       serviceQrcodeUrl: assignedService.qrcodeUrl || '',
       serviceQrcodeNumber: assignedService.qrcodeNumber
     }
+  },
+  
+  // 转换临时头像为 base64
+  async convertTempAvatar(tempPath) {
+    const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
+    
+    return new Promise((resolve) => {
+      try {
+        const fs = wx.getFileSystemManager()
+        fs.readFile({
+          filePath: tempPath,
+          encoding: 'base64',
+          success: (res) => {
+            const base64 = 'data:image/jpeg;base64,' + res.data
+            console.log('✅ 临时头像转换成功')
+            resolve(base64)
+          },
+          fail: (err) => {
+            console.error('❌ 临时头像转换失败:', err)
+            resolve(DEFAULT_AVATAR_DATA)
+          }
+        })
+      } catch (err) {
+        console.error('❌ 读取临时文件异常:', err)
+        resolve(DEFAULT_AVATAR_DATA)
+      }
+    })
   },
   
   // 自动保存订单到本地存储
@@ -260,14 +370,48 @@ Page({
         serviceQrcodeNumber: serviceInfo.serviceQrcodeNumber
       }
       
-      console.log('🔵 保存前订单字段检查', {
-        artistId: newOrder.artistId,
-        artistName: newOrder.artistName,
-        artistAvatar: newOrder.artistAvatar,
-        serviceId: newOrder.serviceId,
-        serviceName: newOrder.serviceName,
-        serviceAvatar: newOrder.serviceAvatar
-      })
+      // 🎯 最终验证：6个字段必须完整且有效
+      console.log('========================================')
+      console.log('🔍 订单落库前最终验证')
+      console.log('========================================')
+      console.log('artistId:', newOrder.artistId)
+      console.log('artistName:', newOrder.artistName)
+      console.log('artistAvatar:', newOrder.artistAvatar ? newOrder.artistAvatar.substring(0, 60) + '...' : '❌ 空')
+      console.log('serviceId:', newOrder.serviceId)
+      console.log('serviceName:', newOrder.serviceName)
+      console.log('serviceAvatar:', newOrder.serviceAvatar ? newOrder.serviceAvatar.substring(0, 60) + '...' : '❌ 空')
+      
+      // ⚠️ 验证必填字段
+      const requiredFields = [
+        { name: 'artistId', value: newOrder.artistId },
+        { name: 'artistName', value: newOrder.artistName },
+        { name: 'artistAvatar', value: newOrder.artistAvatar },
+        { name: 'serviceId', value: newOrder.serviceId },
+        { name: 'serviceName', value: newOrder.serviceName },
+        { name: 'serviceAvatar', value: newOrder.serviceAvatar }
+      ]
+      
+      const missingFields = requiredFields.filter(f => !f.value)
+      if (missingFields.length > 0) {
+        console.error('❌ 订单缺少必填字段:', missingFields.map(f => f.name).join(', '))
+        wx.showToast({ title: '订单信息不完整', icon: 'none' })
+        return
+      }
+      
+      // ⚠️ 验证头像路径
+      if (newOrder.artistAvatar.startsWith('http://tmp/') || newOrder.artistAvatar.startsWith('/assets/')) {
+        console.error('❌ 画师头像是临时路径:', newOrder.artistAvatar)
+        wx.showToast({ title: '画师头像无效', icon: 'none' })
+        return
+      }
+      if (newOrder.serviceAvatar.startsWith('http://tmp/') || newOrder.serviceAvatar.startsWith('/assets/')) {
+        console.error('❌ 客服头像是临时路径:', newOrder.serviceAvatar)
+        wx.showToast({ title: '客服头像无效', icon: 'none' })
+        return
+      }
+      
+      console.log('✅ 订单验证通过，准备保存')
+      console.log('========================================')
       
       // 添加新订单
       orders.push(newOrder)
