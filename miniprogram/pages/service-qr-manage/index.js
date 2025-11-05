@@ -138,7 +138,25 @@ Page({
 
     // 获取当前用户的头像和昵称
     const userInfo = wx.getStorageSync('userInfo') || {}
-    const userAvatar = userInfo.avatarUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0E4RTZDRiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7lrqI8L3RleHQ+PC9zdmc+'
+    const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
+    
+    // ⚠️ 临时路径需要转换为永久存储
+    let userAvatar = userInfo.avatarUrl || DEFAULT_AVATAR_DATA
+    
+    // 如果是临时路径，转换为 base64
+    if (userAvatar && userAvatar.startsWith('http://tmp/')) {
+      console.log('⚠️ 检测到临时头像路径，正在转换为 base64...')
+      try {
+        const fs = wx.getFileSystemManager()
+        const base64Data = fs.readFileSync(userAvatar, 'base64')
+        userAvatar = 'data:image/jpeg;base64,' + base64Data
+        console.log('✅ 头像转换成功')
+      } catch (err) {
+        console.error('❌ 头像转换失败:', err)
+        userAvatar = DEFAULT_AVATAR_DATA
+      }
+    }
+    
     const userNickName = userInfo.nickName || name
 
     console.log('📋 准备添加客服:')
@@ -182,7 +200,8 @@ Page({
       serviceNumber: serviceNumber,
       qrcodeUrl: qrcodeUrl || '',
       qrcodeNumber: qrcodeNumber,
-      avatar: userAvatar,  // 使用用户的真实头像
+      avatar: userAvatar,  // 使用转换后的头像（base64 或 DEFAULT_AVATAR_DATA）
+      avatarUrl: userAvatar,  // 同时保存到 avatarUrl 字段（兼容性）
       isActive: true,
       orderCount: 0,
       processingCount: 0,
@@ -192,6 +211,9 @@ Page({
 
     services.push(newService)
     wx.setStorageSync('service_list', services)
+    
+    // 🎯 同步到 customer_service_list（统一客服数据源）
+    wx.setStorageSync('customer_service_list', services)
 
     // 给该用户添加客服角色
     let userRoles = wx.getStorageSync('userRoles') || []
@@ -249,6 +271,7 @@ Page({
               services[serviceIndex].qrcodeUrl = base64
               services[serviceIndex].qrcodeNumber = qrcodeNumber
               wx.setStorageSync('service_list', services)
+              wx.setStorageSync('customer_service_list', services)  // 同步
               
               // 更新当前显示的客服信息
               this.setData({
@@ -293,6 +316,7 @@ Page({
               // 保持原有编号，只更新图片
               services[serviceIndex].qrcodeUrl = base64
               wx.setStorageSync('service_list', services)
+              wx.setStorageSync('customer_service_list', services)  // 同步
               
               // 更新当前显示的客服信息
               this.setData({
@@ -344,6 +368,7 @@ Page({
     if (serviceIndex !== -1) {
       services[serviceIndex].isActive = newStatus
       wx.setStorageSync('service_list', services)
+      wx.setStorageSync('customer_service_list', services)  // 同步
       
       wx.showToast({
         title: newStatus ? '已设为在线' : '已设为离线',
@@ -378,6 +403,7 @@ Page({
             // 移除客服
             services = services.filter(s => s.id !== serviceId)
             wx.setStorageSync('service_list', services)
+            wx.setStorageSync('customer_service_list', services)  // 同步
             
             // 撤销用户的客服角色
             const currentUserId = wx.getStorageSync('userId')
