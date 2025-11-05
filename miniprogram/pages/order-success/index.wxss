@@ -196,14 +196,57 @@
   color: #2C9A8F;
 }
 
-/* ===== 客服二维码 ===== */
-.qr-section {
+/* ===== 客服信息卡片 ===== */
+.service-info-card {
   margin: 0 30rpx 30rpx;
   background: white;
   border-radius: 24rpx;
-  padding: 40rpx;
   box-shadow: 0 8rpx 32rpx rgba(78, 205, 196, 0.15);
   border: 3rpx solid #4ECDC4;
+  overflow: hidden;
+}
+
+.service-header {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+  background: linear-gradient(135deg, #E6F9FF 0%, #F0FFFE 100%);
+  border-bottom: 2rpx solid #E0F7F6;
+}
+
+.service-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  border: 4rpx solid #4ECDC4;
+  margin-right: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(78, 205, 196, 0.2);
+}
+
+.service-details {
+  flex: 1;
+}
+
+.service-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #2C9A8F;
+  margin-bottom: 8rpx;
+}
+
+.service-role {
+  font-size: 24rpx;
+  color: #4ECDC4;
+}
+
+/* ===== 客服二维码 ===== */
+.service-info-card .qr-section {
+  margin: 0;
+  background: white;
+  border-radius: 0;
+  padding: 40rpx;
+  box-shadow: none;
+  border: none;
 }
 
 .qr-wrapper {

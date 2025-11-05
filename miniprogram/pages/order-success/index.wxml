@@ -19,15 +19,25 @@
     </view>
   </view>
 
-  <!-- 客服二维码（紧跟引导区域） -->
-  <view class="qr-section">
-    <view class="qr-wrapper">
-      <view class="qr-label">长按识别添加客服</view>
-      <image class="qr-image" 
-             src="{{serviceQR.imageUrl}}" 
-             mode="aspectFit"
-             bindlongpress="onLongPressQR" />
-      <view class="qr-hint">长按二维码 → 识别 → 添加好友</view>
+  <!-- 客服信息卡片（紧跟引导区域） -->
+  <view class="service-info-card">
+    <view class="service-header">
+      <image class="service-avatar" src="{{serviceInfo.serviceAvatar}}" mode="aspectFill" />
+      <view class="service-details">
+        <view class="service-name">{{serviceInfo.serviceName}}</view>
+        <view class="service-role">您的专属客服</view>
+      </view>
+    </view>
+    
+    <view class="qr-section">
+      <view class="qr-wrapper">
+        <view class="qr-label">长按识别添加 {{serviceInfo.serviceName}}</view>
+        <image class="qr-image" 
+               src="{{serviceQR.imageUrl}}" 
+               mode="aspectFit"
+               bindlongpress="onLongPressQR" />
+        <view class="qr-hint">长按二维码 → 识别 → 添加好友</view>
+      </view>
     </view>
   </view>
 

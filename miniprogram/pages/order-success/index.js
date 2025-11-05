@@ -103,6 +103,12 @@ Page({
       ? { imageUrl: serviceInfo.serviceQrcodeUrl, number: serviceInfo.serviceQrcodeNumber }
       : { imageUrl: 'https://via.placeholder.com/400x400.png?text=客服二维码', number: null }
 
+    console.log('📋 订单成功页面数据:')
+    console.log('- 客服ID:', serviceInfo.serviceId)
+    console.log('- 客服名:', serviceInfo.serviceName)
+    console.log('- 客服头像:', serviceInfo.serviceAvatar ? '有' : '无')
+    console.log('- 二维码URL:', serviceInfo.serviceQrcodeUrl ? '有' : '无')
+    
     this.setData({
       orderInfo: orderInfo,
       serviceInfo: serviceInfo,  // 保存客服信息
