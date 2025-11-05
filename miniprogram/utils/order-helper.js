@@ -26,11 +26,23 @@ function normalizeOrders(orders, options = {}) {
     const rawArtistAvatar = order.artistAvatar
     const rawServiceName = order.serviceName
     const rawServiceAvatar = order.serviceAvatar
+    
+    // 🔍 调试：打印原始订单的客服头像
+    if (order.id && order.id.includes('202511051')) {
+      console.log(`🔍 [order-helper] 订单 ${order.id} 原始数据:`)
+      console.log('  - serviceName:', order.serviceName)
+      console.log('  - serviceAvatar:', order.serviceAvatar ? order.serviceAvatar.substring(0, 50) + '...' : '❌ 空')
+    }
 
     // === 2️⃣ 计算状态（不改字段） ===
     let processed = orderStatusUtil.calculateOrderStatus
       ? orderStatusUtil.calculateOrderStatus(order)
       : { ...order }
+    
+    // 🔍 调试：计算状态后检查
+    if (order.id && order.id.includes('202511051')) {
+      console.log(`  - 计算状态后 serviceAvatar:`, processed.serviceAvatar ? processed.serviceAvatar.substring(0, 50) + '...' : '❌ 空')
+    }
 
     // === 3️⃣ 恢复原始非空字段 ===
     if (rawArtistName && !processed.artistName) processed.artistName = rawArtistName
@@ -98,6 +110,12 @@ function normalizeOrders(orders, options = {}) {
     }
     if (rawServiceAvatar) {
       processed.serviceAvatar = rawServiceAvatar
+    }
+    
+    // 🔍 调试：最终结果检查
+    if (order.id && order.id.includes('202511051')) {
+      console.log(`  - 最终 serviceAvatar:`, processed.serviceAvatar ? processed.serviceAvatar.substring(0, 50) + '...' : '❌ 空')
+      console.log(`  - rawServiceAvatar:`, rawServiceAvatar ? rawServiceAvatar.substring(0, 50) + '...' : '❌ 空')
     }
 
     // === 7️⃣ 状态文本 & class ===
