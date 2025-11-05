@@ -1,3 +1,7 @@
+const { createLogger, isVerboseLoggingEnabled } = require('../../utils/logger')
+
+const logger = createLogger('home')
+
 Page({
   data: {
     banners: [],
@@ -12,7 +16,8 @@ Page({
     showFilter: false,
     tempCategory: 'all',
     deliverySort: 'default', // 出稿时间排序：default/fastest/slowest
-    tempDeliverySort: 'default'
+    tempDeliverySort: 'default',
+    bannerHeight: 200 // 轮播图初始高度（px）
   },
 
   onLoad() {
@@ -47,13 +52,14 @@ Page({
 
   // 加载轮播图
   async loadBanners() {
+    const storedBanners = wx.getStorageSync('home_banners') || []
+    const bannerImages = storedBanners.map(b => b.image).filter(img => img)
+    
     this.setData({
-      banners: [
-        'https://via.placeholder.com/750x300.png?text=精美轮播图1',
-        'https://via.placeholder.com/750x300.png?text=精美轮播图2',
-        'https://via.placeholder.com/750x300.png?text=精美轮播图3'
-      ]
+      banners: bannerImages.length > 0 ? bannerImages : []
     })
+    
+    console.log('首页轮播图数量:', bannerImages.length)
   },
 
   // 加载商品分类
@@ -76,8 +82,10 @@ Page({
   async loadProducts() {
     // 从本地存储加载商品
     let allProducts = wx.getStorageSync('mock_products') || []
-    
-    console.log('从本地存储加载商品', allProducts.length, '个')
+
+    logger.info('从本地存储加载商品', allProducts.length, '个')
+
+    const verboseLogEnabled = isVerboseLoggingEnabled()
     
     if (allProducts.length > 0) {
       // 转换本地存储的商品格式为首页显示格式
@@ -88,12 +96,16 @@ Page({
           // 如果 price 不存在（旧数据），则使用 basePrice
           let displayPrice = parseFloat(p.price) || parseFloat(p.basePrice) || 0
           
-          console.log(`商品 ${p.name} 价格读取:`, {
-            savedPrice: p.price,
-            basePrice: p.basePrice,
-            finalDisplayPrice: displayPrice,
-            hasSpecs: !!(p.specs && p.specs.length > 0)
-          })
+          if (!p.price && !p.basePrice) {
+            logger.warn(`商品 ${p.name} 缺少价格字段，已回退为 0 元展示`)
+          } else if (verboseLogEnabled) {
+            logger.debug(`商品 ${p.name} 价格读取`, {
+              savedPrice: p.price,
+              basePrice: p.basePrice,
+              finalDisplayPrice: displayPrice,
+              hasSpecs: !!(p.specs && p.specs.length > 0)
+            })
+          }
           
           return {
             _id: p.id || p._id,
@@ -110,17 +122,19 @@ Page({
           }
         })
       
-      console.log('转换后的商品数据', allProducts.length, '个')
-      
+      logger.info('转换后的商品数据', allProducts.length, '个')
+
       // 计算数据大小
       const dataSize = JSON.stringify(allProducts).length / 1024
-      console.log(`📊 商品数据大小: ${dataSize.toFixed(2)} KB`)
-      
+      if (verboseLogEnabled) {
+        logger.debug(`商品数据大小: ${dataSize.toFixed(2)} KB`)
+      }
+
       if (dataSize > 100) {
-        console.warn('⚠️ 数据量较大，可能影响性能')
+        logger.warn(`首页商品数据较大（${dataSize.toFixed(2)} KB），可能影响性能`)
       }
     } else {
-      console.log('本地存储为空，无商品数据')
+      logger.info('本地存储为空，无商品数据')
     }
     
     // 筛选有"推荐"或"热销"标签的商品作为推荐
@@ -129,7 +143,7 @@ Page({
       return tags.includes('推荐') || tags.includes('热销')
     }).slice(0, 6) // 最多显示6个
     
-    console.log(`🔥 推荐商品: ${recommendProducts.length} 个`)
+    logger.info(`推荐商品数量: ${recommendProducts.length} 个`)
     
     this.setData({
       allProducts: allProducts,
@@ -288,6 +302,23 @@ Page({
     wx.navigateTo({
       url: `/pages/notice-detail/index?id=${noticeId}`
     })
+  },
+
+  // 轮播图加载完成，动态计算高度
+  onBannerImageLoad(e) {
+    const { width, height } = e.detail
+    const windowInfo = wx.getWindowInfo()
+    const screenWidth = windowInfo.windowWidth
+    // 减去左右边距（10rpx * 2 = 20rpx ≈ 10px * 2）
+    const containerWidth = screenWidth - 10
+    // 根据图片原始比例计算高度
+    const calculatedHeight = (containerWidth / width) * height
+    
+    this.setData({
+      bannerHeight: calculatedHeight
+    })
+    
+    console.log('轮播图高度自适应:', calculatedHeight + 'px')
   },
 
   // 下拉刷新

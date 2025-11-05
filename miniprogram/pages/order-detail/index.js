@@ -7,7 +7,9 @@ Page({
     orderId: '',
     order: null,
     userRole: 'customer', // customer 或 artist
-    
+    buyerShowId: '',
+    canPublishBuyerShow: false,
+
     // 打赏选项
     rewardOptions: [6, 10, 20, 50, 100],
     selectedReward: 0,
@@ -52,18 +54,25 @@ Page({
     if (order) {
       // 自动计算订单状态
       order = orderStatusUtil.calculateOrderStatus(order)
-      
+
       // 使用统一的视觉状态计算
       const { statusKey, statusColor, progressPercent } = computeVisualStatus(order)
-      
+
       // 添加状态 CSS 类名
       order.statusClass = orderStatusUtil.classOf(order.status)
-      
+
+      const buyerShowPosts = wx.getStorageSync('buyer_show_posts') || []
+      const buyerShowPost = buyerShowPosts.find(post => String(post.orderId) === String(order.id))
+      order.hasBuyerShow = Boolean(buyerShowPost)
+
+      const refundStatus = order.refundStatus || order.status
+      const canPublishBuyerShow = order.status === 'completed' && refundStatus !== 'refunded'
+
       // 加载客服二维码
       this.loadServiceQRCode(order)
-      
+
       this.setData({
-        order: { 
+        order: {
           ...order,
           statusKey,
           statusColor,
@@ -71,7 +80,9 @@ Page({
           isOverdue: statusKey === 'overdue',
           overdueDays: order.overdueDays || 0
         },
-        loading: false
+        loading: false,
+        buyerShowId: buyerShowPost ? buyerShowPost.id : '',
+        canPublishBuyerShow
       })
       
       console.log('📦 订单详情加载:', {
@@ -133,10 +144,12 @@ Page({
       buyerName: '用户_' + orderId.slice(-4),
       artistName: '画师小明'
     }
-    
+
     this.setData({
       order: mockOrder,
-      loading: false
+      loading: false,
+      buyerShowId: '',
+      canPublishBuyerShow: mockOrder.status === 'completed'
     })
   },
 
@@ -437,6 +450,47 @@ Page({
   // 阻止事件冒泡
   stopPropagation() {
     // 空函数，用于阻止点击弹窗内容时关闭
+  },
+
+  // 打开晒稿页面
+  openBuyerShowPublish() {
+    const { order, canPublishBuyerShow } = this.data
+    if (!order) return
+
+    if (!canPublishBuyerShow) {
+      wx.showToast({
+        title: '仅已完成订单可晒稿',
+        icon: 'none'
+      })
+      return
+    }
+
+    const query = [`orderId=${order.id}`, `status=${order.status}`]
+    if (order.productId) {
+      query.push(`productId=${order.productId}`)
+    }
+    if (order.productName) {
+      query.push(`productName=${encodeURIComponent(order.productName)}`)
+    }
+    wx.navigateTo({
+      url: `/pages/buyer-show/publish/index?${query.join('&')}`
+    })
+  },
+
+  // 查看晒稿
+  viewBuyerShow() {
+    const { buyerShowId } = this.data
+    if (!buyerShowId) {
+      wx.showToast({
+        title: '暂未发布晒稿',
+        icon: 'none'
+      })
+      return
+    }
+
+    wx.navigateTo({
+      url: `/pages/buyer-show/detail/index?id=${buyerShowId}`
+    })
   },
 
   // 确认完成

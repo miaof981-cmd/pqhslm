@@ -1,0 +1,125 @@
+.buyer-show-detail {
+  min-height: 100vh;
+  background: #f6f8fb;
+}
+
+.loading {
+  text-align: center;
+  padding: 120rpx 0;
+  color: #999;
+}
+
+.detail-content {
+  padding-bottom: 60rpx;
+}
+
+/* 用户信息卡片 */
+.author-card {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  background: #fff;
+}
+
+.author-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+  border: 3rpx solid #A8E6CF;
+}
+
+.author-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.author-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.author-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 图片网格 - 默认3列 */
+.images-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8rpx;
+  padding: 8rpx;
+  background: #fff;
+}
+
+.grid-image {
+  width: 100%;
+  height: 240rpx;
+  border-radius: 8rpx;
+  object-fit: cover;
+}
+
+/* 文字内容 */
+.comment-card {
+  margin: 24rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+}
+
+.comment-content {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.product-card {
+  margin: 0 24rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
+}
+
+.product-thumb-wrapper {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 20rpx;
+  overflow: hidden;
+  margin-right: 24rpx;
+}
+
+.product-thumb {
+  width: 100%;
+  height: 100%;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.product-tip {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.product-arrow {
+  font-size: 40rpx;
+  color: #ccc;
+}

@@ -124,9 +124,15 @@
 
         <!-- 已完成 -->
         <block wx:elif="{{item.status === 'completed'}}">
+          <button wx:if="{{item.hasBuyerShow}}" class="action-btn default" bindtap="viewBuyerShow" data-id="{{item.buyerShowId}}">查看晒稿</button>
+          <button wx:else class="action-btn primary" bindtap="openBuyerShowPublish"
+                  data-order-id="{{item._id}}"
+                  data-status="{{item.status}}"
+                  data-product-id="{{item.productId}}"
+                  data-product-name="{{item.productName}}">
+            晒稿
+          </button>
           <button class="action-btn default" bindtap="deleteOrder" data-id="{{item._id}}">删除订单</button>
-          <button wx:if="{{!item.reviewed}}" class="action-btn primary" bindtap="reviewOrder" data-id="{{item._id}}">评价</button>
-          <button wx:else class="action-btn default" bindtap="viewReview" data-id="{{item._id}}">查看评价</button>
         </block>
 
         <!-- 已取消/已退款 -->

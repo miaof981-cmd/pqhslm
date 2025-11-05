@@ -6,6 +6,9 @@
     "pages/category/index",
     "pages/cart/index",
     "pages/user-center/index",
+    "pages/buyer-show/index/index",
+    "pages/buyer-show/detail/index",
+    "pages/buyer-show/publish/index",
     "pages/product-detail/index",
     "pages/artist-dashboard/index",
     "pages/admin/index",
@@ -59,6 +62,10 @@
         "text": "购物车"
       },
       {
+        "pagePath": "pages/buyer-show/index/index",
+        "text": "买家秀"
+      },
+      {
         "pagePath": "pages/user-center/index",
         "text": "我的"
       }
@@ -69,6 +76,7 @@
       "desc": "你的位置信息将用于小程序位置接口的效果展示"
     }
   },
+  "debug": false,
   "requiredBackgroundModes": ["audio"],
   "plugins": {},
   "resizable": true

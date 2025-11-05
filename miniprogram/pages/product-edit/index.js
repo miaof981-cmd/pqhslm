@@ -1236,6 +1236,14 @@ Page({
         deliveryDays: this.data.deliveryDays,
         specs: []
       }
+
+      // ✅ 保存分类名称，便于商品列表直接使用
+      if (this.data.categoryIndex >= 0) {
+        const currentCategory = this.data.categories[this.data.categoryIndex]
+        productData.categoryName = currentCategory ? currentCategory.name : ''
+      } else if (!productData.categoryName) {
+        productData.categoryName = ''
+      }
       
       // 添加规格数据（只保存有效的规格）
       if (this.data.spec1Selected && this.data.spec1Values.length > 0) {

@@ -23,20 +23,33 @@ Page({
     }
     
     if (!product) {
-      console.error('❌ 商品不存在:', options.productId, options.productName)
-      wx.showModal({
-        title: '商品不存在',
-        content: '无法找到该商品信息，请返回重新选择',
-        showCancel: false,
-        complete: () => wx.navigateBack()
+      console.warn('⚠️ 商品未在本地商品池中找到，尝试使用页面参数回填。', {
+        productId: options.productId,
+        productName: options.productName
       })
-      return
+      product = {
+        id: options.productId || '',
+        name: decodeURIComponent(options.productName || '商品'),
+        deliveryDays: parseInt(options.deliveryDays, 10) || 7,
+        images: []
+      }
     }
     
-    // 🎯 画师信息：仅从商品表读取，禁止兜底
-    const artistId = product.artistId || ''
-    const artistName = product.artistName || ''
-    const artistAvatar = product.artistAvatar || ''
+    const decodeIfNeeded = (value) => {
+      if (value == null) return ''
+      const trimmed = String(value).trim()
+      if (!trimmed || trimmed === 'undefined' || trimmed === 'null') return ''
+      try {
+        return decodeURIComponent(trimmed)
+      } catch (err) {
+        return trimmed
+      }
+    }
+    
+    // 🎯 画师信息：优先本地商品，其次页面参数
+    const artistId = product.artistId || decodeIfNeeded(options.artistId)
+    const artistName = product.artistName || decodeIfNeeded(options.artistName)
+    const artistAvatar = product.artistAvatar || decodeIfNeeded(options.artistAvatar)
     
     // ⚠️ 验证画师信息完整性
     if (!artistId || !artistName || !artistAvatar) {
@@ -183,33 +196,41 @@ Page({
     
     // 🎯 如果客服列表为空，自动创建默认客服
     if (serviceList.length === 0) {
-      console.log('⚠️ 客服列表为空，自动创建默认客服')
-      const currentUser = wx.getStorageSync('userInfo') || {}
-      const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
+      console.log('⚠️ customer_service_list 为空，尝试从 service_list 加载')
       
-      // 转换用户头像
-      let userAvatar = currentUser.avatarUrl || DEFAULT_AVATAR_DATA
-      if (userAvatar.startsWith('http://tmp/')) {
-        userAvatar = await this.convertTempAvatar(userAvatar)
+      // 🎯 尝试从 service_list 加载（另一个数据源）
+      const backupServiceList = wx.getStorageSync('service_list') || []
+      if (backupServiceList.length > 0) {
+        serviceList = backupServiceList
+        wx.setStorageSync('customer_service_list', serviceList)
+        console.log('✅ 从 service_list 恢复客服列表')
+      } else {
+        // 实在没有客服，创建默认客服（使用固定ID）
+        console.log('⚠️ 所有客服列表为空，创建临时默认客服')
+        
+        const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
+        const currentUserId = wx.getStorageSync('userId') || 1001
+        const currentUserInfo = wx.getStorageSync('userInfo') || {}
+        const serviceIdStr = String(currentUserId)
+        
+        const defaultService = {
+          userId: serviceIdStr,
+          id: serviceIdStr,
+          name: currentUserInfo.nickName || '在线客服',
+          nickName: currentUserInfo.nickName || '在线客服',
+          avatar: DEFAULT_AVATAR_DATA,
+          avatarUrl: DEFAULT_AVATAR_DATA,
+          isActive: true,
+          serviceNumber: 1,
+          qrcodeUrl: '',
+          qrcodeNumber: null
+        }
+        
+        serviceList = [defaultService]
+        wx.setStorageSync('customer_service_list', serviceList)
+        wx.setStorageSync('service_list', serviceList)
+        console.log('✅ 默认客服已创建，ID:', serviceIdStr)
       }
-      
-      const defaultService = {
-        userId: currentUser.userId || 'service_default',
-        id: currentUser.userId || 'service_default',
-        name: currentUser.nickName || '在线客服',
-        nickName: currentUser.nickName || '在线客服',
-        avatar: userAvatar,
-        avatarUrl: userAvatar,
-        isActive: true,
-        serviceNumber: 1,
-        qrcodeUrl: '',
-        qrcodeNumber: null
-      }
-      
-      serviceList = [defaultService]
-      wx.setStorageSync('customer_service_list', serviceList)
-      wx.setStorageSync('service_list', serviceList)
-      console.log('✅ 默认客服已创建')
     }
     
     // 🎯 确保至少有一个客服在线
@@ -295,6 +316,15 @@ Page({
   
   // 自动保存订单到本地存储
   saveOrderToLocal(orderInfo, serviceInfo) {
+    console.log(
+      '[order-success] 保存订单',
+      {
+        customerId: wx.getStorageSync('userId'),
+        serviceId: serviceInfo?.serviceId,
+        serviceName: serviceInfo?.serviceName
+      }
+    )
+    
     console.log('========================================')
     console.log('💾 订单自动保存 - 开始')
     console.log('========================================')
@@ -369,6 +399,12 @@ Page({
         serviceQrcodeUrl: serviceInfo.serviceQrcodeUrl,
         serviceQrcodeNumber: serviceInfo.serviceQrcodeNumber
       }
+      
+      console.log('[order-success] newOrder.service', {
+        id: newOrder.serviceId,
+        name: newOrder.serviceName,
+        avatar: newOrder.serviceAvatar?.slice(0, 80)
+      })
       
       // 🎯 最终验证：6个字段必须完整且有效
       console.log('========================================')
@@ -604,4 +640,3 @@ Page({
     })
   }
 })
-

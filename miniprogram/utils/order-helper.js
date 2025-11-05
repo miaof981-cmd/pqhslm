@@ -1,6 +1,74 @@
 // miniprogram/utils/order-helper.js
 
 const orderStatusUtil = require('./order-status.js')
+const { DEFAULT_AVATAR_DATA } = require('./constants.js')
+
+const PLACEHOLDER_NAME_KEYWORDS = ['未知', '待分配', '未分配', '默认', 'unknown']
+const PLACEHOLDER_ARTIST_NAMES = ['画师', '匿名画师', 'artist']
+const PLACEHOLDER_SERVICE_NAMES = ['客服', '客服人员', 'customer service']
+const PLACEHOLDER_AVATAR_EXACT = [
+  '',
+  orderStatusUtil.DEFAULT_AVATAR,
+  DEFAULT_AVATAR_DATA,
+  '/assets/default-avatar.png',
+  '/assets/avatar.png'
+]
+
+const PLACEHOLDER_AVATAR_KEYWORDS = ['default-avatar', 'default_service', 'default-service']
+
+function normalizeString(value) {
+  if (value == null) return ''
+  if (typeof value !== 'string') value = String(value)
+  return value.trim()
+}
+
+function isMeaningfulName(name, type) {
+  const normalized = normalizeString(name)
+  if (!normalized) return false
+
+  const lower = normalized.toLowerCase()
+  const basePlaceholders = PLACEHOLDER_NAME_KEYWORDS
+  if (basePlaceholders.some(keyword => lower.startsWith(keyword))) {
+    return false
+  }
+
+  const specific = type === 'artist' ? PLACEHOLDER_ARTIST_NAMES : PLACEHOLDER_SERVICE_NAMES
+  if (specific.some(placeholder => lower === placeholder.toLowerCase())) {
+    return false
+  }
+
+  return true
+}
+
+function getMeaningfulName(name, type) {
+  const normalized = normalizeString(name)
+  return isMeaningfulName(normalized, type) ? normalized : ''
+}
+
+function isMeaningfulAvatar(avatar) {
+  const normalized = normalizeString(avatar)
+  if (!normalized) return false
+
+  if (PLACEHOLDER_AVATAR_EXACT.includes(normalized)) {
+    return false
+  }
+
+  const lower = normalized.toLowerCase()
+  if (PLACEHOLDER_AVATAR_EXACT.includes(lower)) {
+    return false
+  }
+
+  if (PLACEHOLDER_AVATAR_KEYWORDS.some(keyword => lower.includes(keyword))) {
+    return false
+  }
+
+  return true
+}
+
+function getMeaningfulAvatar(avatar) {
+  const normalized = normalizeString(avatar)
+  return isMeaningfulAvatar(normalized) ? normalized : ''
+}
 
 /**
  * 统一处理订单信息
@@ -22,27 +90,21 @@ function normalizeOrders(orders, options = {}) {
     if (!order) return order
 
     // === 1️⃣ 备份原始字段 ===
-    const rawArtistName = order.artistName
-    const rawArtistAvatar = order.artistAvatar
-    const rawServiceName = order.serviceName
-    const rawServiceAvatar = order.serviceAvatar
-    
-    // 🔍 调试：打印原始订单的客服头像
-    if (order.id && order.id.includes('202511051')) {
-      console.log(`🔍 [order-helper] 订单 ${order.id} 原始数据:`)
-      console.log('  - serviceName:', order.serviceName)
-      console.log('  - serviceAvatar:', order.serviceAvatar ? order.serviceAvatar.substring(0, 50) + '...' : '❌ 空')
-    }
+    const rawArtistName = getMeaningfulName(order.artistName, 'artist')
+    const rawArtistAvatar = getMeaningfulAvatar(order.artistAvatar)
+    const rawServiceName = getMeaningfulName(order.serviceName, 'service')
+    const rawServiceAvatar = getMeaningfulAvatar(order.serviceAvatar)
 
     // === 2️⃣ 计算状态（不改字段） ===
     let processed = orderStatusUtil.calculateOrderStatus
       ? orderStatusUtil.calculateOrderStatus(order)
       : { ...order }
-    
-    // 🔍 调试：计算状态后检查
-    if (order.id && order.id.includes('202511051')) {
-      console.log(`  - 计算状态后 serviceAvatar:`, processed.serviceAvatar ? processed.serviceAvatar.substring(0, 50) + '...' : '❌ 空')
-    }
+
+    // 统一清理占位符，避免后续判断被字符串"未知"阻断
+    if (!isMeaningfulName(processed.artistName, 'artist')) processed.artistName = ''
+    if (!isMeaningfulAvatar(processed.artistAvatar)) processed.artistAvatar = ''
+    if (!isMeaningfulName(processed.serviceName, 'service')) processed.serviceName = ''
+    if (!isMeaningfulAvatar(processed.serviceAvatar)) processed.serviceAvatar = ''
 
     // === 3️⃣ 恢复原始非空字段 ===
     if (rawArtistName && !processed.artistName) processed.artistName = rawArtistName
@@ -59,12 +121,14 @@ function normalizeOrders(orders, options = {}) {
     }
 
     if (product) {
-      if (!processed.artistName && product.artistName) {
-        processed.artistName = product.artistName
+      const productArtistName = getMeaningfulName(product.artistName, 'artist')
+      if (!processed.artistName && productArtistName) {
+        processed.artistName = productArtistName
       }
       // 🎯 只在为空时补，且不要把默认图写回订单对象
-      if (!processed.artistAvatar && product.artistAvatar) {
-        processed.artistAvatar = product.artistAvatar
+      const productArtistAvatar = getMeaningfulAvatar(product.artistAvatar)
+      if (!processed.artistAvatar && productArtistAvatar) {
+        processed.artistAvatar = productArtistAvatar
       }
       if (!processed.productImage && product.images && product.images.length > 0) {
         processed.productImage = product.images[0]
@@ -72,88 +136,154 @@ function normalizeOrders(orders, options = {}) {
     }
 
     // === 5️⃣ 通过客服表补充客服信息（仅在为空时补，不写默认图）===
-    if ((!processed.serviceName || processed.serviceName === '待分配' || processed.serviceName === '客服未分配') && services.length > 0) {
-      let matched = null
-      
-      // 优先通过 serviceId 匹配
-      if (processed.serviceId) {
-        matched = services.find(
-          s => String(s.userId) === String(processed.serviceId) || String(s.id) === String(processed.serviceId)
-        )
-      }
-      
-      // 如果没有 serviceId 或匹配失败，使用第一个在线客服
-      if (!matched) {
-        matched = services.find(s => s.isActive) || services[0]
-      }
-      
+    if ((!processed.serviceName || processed.serviceName === '待分配') && processed.serviceId && services.length > 0) {
+      const matched = services.find(
+        s => String(s.userId) === String(processed.serviceId) || String(s.id) === String(processed.serviceId)
+      )
       if (matched) {
-        processed.serviceId = matched.userId || matched.id
-        processed.serviceName = matched.name || matched.nickName || '在线客服'
+        const matchedName = getMeaningfulName(matched.name || matched.nickName, 'service')
+        processed.serviceName = matchedName || '待分配'
         // 🎯 只在为空时补，且不要把默认图写回订单对象
-        if (!processed.serviceAvatar && (matched.avatar || matched.avatarUrl)) {
-          processed.serviceAvatar = matched.avatar || matched.avatarUrl
+        const matchedAvatar = getMeaningfulAvatar(matched.avatar || matched.avatarUrl)
+        if (!processed.serviceAvatar && matchedAvatar) {
+          processed.serviceAvatar = matchedAvatar
         }
       }
     }
 
-    // === 6️⃣ 最后再次确保不覆盖原值（只在有效时恢复）===
-    // 🎯 画师信息：只恢复有效值（非空、非默认、非临时路径）
-    if (rawArtistName && 
-        rawArtistName !== '画师' && 
-        rawArtistName !== '未知画师' && 
-        rawArtistName !== '待分配') {
-      processed.artistName = rawArtistName
+    // === 6️⃣ 修复无效头像：临时路径、本地路径或空值 ===
+    // 🎯 画师头像修复逻辑
+    const isInvalidArtistAvatar = !processed.artistAvatar || 
+                                  processed.artistAvatar.startsWith('http://tmp/') || 
+                                  processed.artistAvatar.startsWith('/assets/')
+    
+    if (isInvalidArtistAvatar && product && product.artistAvatar) {
+      const productAvatar = getMeaningfulAvatar(product.artistAvatar)
+      if (productAvatar && !productAvatar.startsWith('http://tmp/') && !productAvatar.startsWith('/assets/')) {
+        processed.artistAvatar = productAvatar
+      }
     }
     
-    if (rawArtistAvatar && 
-        !rawArtistAvatar.startsWith('http://tmp/') && 
-        !rawArtistAvatar.startsWith('/assets/')) {
-      processed.artistAvatar = rawArtistAvatar
-    }
+    // 🎯 客服头像修复逻辑
+    const isInvalidServiceAvatar = !processed.serviceAvatar || 
+                                   processed.serviceAvatar.startsWith('http://tmp/') || 
+                                   processed.serviceAvatar.startsWith('/assets/')
     
-    // 🎯 客服信息：只恢复有效值（非空、非"待分配"、非临时路径）
-    if (rawServiceName && 
-        rawServiceName !== '待分配' && 
-        rawServiceName !== '客服未分配') {
-      processed.serviceName = rawServiceName
+    if (isInvalidServiceAvatar && processed.serviceId && services.length > 0) {
+      const matched = services.find(
+        s => String(s.userId) === String(processed.serviceId) || String(s.id) === String(processed.serviceId)
+      )
+      if (matched) {
+        const serviceAvatar = getMeaningfulAvatar(matched.avatar || matched.avatarUrl)
+        if (serviceAvatar && !serviceAvatar.startsWith('http://tmp/') && !serviceAvatar.startsWith('/assets/')) {
+          processed.serviceAvatar = serviceAvatar
+        }
+      }
     }
-    
-    if (rawServiceAvatar && 
-        !rawServiceAvatar.startsWith('http://tmp/') && 
-        !rawServiceAvatar.startsWith('/assets/')) {
-      processed.serviceAvatar = rawServiceAvatar
+
+    // === 7️⃣ 恢复有效的原始值（只恢复名字，头像已在上面修复）===
+    if (rawArtistName) processed.artistName = rawArtistName
+    if (rawServiceName) processed.serviceName = rawServiceName
+
+    // === 8️⃣ 兜底文案：仍未获取到有效信息时提供用户可理解的提示 ===
+    if (!isMeaningfulName(processed.artistName, 'artist')) {
+      processed.artistName = rawArtistName || '未知画师'
     }
-    
-    // 🔍 调试：最终结果检查
-    if (order.id && order.id.includes('202511051')) {
-      console.log(`  - 最终 serviceAvatar:`, processed.serviceAvatar ? processed.serviceAvatar.substring(0, 50) + '...' : '❌ 空')
-      console.log(`  - rawServiceAvatar:`, rawServiceAvatar ? rawServiceAvatar.substring(0, 50) + '...' : '❌ 空')
+    if (!isMeaningfulName(processed.serviceName, 'service')) {
+      processed.serviceName = rawServiceName || '待分配'
     }
-    
-    // 🎯 禁止写默认头像到订单对象
-    // 如果最终仍然是临时路径或默认路径，清空让 WXML 兜底
-    if (processed.artistAvatar && 
-        (processed.artistAvatar.startsWith('http://tmp/') || 
-         processed.artistAvatar.startsWith('/assets/'))) {
-      console.warn('⚠️ 清空无效画师头像:', processed.artistAvatar.substring(0, 50))
+    if (!isMeaningfulAvatar(processed.artistAvatar)) {
       processed.artistAvatar = ''
     }
-    
-    if (processed.serviceAvatar && 
-        (processed.serviceAvatar.startsWith('http://tmp/') || 
-         processed.serviceAvatar.startsWith('/assets/'))) {
-      console.warn('⚠️ 清空无效客服头像:', processed.serviceAvatar.substring(0, 50))
+    if (!isMeaningfulAvatar(processed.serviceAvatar)) {
       processed.serviceAvatar = ''
     }
 
-    // === 7️⃣ 状态文本 & class ===
+    // === 9️⃣ 状态文本 & class ===
     processed.statusText = orderStatusUtil.textOf(processed.status)
     processed.statusClass = orderStatusUtil.classOf(processed.status)
 
-    // === 8️⃣ 不写默认头像，让 WXML 自己兜底 ===
+    // === 🔟 不写默认头像，让 WXML 自己兜底 ===
     return processed
   })
+}
+
+function isMeaningfulForMerge(key, value) {
+  if (value == null) return false
+
+  if (typeof value === 'string') {
+    const normalized = normalizeString(value)
+    if (!normalized) return false
+
+    if (key === 'artistName') return isMeaningfulName(normalized, 'artist')
+    if (key === 'serviceName') return isMeaningfulName(normalized, 'service')
+    if (key === 'artistAvatar' || key === 'serviceAvatar' || key === 'buyerAvatar') {
+      return isMeaningfulAvatar(normalized)
+    }
+    if (key === 'productImage') {
+      if (normalized.startsWith('http://tmp/')) return false
+      if (normalized.startsWith('/assets/')) return false
+      return true
+    }
+    if (key === 'artistId' || key === 'serviceId' || key === 'buyerId') {
+      return !!normalizeString(normalized)
+    }
+    return true
+  }
+
+  if (Array.isArray(value)) return value.length > 0
+
+  if (typeof value === 'object') {
+    return Object.keys(value).length > 0
+  }
+
+  if (typeof value === 'number') {
+    return !Number.isNaN(value)
+  }
+
+  return true
+}
+
+function mergeOrderRecords(existing, incoming) {
+  if (!existing) {
+    return incoming ? { ...incoming } : existing
+  }
+  if (!incoming) {
+    return { ...existing }
+  }
+
+  const merged = { ...existing }
+  const keys = new Set([
+    ...Object.keys(existing),
+    ...Object.keys(incoming)
+  ])
+
+  keys.forEach(key => {
+    if (!Object.prototype.hasOwnProperty.call(incoming, key)) return
+
+    const incomingValue = incoming[key]
+    const currentValue = merged[key]
+
+    const incomingMeaningful = isMeaningfulForMerge(key, incomingValue)
+    const currentMeaningful = isMeaningfulForMerge(key, currentValue)
+
+    if (!currentMeaningful && incomingMeaningful) {
+      merged[key] = incomingValue
+    } else if (
+      currentMeaningful &&
+      incomingMeaningful &&
+      typeof currentValue === 'object' &&
+      currentValue !== null &&
+      typeof incomingValue === 'object' &&
+      incomingValue !== null &&
+      !Array.isArray(currentValue) &&
+      !Array.isArray(incomingValue)
+    ) {
+      merged[key] = { ...currentValue, ...incomingValue }
+    }
+  })
+
+  return merged
 }
 
 /**
@@ -167,8 +297,13 @@ function getAllOrders() {
   // 合并订单（去重，以 id 为准）
   const orderMap = new Map()
   ;[...orders, ...pendingOrders].forEach(order => {
-    if (order.id && !orderMap.has(order.id)) {
-      orderMap.set(order.id, order)
+    if (!order || !order.id) return
+
+    if (!orderMap.has(order.id)) {
+      orderMap.set(order.id, { ...order })
+    } else {
+      const merged = mergeOrderRecords(orderMap.get(order.id), order)
+      orderMap.set(order.id, merged)
     }
   })
   
@@ -187,17 +322,51 @@ function prepareOrdersForPage(options = {}) {
   
   // 1. 获取所有订单
   let allOrders = getAllOrders()
+
+  const toKey = (value) => {
+    if (value == null) return ''
+    return String(value).trim()
+  }
   
   // 2. 根据角色筛选
   if (role === 'customer') {
     // 用户端：只看自己的订单
-    allOrders = allOrders.filter(order => order.buyerId === userId)
+    allOrders = allOrders.filter(order => toKey(order.buyerId) === toKey(userId))
   } else if (role === 'artist') {
     // 画师端：只看分配给自己的订单
-    allOrders = allOrders.filter(order => order.artistId === userId)
+    allOrders = allOrders.filter(order => toKey(order.artistId) === toKey(userId))
   } else if (role === 'service') {
     // 客服端：看分配给自己的订单 + 未分配的订单
-    allOrders = allOrders.filter(order => order.serviceId === userId || !order.serviceId)
+    // 🎯 同时从两个数据源读取客服列表（兼容不同页面的保存逻辑）
+    const customerServiceList = wx.getStorageSync('customer_service_list') || []
+    const serviceList = wx.getStorageSync('service_list') || []
+    const allServiceRecords = [...customerServiceList, ...serviceList]
+    const myServiceKeys = new Set()
+
+    allServiceRecords.forEach(service => {
+      if (!service) return
+      const serviceUserId = toKey(service.userId)
+      const serviceId = toKey(service.id)
+
+      if (
+        serviceUserId === toKey(userId) ||
+        serviceId === toKey(userId)
+      ) {
+        if (serviceUserId) myServiceKeys.add(serviceUserId)
+        if (serviceId) myServiceKeys.add(serviceId)
+      }
+    })
+
+    // 若没有在客服列表中匹配到，则至少保留当前 userId
+    if (myServiceKeys.size === 0) {
+      myServiceKeys.add(toKey(userId))
+    }
+
+    allOrders = allOrders.filter(order => {
+      const serviceKey = toKey(order.serviceId)
+      if (!serviceKey) return true // 未分配时所有客服可见
+      return myServiceKeys.has(serviceKey)
+    })
   }
   // admin 不筛选，看所有订单
   

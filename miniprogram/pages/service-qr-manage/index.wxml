@@ -110,6 +110,9 @@
 
         <!-- 操作按钮 -->
         <view class="detail-actions">
+          <button class="detail-action-btn primary" catchtap="showEditServiceModal" data-id="{{currentService.id}}">
+            编辑基本信息
+          </button>
           <button class="detail-action-btn danger" catchtap="deleteService" data-id="{{currentService.id}}">
             移除客服
           </button>
@@ -120,7 +123,7 @@
 
   <!-- 添加客服弹窗 -->
   <view wx:if="{{showAddModal}}" class="modal-overlay" catchtap="hideAddModal">
-    <view class="modal-content" catchtap="stopPropagation">
+    <view class="modal-content add-service-modal" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">添加客服</text>
         <view class="modal-close" catchtap="hideAddModal">×</view>
@@ -172,6 +175,53 @@
       <view class="modal-footer">
         <button class="modal-btn cancel-btn" catchtap="hideAddModal">取消</button>
         <button class="modal-btn confirm-btn" catchtap="confirmAddService">确认添加</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 编辑客服弹窗 -->
+  <view wx:if="{{showEditModal}}" class="modal-overlay" catchtap="hideEditModal">
+    <view class="modal-content add-service-modal" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">编辑客服信息</text>
+        <view class="modal-close" catchtap="hideEditModal">×</view>
+      </view>
+      
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">用户ID *</text>
+          <input class="form-input" 
+                 type="number" 
+                 placeholder="请输入用户ID" 
+                 value="{{editService.userId}}"
+                 bindinput="onEditUserIdInput" />
+          <text class="form-hint">修改用户ID后会自动更新该用户的头像</text>
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">客服姓名 *</text>
+          <input class="form-input" 
+                 placeholder="请输入客服姓名" 
+                 value="{{editService.name}}"
+                 bindinput="onEditNameInput" />
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">微信号</text>
+          <input class="form-input" 
+                 placeholder="请输入微信号（选填）" 
+                 value="{{editService.wechatId}}"
+                 bindinput="onEditWechatIdInput" />
+        </view>
+
+        <view class="form-hint" style="color: #FF9800; margin-top: 20rpx;">
+          💡 提示：修改用户ID后，系统会自动读取该用户的头像信息
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <button class="modal-btn cancel-btn" catchtap="hideEditModal">取消</button>
+        <button class="modal-btn confirm-btn" catchtap="confirmEditService">保存修改</button>
       </view>
     </view>
   </view>

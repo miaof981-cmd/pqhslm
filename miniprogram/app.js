@@ -41,6 +41,9 @@ App({
       console.log('[app] ⚠️ 用户信息同步失败:', err)
     })
     
+    // ✅ 启动时修复订单中的头像数据
+    this.migrateOrderAvatars()
+    
     // ✅ 新增：检查画师申请状态，自动赋予权限
     this.checkArtistApplication()
     
@@ -202,6 +205,123 @@ App({
     
     // 检查用户是否拥有所需角色
     return userRoles.includes(requiredRole)
+  },
+
+  migrateOrderAvatars() {
+    try {
+      const { DEFAULT_AVATAR_DATA } = require('./utils/constants.js')
+      const toKey = (value) => {
+        if (value === undefined || value === null) return ''
+        return String(value).trim()
+      }
+      const normalizeAvatar = (value) => {
+        const avatar = toKey(value)
+        if (!avatar) return ''
+        const lower = avatar.toLowerCase()
+        if (avatar.startsWith('http://tmp/') || avatar.startsWith('wxfile://') || avatar.startsWith('/assets/')) {
+          return ''
+        }
+        if (lower === 'undefined' || lower === 'null') return ''
+        return avatar
+      }
+
+      const products = wx.getStorageSync('mock_products') || []
+      const productMap = new Map()
+      products.forEach(product => {
+        const key = toKey(product && product.id)
+        if (key) {
+          productMap.set(key, product)
+        }
+      })
+
+      const services = wx.getStorageSync('customer_service_list') || []
+      const serviceMap = new Map()
+      services.forEach(service => {
+        if (!service) return
+        const idKey = toKey(service.id)
+        const userKey = toKey(service.userId)
+        if (idKey) serviceMap.set(idKey, service)
+        if (userKey) serviceMap.set(userKey, service)
+      })
+
+      const normalizeOrderList = (orders = []) => {
+        let changed = 0
+        const updated = orders.map(order => {
+          if (!order) return order
+
+          let nextOrder = order
+          let modified = false
+
+          const product = productMap.get(toKey(order.productId))
+          const service = serviceMap.get(toKey(order.serviceId))
+
+          const currentArtistAvatar = normalizeAvatar(order.artistAvatar)
+          if (!currentArtistAvatar) {
+            const candidate = product ? normalizeAvatar(product.artistAvatar) : ''
+            const finalAvatar = candidate || DEFAULT_AVATAR_DATA
+            if (finalAvatar !== order.artistAvatar) {
+              nextOrder = { ...nextOrder, artistAvatar: finalAvatar }
+              modified = true
+            }
+          } else if (currentArtistAvatar !== order.artistAvatar) {
+            nextOrder = { ...nextOrder, artistAvatar: currentArtistAvatar }
+            modified = true
+          }
+
+          const currentServiceAvatar = normalizeAvatar(order.serviceAvatar)
+          if (!currentServiceAvatar) {
+            const serviceCandidate = service ? normalizeAvatar(service.avatar || service.avatarUrl) : ''
+            const finalServiceAvatar = serviceCandidate || DEFAULT_AVATAR_DATA
+            if (finalServiceAvatar !== order.serviceAvatar) {
+              nextOrder = { ...nextOrder, serviceAvatar: finalServiceAvatar }
+              modified = true
+            }
+          } else if (currentServiceAvatar !== order.serviceAvatar) {
+            nextOrder = { ...nextOrder, serviceAvatar: currentServiceAvatar }
+            modified = true
+          }
+
+          if (!toKey(order.serviceName) && service && toKey(service.name || service.nickName)) {
+            nextOrder = { ...nextOrder, serviceName: toKey(service.name || service.nickName) }
+            modified = true
+          }
+
+          if (modified) {
+            changed += 1
+          }
+
+          return nextOrder
+        })
+        return { updated, changed }
+      }
+
+      const pendingResult = normalizeOrderList(wx.getStorageSync('pending_orders') || [])
+      if (pendingResult.changed > 0) {
+        wx.setStorageSync('pending_orders', pendingResult.updated)
+      }
+
+      const ordersResult = normalizeOrderList(wx.getStorageSync('orders') || [])
+      if (ordersResult.changed > 0) {
+        wx.setStorageSync('orders', ordersResult.updated)
+      }
+
+      const completedResult = normalizeOrderList(wx.getStorageSync('completed_orders') || [])
+      if (completedResult.changed > 0) {
+        wx.setStorageSync('completed_orders', completedResult.updated)
+      }
+
+      if (pendingResult.changed || ordersResult.changed || completedResult.changed) {
+        console.log('[app][migrate] 订单头像已同步修复', {
+          pending: pendingResult.changed,
+          orders: ordersResult.changed,
+          completed: completedResult.changed
+        })
+      } else {
+        console.log('[app][migrate] 订单头像无需修复')
+      }
+    } catch (error) {
+      console.error('[app][migrate] 订单头像修复失败', error)
+    }
   },
   
   // 检查是否有任一权限

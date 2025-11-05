@@ -1,3 +1,5 @@
+const orderHelper = require('../../utils/order-helper.js')
+
 Page({
   data: {
     userInfo: null,
@@ -359,38 +361,31 @@ Page({
 
   // 加载订单
   async loadOrders() {
-    const orders = [
-      {
-        _id: 'order-1',
-        status: 'created',
-        createTime: '2024-01-01',
-        deadline: '2024-01-04',
-        price: 100,
-        productName: '精美头像设计'
-      },
-      {
-        _id: 'order-2',
-        status: 'completed',
-        createTime: '2024-01-02',
-        deadline: '2024-01-05',
-        price: 168,
-        productName: '创意插画作品'
-      }
-    ]
-    
-    // 只统计制作中的订单数量（其他状态不统计，避免性能问题）
     const userId = wx.getStorageSync('userId')
-    const allOrders = wx.getStorageSync('orders') || []
-    const pendingOrders = wx.getStorageSync('pending_orders') || []
-    const userOrders = [...allOrders, ...pendingOrders].filter(o => o.buyerId === userId)
-    
-    // 只统计制作中：排除unpaid和completed的都算制作中
-    const processingCount = userOrders.filter(o => {
-      return o.status !== 'unpaid' && o.status !== 'completed'
+    const customerOrders = orderHelper.prepareOrdersForPage({
+      role: 'customer',
+      userId
+    })
+
+    const processingStatuses = new Set([
+      'processing',
+      'inProgress',
+      'paid',
+      'waitingConfirm',
+      'nearDeadline',
+      'overdue'
+    ])
+
+    const processingCount = customerOrders.filter(order => {
+      const statusKey = order.status || ''
+      if (!statusKey) return false
+      if (statusKey === 'unpaid' || statusKey === 'completed' || statusKey === 'cancelled' || statusKey === 'refunded') {
+        return false
+      }
+      return processingStatuses.has(statusKey) || !['unpaid', 'completed', 'cancelled', 'refunded'].includes(statusKey)
     }).length
-    
+
     this.setData({
-      orders: orders,
       orderStats: {
         processing: processingCount
       }

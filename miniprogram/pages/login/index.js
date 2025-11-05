@@ -68,10 +68,26 @@ Page({
     })
 
     try {
+      // 🎯 如果是临时头像，先转换为 base64
+      let finalAvatarUrl = avatarUrl
+      if (avatarUrl && avatarUrl.startsWith('http://tmp/')) {
+        console.log('⚠️ 检测到临时头像，正在转换为 base64...')
+        try {
+          const fs = wx.getFileSystemManager()
+          const fileData = fs.readFileSync(avatarUrl, 'base64')
+          finalAvatarUrl = 'data:image/jpeg;base64,' + fileData
+          console.log('✅ 临时头像转换成功')
+        } catch (err) {
+          console.error('❌ 临时头像转换失败:', err)
+          // 转换失败，使用默认头像
+          finalAvatarUrl = this.data.avatarUrl
+        }
+      }
+      
       // 构建用户信息
       const userInfo = {
         nickName: nickName.trim(),
-        avatarUrl: avatarUrl,
+        avatarUrl: finalAvatarUrl,
         gender: 0,
         country: '',
         province: '',
@@ -81,7 +97,7 @@ Page({
       
       console.log('📱 用户填写的信息:', userInfo)
       console.log('  - 昵称:', userInfo.nickName)
-      console.log('  - 头像:', userInfo.avatarUrl)
+      console.log('  - 头像类型:', finalAvatarUrl.startsWith('data:image') ? 'base64' : finalAvatarUrl.startsWith('http') ? '网络图片' : '其他')
       
       // ✅ 生成或获取用户ID
       let userId = wx.getStorageSync('userId')

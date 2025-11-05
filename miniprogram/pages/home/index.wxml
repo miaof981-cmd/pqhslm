@@ -1,8 +1,8 @@
 <view class="container">
   <!-- 轮播图 -->
-  <swiper class="banner-swiper" autoplay="{{true}}" indicator-dots="{{true}}" circular="{{true}}" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#A8E6CF">
+  <swiper class="banner-swiper" style="height: {{bannerHeight}}px;" autoplay="{{true}}" indicator-dots="{{true}}" circular="{{true}}" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#A8E6CF">
     <swiper-item wx:for="{{banners}}" wx:key="*this">
-      <image class="banner-image" src="{{item}}" mode="aspectFill" />
+      <image class="banner-image" src="{{item}}" mode="widthFix" bindload="onBannerImageLoad" />
     </swiper-item>
   </swiper>
 

@@ -709,6 +709,12 @@ page {
   padding: 20rpx 0;
 }
 
+.completed-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
 /* ========== 二维码弹窗（复用订单列表样式） ========== */
 .qr-modal {
   position: fixed;

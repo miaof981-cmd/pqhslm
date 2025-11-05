@@ -86,6 +86,14 @@ Page({
         if (p.id) productMap.set(String(p.id).trim(), p)
       })
       
+      const buyerShowPosts = wx.getStorageSync('buyer_show_posts') || []
+      const buyerShowMap = {}
+      buyerShowPosts.forEach(post => {
+        if (post && post.orderId) {
+          buyerShowMap[String(post.orderId)] = post.id
+        }
+      })
+
       const mockOrders = allOrders.map(order => {
         // 🎯 动态读取图片（如果订单没有图片但有 productId）
         let productImage = order.productImage || ''
@@ -124,6 +132,8 @@ Page({
         const buyerName = userInfo?.nickName || '买家'
         const buyerAvatar = userInfo?.avatarUrl || orderStatusUtil.DEFAULT_AVATAR
         
+        const buyerShowId = buyerShowMap[String(order.id)] || ''
+
         const result = {
           _id: order.id,
           orderNo: order.id,
@@ -149,7 +159,9 @@ Page({
           isOverdue,
           isNearDeadline,
           overdueDays: order.overdueDays || 0,
-          reviewed: false
+          reviewed: false,
+          hasBuyerShow: Boolean(buyerShowId),
+          buyerShowId
         }
         
         // 🔍 调试：输出最新订单的转换结果
@@ -310,10 +322,51 @@ Page({
   showComplaint(e) {
     // 从本地存储读取投诉二维码
     const complaintQRCode = wx.getStorageSync('complaint_qrcode') || '/assets/default-complaint-qr.png'
-    
+
     this.setData({
       complaintQRCode: complaintQRCode,
       showComplaintQR: true
+    })
+  },
+
+  // 打开晒稿页面
+  openBuyerShowPublish(e) {
+    const { orderId, status, productId, productName } = e.currentTarget.dataset
+
+    if (status !== 'completed') {
+      wx.showToast({
+        title: '订单完成后才可晒稿',
+        icon: 'none'
+      })
+      return
+    }
+
+    const query = [`orderId=${orderId}`, `status=${status}`]
+    if (productId) {
+      query.push(`productId=${productId}`)
+    }
+    if (productName) {
+      query.push(`productName=${encodeURIComponent(productName)}`)
+    }
+
+    wx.navigateTo({
+      url: `/pages/buyer-show/publish/index?${query.join('&')}`
+    })
+  },
+
+  // 查看买家秀详情
+  viewBuyerShow(e) {
+    const { id } = e.currentTarget.dataset
+    if (!id) {
+      wx.showToast({
+        title: '内容不存在',
+        icon: 'none'
+      })
+      return
+    }
+
+    wx.navigateTo({
+      url: `/pages/buyer-show/detail/index?id=${id}`
     })
   },
 

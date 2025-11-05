@@ -1,12 +1,16 @@
+const { createLogger } = require('./logger')
+
+const logger = createLogger('user-helper')
+
 /**
  * 👤 用户身份管理工具
- * 
+ *
  * 功能：
  * 1. 统一 userId 获取逻辑
  * 2. 强制登录校验
  * 3. 异常日志上报
  * 4. 多设备同步支持
- * 
+ *
  * 作者：AI Assistant
  * 日期：2025-10-28
  */
@@ -17,7 +21,7 @@
  * @param {object} extra - 额外信息
  */
 function logUserError(msg, extra = {}) {
-  console.warn('[user-helper]', msg, extra)
+  logger.warn(msg, extra)
   
   // TODO: 接入监控平台（sentry / 腾讯云监控）
   // if (typeof wx.reportMonitor === 'function') {
@@ -51,7 +55,7 @@ function getCurrentUserId() {
     if (userId) {
       // 如果全局变量有但本地没有，同步到本地
       wx.setStorageSync('userId', userId)
-      console.log('[user-helper] ✅ 从全局变量同步 userId 到本地:', userId)
+      logger.info('从全局变量同步 userId 到本地', userId)
       return userId
     }
   } catch (e) {
@@ -165,13 +169,13 @@ function getOrCreateUserId(userId) {
  * @returns {Promise<string|null>} userId
  */
 async function syncUserInfo() {
-  console.log('[user-helper] 🔄 开始同步用户信息...')
+  logger.info('开始同步用户信息...')
   
   try {
     const userId = getCurrentUserId()
     
     if (!userId) {
-      console.log('[user-helper] ⚠️ 本地无 userId，需要用户登录')
+      logger.info('本地无 userId，需要用户登录')
       return null
     }
     
@@ -185,7 +189,7 @@ async function syncUserInfo() {
     const app = getApp()
     if (app) {
       app.globalData.userId = userId
-      console.log('[user-helper] ✅ 已同步 userId 到全局变量')
+      logger.info('已同步 userId 到全局变量')
     }
     
     return userId
@@ -206,11 +210,11 @@ function migrateGuestOrders(userId) {
   const guestOrders = wx.getStorageSync('guest_orders') || []
   
   if (guestOrders.length === 0) {
-    console.log('[user-helper] 无游客订单需要迁移')
+    logger.info('无游客订单需要迁移')
     return
   }
   
-  console.log(`[user-helper] 🔄 发现 ${guestOrders.length} 个游客订单，开始迁移...`)
+  logger.info(`发现 ${guestOrders.length} 个游客订单，开始迁移...`)
   
   // 读取所有订单
   const orders = wx.getStorageSync('orders') || []
@@ -243,7 +247,7 @@ function migrateGuestOrders(userId) {
   // 清空游客记录
   wx.removeStorageSync('guest_orders')
   
-  console.log(`[user-helper] ✅ 成功迁移 ${migratedCount} 个游客订单`)
+  logger.info(`成功迁移 ${migratedCount} 个游客订单`)
   
   wx.showToast({
     title: `已关联${migratedCount}个订单`,
@@ -257,11 +261,11 @@ function migrateGuestOrders(userId) {
  * 在应用启动时自动执行，修复所有 buyerId 缺失的订单
  */
 function fixHistoricalOrders() {
-  console.log('[user-helper] 🔧 开始检查历史订单数据完整性...')
+  logger.info('开始检查历史订单数据完整性...')
   
   const userId = getCurrentUserId()
   if (!userId) {
-    console.log('[user-helper] ⚠️ 用户未登录，跳过历史订单修复')
+    logger.info('用户未登录，跳过历史订单修复')
     return
   }
   
@@ -274,7 +278,7 @@ function fixHistoricalOrders() {
   const fixedOrders = orders.map(order => {
     if (!order.buyerId || order.buyerId === 'undefined' || order.buyerId === 'null') {
       fixedCount++
-      console.log(`[user-helper] 🔧 修复订单 ${order.id} 的 buyerId`)
+      logger.debug(`修复订单 ${order.id} 的 buyerId`)
       return { ...order, buyerId: userId }
     }
     return order
@@ -284,7 +288,7 @@ function fixHistoricalOrders() {
   const fixedPendingOrders = pendingOrders.map(order => {
     if (!order.buyerId || order.buyerId === 'undefined' || order.buyerId === 'null') {
       fixedCount++
-      console.log(`[user-helper] 🔧 修复订单 ${order.id} 的 buyerId`)
+      logger.debug(`修复订单 ${order.id} 的 buyerId`)
       return { ...order, buyerId: userId }
     }
     return order
@@ -293,9 +297,9 @@ function fixHistoricalOrders() {
   if (fixedCount > 0) {
     wx.setStorageSync('orders', fixedOrders)
     wx.setStorageSync('pending_orders', fixedPendingOrders)
-    console.log(`[user-helper] ✅ 成功修复 ${fixedCount} 个历史订单的 buyerId`)
+    logger.info(`成功修复 ${fixedCount} 个历史订单的 buyerId`)
   } else {
-    console.log('[user-helper] ✅ 历史订单数据完整，无需修复')
+    logger.info('历史订单数据完整，无需修复')
   }
 }
 

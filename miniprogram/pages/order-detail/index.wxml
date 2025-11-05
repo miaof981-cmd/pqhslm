@@ -191,7 +191,11 @@
         </block>
         <!-- 已完成状态 -->
         <block wx:elif="{{order.status === 'completed'}}">
-          <text class="completed-text">订单已完成</text>
+          <view class="completed-actions">
+            <button wx:if="{{order.hasBuyerShow}}" class="action-btn default" bindtap="viewBuyerShow">查看晒稿</button>
+            <button wx:elif="{{canPublishBuyerShow}}" class="action-btn primary" bindtap="openBuyerShowPublish">晒稿</button>
+            <text class="completed-text">订单已完成</text>
+          </view>
         </block>
       </view>
     </view>

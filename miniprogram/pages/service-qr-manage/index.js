@@ -2,6 +2,7 @@ Page({
   data: {
     serviceList: [],
     showAddModal: false,
+    showEditModal: false,
     showDetailModal: false,
     currentService: null,
     newService: {
@@ -9,6 +10,12 @@ Page({
       name: '',
       wechatId: '',
       qrcodeUrl: ''
+    },
+    editService: {
+      id: '',
+      userId: '',
+      name: '',
+      wechatId: ''
     }
   },
 
@@ -26,6 +33,11 @@ Page({
     
     const services = wx.getStorageSync('service_list') || []
     console.log('客服数量:', services.length)
+    
+    // 🎯 打印头像信息用于调试
+    services.forEach(s => {
+      console.log(`客服 ${s.name}: avatar=${s.avatar ? s.avatar.substring(0, 50) + '...' : '❌空'}`)
+    })
     
     this.setData({
       serviceList: services
@@ -52,6 +64,12 @@ Page({
     })
   },
 
+  hideEditModal() {
+    this.setData({
+      showEditModal: false
+    })
+  },
+
   // 阻止冒泡
   stopPropagation() {},
 
@@ -71,6 +89,25 @@ Page({
   onWechatIdInput(e) {
     this.setData({
       'newService.wechatId': e.detail.value
+    })
+  },
+
+  // 编辑表单输入
+  onEditUserIdInput(e) {
+    this.setData({
+      'editService.userId': e.detail.value
+    })
+  },
+
+  onEditNameInput(e) {
+    this.setData({
+      'editService.name': e.detail.value
+    })
+  },
+
+  onEditWechatIdInput(e) {
+    this.setData({
+      'editService.wechatId': e.detail.value
     })
   },
 
@@ -354,6 +391,140 @@ Page({
   hideDetailModal() {
     this.setData({
       showDetailModal: false
+    })
+  },
+
+  // 显示编辑客服弹窗
+  showEditServiceModal(e) {
+    const serviceId = e.currentTarget.dataset.id
+    const services = wx.getStorageSync('service_list') || []
+    const service = services.find(s => s.id === serviceId)
+    
+    if (service) {
+      this.setData({
+        showEditModal: true,
+        showDetailModal: false,
+        editService: {
+          id: service.id,
+          userId: service.userId,
+          name: service.name,
+          wechatId: service.wechatId || ''
+        }
+      })
+    }
+  },
+
+  // 确认编辑客服
+  async confirmEditService() {
+    const { id, userId, name, wechatId } = this.data.editService
+    
+    if (!userId) {
+      wx.showToast({ title: '请输入用户ID', icon: 'none' })
+      return
+    }
+    if (!name) {
+      wx.showToast({ title: '请输入客服姓名', icon: 'none' })
+      return
+    }
+
+    wx.showLoading({ title: '保存中...' })
+
+    try {
+      let services = wx.getStorageSync('service_list') || []
+      const serviceIndex = services.findIndex(s => s.id === id)
+      
+      if (serviceIndex === -1) {
+        wx.hideLoading()
+        wx.showToast({ title: '客服不存在', icon: 'none' })
+        return
+      }
+
+      // 🎯 如果修改了用户ID，重新读取用户头像
+      if (services[serviceIndex].userId !== userId) {
+        console.log('用户ID已变更，重新读取头像...')
+        
+        const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
+        let userAvatar = DEFAULT_AVATAR_DATA
+        
+        // 🎯 如果修改的是当前登录用户的ID，读取当前用户头像
+        const currentUserId = wx.getStorageSync('userId')
+        if (String(userId) === String(currentUserId)) {
+          const userInfo = wx.getStorageSync('userInfo') || {}
+          userAvatar = userInfo.avatarUrl || DEFAULT_AVATAR_DATA
+          console.log('读取当前用户头像:', userAvatar ? '有' : '无')
+        } else {
+          // 🎯 如果是其他用户，从用户列表中查找
+          const allUsers = wx.getStorageSync('users') || []
+          const targetUser = allUsers.find(u => String(u.userId) === String(userId))
+          if (targetUser && targetUser.avatarUrl) {
+            userAvatar = targetUser.avatarUrl
+            console.log('从用户列表读取头像:', userAvatar ? '有' : '无')
+          } else {
+            console.log('⚠️ 用户列表中未找到用户', userId)
+          }
+        }
+        
+        // 如果是临时路径，转换为 base64
+        if (userAvatar && userAvatar.startsWith('http://tmp/')) {
+          console.log('临时头像转换中...')
+          userAvatar = await this.convertTempAvatar(userAvatar)
+        }
+        
+        services[serviceIndex].avatar = userAvatar
+        services[serviceIndex].avatarUrl = userAvatar
+        console.log('✅ 头像已更新为:', userAvatar.substring(0, 60) + '...')
+      }
+
+      // 更新基本信息
+      services[serviceIndex].userId = userId
+      services[serviceIndex].name = name
+      services[serviceIndex].nickName = name
+      services[serviceIndex].wechatId = wechatId
+
+      wx.setStorageSync('service_list', services)
+      wx.setStorageSync('customer_service_list', services)
+
+      wx.hideLoading()
+      wx.showToast({ title: '保存成功', icon: 'success' })
+      
+      this.hideEditModal()
+      
+      // 🎯 强制刷新客服列表，确保头像更新
+      setTimeout(() => {
+        this.loadServiceList()
+      }, 300)
+
+      console.log('客服信息已更新:', services[serviceIndex])
+    } catch (err) {
+      wx.hideLoading()
+      console.error('保存失败:', err)
+      wx.showToast({ title: '保存失败', icon: 'none' })
+    }
+  },
+
+  // 转换临时头像为 base64
+  async convertTempAvatar(tempPath) {
+    const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
+    
+    return new Promise((resolve) => {
+      try {
+        const fs = wx.getFileSystemManager()
+        fs.readFile({
+          filePath: tempPath,
+          encoding: 'base64',
+          success: (res) => {
+            const base64 = 'data:image/jpeg;base64,' + res.data
+            resolve(base64)
+          },
+          fail: (err) => {
+            console.error('转换失败:', err)
+            resolve(DEFAULT_AVATAR_DATA)
+          }
+        })
+      } catch (err) {
+        console.error('转换异常:', err)
+        resolve(DEFAULT_AVATAR_DATA)
+      }
     })
   },
 

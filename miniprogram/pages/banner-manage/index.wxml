@@ -10,11 +10,11 @@
     </view>
     
     <view class="list">
-      <view wx:for="{{items}}" wx:key="_id" class="list-item">
-        <text class="item-title">{{item.name || item.title}}</text>
+      <view wx:for="{{items}}" wx:key="id" class="list-item">
+        <image class="item-thumb" src="{{item.image}}" mode="aspectFill"></image>
+        <text class="item-title">{{item.title || item.name}}</text>
         <view class="item-actions">
-          <button class="action-btn edit" bindtap="editItem" data-id="{{item._id}}">编辑</button>
-          <button class="action-btn delete" bindtap="deleteItem" data-id="{{item._id}}">删除</button>
+          <button class="action-btn delete" bindtap="deleteItem" data-id="{{item.id}}">删除</button>
         </view>
       </view>
     </view>

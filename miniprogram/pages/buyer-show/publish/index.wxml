@@ -1,0 +1,41 @@
+<view class="publish-page">
+  <view class="intro-card">
+    <view class="intro-title">晒出你的买家秀</view>
+    <view class="intro-desc">仅针对已确认完成且未退款的订单开放</view>
+  </view>
+
+  <view class="product-card">
+    <view class="product-cover">
+      <image src="{{productImage || '/assets/default-product.png'}}" mode="aspectFill" />
+    </view>
+    <view class="product-info">
+      <view class="product-label">关联订单</view>
+      <view class="product-name">{{productName || '已完成的定制作品'}}</view>
+      <view class="product-id">订单号：{{orderId}}</view>
+    </view>
+  </view>
+
+  <view class="upload-section">
+    <view class="section-title">上传晒稿图片</view>
+    <view class="section-sub">最多可选 {{maxImages}} 张，建议选择最终成稿</view>
+    <view class="image-grid">
+      <block wx:for="{{images}}" wx:key="*this">
+        <view class="image-item">
+          <image class="preview" src="{{item}}" mode="aspectFill" />
+          <view class="remove" data-index="{{index}}" bindtap="removeImage">✕</view>
+        </view>
+      </block>
+      <view wx:if="{{images.length < maxImages}}" class="image-item uploader" bindtap="chooseImages">
+        <view class="plus">＋</view>
+        <view class="tip">添加图片</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="comment-section">
+    <view class="section-title">夸夸画师</view>
+    <textarea class="comment-input" placeholder="这一稿哪里最打动你？" auto-height maxlength="200" bindinput="handleCommentInput" value="{{comment}}" />
+  </view>
+
+  <button class="submit-btn" bindtap="submitPost">立即发布</button>
+</view>

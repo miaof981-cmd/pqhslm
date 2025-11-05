@@ -1,0 +1,42 @@
+<view class="buyer-show-page">
+  <view class="banner-card">
+    <view class="banner-title">晒买家秀 有机会获得奖励哦~</view>
+    <view class="banner-desc">完成订单后上传满意的作品，帮助其他宝子种草</view>
+  </view>
+
+  <view wx:if="{{posts.length === 0}}" class="empty-section">
+    <view class="empty-illustration"></view>
+    <view class="empty-text">暂时还没有买家晒稿</view>
+    <view class="empty-sub">确认完成订单后可在订单卡片中发布</view>
+    <button class="empty-button" bindtap="goOrderList">去我的订单看看</button>
+  </view>
+
+  <view wx:else class="post-list">
+    <block wx:for="{{posts}}" wx:key="id">
+      <view class="post-card" bindtap="viewPost" data-id="{{item.id}}">
+        <view class="post-header">
+          <image class="author-avatar-small" src="{{item.authorAvatar || DEFAULT_AVATAR_DATA}}" mode="aspectFill" />
+          <view class="post-meta">
+            <text class="author-name-small">{{item.authorName || '匿名用户'}}</text>
+            <text class="post-time">{{item.displayTime}}</text>
+          </view>
+        </view>
+        <view class="post-comment">{{item.comment || '这次合作超级满意，必须晒一波~'}}</view>
+        <view wx:if="{{item.images && item.images.length}}" class="post-cover-wrapper">
+          <image class="post-cover" src="{{item.images[0]}}" mode="aspectFill" />
+          <view wx:if="{{item.images.length > 1}}" class="cover-count">共 {{item.images.length}} 张</view>
+        </view>
+        <view class="post-footer">
+          <view class="post-product">
+            <image class="product-thumb" src="{{item.productImage || '/assets/default-product.png'}}" mode="aspectFill" />
+            <view class="product-info">
+              <text class="product-name">{{item.productName || '关联商品'}}</text>
+              <text class="product-tip">点击查看详情，和 Ta 一样下单</text>
+            </view>
+          </view>
+          <view class="post-arrow">›</view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>
