@@ -44,7 +44,7 @@
 
       <block wx:for="{{rewardedOrders}}" wx:key="id">
         <view class="order-card rewarded">
-          <image class="artist-avatar" src="{{item.artistAvatar || defaultAvatar}}" mode="aspectFill"></image>
+          <image class="artist-avatar-rewarded" src="{{item.artistAvatar || defaultAvatar}}" mode="aspectFill"></image>
           <view class="card-body">
             <view class="artist-name">{{item.artistName}}</view>
             <view class="product-name">{{item.productName}}</view>
@@ -52,9 +52,10 @@
               <text class="meta-text">完成于 {{item.completedText}}</text>
             </view>
           </view>
-          <view class="rewarded-badge">
-            <text class="badge-icon">✓</text>
-            <text class="badge-text">¥{{item.rewardAmount}}</text>
+          <view class="rewarded-badge-new">
+            <view class="badge-medal">🎖️</view>
+            <view class="badge-label">已鼓励画师</view>
+            <view class="badge-amount">¥{{item.rewardAmount}}</view>
           </view>
         </view>
       </block>
@@ -67,7 +68,7 @@
       <view class="modal-header">
         <image class="modal-avatar" src="{{currentOrder.artistAvatar || defaultAvatar}}" mode="aspectFill"></image>
         <view class="modal-title">打赏 {{currentOrder.artistName}}</view>
-        <view class="modal-subtitle">感谢画师的精彩创作</view>
+        <view class="modal-subtitle">鼓励画师继续创作</view>
       </view>
 
       <view class="amount-grid">

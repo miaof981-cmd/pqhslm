@@ -1,3 +1,5 @@
+const orderHelper = require('../../utils/order-helper.js')
+
 Page({
   data: {
     orderInfo: null,
@@ -217,33 +219,14 @@ Page({
         serviceList = backupServiceList
         wx.setStorageSync('customer_service_list', serviceList)
         console.log('✅ 从 service_list 恢复客服列表')
-      } else {
-        // 实在没有客服，创建默认客服（使用固定ID）
-        console.log('⚠️ 所有客服列表为空，创建临时默认客服')
-        
-        const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
-        const currentUserId = wx.getStorageSync('userId') || 1001
-        const currentUserInfo = wx.getStorageSync('userInfo') || {}
-        const serviceIdStr = String(currentUserId)
-        
-        const defaultService = {
-          userId: serviceIdStr,
-          id: serviceIdStr,
-          name: currentUserInfo.nickName || '在线客服',
-          nickName: currentUserInfo.nickName || '在线客服',
-          avatar: DEFAULT_AVATAR_DATA,
-          avatarUrl: DEFAULT_AVATAR_DATA,
-          isActive: true,
-          serviceNumber: 1,
-          qrcodeUrl: '',
-          qrcodeNumber: null
-        }
-        
-        serviceList = [defaultService]
-        wx.setStorageSync('customer_service_list', serviceList)
-        wx.setStorageSync('service_list', serviceList)
-        console.log('✅ 默认客服已创建，ID:', serviceIdStr)
       }
+    }
+    
+    if (serviceList.length === 0) {
+      console.error('❌ 当前未配置任何客服账号')
+      const error = new Error('SERVICE_LIST_EMPTY')
+      error.displayMessage = '当前环境未配置客服账号，请先在客服管理中添加客服后再继续'
+      throw error
     }
     
     // 🎯 确保至少有一个客服在线
@@ -343,16 +326,11 @@ Page({
     console.log('========================================')
     
     try {
-      let orders = wx.getStorageSync('pending_orders') || []
-      console.log('当前订单数量:', orders.length)
+      let pendingOrders = wx.getStorageSync('pending_orders') || []
+      console.log('当前订单数量:', pendingOrders.length)
       
       // 检查是否已存在相同订单号（避免重复保存）
-      const existingIndex = orders.findIndex(o => o.id === orderInfo.orderNo)
-      if (existingIndex !== -1) {
-        console.log('⚠️ 订单已存在，跳过保存')
-        console.log('订单号:', orderInfo.orderNo)
-        return
-      }
+      const existingIndex = pendingOrders.findIndex(o => o.id === orderInfo.orderNo)
       
       // ✅ 引入用户工具模块（方案3：创建兜底）
       const userHelper = require('../../utils/user-helper.js')
@@ -462,14 +440,29 @@ Page({
       console.log('✅ 订单验证通过，准备保存')
       console.log('========================================')
       
-      // 添加新订单
-      orders.push(newOrder)
+      if (existingIndex !== -1) {
+        console.log('⚠️ 订单已存在，进行合并更新')
+        pendingOrders[existingIndex] = orderHelper.mergeOrderRecords(pendingOrders[existingIndex], newOrder)
+      } else {
+        pendingOrders.push(newOrder)
+      }
       
       // 保存到本地存储
-      wx.setStorageSync('pending_orders', orders)
+      wx.setStorageSync('pending_orders', pendingOrders)
+      
+      // 同步到正式订单池
+      let confirmedOrders = wx.getStorageSync('orders') || []
+      const confirmedIndex = confirmedOrders.findIndex(o => o.id === newOrder.id)
+      if (confirmedIndex !== -1) {
+        confirmedOrders[confirmedIndex] = orderHelper.mergeOrderRecords(confirmedOrders[confirmedIndex], newOrder)
+      } else {
+        confirmedOrders.push(newOrder)
+      }
+      wx.setStorageSync('orders', confirmedOrders)
       
       // 验证保存
-      const savedOrders = wx.getStorageSync('pending_orders') || []
+      const savedPending = wx.getStorageSync('pending_orders') || []
+      const savedAll = orderHelper.getAllOrders()
       
       console.log('========================================')
       console.log('✅ 订单保存成功！')
@@ -477,7 +470,8 @@ Page({
       console.log('订单号:', orderInfo.orderNo)
       console.log('商品名:', orderInfo.productName)
       console.log('总价:', orderInfo.totalAmount)
-      console.log('保存后订单总数:', savedOrders.length)
+      console.log('保存后 pending_orders 总数:', savedPending.length)
+      console.log('聚合后订单池总数:', savedAll.length)
       console.log('验证: 订单已在 pending_orders 中')
       console.log('========================================')
       

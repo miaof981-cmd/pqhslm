@@ -106,42 +106,77 @@
 .rewarded-separator {
   display: flex;
   align-items: center;
-  margin: 40rpx 0 24rpx;
-  color: #999;
-  font-size: 26rpx;
+  margin: 48rpx 0 32rpx;
+  color: #f57c00;
+  font-size: 28rpx;
 }
 
 .rewarded-separator .line {
   flex: 1;
-  height: 1rpx;
-  background: #d0d0d0;
+  height: 2rpx;
+  background: linear-gradient(90deg, transparent, #ffb74d, transparent);
 }
 
 .rewarded-text {
-  margin: 0 20rpx;
+  margin: 0 24rpx;
+  font-weight: 600;
+  padding: 8rpx 24rpx;
+  background: linear-gradient(135deg, #fff9c4, #ffe4b5);
+  border-radius: 24rpx;
+  border: 1rpx solid #ffb74d;
+  box-shadow: 0 2rpx 8rpx rgba(255, 183, 77, 0.2);
 }
 
 .order-card.rewarded {
-  opacity: 0.75;
-  background: #f8f8f8;
+  background: linear-gradient(135deg, #fff8e1 0%, #ffe4b5 50%, #ffd4a3 100%);
+  border: 2rpx solid #ffb74d;
+  box-shadow: 0 8rpx 24rpx rgba(255, 183, 77, 0.25);
+  position: relative;
+  overflow: visible;
 }
 
-.rewarded-badge {
+.artist-avatar-rewarded {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  margin-right: 24rpx;
+  background: #f0f0f0;
+  border: 3rpx solid #ffb74d;
+  box-shadow: 0 4rpx 12rpx rgba(255, 183, 77, 0.3);
+}
+
+.rewarded-badge-new {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4rpx;
+  gap: 8rpx;
+  padding: 16rpx;
+  background: linear-gradient(135deg, #fff 0%, #fff9c4 100%);
+  border-radius: 16rpx;
+  border: 2rpx solid #ffb74d;
+  min-width: 140rpx;
 }
 
-.badge-icon {
-  font-size: 32rpx;
-  color: #83d9ba;
+.badge-medal {
+  font-size: 48rpx;
+  line-height: 1;
 }
 
-.badge-text {
-  font-size: 26rpx;
-  color: #666;
+.badge-label {
+  font-size: 22rpx;
+  color: #f57c00;
   font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-amount {
+  font-size: 32rpx;
+  color: #e65100;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff6f00, #ff9100);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* 美观打赏弹窗 */
@@ -222,37 +257,68 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2rpx solid #e0e0e0;
+  border: 3rpx solid #e0e0e0;
   border-radius: 16rpx;
-  background: #f8f8f8;
-  transition: all 0.2s ease;
+  background: linear-gradient(135deg, #fff 0%, #f5f5f5 100%);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.amount-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #ffeb3b15, #ffc10715);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .amount-item.selected {
-  border-color: #a8e6cf;
-  background: linear-gradient(135deg, #a8e6cf20, #d0f0c020);
-  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.3);
-  transform: scale(1.05);
+  border-color: #ffa726;
+  background: linear-gradient(135deg, #fff9c4 0%, #ffe4b5 100%);
+  box-shadow: 0 8rpx 20rpx rgba(255, 167, 38, 0.4), 0 0 0 4rpx rgba(255, 167, 38, 0.1);
+  transform: scale(1.08);
+}
+
+.amount-item.selected::before {
+  opacity: 1;
 }
 
 .amount-value {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #666;
+  position: relative;
+  z-index: 1;
 }
 
 .amount-item.selected .amount-value {
-  color: #2a9d72;
+  color: #f57c00;
+  text-shadow: 0 2rpx 4rpx rgba(245, 124, 0, 0.2);
 }
 
 .amount-item.custom {
-  background: linear-gradient(135deg, #fff3e0, #ffe4b5);
-  border-color: #ffcc80;
+  background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+  border-color: #4fc3f7;
+}
+
+.amount-item.custom::before {
+  background: linear-gradient(135deg, #81d4fa30, #4fc3f730);
 }
 
 .amount-item.custom.selected {
-  border-color: #ff9800;
-  box-shadow: 0 4rpx 12rpx rgba(255, 152, 0, 0.3);
+  border-color: #29b6f6;
+  background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+  box-shadow: 0 8rpx 20rpx rgba(41, 182, 246, 0.4), 0 0 0 4rpx rgba(41, 182, 246, 0.1);
+}
+
+.amount-item.custom.selected .amount-value {
+  color: #0277bd;
+  text-shadow: 0 2rpx 4rpx rgba(2, 119, 189, 0.2);
 }
 
 .modal-actions {

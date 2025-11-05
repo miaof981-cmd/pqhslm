@@ -291,12 +291,13 @@ function mergeOrderRecords(existing, incoming) {
  * @returns {Array} 合并后的订单数组
  */
 function getAllOrders() {
+  const legacyOrders = wx.getStorageSync('mock_orders') || []
   const orders = wx.getStorageSync('orders') || []
   const pendingOrders = wx.getStorageSync('pending_orders') || []
   
   // 合并订单（去重，以 id 为准）
   const orderMap = new Map()
-  ;[...orders, ...pendingOrders].forEach(order => {
+  ;[...legacyOrders, ...orders, ...pendingOrders].forEach(order => {
     if (!order || !order.id) return
 
     if (!orderMap.has(order.id)) {
@@ -378,5 +379,6 @@ function prepareOrdersForPage(options = {}) {
 module.exports = {
   normalizeOrders,
   getAllOrders,
-  prepareOrdersForPage
+  prepareOrdersForPage,
+  mergeOrderRecords
 }

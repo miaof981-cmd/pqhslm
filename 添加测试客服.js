@@ -3,17 +3,18 @@
 // ========================================
 // 复制到微信开发者工具控制台执行
 
-const userInfo = wx.getStorageSync('userInfo') || {}
-
 const testService = {
-  userId: userInfo.userId || '1001',
-  name: userInfo.nickName || '妙妙',
-  nickName: userInfo.nickName || '妙妙',
-  avatar: userInfo.avatarUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0E4RTZDRiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7lrqI8L3RleHQ+PC9zdmc+',
+  userId: 'svc-10001',
+  id: 'svc-10001',
+  serviceId: 'svc-10001',
+  name: '联小客服',
+  nickName: '联小客服',
+  avatar: 'https://dummyimage.com/200x200/42a5f5/ffffff.png&text=Service',
+  avatarUrl: 'https://dummyimage.com/200x200/42a5f5/ffffff.png&text=Service',
   isActive: true,
   serviceNumber: 1,
-  qrcodeUrl: 'https://example.com/qrcode.jpg',
-  qrcodeNumber: 1
+  qrcodeUrl: 'https://dummyimage.com/400x400/0d47a1/ffffff.png&text=Service+QR',
+  qrcodeNumber: 'LXL-001'
 }
 
 console.log('\n========================================')
@@ -28,6 +29,7 @@ console.log(`  - isActive: ${testService.isActive ? '在线' : '离线'}`)
 console.log('')
 
 wx.setStorageSync('customer_service_list', [testService])
+wx.setStorageSync('service_list', [testService])
 
 console.log('✅ 测试客服数据已添加')
 console.log('🔄 请刷新"我的订单"页面查看效果')
