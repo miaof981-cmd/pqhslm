@@ -21,21 +21,83 @@ const orderStatusUtil = require('./order-status.js')
 function normalizeOrders(orders, options = {}) {
   if (!Array.isArray(orders)) return []
   
-  // 获取客服列表（可选传入，默认从本地存储读取）
   const serviceList = options.serviceList || wx.getStorageSync('customer_service_list') || []
+  // 🔧 修复：商品保存在 mock_products，不是 products
+  const products = wx.getStorageSync('mock_products') || []
+  
+  // 🔧 统一 ID 类型转换函数（避免字符串/数字匹配失败）
+  const toKey = v => v == null ? '' : String(v).trim()
+  
+  // 🔧 构建商品 ID 映射表（提升查找性能）
+  const productById = new Map()
+  products.forEach(p => {
+    if (p.id) productById.set(toKey(p.id), p)
+  })
   
   return orders.map(order => {
-    // 1. 计算订单状态（是否逾期、临近截稿等）
-    let processedOrder = orderStatusUtil.calculateOrderStatus(order)
+    // ⚠️ 第一步：先备份原始字段（防止被后续逻辑覆盖）
+    const rawArtist = order.artistName
+    const rawArtistAvatar = order.artistAvatar
+    const rawService = order.serviceName
+    const rawServiceAvatar = order.serviceAvatar
     
-    // 2. 补充客服信息（头像兜底）
+    // 🔧 统一类型 + 清洗空格（避免匹配失败）
+    const o = { ...order }
+    o.productId = toKey(o.productId)
+    o.serviceId = toKey(o.serviceId)
+    o.artistId = toKey(o.artistId)
+    o.productName = (o.productName || '').trim()
+    
+    // 第二步：计算订单状态
+    let processedOrder = orderStatusUtil.calculateOrderStatus(o)
+    
+    // 第三步：恢复原始非空字段（防止 calculateOrderStatus 覆盖）
+    if (rawArtist && !processedOrder.artistName) processedOrder.artistName = rawArtist
+    if (rawArtistAvatar && !processedOrder.artistAvatar) processedOrder.artistAvatar = rawArtistAvatar
+    if (rawService && !processedOrder.serviceName) processedOrder.serviceName = rawService
+    if (rawServiceAvatar && !processedOrder.serviceAvatar) processedOrder.serviceAvatar = rawServiceAvatar
+    
+    // 第四步：从商品表补充画师和图片信息（只在缺失时补充）
+    let product = null
+    if (processedOrder.productId) {
+      product = productById.get(processedOrder.productId)
+    }
+    if (!product && processedOrder.productName) {
+      product = products.find(p => (p.name || '').trim() === processedOrder.productName)
+    }
+    
+    if (product) {
+      // ⚠️ 只在缺失时补充，不覆盖已有值
+      if (!processedOrder.artistName && product.artistName) {
+        processedOrder.artistName = product.artistName
+      }
+      if (!processedOrder.artistAvatar && product.artistAvatar) {
+        processedOrder.artistAvatar = product.artistAvatar
+      }
+      // 图片处理：只在缺失时补充
+      if (!processedOrder.productImage && product.images && product.images[0]) {
+        const img = product.images[0]
+        if (img.startsWith('data:image')) {
+          processedOrder.productImage = ''
+          processedOrder._hasBase64Image = true
+        } else {
+          processedOrder.productImage = img
+        }
+      }
+    }
+    
+    // 第五步：从客服列表补充客服信息（只在缺失时补充）
     processedOrder = orderStatusUtil.withServiceFallback(processedOrder, serviceList)
     
-    // 3. 统一状态文本
+    // 第六步：统一状态文本和样式类名
     processedOrder.statusText = orderStatusUtil.textOf(processedOrder.status)
-    
-    // 4. 添加CSS类名
     processedOrder.statusClass = orderStatusUtil.classOf(processedOrder.status)
+    
+    // 🎯 最终确保：原始非空值绝对优先（强制恢复）
+    if (rawArtist) processedOrder.artistName = rawArtist
+    if (rawArtistAvatar) processedOrder.artistAvatar = rawArtistAvatar
+    if (rawService) processedOrder.serviceName = rawService
+    if (rawServiceAvatar) processedOrder.serviceAvatar = rawServiceAvatar
     
     return processedOrder
   })

@@ -61,22 +61,37 @@ Page({
       
       console.log('✅ 订单加载完成:', allOrders.length, '个')
       if (allOrders.length > 0) {
-        console.log('订单示例:', {
-          id: allOrders[0].id,
-          status: allOrders[0].status,
-          statusText: allOrders[0].statusText,
-          serviceName: allOrders[0].serviceName,
-          serviceAvatar: allOrders[0].serviceAvatar ? '有' : '无'
+        const latest = allOrders[allOrders.length - 1]
+        console.log('🔍 最新订单（order-helper处理后）:', {
+          id: latest.id,
+          productId: latest.productId,
+          productName: latest.productName,
+          artistName: latest.artistName || '❌ 无',
+          artistAvatar: latest.artistAvatar || '❌ 无',
+          serviceName: latest.serviceName || '❌ 无',
+          serviceAvatar: latest.serviceAvatar || '❌ 无'
         })
       }
       
       // 转换为订单列表需要的格式（保留原有的格式化逻辑）
+      // ✅ 画师信息、客服信息已在 order-helper.js 中统一处理
+      // ⚠️ 禁止在此二次兜底，直接信任归一化结果
+      
+      // 🎯 获取商品表（用于动态读取 base64 图片）
+      const products = wx.getStorageSync('mock_products') || []
+      const productMap = new Map()
+      products.forEach(p => {
+        if (p.id) productMap.set(String(p.id).trim(), p)
+      })
+      
       const mockOrders = allOrders.map(order => {
-        // 画师信息兜底逻辑
-        let artistName = order.artistName
-        if (!artistName || artistName === '待分配') {
-          const userInfo = wx.getStorageSync('userInfo')
-          artistName = userInfo?.nickName || '画师'
+        // 🎯 动态读取图片（如果订单没有图片但有 productId）
+        let productImage = order.productImage || ''
+        if (!productImage && order.productId) {
+          const product = productMap.get(String(order.productId).trim())
+          if (product && product.images && product.images[0]) {
+            productImage = product.images[0]
+          }
         }
         
         // 截稿时间格式化显示
@@ -107,19 +122,16 @@ Page({
         const buyerName = userInfo?.nickName || '买家'
         const buyerAvatar = userInfo?.avatarUrl || orderStatusUtil.DEFAULT_AVATAR
         
-        // 获取画师头像
-        const artistAvatar = order.artistAvatar || orderStatusUtil.DEFAULT_AVATAR
-        
-        return {
+        const result = {
           _id: order.id,
           orderNo: order.id,
-          productId: order.productId || '',
+          productId: order.productId,
           productName: order.productName,
-          productImage: order.productImage,
-          artistName: artistName,
-          artistAvatar: artistAvatar,
-          serviceName: order.serviceName,
-          serviceAvatar: order.serviceAvatar,
+          productImage: productImage,  // 使用动态读取的图片
+          artistName: order.artistName,      // 直接使用，已由 order-helper 处理
+          artistAvatar: order.artistAvatar,  // 直接使用，已由 order-helper 处理
+          serviceName: order.serviceName,    // 直接使用，已由 order-helper 处理
+          serviceAvatar: order.serviceAvatar, // 直接使用，已由 order-helper 处理
           buyerName: buyerName,
           buyerAvatar: buyerAvatar,
           deliveryDays: order.deliveryDays || 7,
@@ -137,48 +149,25 @@ Page({
           overdueDays: order.overdueDays || 0,
           reviewed: false
         }
-      })
-      
-      console.log('=== 转换后订单详情 ===')
-      console.log('订单数量:', mockOrders.length)
-      mockOrders.forEach(o => {
-        console.log(`\n订单: ${o.orderNo}`)
-        console.log(`- 商品: ${o.productName}`)
-        console.log(`- 状态: ${o.statusText}`)
-        console.log(`- 图片: ${o.productImage}`)
-        console.log(`- 是否临时路径: ${o.productImage ? o.productImage.includes('tmp') : '无'}`)
-      })
-
-      // 计算各状态数量
-      const statusCounts = {
-        unpaid: 0,
-        processing: 0,  // 包含所有进行中状态
-        completed: 0
-      }
-      
-      mockOrders.forEach(order => {
-        const status = order.status
         
-        // 统计未支付
-        if (status === 'unpaid') {
-          statusCounts.unpaid++
+        // 🔍 调试：输出最新订单的转换结果
+        if (order.id === allOrders[allOrders.length - 1].id) {
+          console.log('🔍 最新订单（转换后）:', {
+            id: result._id,
+            artistName: result.artistName || '❌ 无',
+            artistAvatar: result.artistAvatar || '❌ 无'
+          })
         }
-        // 统计已完成
-        else if (status === 'completed') {
-          statusCounts.completed++
-        }
-        // 其他所有状态都算"制作中"（包括：processing, inProgress, overdue, nearDeadline, waitingConfirm, paid, created等）
-        else {
-          statusCounts.processing++
-        }
+        
+        return result
       })
-
-      // 🎯 固定Tab顺序，与用户中心保持一致
+      
+      // 🎯 固定Tab顺序，与用户中心保持一致（不显示数量，提升性能）
       const tabs = [
-        { label: '全部', value: 'all', count: mockOrders.length },
-        { label: '制作中', value: 'processing', count: statusCounts.processing },
-        { label: '已完成', value: 'completed', count: statusCounts.completed },
-        { label: '待支付', value: 'unpaid', count: statusCounts.unpaid }
+        { label: '全部', value: 'all' },
+        { label: '制作中', value: 'processing' },
+        { label: '已完成', value: 'completed' },
+        { label: '待支付', value: 'unpaid' }
       ]
 
       this.setData({
@@ -225,10 +214,10 @@ Page({
       emptyText = `暂无${tabItem ? tabItem.label : ''}订单`
     }
 
-    // 🎯 排序：待确认 > 其他进行中 > 已完成
-    if (currentTab === 'all') {
-      orders = orders.sort((a, b) => {
-        // 定义优先级权重
+    // 🎯 所有Tab都按时间倒序排序（新订单在前）
+    orders = orders.sort((a, b) => {
+      // 1. 如果是"全部"Tab，先按优先级排序
+      if (currentTab === 'all') {
         const getPriority = (order) => {
           if (order.status === 'waitingConfirm') return 1  // 最高优先级：待确认
           if (order.status === 'completed') return 999      // 最低优先级：已完成
@@ -238,17 +227,21 @@ Page({
         const priorityA = getPriority(a)
         const priorityB = getPriority(b)
         
-        // 按优先级排序
         if (priorityA !== priorityB) {
           return priorityA - priorityB
         }
-        
-        // 同优先级按创建时间倒序（新订单在前）
-        const timeA = new Date(a.createTime.replace(/-/g, '/')).getTime()
-        const timeB = new Date(b.createTime.replace(/-/g, '/')).getTime()
-        return timeB - timeA
-      })
-    }
+      }
+      
+      // 2. 同优先级或其他Tab，按创建时间倒序（新订单在前）
+      const timeA = new Date((a.createTime || '').replace(/-/g, '/')).getTime()
+      const timeB = new Date((b.createTime || '').replace(/-/g, '/')).getTime()
+      
+      // 处理无效时间
+      if (isNaN(timeA)) return 1
+      if (isNaN(timeB)) return -1
+      
+      return timeB - timeA  // 新订单在前
+    })
 
     this.setData({ orders, emptyText })
   },

@@ -572,29 +572,25 @@ Page({
       setTimeout(() => {
         wx.hideLoading()
         
-        // 获取商品图片（确保不是临时路径）
+        // 获取商品图片
         let productImage = ''
         if (product.images && product.images.length > 0 && product.images[0]) {
           const img = product.images[0]
-          // 检查是否是临时路径
-          if (img.includes('tmp') || img.includes('wxfile://')) {
+          // 只检查 wxfile:// 临时路径，base64 和 http/https 都保留
+          if (img.startsWith('wxfile://')) {
             console.warn('⚠️ 商品图片是临时路径，使用默认图片')
             productImage = '/assets/default-product.png'
           } else {
-            productImage = img
+            productImage = img  // 保留 base64 和 http/https 路径
           }
         } else {
           productImage = '/assets/default-product.png'
         }
         
-        console.log('=== 创建订单 - 图片处理 ===')
-        console.log('原始图片:', product.images && product.images[0])
-        console.log('最终图片:', productImage)
-        
         // 获取画师完整信息
         const artistName = product.artistName || '画师'
         const artistId = product.artistId || ''
-        const artistAvatar = product.artistAvatar || '/assets/default-avatar.png'
+        const artistAvatar = product.artistAvatar || ''
         
         console.log('=== 创建订单传递画师信息 ===')
         console.log('artistId:', artistId)

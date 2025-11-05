@@ -206,7 +206,7 @@ function withServiceFallback(order, serviceList) {
   const out = { ...order }
   
   // 如果没有传入客服列表，从本地存储读取
-  if (!serviceList) {
+  if (!serviceList || !serviceList.length) {
     try {
       serviceList = wx.getStorageSync('customer_service_list') || []
     } catch (e) {
@@ -214,32 +214,33 @@ function withServiceFallback(order, serviceList) {
     }
   }
   
-  // 优先级：① 订单中的serviceName/serviceAvatar → ② 通过serviceId匹配客服列表 → ③ 默认值
+  // 🔧 统一 ID 类型转换（避免字符串/数字匹配失败）
+  const toKey = v => v == null ? '' : String(v).trim()
   
-  // 1️⃣ 如果订单已有客服名称和头像，直接使用
-  if (out.serviceName && out.serviceName !== '待分配' && out.serviceAvatar) {
-    // 确保头像不是旧的错误路径
-    if (out.serviceAvatar === '/assets/default-avatar.png') {
-      out.serviceAvatar = DEFAULT_AVATAR
+  // 🔧 优先通过 serviceId 精确匹配客服列表
+  let matched = null
+  if (toKey(out.serviceId) && serviceList.length > 0) {
+    matched = serviceList.find(s => 
+      toKey(s.userId) === toKey(out.serviceId) || 
+      toKey(s.id) === toKey(out.serviceId)
+    )
+  }
+  
+  // 👇 分别兜底：有名字不动；头像只在匹配到时补充（不写默认头像）
+  if (!out.serviceName) {
+    if (matched && (matched.name || matched.nickName)) {
+      out.serviceName = matched.name || matched.nickName
+    } else {
+      out.serviceName = '待分配'
     }
-    return out
   }
   
-  // 2️⃣ 通过serviceId从客服列表查找
-  if (out.serviceId && serviceList.length > 0) {
-    const matched = serviceList.find(s => s.userId === out.serviceId || s.id === out.serviceId)
-    if (matched) {
-      out.serviceName = matched.name || matched.nickName || '客服'
-      out.serviceAvatar = matched.avatar || matched.avatarUrl || DEFAULT_AVATAR
-      return out
+  if (!out.serviceAvatar) {
+    if (matched && (matched.avatar || matched.avatarUrl)) {
+      out.serviceAvatar = matched.avatar || matched.avatarUrl
     }
+    // ⚠️ 不写 else，让 WXML 层兜底默认头像
   }
-  
-  // 3️⃣ 兜底：使用默认值
-  if (!out.serviceName || out.serviceName === '待分配') {
-    out.serviceName = '待分配'
-  }
-  out.serviceAvatar = DEFAULT_AVATAR
   
   return out
 }

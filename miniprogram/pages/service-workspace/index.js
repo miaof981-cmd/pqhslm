@@ -1,3 +1,4 @@
+const orderHelper = require('../../utils/order-helper.js')
 const orderStatusUtil = require('../../utils/order-status.js')
 const { computeVisualStatus } = require('../../utils/order-visual-status')
 
@@ -82,43 +83,22 @@ Page({
   loadOrders() {
     const userId = wx.getStorageSync('userId')
     
-    // 从本地存储加载真实订单（同时读取 orders 和 pending_orders）
-    const orders = wx.getStorageSync('orders') || []
-    const pendingOrders = wx.getStorageSync('pending_orders') || []
+    console.log('========================================')
+    console.log('📦 [客服端] 使用统一工具加载订单')
+    console.log('========================================')
+    console.log('当前客服ID:', userId)
     
-    // 合并订单（去重，以 id 为准）
-    const orderMap = new Map()
-    ;[...orders, ...pendingOrders].forEach(order => {
-      if (order.id && !orderMap.has(order.id)) {
-        orderMap.set(order.id, order)
-      }
+    // 🎯 使用统一工具函数获取并标准化订单（包含画师、客服、图片信息）
+    let myOrders = orderHelper.prepareOrdersForPage({
+      role: 'service',
+      userId: userId
     })
-    const allOrders = Array.from(orderMap.values())
     
-    // 筛选属于该客服的订单（或未分配的）
-    const myOrders = allOrders.filter(order => {
-      return order.serviceId === userId || !order.serviceId
-    })
+    console.log('✅ 订单加载完成:', myOrders.length, '个')
 
-    // 自动计算订单的状态和进度
-    const processedOrders = orderStatusUtil.calculateOrdersStatus(myOrders)
-
-    // 为每个订单计算进度百分比和格式化时间，并补充头像信息
-    const finalOrders = processedOrders.map(order => {
+    // 为每个订单计算进度百分比和格式化时间
+    const finalOrders = myOrders.map(order => {
       const { statusKey, statusColor, progressPercent } = computeVisualStatus(order)
-      console.log('VISUAL_STATUS_SAMPLE', order.id, { statusKey, statusColor, progressPercent })
-      
-      // 获取买家头像（从用户信息或使用默认头像）
-      let buyerAvatar = order.buyerAvatar || '/assets/default-avatar.png'
-      if (!order.buyerAvatar && order.userId) {
-        const userInfo = wx.getStorageSync('userInfo')
-        if (userInfo && userInfo.userId === order.userId) {
-          buyerAvatar = userInfo.avatarUrl || '/assets/default-avatar.png'
-        }
-      }
-      
-      // 获取画师头像
-      const artistAvatar = order.artistAvatar || '/assets/default-avatar.png'
       
       return {
         ...order,
@@ -129,8 +109,9 @@ Page({
         businessStatus: this.getBusinessStatus(order),
         createTime: this.formatTime(order.createTime || order.createdAt),
         deadline: this.formatTime(order.deadline),
-        buyerAvatar,
-        artistAvatar,
+        // ✅ 画师、客服、买家信息已由 order-helper 统一处理，直接使用（不写默认头像）
+        buyerAvatar: order.buyerAvatar,
+        artistAvatar: order.artistAvatar,
         buyerName: order.buyerName || order.userName || '客户',
         artistName: order.artistName || '待分配'
       }

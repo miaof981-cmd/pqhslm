@@ -23,7 +23,7 @@ Page({
       // ✅ 画师完整信息
       artistId: options.artistId || '',
       artistName: decodeURIComponent(options.artistName || '画师'),
-      artistAvatar: decodeURIComponent(options.artistAvatar || '/assets/default-avatar.png'),
+      artistAvatar: options.artistAvatar ? decodeURIComponent(options.artistAvatar) : '',
       
       createTime: this.formatDateTime(new Date())
     }
@@ -76,7 +76,7 @@ Page({
       return {
         serviceId: '',
         serviceName: '待分配',
-        serviceAvatar: '/assets/default-avatar.png',
+        serviceAvatar: '',
         serviceQrcodeUrl: '',
         serviceQrcodeNumber: null
       }
@@ -95,7 +95,7 @@ Page({
     return {
       serviceId: assignedService.userId,
       serviceName: assignedService.name,
-      serviceAvatar: assignedService.avatar || '/assets/default-avatar.png',
+      serviceAvatar: assignedService.avatar || '',
       serviceQrcodeUrl: assignedService.qrcodeUrl || '',
       serviceQrcodeNumber: assignedService.qrcodeNumber
     }
@@ -141,25 +141,34 @@ Page({
         id: orderInfo.orderNo,
         productId: orderInfo.productId,
         productName: orderInfo.productName,
-        productImage: orderInfo.productImage,
+        // ⚠️ 不保存 base64 图片，避免 setData 数据量过大
+        // 页面显示时通过 productId 从商品表动态读取
+        productImage: orderInfo.productImage && !orderInfo.productImage.startsWith('data:image') 
+          ? orderInfo.productImage 
+          : '',
         spec: `${orderInfo.spec1}${orderInfo.spec2 ? ' / ' + orderInfo.spec2 : ''}`,
         price: orderInfo.totalAmount,
         quantity: orderInfo.quantity,
         deliveryDays: orderInfo.deliveryDays,
+        
+        // ✅ 时间字段（多个字段确保兼容性）
         createTime: orderInfo.createTime,
+        startDate: orderInfo.createTime,  // 新增：用于进度条计算
+        createdAt: orderInfo.createTime,  // 新增：备用字段
         deadline: orderInfo.deadline,
+        
         status: 'inProgress',
         
         // ✅ 保存下单者信息
         buyerId: userId,
         buyerName: userInfo.nickName || '客户',
-        buyerAvatar: userInfo.avatarUrl || '/assets/default-avatar.png',
+        buyerAvatar: userInfo.avatarUrl || '',
         buyerOpenId: userInfo.openid || '',
         
         // ✅ 保存画师完整信息
         artistId: orderInfo.artistId || '',
         artistName: orderInfo.artistName,
-        artistAvatar: orderInfo.artistAvatar || '/assets/default-avatar.png',
+        artistAvatar: orderInfo.artistAvatar || '',
         
         // ✅ 保存客服信息（已分配）
         serviceId: serviceInfo.serviceId,
@@ -284,7 +293,10 @@ Page({
         id: orderInfo.orderNo,
         productId: orderInfo.productId,
         productName: orderInfo.productName,
-        productImage: orderInfo.productImage,
+        // ⚠️ 不保存 base64 图片
+        productImage: orderInfo.productImage && !orderInfo.productImage.startsWith('data:image') 
+          ? orderInfo.productImage 
+          : '',
         spec: specText,
         price: orderInfo.totalAmount.toFixed(2),
         quantity: orderInfo.quantity,
