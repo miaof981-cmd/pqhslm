@@ -318,9 +318,9 @@ Page({
     const day = String(date.getDate()).padStart(2, '0')
     const hours = String(date.getHours()).padStart(2, '0')
     const minutes = String(date.getMinutes()).padStart(2, '0')
-    const seconds = String(date.getSeconds()).padStart(2, '0')
     
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+    // 统一格式：YYYY-MM-DD HH:mm（不显示秒）
+    return `${year}-${month}-${day} ${hours}:${minutes}`
   },
 
   // 长按保存二维码
