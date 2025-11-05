@@ -30,9 +30,24 @@ Page({
     
     // --- 分配客服 ---
     const service = this.assignService()
-    const serviceId = service?.serviceId || service?.id || ''
-    const serviceName = service?.serviceName || service?.name || '客服未分配'
-    const serviceAvatar = service?.serviceAvatar || service?.avatar || DEFAULT_AVATAR_DATA
+    
+    // ⚠️ 如果客服分配失败，阻止下单
+    if (!service || !service.serviceId || !service.serviceName) {
+      console.error('❌ 客服分配失败:', service)
+      wx.showModal({
+        title: '系统错误',
+        content: '客服分配失败，请稍后再试或联系管理员',
+        showCancel: false,
+        complete: () => {
+          wx.navigateBack()
+        }
+      })
+      return
+    }
+    
+    const serviceId = service.serviceId
+    const serviceName = service.serviceName
+    const serviceAvatar = service.serviceAvatar || DEFAULT_AVATAR_DATA
     
     // --- 控制台打印检查 ---
     console.log("📦 下单前检查:", { 

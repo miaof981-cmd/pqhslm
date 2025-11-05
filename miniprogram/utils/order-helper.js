@@ -60,12 +60,24 @@ function normalizeOrders(orders, options = {}) {
     }
 
     // === 5️⃣ 通过客服表补充客服信息（仅在为空时补，不写默认图）===
-    if ((!processed.serviceName || processed.serviceName === '待分配') && processed.serviceId && services.length > 0) {
-      const matched = services.find(
-        s => String(s.userId) === String(processed.serviceId) || String(s.id) === String(processed.serviceId)
-      )
+    if ((!processed.serviceName || processed.serviceName === '待分配' || processed.serviceName === '客服未分配') && services.length > 0) {
+      let matched = null
+      
+      // 优先通过 serviceId 匹配
+      if (processed.serviceId) {
+        matched = services.find(
+          s => String(s.userId) === String(processed.serviceId) || String(s.id) === String(processed.serviceId)
+        )
+      }
+      
+      // 如果没有 serviceId 或匹配失败，使用第一个在线客服
+      if (!matched) {
+        matched = services.find(s => s.isActive) || services[0]
+      }
+      
       if (matched) {
-        processed.serviceName = matched.name || matched.nickName || '客服'
+        processed.serviceId = matched.userId || matched.id
+        processed.serviceName = matched.name || matched.nickName || '在线客服'
         // 🎯 只在为空时补，且不要把默认图写回订单对象
         if (!processed.serviceAvatar && (matched.avatar || matched.avatarUrl)) {
           processed.serviceAvatar = matched.avatar || matched.avatarUrl
@@ -73,11 +85,20 @@ function normalizeOrders(orders, options = {}) {
       }
     }
 
-    // === 6️⃣ 最后再次确保不覆盖原值 ===
-    if (rawArtistName) processed.artistName = rawArtistName
-    if (rawArtistAvatar) processed.artistAvatar = rawArtistAvatar
-    if (rawServiceName) processed.serviceName = rawServiceName
-    if (rawServiceAvatar) processed.serviceAvatar = rawServiceAvatar
+    // === 6️⃣ 最后再次确保不覆盖原值（但不恢复错误值）===
+    if (rawArtistName && rawArtistName !== '画师' && rawArtistName !== '未知画师') {
+      processed.artistName = rawArtistName
+    }
+    if (rawArtistAvatar) {
+      processed.artistAvatar = rawArtistAvatar
+    }
+    // ⚠️ 不恢复"待分配"和"客服未分配"，让第5步的补充逻辑生效
+    if (rawServiceName && rawServiceName !== '待分配' && rawServiceName !== '客服未分配') {
+      processed.serviceName = rawServiceName
+    }
+    if (rawServiceAvatar) {
+      processed.serviceAvatar = rawServiceAvatar
+    }
 
     // === 7️⃣ 状态文本 & class ===
     processed.statusText = orderStatusUtil.textOf(processed.status)
