@@ -146,28 +146,6 @@
       </view>
     </view>
 
-    <!-- 打赏区域 -->
-    <view wx:if="{{userRole === 'customer' && order.status === 'completed'}}" class="reward-card">
-      <view class="reward-header">
-        <view class="reward-icon"></view>
-        <text class="reward-title">对作品满意？给画师打赏吧~</text>
-      </view>
-      <view class="reward-amounts">
-        <view wx:for="{{rewardOptions}}" wx:key="*this" 
-              class="reward-option {{selectedReward === item ? 'selected' : ''}}"
-              bindtap="selectReward"
-              data-amount="{{item}}">
-          ¥{{item}}
-        </view>
-        <view class="reward-option custom" bindtap="showCustomReward">
-          自定义
-        </view>
-      </view>
-      <button class="reward-btn" bindtap="confirmReward" disabled="{{!selectedReward}}">
-        确认打赏
-      </button>
-    </view>
-
     <!-- 操作按钮区 -->
     <view class="action-buttons">
       <!-- 画师操作 -->

@@ -1,6 +1,7 @@
+/* 博文风格详情页 */
 .buyer-show-detail {
   min-height: 100vh;
-  background: #f6f8fb;
+  background: #fff;
 }
 
 .loading {
@@ -13,105 +14,107 @@
   padding-bottom: 60rpx;
 }
 
-/* 用户信息卡片 */
-.author-card {
+/* 用户信息 */
+.author-section {
   display: flex;
   align-items: center;
-  padding: 24rpx;
-  background: #fff;
+  padding: 32rpx 24rpx 24rpx;
 }
 
 .author-avatar {
-  width: 80rpx;
-  height: 80rpx;
+  width: 72rpx;
+  height: 72rpx;
   border-radius: 50%;
-  margin-right: 20rpx;
-  border: 3rpx solid #A8E6CF;
+  margin-right: 16rpx;
+  flex-shrink: 0;
 }
 
 .author-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 6rpx;
 }
 
 .author-name {
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 600;
   color: #333;
 }
 
 .author-time {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #999;
 }
 
-/* 图片网格 - 默认3列 */
-.images-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8rpx;
-  padding: 8rpx;
-  background: #fff;
-}
-
-.grid-image {
-  width: 100%;
-  height: 240rpx;
-  border-radius: 8rpx;
-  object-fit: cover;
-}
-
-/* 文字内容 */
-.comment-card {
-  margin: 24rpx;
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
-}
-
-.comment-content {
-  font-size: 28rpx;
+/* 文字内容 - 紧跟用户信息 */
+.content-text {
+  padding: 0 24rpx 20rpx;
+  font-size: 30rpx;
   color: #333;
-  line-height: 1.8;
+  line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-all;
 }
 
-.product-card {
-  margin: 0 24rpx;
-  background: #fff;
-  border-radius: 24rpx;
-  padding: 24rpx;
+/* 图片展示 - 紧跟文字，无分割 */
+.content-images {
+  padding: 0 24rpx 24rpx;
   display: flex;
-  align-items: center;
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
+  flex-direction: column;
+  gap: 12rpx;
 }
 
-.product-thumb-wrapper {
-  width: 140rpx;
-  height: 140rpx;
-  border-radius: 20rpx;
-  overflow: hidden;
-  margin-right: 24rpx;
+.content-image {
+  width: 100%;
+  display: block;
+  border-radius: 8rpx;
+}
+
+/* 商品区域 - 独立卡片 */
+.product-section {
+  margin: 32rpx 24rpx 0;
+  padding: 24rpx;
+  background: #f8f8f8;
+  border-radius: 16rpx;
+}
+
+.section-title {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 16rpx;
+  font-weight: 500;
+}
+
+.product-card {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  background: #fff;
+  padding: 16rpx;
+  border-radius: 12rpx;
 }
 
 .product-thumb {
-  width: 100%;
-  height: 100%;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 12rpx;
+  flex-shrink: 0;
 }
 
 .product-info {
   flex: 1;
+  min-width: 0;
 }
 
 .product-name {
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 600;
   color: #333;
-  margin-bottom: 10rpx;
+  margin-bottom: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .product-tip {
@@ -122,4 +125,5 @@
 .product-arrow {
   font-size: 40rpx;
   color: #ccc;
+  flex-shrink: 0;
 }

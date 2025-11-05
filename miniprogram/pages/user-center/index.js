@@ -460,6 +460,13 @@ Page({
     }
   },
 
+  // 打赏入口
+  goToRewardPage() {
+    wx.navigateTo({
+      url: '/pages/reward-records/index'
+    })
+  },
+
   // 查看订单详情
   viewOrder(e) {
     const orderId = e.currentTarget.dataset.id

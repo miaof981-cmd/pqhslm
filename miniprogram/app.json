@@ -6,6 +6,7 @@
     "pages/category/index",
     "pages/cart/index",
     "pages/user-center/index",
+    "pages/reward-records/index",
     "pages/buyer-show/index/index",
     "pages/buyer-show/detail/index",
     "pages/buyer-show/publish/index",

@@ -1,6 +1,8 @@
 Page({
   data: {
     posts: [],
+    leftPosts: [],
+    rightPosts: [],
     DEFAULT_AVATAR_DATA: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0E4RTZDRiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7nlKg8L3RleHQ+PC9zdmc+'
   },
 
@@ -17,8 +19,22 @@ Page({
       .slice()
       .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
 
+    // 瀑布流分配：奇数索引到左列，偶数索引到右列
+    const leftPosts = []
+    const rightPosts = []
+    
+    posts.forEach((post, index) => {
+      if (index % 2 === 0) {
+        leftPosts.push(post)
+      } else {
+        rightPosts.push(post)
+      }
+    })
+
     this.setData({
-      posts
+      posts,
+      leftPosts,
+      rightPosts
     })
 
     if (typeof callback === 'function') {

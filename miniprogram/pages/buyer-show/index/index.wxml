@@ -11,32 +11,47 @@
     <button class="empty-button" bindtap="goOrderList">去我的订单看看</button>
   </view>
 
-  <view wx:else class="post-list">
-    <block wx:for="{{posts}}" wx:key="id">
-      <view class="post-card" bindtap="viewPost" data-id="{{item.id}}">
-        <view class="post-header">
-          <image class="author-avatar-small" src="{{item.authorAvatar || DEFAULT_AVATAR_DATA}}" mode="aspectFill" />
-          <view class="post-meta">
-            <text class="author-name-small">{{item.authorName || '匿名用户'}}</text>
-            <text class="post-time">{{item.displayTime}}</text>
-          </view>
-        </view>
-        <view class="post-comment">{{item.comment || '这次合作超级满意，必须晒一波~'}}</view>
-        <view wx:if="{{item.images && item.images.length}}" class="post-cover-wrapper">
-          <image class="post-cover" src="{{item.images[0]}}" mode="aspectFill" />
-          <view wx:if="{{item.images.length > 1}}" class="cover-count">共 {{item.images.length}} 张</view>
-        </view>
-        <view class="post-footer">
-          <view class="post-product">
-            <image class="product-thumb" src="{{item.productImage || '/assets/default-product.png'}}" mode="aspectFill" />
-            <view class="product-info">
-              <text class="product-name">{{item.productName || '关联商品'}}</text>
-              <text class="product-tip">点击查看详情，和 Ta 一样下单</text>
+  <view wx:else class="waterfall-container">
+    <view class="waterfall-column">
+      <block wx:for="{{leftPosts}}" wx:key="id">
+        <view class="post-card" bindtap="viewPost" data-id="{{item.id}}">
+          <view wx:if="{{item.images && item.images.length}}" class="post-cover-wrapper">
+            <image class="post-cover" src="{{item.images[0]}}" mode="widthFix" />
+            <view wx:if="{{item.images.length > 1}}" class="image-count">
+              <text class="count-icon">📷</text>
+              <text>{{item.images.length}}</text>
             </view>
           </view>
-          <view class="post-arrow">›</view>
+          <view class="post-info">
+            <view class="post-title">{{item.comment || '这次合作超级满意~'}}</view>
+            <view class="post-author">
+              <image class="author-avatar" src="{{item.authorAvatar || DEFAULT_AVATAR_DATA}}" mode="aspectFill" />
+              <text class="author-name">{{item.authorName || '匿名用户'}}</text>
+            </view>
+          </view>
         </view>
-      </view>
-    </block>
+      </block>
+    </view>
+    
+    <view class="waterfall-column">
+      <block wx:for="{{rightPosts}}" wx:key="id">
+        <view class="post-card" bindtap="viewPost" data-id="{{item.id}}">
+          <view wx:if="{{item.images && item.images.length}}" class="post-cover-wrapper">
+            <image class="post-cover" src="{{item.images[0]}}" mode="widthFix" />
+            <view wx:if="{{item.images.length > 1}}" class="image-count">
+              <text class="count-icon">📷</text>
+              <text>{{item.images.length}}</text>
+            </view>
+          </view>
+          <view class="post-info">
+            <view class="post-title">{{item.comment || '这次合作超级满意~'}}</view>
+            <view class="post-author">
+              <image class="author-avatar" src="{{item.authorAvatar || DEFAULT_AVATAR_DATA}}" mode="aspectFill" />
+              <text class="author-name">{{item.authorName || '匿名用户'}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
   </view>
 </view>

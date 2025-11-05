@@ -2,8 +2,8 @@
   <view wx:if="{{!post}}" class="loading">加载中...</view>
 
   <view wx:elif="{{post}}" class="detail-content">
-    <!-- 用户信息卡片 -->
-    <view class="author-card">
+    <!-- 用户信息 -->
+    <view class="author-section">
       <image class="author-avatar" src="{{post.authorAvatar || DEFAULT_AVATAR_DATA}}" mode="aspectFill" />
       <view class="author-info">
         <text class="author-name">{{post.authorName || '匿名用户'}}</text>
@@ -12,27 +12,26 @@
     </view>
 
     <!-- 文字内容 -->
-    <view class="comment-card">
-      <view class="comment-content">{{post.comment || '这次合作超级满意，已经安利给朋友啦！'}}</view>
-    </view>
+    <view class="content-text">{{post.comment || '这次合作超级满意，已经安利给朋友啦！'}}</view>
 
-    <!-- 图片展示 -->
-    <view wx:if="{{post.images && post.images.length > 0}}" class="images-grid">
+    <!-- 图片展示（紧跟文字） -->
+    <view wx:if="{{post.images && post.images.length > 0}}" class="content-images">
       <block wx:for="{{post.images}}" wx:key="*this">
-        <image class="grid-image" src="{{item}}" mode="aspectFill" bindtap="previewImage" data-index="{{index}}" />
+        <image class="content-image" src="{{item}}" mode="widthFix" bindtap="previewImage" data-index="{{index}}" />
       </block>
     </view>
 
     <!-- 关联商品 -->
-    <view class="product-card" bindtap="goToProduct">
-      <view class="product-thumb-wrapper">
+    <view class="product-section" bindtap="goToProduct">
+      <view class="section-title">相关商品</view>
+      <view class="product-card">
         <image class="product-thumb" src="{{post.productImage || '/assets/default-product.png'}}" mode="aspectFill" />
+        <view class="product-info">
+          <view class="product-name">{{post.productName || '关联商品'}}</view>
+          <view class="product-tip">点击查看详情，和Ta一样下单</view>
+        </view>
+        <view class="product-arrow">›</view>
       </view>
-      <view class="product-info">
-        <view class="product-name">{{post.productName || '关联商品'}}</view>
-        <view class="product-tip">点击查看商品详情，和Ta一样下单</view>
-      </view>
-      <view class="product-arrow">›</view>
     </view>
   </view>
 </view>

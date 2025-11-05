@@ -10,10 +10,6 @@ Page({
     buyerShowId: '',
     canPublishBuyerShow: false,
 
-    // 打赏选项
-    rewardOptions: [6, 10, 20, 50, 100],
-    selectedReward: 0,
-    
     // 二维码弹窗
     showServiceQR: false,
     showComplaintQR: false,
@@ -150,86 +146,6 @@ Page({
       loading: false,
       buyerShowId: '',
       canPublishBuyerShow: mockOrder.status === 'completed'
-    })
-  },
-
-  // 选择打赏金额
-  selectReward(e) {
-    const amount = e.currentTarget.dataset.amount
-    this.setData({
-      selectedReward: amount
-    })
-  },
-
-  // 自定义打赏金额
-  showCustomReward() {
-    wx.showModal({
-      title: '自定义打赏金额',
-      editable: true,
-      placeholderText: '请输入金额（元）',
-      success: (res) => {
-        if (res.confirm && res.content) {
-          const amount = parseFloat(res.content)
-          if (amount > 0 && amount <= 500) {
-            this.setData({
-              selectedReward: amount
-            })
-          } else {
-            wx.showToast({
-              title: '金额范围：1-500元',
-              icon: 'none'
-            })
-          }
-        }
-      }
-    })
-  },
-
-  // 确认打赏
-  confirmReward() {
-    const { selectedReward, order } = this.data
-    
-    if (!selectedReward) {
-      wx.showToast({
-        title: '请选择打赏金额',
-        icon: 'none'
-      })
-      return
-    }
-    
-    wx.showModal({
-      title: '确认打赏',
-      content: `确认打赏 ¥${selectedReward} 给画师？`,
-      success: (res) => {
-        if (res.confirm) {
-          // TODO: 调用后端接口
-          wx.showLoading({ title: '处理中...' })
-          
-          setTimeout(() => {
-            wx.hideLoading()
-            
-            // 保存打赏记录
-            const rewards = wx.getStorageSync('reward_records') || []
-            rewards.push({
-              id: Date.now(),
-              orderId: order.id,
-              amount: selectedReward,
-              time: new Date().toLocaleString(),
-              artistName: order.artistName
-            })
-            wx.setStorageSync('reward_records', rewards)
-            
-            wx.showToast({
-              title: '打赏成功',
-              icon: 'success'
-            })
-            
-            this.setData({
-              selectedReward: 0
-            })
-          }, 1000)
-        }
-      }
     })
   },
 
