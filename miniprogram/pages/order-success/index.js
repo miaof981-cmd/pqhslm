@@ -49,28 +49,47 @@ Page({
     }
     
     // 🎯 画师信息：优先本地商品，其次页面参数
-    const artistId = product.artistId || decodeIfNeeded(options.artistId)
-    const artistName = product.artistName || decodeIfNeeded(options.artistName)
-    const artistAvatar = product.artistAvatar || decodeIfNeeded(options.artistAvatar)
+    let artistId = product.artistId || decodeIfNeeded(options.artistId)
+    let artistName = product.artistName || decodeIfNeeded(options.artistName)
+    let artistAvatar = product.artistAvatar || decodeIfNeeded(options.artistAvatar)
     
-    // ⚠️ 验证画师信息完整性
-    if (!artistId || !artistName || !artistAvatar) {
+    const artistResolution = this.fillArtistInfo(
+      { artistId, artistName, artistAvatar },
+      { product, options }
+    )
+    artistId = artistResolution.artistInfo.artistId
+    artistName = artistResolution.artistInfo.artistName
+    artistAvatar = artistResolution.artistInfo.artistAvatar
+    
+    if (artistResolution.fallbackLogs && artistResolution.fallbackLogs.length > 0) {
+      artistResolution.fallbackLogs.forEach(msg => console.log('🔄 画师信息补全:', msg))
+    }
+    
+    if (artistResolution.missingFields && artistResolution.missingFields.length > 0) {
+      const fieldLabelMap = {
+        artistId: '画师ID',
+        artistName: '画师名称',
+        artistAvatar: '画师头像'
+      }
+      const missingText = artistResolution.missingFields.map(key => fieldLabelMap[key] || key).join('、')
+      const extraHint = artistResolution.invalidFields && artistResolution.invalidFields.includes('artistAvatar')
+        ? ' 当前画师头像为临时路径，请在画师资料或商品信息中上传正式头像，或执行初始化脚本补齐数据。'
+        : ''
       console.error('❌ 商品缺少画师信息:', { artistId, artistName, artistAvatar: artistAvatar ? '有' : '无' })
       wx.showModal({
         title: '商品信息不完整',
-        content: '该商品缺少画师信息，请联系管理员完善商品资料',
+        content: `缺少以下画师字段：${missingText}。${extraHint}`,
         showCancel: false,
         complete: () => wx.navigateBack()
       })
       return
     }
     
-    // ⚠️ 禁止临时路径
-    if (artistAvatar.startsWith('http://tmp/') || artistAvatar.startsWith('/assets/')) {
-      console.error('❌ 画师头像是临时路径或本地路径:', artistAvatar)
+    if (artistAvatar && this.isInvalidImagePath(artistAvatar)) {
+      console.error('❌ 画师头像路径无效:', artistAvatar)
       wx.showModal({
         title: '商品信息错误',
-        content: '画师头像路径无效，请联系管理员',
+        content: '画师头像路径无效，请联系管理员更新为正式图片链接',
         showCancel: false,
         complete: () => wx.navigateBack()
       })
@@ -283,6 +302,124 @@ Page({
     }
   },
   
+  isInvalidImagePath(path) {
+    if (path == null) return true
+    if (typeof path !== 'string') {
+      path = String(path)
+    }
+    const trimmed = path.trim()
+    if (!trimmed) return true
+    const lower = trimmed.toLowerCase()
+    if (lower === 'undefined' || lower === 'null') return true
+    return trimmed.startsWith('http://tmp/') || trimmed.startsWith('/assets/')
+  },
+
+  fillArtistInfo(initialInfo = {}, context = {}) {
+    const ensure = (value) => {
+      if (value == null) return ''
+      if (typeof value !== 'string') {
+        value = String(value)
+      }
+      const trimmed = value.trim()
+      if (!trimmed) return ''
+      const lower = trimmed.toLowerCase()
+      if (lower === 'undefined' || lower === 'null') return ''
+      return trimmed
+    }
+    
+    const info = {
+      artistId: ensure(initialInfo.artistId),
+      artistName: ensure(initialInfo.artistName),
+      artistAvatar: ensure(initialInfo.artistAvatar)
+    }
+    
+    const fallbackLogs = []
+    const invalidFields = []
+    
+    if (info.artistAvatar && this.isInvalidImagePath(info.artistAvatar)) {
+      fallbackLogs.push('画师头像为临时路径，准备重新查找正式头像')
+      invalidFields.push('artistAvatar')
+      info.artistAvatar = ''
+    }
+    
+    const candidateIds = []
+    if (info.artistId) candidateIds.push(info.artistId)
+    if (context.product && ensure(context.product.artistId)) {
+      candidateIds.push(ensure(context.product.artistId))
+    }
+    if (context.options && ensure(context.options.artistId)) {
+      candidateIds.push(ensure(context.options.artistId))
+    }
+    
+    const applications = wx.getStorageSync('artist_applications') || []
+    let matchedApplication = null
+    if (applications.length > 0) {
+      matchedApplication = applications.find(app => {
+        const appId = ensure(app.userId)
+        return appId && candidateIds.includes(appId)
+      })
+      if (!matchedApplication && info.artistName) {
+        matchedApplication = applications.find(app => ensure(app.name) === info.artistName)
+      }
+    }
+    
+    if (matchedApplication) {
+      fallbackLogs.push('从 artist_applications 补全画师信息')
+      if (!info.artistId) info.artistId = ensure(matchedApplication.userId)
+      if (!info.artistName) info.artistName = ensure(matchedApplication.name || matchedApplication.realName)
+      const avatarFromApp = matchedApplication.avatarUrl || matchedApplication.avatar
+      const normalizedAvatar = ensure(avatarFromApp)
+      if (!info.artistAvatar && normalizedAvatar && !this.isInvalidImagePath(normalizedAvatar)) {
+        info.artistAvatar = normalizedAvatar
+        const index = invalidFields.indexOf('artistAvatar')
+        if (index !== -1) invalidFields.splice(index, 1)
+      }
+    }
+    
+    if (!info.artistAvatar && info.artistId) {
+      const profiles = wx.getStorageSync('artist_profiles') || {}
+      const profile = profiles[info.artistId]
+      if (profile) {
+        const profileAvatar = ensure(profile.avatar || profile.avatarUrl)
+        if (profileAvatar && !this.isInvalidImagePath(profileAvatar)) {
+          info.artistAvatar = profileAvatar
+          fallbackLogs.push('从 artist_profiles 补全画师头像')
+          const index = invalidFields.indexOf('artistAvatar')
+          if (index !== -1) invalidFields.splice(index, 1)
+        }
+      }
+    }
+    
+    if ((!info.artistName || !info.artistAvatar) && info.artistId) {
+      const mockUsers = wx.getStorageSync('mock_users') || []
+      const matchedUser = mockUsers.find(user => ensure(user.userId) === info.artistId)
+      if (matchedUser) {
+        fallbackLogs.push('从 mock_users 补全画师基础信息')
+        if (!info.artistName) {
+          info.artistName = ensure(matchedUser.nickname || matchedUser.nickName || matchedUser.name)
+        }
+        const userAvatar = ensure(matchedUser.avatar || matchedUser.avatarUrl)
+        if (!info.artistAvatar && userAvatar && !this.isInvalidImagePath(userAvatar)) {
+          info.artistAvatar = userAvatar
+          const index = invalidFields.indexOf('artistAvatar')
+          if (index !== -1) invalidFields.splice(index, 1)
+        }
+      }
+    }
+    
+    const missingFields = []
+    if (!info.artistId) missingFields.push('artistId')
+    if (!info.artistName) missingFields.push('artistName')
+    if (!info.artistAvatar) missingFields.push('artistAvatar')
+    
+    return {
+      artistInfo: info,
+      missingFields,
+      fallbackLogs,
+      invalidFields
+    }
+  },
+
   // 转换临时头像为 base64
   async convertTempAvatar(tempPath) {
     const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')

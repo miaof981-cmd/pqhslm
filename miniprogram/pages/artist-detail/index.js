@@ -1,3 +1,5 @@
+const orderHelper = require('../../utils/order-helper.js')
+
 Page({
   data: {
     loading: true,
@@ -61,7 +63,7 @@ Page({
       
       // 读取商品和订单数据
       const allProducts = wx.getStorageSync('mock_products') || []
-      const allOrders = wx.getStorageSync('mock_orders') || []
+      const allOrders = orderHelper.getAllOrders()
       
       // 统计画师数据
       const artistProducts = allProducts.filter(p => p.artistId == artistId)
@@ -100,7 +102,7 @@ Page({
     try {
       const artistId = this.data.artistId
       const allProducts = wx.getStorageSync('mock_products') || []
-      const allOrders = wx.getStorageSync('mock_orders') || []
+      const allOrders = orderHelper.getAllOrders()
       
       // 筛选该画师的商品
       const artistProducts = allProducts.filter(p => p.artistId == artistId)
@@ -127,7 +129,7 @@ Page({
   async loadPerformance() {
     try {
       const artistId = this.data.artistId
-      const allOrders = wx.getStorageSync('mock_orders') || []
+      const allOrders = orderHelper.getAllOrders()
       
       // 筛选该画师的订单
       const artistOrders = allOrders.filter(o => o.artistId == artistId)

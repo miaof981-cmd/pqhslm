@@ -115,7 +115,7 @@ Page({
   // 加载仪表盘数据
   async loadDashboard() {
     // 从本地存储读取真实数据
-    const allOrders = wx.getStorageSync('mock_orders') || []
+    const allOrders = orderHelper.getAllOrders()
     const allApplications = wx.getStorageSync('artist_applications') || []
     
     // 计算订单统计
@@ -397,7 +397,7 @@ Page({
     
     // 读取所有商品和订单，用于统计画师数据
     const allProducts = wx.getStorageSync('mock_products') || []
-    const allOrders = wx.getStorageSync('mock_orders') || []
+    const allOrders = orderHelper.getAllOrders()
     
     // 转换为画师列表
     const artists = approvedApplications.map(app => {

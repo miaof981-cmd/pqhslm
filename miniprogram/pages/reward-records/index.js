@@ -166,14 +166,21 @@ Page({
         const display = {
           id: order.id,
           artistName: order.artistName || '未知画师',
-          artistAvatar: order.artistAvatar || '',
-          productName: order.productName || `订单 #${order.id}`,
+          artistAvatar: order.artistAvatar || DEFAULT_AVATAR_DATA,
+          productName: order.productName ? `橱窗：${order.productName}` : `订单 #${order.id}`,
           completedAt: completedTs,
           completedText: completedTs ? formatDate(completedTs) : '时间未知',
           rewarded: false,
           rewardAmount: '',
           rewardTime: ''
         }
+
+        console.log('🎖️ 打赏订单信息:', {
+          orderId: order.id,
+          artistName: order.artistName,
+          artistAvatar: order.artistAvatar ? order.artistAvatar.substring(0, 50) + '...' : '❌ 无',
+          productName: order.productName
+        })
 
         const rewardRecord = rewardMap.get(String(order.id))
         if (rewardRecord) {

@@ -5,10 +5,63 @@
 
 // ==================== 创建测试商品 ====================
 
+const DEFAULT_ARTIST_AVATAR = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0E4RTZDRiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7nlLs8L3RleHQ+PC9zdmc+'
+
+function resolveArtistContext() {
+  const normalize = (value) => {
+    if (value == null) return ''
+    const str = String(value).trim()
+    if (!str) return ''
+    const lower = str.toLowerCase()
+    if (lower === 'undefined' || lower === 'null') return ''
+    return str
+  }
+  
+  const applications = wx.getStorageSync('artist_applications') || []
+  const approved = applications.find(app => app && app.status === 'approved')
+  if (approved) {
+    const avatarFromApp = approved.avatarUrl || approved.avatar
+    return {
+      artistId: normalize(approved.userId) || `artist_${Date.now()}`,
+      artistName: normalize(approved.name) || normalize(approved.realName) || '测试画师',
+      artistAvatar: avatarFromApp || DEFAULT_ARTIST_AVATAR,
+      source: 'artist_applications'
+    }
+  }
+  
+  const mockUsers = wx.getStorageSync('mock_users') || []
+  const artistUser = mockUsers.find(user => {
+    if (!user) return false
+    const roles = Array.isArray(user.roles) ? user.roles : []
+    return roles.includes('artist')
+  })
+  if (artistUser) {
+    const avatarFromUser = artistUser.avatar || artistUser.avatarUrl
+    return {
+      artistId: normalize(artistUser.userId) || `artist_${Date.now()}`,
+      artistName: normalize(artistUser.nickname || artistUser.nickName || artistUser.name) || '测试画师',
+      artistAvatar: avatarFromUser || DEFAULT_ARTIST_AVATAR,
+      source: 'mock_users'
+    }
+  }
+  
+  const userId = normalize(wx.getStorageSync('userId')) || `artist_${Date.now()}`
+  const userInfo = wx.getStorageSync('userInfo') || {}
+  const avatarFromWx = normalize(userInfo.avatarUrl || userInfo.avatar)
+  
+  return {
+    artistId: userId,
+    artistName: normalize(userInfo.nickName || userInfo.nickname) || '测试画师',
+    artistAvatar: avatarFromWx || DEFAULT_ARTIST_AVATAR,
+    source: 'currentUser'
+  }
+}
+
 // 1. 创建8天出稿商品
 function create8DayProduct() {
   const products = wx.getStorageSync('mock_products') || []
-  const userInfo = wx.getStorageSync('userInfo') || {}
+  const artist = resolveArtistContext()
+  console.log(`🎯 使用画师数据来源: ${artist.source} (ID: ${artist.artistId})`)
   
   const product = {
     id: `test_8day_${Date.now()}`,
@@ -22,9 +75,9 @@ function create8DayProduct() {
     specs: [],
     tags: [],
     isOnSale: true,
-    artistName: userInfo.nickName || '测试画师',
-    artistId: wx.getStorageSync('userId') || 'test_artist',
-    artistAvatar: userInfo.avatarUrl || '/assets/default-avatar.png',
+    artistName: artist.artistName,
+    artistId: artist.artistId,
+    artistAvatar: artist.artistAvatar,
     createTime: Date.now(),
     updateTime: Date.now()
   }
@@ -45,7 +98,8 @@ function create8DayProduct() {
 // 2. 创建20天出稿商品
 function create20DayProduct() {
   const products = wx.getStorageSync('mock_products') || []
-  const userInfo = wx.getStorageSync('userInfo') || {}
+  const artist = resolveArtistContext()
+  console.log(`🎯 使用画师数据来源: ${artist.source} (ID: ${artist.artistId})`)
   
   const product = {
     id: `test_20day_${Date.now()}`,
@@ -59,9 +113,9 @@ function create20DayProduct() {
     specs: [],
     tags: [],
     isOnSale: true,
-    artistName: userInfo.nickName || '测试画师',
-    artistId: wx.getStorageSync('userId') || 'test_artist',
-    artistAvatar: userInfo.avatarUrl || '/assets/default-avatar.png',
+    artistName: artist.artistName,
+    artistId: artist.artistId,
+    artistAvatar: artist.artistAvatar,
     createTime: Date.now(),
     updateTime: Date.now()
   }
@@ -82,8 +136,8 @@ function create20DayProduct() {
 // 3. 一键创建所有测试商品（覆盖所有颜色分级）
 function createAllTestProducts() {
   const products = wx.getStorageSync('mock_products') || []
-  const userInfo = wx.getStorageSync('userInfo') || {}
-  const userId = wx.getStorageSync('userId') || 'test_artist'
+  const artist = resolveArtistContext()
+  console.log(`🎯 使用画师数据来源: ${artist.source} (ID: ${artist.artistId})`)
   
   const testProducts = [
     {
@@ -133,9 +187,9 @@ function createAllTestProducts() {
       specs: [],
       tags: [],
       isOnSale: true,
-      artistName: userInfo.nickName || '测试画师',
-      artistId: userId,
-      artistAvatar: userInfo.avatarUrl || '/assets/default-avatar.png',
+      artistName: artist.artistName,
+      artistId: artist.artistId,
+      artistAvatar: artist.artistAvatar,
       createTime: Date.now(),
       updateTime: Date.now()
     }
@@ -285,4 +339,3 @@ window.testProduct = {
 }
 
 console.log('✅ 工具已加载！可以直接调用函数或使用 testProduct.xxx() 调用')
-
