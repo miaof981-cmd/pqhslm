@@ -22,6 +22,19 @@ Page({
     const posts = wx.getStorageSync('buyer_show_posts') || []
     const post = posts.find(item => String(item.id) === String(id))
 
+    console.log('========================================')
+    console.log('📖 [买家秀详情] 加载帖子信息')
+    console.log('========================================')
+    console.log('帖子ID:', id)
+    console.log('找到的帖子:', post)
+    
+    if (post) {
+      console.log('✅ 帖子用户信息:')
+      console.log('  - authorName:', post.authorName || '❌ 无')
+      console.log('  - authorAvatar:', post.authorAvatar ? post.authorAvatar.substring(0, 50) + '...' : '❌ 无')
+      console.log('  - authorId:', post.authorId || '❌ 无')
+    }
+
     if (!post) {
       wx.showToast({
         title: '内容已被删除',

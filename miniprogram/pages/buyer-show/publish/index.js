@@ -147,6 +147,16 @@ Page({
 
     // 🎯 获取当前用户信息
     const userInfo = wx.getStorageSync('userInfo') || {}
+    const userId = wx.getStorageSync('userId')
+    
+    console.log('========================================')
+    console.log('📝 [买家秀发布] 开始检查用户信息')
+    console.log('========================================')
+    console.log('userInfo:', userInfo)
+    console.log('userId:', userId)
+    console.log('nickName:', userInfo.nickName)
+    console.log('avatarUrl:', userInfo.avatarUrl ? userInfo.avatarUrl.substring(0, 50) + '...' : '❌ 无')
+    
     const { DEFAULT_AVATAR_DATA } = require('../../../utils/constants.js')
     const beautifyAvatar = (avatar) => {
       if (!avatar) return ''
@@ -161,6 +171,11 @@ Page({
 
     const authorName = userInfo.nickName || userInfo.name || '匿名用户'
     const authorAvatar = beautifyAvatar(userInfo.avatarUrl || userInfo.avatar) || DEFAULT_AVATAR_DATA
+    
+    console.log('✅ 最终使用的用户信息:')
+    console.log('  - authorName:', authorName)
+    console.log('  - authorAvatar:', authorAvatar ? authorAvatar.substring(0, 50) + '...' : '❌ 无')
+    console.log('  - authorId:', userId)
 
     const now = Date.now()
     const displayTime = this.formatDisplayTime(new Date())
