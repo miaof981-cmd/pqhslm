@@ -118,7 +118,7 @@
           <view class="function-icon icon-service"></view>
           <text class="function-label">平台售后</text>
         </view>
-        <view class="function-item">
+        <view class="function-item" bindtap="goToMyBuyerShow">
           <view class="function-icon icon-show"></view>
           <text class="function-label">我的买家秀</text>
         </view>

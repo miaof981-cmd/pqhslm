@@ -467,6 +467,29 @@ Page({
     })
   },
 
+  // 我的买家秀
+  goToMyBuyerShow() {
+    // 获取当前用户发布的买家秀
+    const userId = this.data.userId
+    const allPosts = wx.getStorageSync('buyer_show_posts') || []
+    const myPosts = allPosts.filter(post => String(post.authorId) === String(userId))
+    
+    if (myPosts.length === 0) {
+      wx.showModal({
+        title: '暂无买家秀',
+        content: '您还没有发布买家秀，完成订单后可以在订单详情页发布哦~',
+        showCancel: false,
+        confirmText: '知道了'
+      })
+      return
+    }
+    
+    // 跳转到买家秀列表页，并传递参数表示只显示我的
+    wx.navigateTo({
+      url: '/pages/buyer-show/index/index?showMyOnly=true'
+    })
+  },
+
   // 查看订单详情
   viewOrder(e) {
     const orderId = e.currentTarget.dataset.id
