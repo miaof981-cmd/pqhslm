@@ -454,60 +454,43 @@ Page({
         return this.compressAndConvertImage(tempPath)
       })
       
-      const base64Images = await Promise.all(promises)
+      const results = await Promise.all(promises)
       
-      // 过滤掉失败的图片
-      const validImages = base64Images.filter(img => img !== null)
+      // 分离成功和失败的图片
+      const validImages = results.filter(result => result.success).map(result => result.image)
+      const rejectedImages = results.filter(result => !result.success)
+      
+      wx.hideLoading()
       
       if (validImages.length > 0) {
-        // 检测图片总大小
-        const totalNewSize = validImages.reduce((sum, img) => sum + img.length, 0)
-        const existingSize = this.data.formData.images.reduce((sum, img) => sum + img.length, 0)
-        const totalSize = totalNewSize + existingSize
-        const totalSizeKB = (totalSize / 1024).toFixed(2)
-        
-        console.log('📊 图片存储统计:')
-        console.log('  新增图片:', (totalNewSize / 1024).toFixed(2), 'KB')
-        console.log('  现有图片:', (existingSize / 1024).toFixed(2), 'KB')
-        console.log('  总大小:', totalSizeKB, 'KB')
-        
-        // 如果总大小超过3MB，给出提示
-        if (totalSize > 3 * 1024 * 1024) {
-          wx.hideLoading()
-          wx.showModal({
-            title: '图片较多',
-            content: `当前图片总大小 ${totalSizeKB}KB。建议：\n1. 控制图片数量在6张以内\n2. 如遇保存失败，请减少图片`,
-            showCancel: true,
-            cancelText: '取消添加',
-            confirmText: '继续添加',
-            success: (modalRes) => {
-              if (modalRes.confirm) {
-                this.setData({
-                  'formData.images': [...this.data.formData.images, ...validImages]
-                })
-                wx.showToast({ 
-                  title: `已添加${validImages.length}张图片`, 
-                  icon: 'success' 
-                })
-              }
-            }
-          })
-          return
-        }
-        
         this.setData({
           'formData.images': [...this.data.formData.images, ...validImages]
         })
         
-        wx.hideLoading()
-        wx.showToast({ 
-          title: `已添加${validImages.length}张图片`, 
-          icon: 'success' 
-        })
+        // 如果有被拒绝的图片，给出提示
+        if (rejectedImages.length > 0) {
+          wx.showModal({
+            title: '部分图片过大',
+            content: `成功添加 ${validImages.length} 张图片\n${rejectedImages.length} 张图片超过2MB已跳过\n\n建议：选择较小的图片或使用图片编辑工具压缩后上传`,
+            showCancel: false,
+            confirmText: '知道了'
+          })
+        } else {
+          wx.showToast({ 
+            title: `已添加${validImages.length}张图片`, 
+            icon: 'success' 
+          })
+        }
         
         console.log('✅ 图片已压缩并转换为 base64')
+      } else if (rejectedImages.length > 0) {
+        wx.showModal({
+          title: '图片过大',
+          content: `所有图片均超过2MB限制\n\n建议：\n1. 使用图片编辑工具压缩\n2. 选择分辨率较低的图片\n3. 单张图片不超过2MB`,
+          showCancel: false,
+          confirmText: '知道了'
+        })
       } else {
-        wx.hideLoading()
         wx.showToast({ title: '图片处理失败', icon: 'none' })
       }
 
@@ -520,7 +503,7 @@ Page({
     }
   },
   
-  // 压缩并转换图片为 base64（优化质量和大小平衡）
+  // 压缩并转换图片为 base64（单张限制2MB）
   async compressAndConvertImage(tempPath) {
     return new Promise((resolve) => {
       // 先使用 canvas 压缩图片
@@ -554,20 +537,34 @@ Page({
                   filePath: canvasRes.tempFilePath,
                   encoding: 'base64',
                   success: (fileRes) => {
-                    const base64 = 'data:image/jpeg;base64,' + fileRes.data
                     const sizeKB = (fileRes.data.length / 1024).toFixed(2)
-                    console.log(`✅ 图片压缩成功: ${width}x${height}, ${sizeKB}KB`)
+                    const sizeMB = (fileRes.data.length / (1024 * 1024)).toFixed(2)
                     
-                    // 检测单张图片大小，给出提示
-                    if (sizeKB > 500) {
-                      console.warn('⚠️ 单张图片较大:', sizeKB, 'KB，建议控制在500KB内')
+                    console.log(`📸 图片处理: ${width}x${height}, ${sizeKB}KB`)
+                    
+                    // 🎯 单张图片限制：2MB
+                    if (fileRes.data.length > 2 * 1024 * 1024) {
+                      console.error(`❌ 图片过大: ${sizeMB}MB，超过2MB限制`)
+                      resolve({ 
+                        success: false, 
+                        image: null,
+                        size: sizeMB
+                      })
+                      return
                     }
                     
-                    resolve(base64)
+                    const base64 = 'data:image/jpeg;base64,' + fileRes.data
+                    console.log(`✅ 图片压缩成功: ${sizeKB}KB`)
+                    
+                    resolve({ 
+                      success: true, 
+                      image: base64,
+                      size: sizeKB
+                    })
                   },
                   fail: (err) => {
                     console.error('❌ base64转换失败:', err)
-                    resolve(null)
+                    resolve({ success: false, image: null })
                   }
                 })
               },
@@ -595,13 +592,32 @@ Page({
       filePath: tempPath,
       encoding: 'base64',
       success: (fileRes) => {
+        const sizeKB = (fileRes.data.length / 1024).toFixed(2)
+        const sizeMB = (fileRes.data.length / (1024 * 1024)).toFixed(2)
+        
+        console.log('⚠️ 使用原图转换，大小:', sizeKB, 'KB')
+        
+        // 🎯 单张图片限制：2MB
+        if (fileRes.data.length > 2 * 1024 * 1024) {
+          console.error(`❌ 原图过大: ${sizeMB}MB，超过2MB限制`)
+          resolve({ 
+            success: false, 
+            image: null,
+            size: sizeMB
+          })
+          return
+        }
+        
         const base64 = 'data:image/jpeg;base64,' + fileRes.data
-        console.log('⚠️ 使用原图转换，大小:', (fileRes.data.length / 1024).toFixed(2), 'KB')
-        resolve(base64)
+        resolve({ 
+          success: true, 
+          image: base64,
+          size: sizeKB
+        })
       },
       fail: (err) => {
         console.error('❌ 直接转换失败:', err)
-        resolve(null)
+        resolve({ success: false, image: null })
       }
     })
   },
