@@ -456,9 +456,8 @@ Page({
       
       const results = await Promise.all(promises)
       
-      // 分离成功和失败的图片
+      // 过滤成功的图片
       const validImages = results.filter(result => result.success).map(result => result.image)
-      const rejectedImages = results.filter(result => !result.success)
       
       wx.hideLoading()
       
@@ -467,29 +466,12 @@ Page({
           'formData.images': [...this.data.formData.images, ...validImages]
         })
         
-        // 如果有被拒绝的图片，给出提示
-        if (rejectedImages.length > 0) {
-          wx.showModal({
-            title: '部分图片过大',
-            content: `成功添加 ${validImages.length} 张图片\n${rejectedImages.length} 张图片超过2MB已跳过\n\n建议：选择较小的图片或使用图片编辑工具压缩后上传`,
-            showCancel: false,
-            confirmText: '知道了'
-          })
-        } else {
-          wx.showToast({ 
-            title: `已添加${validImages.length}张图片`, 
-            icon: 'success' 
-          })
-        }
+        wx.showToast({ 
+          title: `已添加${validImages.length}张图片`, 
+          icon: 'success' 
+        })
         
         console.log('✅ 图片已压缩并转换为 base64')
-      } else if (rejectedImages.length > 0) {
-        wx.showModal({
-          title: '图片过大',
-          content: `所有图片均超过2MB限制\n\n建议：\n1. 使用图片编辑工具压缩\n2. 选择分辨率较低的图片\n3. 单张图片不超过2MB`,
-          showCancel: false,
-          confirmText: '知道了'
-        })
       } else {
         wx.showToast({ title: '图片处理失败', icon: 'none' })
       }
@@ -538,20 +520,8 @@ Page({
                   encoding: 'base64',
                   success: (fileRes) => {
                     const sizeKB = (fileRes.data.length / 1024).toFixed(2)
-                    const sizeMB = (fileRes.data.length / (1024 * 1024)).toFixed(2)
                     
                     console.log(`📸 图片处理: ${width}x${height}, ${sizeKB}KB`)
-                    
-                    // 🎯 单张图片限制：2MB
-                    if (fileRes.data.length > 2 * 1024 * 1024) {
-                      console.error(`❌ 图片过大: ${sizeMB}MB，超过2MB限制`)
-                      resolve({ 
-                        success: false, 
-                        image: null,
-                        size: sizeMB
-                      })
-                      return
-                    }
                     
                     const base64 = 'data:image/jpeg;base64,' + fileRes.data
                     console.log(`✅ 图片压缩成功: ${sizeKB}KB`)
@@ -593,20 +563,8 @@ Page({
       encoding: 'base64',
       success: (fileRes) => {
         const sizeKB = (fileRes.data.length / 1024).toFixed(2)
-        const sizeMB = (fileRes.data.length / (1024 * 1024)).toFixed(2)
         
         console.log('⚠️ 使用原图转换，大小:', sizeKB, 'KB')
-        
-        // 🎯 单张图片限制：2MB
-        if (fileRes.data.length > 2 * 1024 * 1024) {
-          console.error(`❌ 原图过大: ${sizeMB}MB，超过2MB限制`)
-          resolve({ 
-            success: false, 
-            image: null,
-            size: sizeMB
-          })
-          return
-        }
         
         const base64 = 'data:image/jpeg;base64,' + fileRes.data
         resolve({ 
