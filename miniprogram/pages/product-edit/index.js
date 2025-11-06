@@ -306,7 +306,7 @@ Page({
         timestamp: Date.now()
       }
       
-      // 计算草稿大小
+      // 计算草稿大小（仅用于日志）
       const draftSize = JSON.stringify(draftData).length
       const draftSizeKB = (draftSize / 1024).toFixed(2)
       
@@ -315,18 +315,6 @@ Page({
       console.log('图片数量:', draftData.formData.images.length)
       console.log('当前步骤:', draftData.currentStep)
       console.log('草稿大小:', draftSizeKB, 'KB')
-      
-      // 检查是否超过localStorage限制（10MB，预留安全边界）
-      if (draftSize > 8 * 1024 * 1024) { // 8MB限制
-        console.error('❌ 草稿过大:', draftSizeKB, 'KB')
-        wx.showModal({
-          title: '保存失败',
-          content: `图片过多导致存储超限。请尝试：\n1. 减少图片数量\n2. 删除部分规格图片\n\n草稿已保留，可稍后继续编辑。`,
-          showCancel: false,
-          confirmText: '知道了'
-        })
-        return
-      }
       
       wx.setStorageSync('product_draft', draftData)
       
@@ -346,21 +334,8 @@ Page({
     } catch (error) {
       console.error('❌ 保存草稿失败', error)
       
-      // 判断是否是配额超限错误
-      const isQuotaExceeded = error.message && (
-        error.message.includes('exceed') || 
-        error.message.includes('quota') ||
-        error.message.includes('storage')
-      )
-      
-      wx.showModal({
-        title: '保存失败',
-        content: isQuotaExceeded 
-          ? '可能是图片过多导致存储超限。请尝试：\n1. 减少图片数量\n2. 删除部分规格图片\n\n草稿已保留，可稍后继续编辑。'
-          : '草稿保存失败，请稍后重试',
-        showCancel: false,
-        confirmText: '知道了'
-      })
+      // 静默失败，不打扰用户
+      console.warn('草稿保存失败，但不影响继续编辑')
     }
   },
 
