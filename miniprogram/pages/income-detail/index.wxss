@@ -10,128 +10,91 @@
   color: #999;
 }
 
-/* 收入总览 */
-.income-summary {
-  margin-bottom: 32rpx;
-}
-
-.total-income-card {
-  background: #FFFFFF;
-  border-radius: 24rpx;
-  padding: 32rpx 28rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
-  border: 2rpx solid #F0F0F0;
-}
-
-.total-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 24rpx;
+/* 🎯 余额卡片 - 压缩版 */
+.balance-card {
+  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+  border-radius: 20rpx;
+  padding: 28rpx 24rpx;
   margin-bottom: 24rpx;
-  border-bottom: 2rpx solid #F5F5F5;
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.25);
 }
 
-.total-label {
-  font-size: 32rpx;
-  color: #666;
-  font-weight: 500;
+.balance-main {
+  text-align: center;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.2);
 }
 
-.total-amount {
-  font-size: 48rpx;
+.balance-label {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 12rpx;
+}
+
+.balance-amount {
+  display: block;
+  font-size: 56rpx;
   font-weight: bold;
-  color: #1A1A1A;
+  color: #FFFFFF;
   letter-spacing: 1rpx;
 }
 
-/* 收入明细子项 */
-.income-breakdown {
+.balance-actions {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-top: 20rpx;
+}
+
+.balance-info-item {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
-}
-
-.breakdown-item {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 20rpx 16rpx;
-  background: #FAFAFA;
-  border-radius: 12rpx;
-  border-left: 4rpx solid #E0E0E0;
+  gap: 6rpx;
 }
 
-.breakdown-item.reward {
-  border-left-color: #FFD700;
+.info-label {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.breakdown-item.order {
-  border-left-color: #4CAF50;
-}
-
-.breakdown-item.service {
-  border-left-color: #FF9800;
-}
-
-.breakdown-item.admin {
-  border-left-color: #2196F3;
-}
-
-.item-left {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  flex: 1;
-  min-width: 0;
-}
-
-.item-dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.breakdown-item.reward .item-dot {
-  background: #FFD700;
-}
-
-.breakdown-item.order .item-dot {
-  background: #4CAF50;
-}
-
-.breakdown-item.service .item-dot {
-  background: #FF9800;
-}
-
-.breakdown-item.admin .item-dot {
-  background: #2196F3;
-}
-
-.item-label {
-  font-size: 28rpx;
-  color: #666;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.item-amount {
-  font-size: 32rpx;
+.info-value {
+  font-size: 26rpx;
   font-weight: 600;
-  color: #1A1A1A;
-  flex-shrink: 0;
-  margin-left: 16rpx;
-  min-width: 120rpx;
-  text-align: right;
+  color: #FFFFFF;
 }
 
-/* 明细列表 */
-.detail-list {
+.balance-divider {
+  width: 1rpx;
+  height: 40rpx;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.balance-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 8rpx 20rpx;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20rpx;
+}
+
+.action-label {
+  font-size: 22rpx;
+  color: #FFFFFF;
+}
+
+.action-arrow {
+  font-size: 24rpx;
+  color: #FFFFFF;
+}
+
+/* 🎯 账单流水 - 压缩版 */
+.transaction-list {
   background: #FFFFFF;
   border-radius: 20rpx;
-  padding: 24rpx;
+  padding: 20rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -139,19 +102,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20rpx;
-  padding-bottom: 16rpx;
+  margin-bottom: 16rpx;
+  padding-bottom: 12rpx;
   border-bottom: 1rpx solid #F0F0F0;
 }
 
-.list-header .title {
-  font-size: 32rpx;
+.header-title {
+  font-size: 28rpx;
   font-weight: 600;
   color: #333;
 }
 
-.list-header .count {
-  font-size: 26rpx;
+.header-count {
+  font-size: 22rpx;
   color: #999;
 }
 
@@ -179,110 +142,272 @@
   color: #999;
 }
 
-/* 记录列表 */
-.record-list {
+/* 🎯 交易记录项 - 压缩版：白底+彩色左边框 */
+.transaction-items {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: 10rpx;
 }
 
-.record-item {
+.transaction-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 20rpx;
+  gap: 12rpx;
+  padding: 14rpx 16rpx;
   background: #FFFFFF;
   border-radius: 12rpx;
-  border-left: 4rpx solid #E0E0E0;
+  border: 1rpx solid #F0F0F0;
   transition: all 0.3s;
 }
 
-.record-item.reward {
-  border-left-color: #FFD700;
+/* 打赏收入 - 黄色边框 */
+.transaction-item.type-reward {
+  border-left: 4rpx solid #FFD700;
 }
 
-.record-item.order {
-  border-left-color: #4CAF50;
+/* 订单稿费 - 绿色边框 */
+.transaction-item.type-order {
+  border-left: 4rpx solid #4CAF50;
 }
 
-.record-item.service {
-  border-left-color: #FF9800;
+/* 客服分成 - 橙色边框 */
+.transaction-item.type-service {
+  border-left: 4rpx solid #FF9800;
 }
 
-.record-item.staff_share {
-  border-left-color: #2196F3;
+/* 管理员分成 - 蓝色边框 */
+.transaction-item.type-staff_share {
+  border-left: 4rpx solid #1E88E5;
 }
 
-.record-left {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  flex: 1;
+/* 提现 - 粉色边框 */
+.transaction-item.type-withdraw {
+  border-left: 4rpx solid #E91E63;
 }
 
-.record-type-badge {
-  padding: 8rpx 16rpx;
-  border-radius: 8rpx;
-  font-size: 22rpx;
+/* 🎯 彩色徽章 - 压缩版 */
+.item-badge {
+  padding: 6rpx 12rpx;
+  border-radius: 6rpx;
+  font-size: 20rpx;
   font-weight: 500;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.record-type-badge.reward {
-  background: rgba(255, 215, 0, 0.15);
-  color: #C4A000;
+.item-badge.reward {
+  background: #FFD700;
+  color: #8B6914;
 }
 
-.record-type-badge.order {
-  background: rgba(76, 175, 80, 0.15);
-  color: #388E3C;
+.item-badge.order {
+  background: #4CAF50;
+  color: #FFFFFF;
 }
 
-.record-type-badge.service {
-  background: rgba(255, 152, 0, 0.15);
-  color: #E65100;
+.item-badge.service {
+  background: #FF9800;
+  color: #FFFFFF;
 }
 
-.record-type-badge.staff_share {
-  background: rgba(33, 150, 243, 0.15);
-  color: #1565C0;
+.item-badge.staff_share {
+  background: #1E88E5;
+  color: #FFFFFF;
 }
 
-.record-info {
+.item-badge.withdraw {
+  background: #E91E63;
+  color: #FFFFFF;
+}
+
+.item-content {
   display: flex;
   flex-direction: column;
-  gap: 6rpx;
+  gap: 2rpx;
   flex: 1;
   min-width: 0;
-  max-width: calc(100% - 150rpx);
 }
 
-.record-title {
-  font-size: 28rpx;
-  color: #333;
+.item-title {
+  font-size: 26rpx;
   font-weight: 500;
+  color: #333;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.record-time {
-  font-size: 24rpx;
+.item-time {
+  font-size: 22rpx;
   color: #999;
 }
 
-.record-right {
+.item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4rpx;
   flex-shrink: 0;
-  margin-left: 16rpx;
-  min-width: 120rpx;
-  max-width: 180rpx;
-  text-align: right;
 }
 
-.record-amount {
-  font-size: 32rpx;
+.item-amount {
+  font-size: 28rpx;
   font-weight: bold;
-  color: #FF6B6B;
-  word-break: break-all;
-  line-height: 1.2;
+}
+
+.item-amount.income {
+  color: #4CAF50;
+}
+
+.item-amount.outcome {
+  color: #FF5722;
+}
+
+.item-balance {
+  font-size: 20rpx;
+  color: #999;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 2rpx 8rpx;
+  border-radius: 8rpx;
+}
+
+/* 🎯 提现记录弹窗 */
+.withdraw-modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: flex-end;
+  z-index: 9999;
+}
+
+.withdraw-modal-content {
+  width: 100%;
+  max-height: 80vh;
+  background: #FFFFFF;
+  border-radius: 32rpx 32rpx 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.withdraw-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+  flex-shrink: 0;
+}
+
+.withdraw-modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.withdraw-modal-close {
+  font-size: 48rpx;
+  color: #999;
+  line-height: 1;
+  padding: 0 8rpx;
+}
+
+.withdraw-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24rpx;
+}
+
+.withdraw-empty {
+  padding: 120rpx 0;
+  text-align: center;
+}
+
+.withdraw-empty-icon {
+  display: block;
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+
+.withdraw-empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.withdraw-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.withdraw-item {
+  background: #FAFAFA;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  border-left: 4rpx solid #E0E0E0;
+}
+
+.withdraw-item.status-success {
+  background: linear-gradient(90deg, #E8F5E9 0%, #D7F1D9 100%);
+  border-left-color: #4CAF50;
+}
+
+.withdraw-item.status-pending {
+  background: linear-gradient(90deg, #FFF3E0 0%, #FFE0B2 100%);
+  border-left-color: #FF9800;
+}
+
+.withdraw-item.status-failed {
+  background: linear-gradient(90deg, #FFEBEE 0%, #FFCDD2 100%);
+  border-left-color: #F44336;
+}
+
+.withdraw-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.withdraw-item-amount {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #FF5722;
+}
+
+.withdraw-item-status {
+  padding: 6rpx 16rpx;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  background: rgba(0, 0, 0, 0.05);
+  color: #666;
+}
+
+.status-success .withdraw-item-status {
+  background: #4CAF50;
+  color: #FFFFFF;
+}
+
+.status-pending .withdraw-item-status {
+  background: #FF9800;
+  color: #FFFFFF;
+}
+
+.status-failed .withdraw-item-status {
+  background: #F44336;
+  color: #FFFFFF;
+}
+
+.withdraw-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.withdraw-info-line {
+  font-size: 24rpx;
+  color: #666;
 }

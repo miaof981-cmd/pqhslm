@@ -1,13 +1,13 @@
 <view class="container">
   <view class="page-header">
-    <text class="header-title">工作人员联系二维码</text>
-    <text class="header-desc">管理新画师联系的工作人员二维码</text>
+    <text class="header-title">二维码管理</text>
+    <text class="header-desc">管理工作人员联系二维码和售后二维码</text>
   </view>
 
   <view class="content">
-    <!-- 当前二维码 -->
+    <!-- 工作人员联系二维码 -->
     <view class="current-qrcode-section">
-      <text class="section-title">当前二维码</text>
+      <text class="section-title">工作人员联系二维码</text>
       
       <view wx:if="{{currentQRCode}}" class="qrcode-preview">
         <image class="qrcode-image" src="{{currentQRCode}}" mode="aspectFit" />
@@ -48,6 +48,52 @@
       </button>
       <button wx:if="{{currentQRCode}}" class="action-btn secondary" bindtap="previewQRCode">
         预览二维码
+      </button>
+    </view>
+
+    <!-- 售后二维码 -->
+    <view class="current-qrcode-section">
+      <text class="section-title">售后二维码</text>
+      
+      <view wx:if="{{serviceQRCode}}" class="qrcode-preview">
+        <image class="qrcode-image" src="{{serviceQRCode}}" mode="aspectFit" />
+        <view class="qrcode-info">
+          <text class="info-label">状态</text>
+          <text class="info-value active">使用中</text>
+        </view>
+      </view>
+
+      <view wx:else class="qrcode-empty">
+        <view class="empty-icon">📞</view>
+        <text class="empty-text">暂未设置售后二维码</text>
+        <text class="empty-hint">用户将无法在"我的"页面联系售后</text>
+      </view>
+    </view>
+
+    <!-- 售后操作说明 -->
+    <view class="instructions">
+      <text class="instructions-title">使用说明</text>
+      <view class="instruction-item">
+        <text class="instruction-number">1</text>
+        <text class="instruction-text">此二维码将显示在用户中心的"联系售后"入口</text>
+      </view>
+      <view class="instruction-item">
+        <text class="instruction-number">2</text>
+        <text class="instruction-text">建议使用专门的售后客服微信二维码</text>
+      </view>
+      <view class="instruction-item">
+        <text class="instruction-number">3</text>
+        <text class="instruction-text">用户可通过此二维码咨询订单问题和售后服务</text>
+      </view>
+    </view>
+
+    <!-- 售后操作按钮 -->
+    <view class="actions">
+      <button class="action-btn primary" bindtap="chooseServiceQRCode">
+        {{serviceQRCode ? '更换售后二维码' : '上传售后二维码'}}
+      </button>
+      <button wx:if="{{serviceQRCode}}" class="action-btn secondary" bindtap="previewServiceQRCode">
+        预览售后二维码
       </button>
     </view>
   </view>

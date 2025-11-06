@@ -5,6 +5,7 @@ const { computeVisualStatus } = require('../../utils/order-visual-status')
 const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
 const staffFinance = require('../../utils/staff-finance.js')
 const serviceIncome = require('../../utils/service-income.js')  // 🎯 新增：客服收入管理
+const productSales = require('../../utils/product-sales.js')  // 🎯 新增：商品销量更新
 
 Page({
   data: {
@@ -445,6 +446,9 @@ Page({
                 // 🎯 新的收入分配逻辑：固定¥5分配给客服和管理员
                 serviceIncome.recordOrderIncome(recordedOrder)
                 console.log('✅ 订单收入分配完成')
+                
+                // 🎯 更新商品销量
+                productSales.updateProductSales(recordedOrder)
               } catch (err) {
                 console.error('⚠️ 记录订单收入失败:', err)
               }
@@ -569,15 +573,16 @@ Page({
       confirmText: '提交评价',
       success: (res) => {
         if (res.confirm) {
-          // 🎯 从本地存储读取订单并标记为已评价
+          // 🎯 从本地存储读取所有订单并标记为已评价
           const orders = wx.getStorageSync('orders') || []
           const pendingOrders = wx.getStorageSync('pending_orders') || []
+          const completedOrders = wx.getStorageSync('completed_orders') || [] // 🎯 新增：已完成订单
           
           let updated = false
           
           const markAsReviewed = (orderList) => {
             return orderList.map(order => {
-              if (order.id === orderId) {
+              if (order.id === orderId || order._id === orderId) {
                 updated = true
                 return {
                   ...order,
@@ -599,11 +604,13 @@ Page({
           
           const updatedOrders = markAsReviewed(orders)
           const updatedPendingOrders = markAsReviewed(pendingOrders)
+          const updatedCompletedOrders = markAsReviewed(completedOrders) // 🎯 新增
           
           if (updated) {
             // 保存更新后的订单
             wx.setStorageSync('orders', updatedOrders)
             wx.setStorageSync('pending_orders', updatedPendingOrders)
+            wx.setStorageSync('completed_orders', updatedCompletedOrders) // 🎯 新增
             
             wx.showToast({
               title: '感谢您的评价',

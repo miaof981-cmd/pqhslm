@@ -309,6 +309,13 @@ page {
   display: flex;
 }
 
+/* 🎯 新增：多商品之间的分隔 */
+.product-detail-border {
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx dashed #E0E0E0;
+}
+
 .product-image {
   width: 180rpx;
   height: 180rpx;
@@ -359,6 +366,47 @@ page {
 
 .price-value {
   font-size: 40rpx;
+  font-weight: 700;
+  color: #FF6B6B;
+}
+
+/* 🎯 新增：小号价格数字（用于数量显示） */
+.price-value-small {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #666;
+}
+
+/* 🎯 新增：订单总计行 */
+.order-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 2rpx solid #E0E0E0;
+}
+
+.total-label {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.total-price {
+  display: flex;
+  align-items: baseline;
+}
+
+.total-price .price-symbol {
+  font-size: 32rpx;
+  color: #FF6B6B;
+  font-weight: 600;
+  margin-right: 4rpx;
+}
+
+.total-price .price-value {
+  font-size: 44rpx;
   font-weight: 700;
   color: #FF6B6B;
 }
@@ -531,6 +579,29 @@ page {
   font-weight: 600;
 }
 
+/* 🎯 新增：退款申请中提示 */
+.refund-requesting-tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 32rpx;
+  background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+  border-radius: 16rpx;
+  gap: 12rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.refund-icon {
+  font-size: 36rpx;
+}
+
+.refund-text {
+  font-size: 26rpx;
+  color: #F57C00;
+  font-weight: 600;
+}
+
 /* ========== 待确认提示卡片 ========== */
 .waiting-confirm-hint {
   margin: 0 30rpx 20rpx;
@@ -614,6 +685,12 @@ page {
 .action-btn.primary {
   background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%);
   color: white;
+}
+
+/* 🎯 新增：退款按钮样式 */
+.action-btn.danger {
+  background: linear-gradient(135deg, #FFCDD2 0%, #EF9A9A 100%);
+  color: #C62828;
 }
 
 .completed-text {

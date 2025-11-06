@@ -7,6 +7,8 @@ Page({
     balance: 0,
     showWithdrawModal: false,
     showVerifyModal: false,
+    showWithdrawRecordsModal: false, // 🎯 提现记录弹窗
+    withdrawRecords: [],             // 🎯 提现记录
     withdrawAmount: '',
     isVerified: false,
     realName: '',
@@ -582,10 +584,30 @@ Page({
     })
   },
 
-  // 查看提现记录
-  viewWithdrawRecords() {
-    wx.navigateTo({
-      url: '/pages/withdraw-records/index'
+  // 🎯 显示提现记录弹窗
+  showWithdrawRecordsModal() {
+    const userId = wx.getStorageSync('userId')
+    const userKey = String(userId)
+    const allRecords = wx.getStorageSync('withdraw_records') || []
+    const myRecords = allRecords.filter(r => String(r.userId) === userKey)
+    
+    // 按时间倒序
+    myRecords.sort((a, b) => {
+      const timeA = new Date(b.completedTime || b.time).getTime()
+      const timeB = new Date(a.completedTime || a.time).getTime()
+      return timeA - timeB
+    })
+    
+    this.setData({
+      withdrawRecords: myRecords,
+      showWithdrawRecordsModal: true
+    })
+  },
+
+  // 关闭提现记录弹窗
+  closeWithdrawRecordsModal() {
+    this.setData({
+      showWithdrawRecordsModal: false
     })
   }
 })

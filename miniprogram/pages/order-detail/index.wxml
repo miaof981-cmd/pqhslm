@@ -60,7 +60,35 @@
     <!-- 商品信息 -->
     <view class="section-card">
       <view class="section-title">商品信息</view>
-      <view class="product-detail">
+      
+      <!-- 🎯 多商品订单显示 -->
+      <block wx:if="{{order.items && order.items.length > 0}}">
+        <view wx:for="{{order.items}}" wx:key="index" class="product-detail {{index > 0 ? 'product-detail-border' : ''}}">
+          <image class="product-image" src="{{item.productImage}}" mode="aspectFill"/>
+          <view class="product-info">
+            <text class="product-name">{{item.productName}}</text>
+            <text wx:if="{{item.specText}}" class="product-spec">{{item.specText}}</text>
+            <view class="product-price-row">
+              <text class="price-label">数量：</text>
+              <text class="price-value-small">×{{item.quantity}}</text>
+              <text class="price-label" style="margin-left: 20rpx;">金额：</text>
+              <text class="price-symbol">¥</text>
+              <text class="price-value">{{item.totalPrice || item.price}}</text>
+            </view>
+          </view>
+        </view>
+        <!-- 总计 -->
+        <view class="order-total-row">
+          <text class="total-label">订单总计</text>
+          <view class="total-price">
+            <text class="price-symbol">¥</text>
+            <text class="price-value">{{order.totalAmount || order.price}}</text>
+          </view>
+        </view>
+      </block>
+      
+      <!-- 单商品订单显示（兼容旧数据） -->
+      <view wx:else class="product-detail">
         <image class="product-image" src="{{order.productImage}}" mode="aspectFill"/>
         <view class="product-info">
           <text class="product-name">{{order.productName}}</text>
@@ -161,10 +189,17 @@
       
       <!-- 买家操作 -->
       <view wx:if="{{userRole === 'customer'}}" class="button-group">
+        <!-- 🎯 退款申请中状态 -->
+        <block wx:if="{{order.refundStatus === 'requesting'}}">
+          <view class="refund-requesting-tip">
+            <text class="refund-icon">⏳</text>
+            <text class="refund-text">退款申请已提交，客服正在处理中...</text>
+          </view>
+        </block>
         <!-- 进行中/待确认状态 -->
-        <block wx:if="{{order.status === 'inProgress' || order.status === 'processing' || order.status === 'overdue' || order.status === 'nearDeadline' || order.status === 'waitingConfirm'}}">
+        <block wx:elif="{{order.status === 'inProgress' || order.status === 'processing' || order.status === 'overdue' || order.status === 'nearDeadline' || order.status === 'waitingConfirm'}}">
           <button class="action-btn default" bindtap="contactService">联系客服</button>
-          <button class="action-btn default" bindtap="showComplaint">投诉</button>
+          <button class="action-btn danger" bindtap="requestRefund">申请退款</button>
           <button class="action-btn primary" bindtap="confirmComplete">确认完成</button>
         </block>
         <!-- 已完成状态 -->

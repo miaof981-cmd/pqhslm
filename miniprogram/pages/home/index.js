@@ -324,8 +324,16 @@ Page({
 
   // 搜索商品
   onSearch() {
+    console.log('🔍 点击搜索框，跳转搜索页面')
     wx.navigateTo({
-      url: '/pages/search/index'
+      url: '/pages/search/index',
+      fail: (err) => {
+        console.error('❌ 跳转搜索页面失败:', err)
+        wx.showToast({
+          title: '搜索功能暂时不可用',
+          icon: 'none'
+        })
+      }
     })
   },
 

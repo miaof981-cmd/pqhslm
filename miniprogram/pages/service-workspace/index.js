@@ -6,6 +6,7 @@ Page({
   data: {
     loading: true,
     hasPermission: false,
+    refunding: false,  // 🎯 退款处理中标志
     serviceInfo: {
       serviceNumber: 0,
       name: '客服',
@@ -367,8 +368,35 @@ Page({
   contactCustomer(e) {
     const orderId = e.currentTarget.dataset.id
     if (!orderId) return
-    wx.navigateTo({
-      url: `/pages/order-detail/index?id=${orderId}&source=service`
+    
+    const order = this.data.allOrders.find(o => o.id === orderId)
+    if (!order) {
+      wx.showToast({
+        title: '订单不存在',
+        icon: 'none'
+      })
+      return
+    }
+    
+    // 🎯 显示买家联系信息
+    const buyerName = order.buyerName || '客户'
+    const buyerOpenId = order.buyerOpenId || '未获取'
+    const buyerId = order.buyerId || '未知'
+    const orderNo = order.id || '未知'
+    
+    wx.showModal({
+      title: '客户信息',
+      content: `客户：${buyerName}\n订单号：${orderNo}\n\n提示：请在订单群中联系客户\n群名可点击订单号旁的蓝色图标复制`,
+      confirmText: '查看详情',
+      cancelText: '知道了',
+      success: (res) => {
+        if (res.confirm) {
+          // 跳转到订单详情页
+          wx.navigateTo({
+            url: `/pages/order-detail/index?id=${orderId}&source=service`
+          })
+        }
+      }
     })
   },
 
@@ -378,6 +406,16 @@ Page({
     const order = this.data.allOrders.find(o => o.id === orderId)
     
     if (!order) return
+    
+    // 🎯 防止重复点击
+    if (this.data.refunding) {
+      wx.showToast({
+        title: '正在处理中...',
+        icon: 'none'
+      })
+      return
+    }
+    
     if (order.status === 'refunded') {
       wx.showToast({
         title: '订单已退款',
@@ -391,17 +429,25 @@ Page({
     
     wx.showModal({
       title: '确认退款',
-      content: `确定要为订单 ${order.id} 处理退款吗？\n退款金额：${amountText}`,
+      content: `⚠️ 请仔细核对退款信息：\n\n订单编号：${order.id}\n退款金额：${amountText}\n\n确认后将立即退款至客户账户，操作不可撤销！`,
+      confirmText: '确认退款',
+      confirmColor: '#FF5722',
+      cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
-          this.doRefund(orderId)
+          this.doRefund(orderId, amount)
         }
       }
     })
   },
 
   // 执行退款
-  doRefund(orderId) {
+  doRefund(orderId, refundAmount) {
+    // 🎯 设置退款中标志，防止重复点击
+    this.setData({ refunding: true })
+    
+    wx.showLoading({ title: '退款处理中...', mask: true })
+    
     // 更新订单状态
     const orders = wx.getStorageSync('orders') || []
     const pendingOrders = wx.getStorageSync('pending_orders') || []
@@ -415,13 +461,16 @@ Page({
             status: 'refunded',
             statusText: '已退款',
             refundStatus: 'refunded',
+            refundAmount: refundAmount || o.price || o.totalAmount || 0,
             refundCompletedAt: timestamp,
             refundHistory: [
               ...(o.refundHistory || []),
               {
                 status: 'refunded',
                 operator: 'service',
+                operatorId: wx.getStorageSync('userId'),
                 time: timestamp,
+                amount: refundAmount || o.price || o.totalAmount || 0,
                 note: '客服已完成退款'
               }
             ]
@@ -434,12 +483,18 @@ Page({
     wx.setStorageSync('orders', updateStatus(orders))
     wx.setStorageSync('pending_orders', updateStatus(pendingOrders))
     
-    wx.showToast({
-      title: '退款成功',
-      icon: 'success'
-    })
-    
-    // 刷新订单列表
-    this.loadOrders()
+    // 🎯 延迟500ms后刷新（确保存储完成）
+    setTimeout(() => {
+      wx.hideLoading()
+      this.setData({ refunding: false })
+      
+      wx.showToast({
+        title: '退款成功',
+        icon: 'success'
+      })
+      
+      // 刷新订单列表
+      this.loadOrders()
+    }, 500)
   }
 })

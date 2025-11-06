@@ -23,6 +23,8 @@ Page({
     staffBalance: 0, // 🎯 新增：管理员分成余额
     totalBalance: 0, // 🎯 新增：总余额（画师+客服+管理员）
     hasIncome: false, // 🎯 新增：是否有任何收入
+    showServiceQrcodeModal: false, // 🎯 显示售后二维码弹窗
+    serviceQrcode: '', // 🎯 售后二维码
     shouldShowCert: true,      // 是否显示画师认证
     shouldShowWorkspace: false, // 是否显示工作台
     hasWorkQRCode: false,      // 是否已设置工作二维码
@@ -57,6 +59,7 @@ Page({
       setTimeout(() => {
         this.loadUserRole()
         this.loadData()
+        this.loadOrders() // 🎯 修复BUG-015：确保红点数据实时更新
         this.checkAllIncome() // 🎯 刷新所有收入
       }, 100)
       
@@ -72,6 +75,7 @@ Page({
     // 延迟加载
     setTimeout(() => {
       this.loadUserRole()
+      this.loadOrders() // 🎯 修复BUG-015：确保红点数据实时更新
       this.checkAllIncome() // 🎯 刷新所有收入
     }, 100)
     
@@ -324,6 +328,9 @@ Page({
   async updateUserInfo() {
     const app = getApp()
     
+    // 🎯 修复：授权前保存当前用户信息
+    const backupUserInfo = wx.getStorageSync('userInfo') || null
+    
     wx.showLoading({ title: '获取授权...' })
     
     try {
@@ -338,9 +345,16 @@ Page({
         icon: 'success'
       })
     } catch (error) {
+      // 🎯 修复：授权失败时恢复原有用户信息，避免数据清空
+      if (backupUserInfo) {
+        wx.setStorageSync('userInfo', backupUserInfo)
+        app.globalData.userInfo = backupUserInfo
+        console.log('✅ 授权失败，已恢复原用户信息')
+      }
+      
       wx.hideLoading()
       wx.showToast({
-        title: '授权失败',
+        title: '取消授权，信息已保留',
         icon: 'none'
       })
     }
@@ -656,26 +670,38 @@ Page({
     })
   },
 
-  handleFunctionTap(e) {
-    const type = e.currentTarget.dataset.type
-    let message = ''
-    switch (type) {
-      case 'favorite':
-        message = '收藏功能开发中'
-        break
-      case 'history':
-        message = '历史足迹功能开发中'
-        break
-      case 'service':
-        message = '售后请联系您的专属客服'
-        break
-      default:
-        message = '功能开发中'
-        break
+  // 🎯 显示平台售后二维码
+  showServiceQrcode() {
+    // 从系统设置中获取售后二维码
+    const systemSettings = wx.getStorageSync('system_settings') || {}
+    const serviceQrcode = systemSettings.serviceQrcode || ''
+    
+    if (!serviceQrcode) {
+      wx.showToast({
+        title: '售后二维码未配置',
+        icon: 'none'
+      })
+      return
     }
-    wx.showToast({
-      title: message,
-      icon: 'none'
+    
+    this.setData({
+      serviceQrcode: serviceQrcode,
+      showServiceQrcodeModal: true
+    })
+  },
+
+  // 关闭售后二维码弹窗
+  closeServiceQrcodeModal() {
+    this.setData({
+      showServiceQrcodeModal: false
+    })
+  },
+
+  // 预览二维码
+  previewServiceQrcode() {
+    wx.previewImage({
+      urls: [this.data.serviceQrcode],
+      current: this.data.serviceQrcode
     })
   },
 

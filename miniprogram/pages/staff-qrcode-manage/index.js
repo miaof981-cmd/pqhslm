@@ -1,6 +1,7 @@
 Page({
   data: {
-    currentQRCode: '' // 当前的工作人员二维码
+    currentQRCode: '', // 当前的工作人员二维码
+    serviceQRCode: '' // 售后二维码
   },
 
   onLoad() {
@@ -13,12 +14,16 @@ Page({
 
   // 加载当前二维码
   loadQRCode() {
-    const qrcode = wx.getStorageSync('staff_contact_qrcode') || ''
+    const contactQrcode = wx.getStorageSync('staff_contact_qrcode') || ''
+    const systemSettings = wx.getStorageSync('system_settings') || {}
+    const serviceQrcode = systemSettings.serviceQrcode || ''
     
-    console.log('👔 加载工作人员联系二维码:', qrcode ? '已设置' : '未设置')
+    console.log('👔 加载工作人员联系二维码:', contactQrcode ? '已设置' : '未设置')
+    console.log('📞 加载售后二维码:', serviceQrcode ? '已设置' : '未设置')
     
     this.setData({
-      currentQRCode: qrcode
+      currentQRCode: contactQrcode,
+      serviceQRCode: serviceQrcode
     })
   },
 
@@ -54,11 +59,67 @@ Page({
     })
   },
 
-  // 预览二维码
+  // 预览工作人员二维码
   previewQRCode() {
     wx.previewImage({
       urls: [this.data.currentQRCode],
       current: this.data.currentQRCode
+    })
+  },
+
+  // 选择售后二维码
+  chooseServiceQRCode() {
+    wx.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const tempFilePath = res.tempFilePaths[0]
+        
+        wx.showLoading({ title: '上传中...' })
+        
+        // 转换为 base64
+        const fs = wx.getFileSystemManager()
+        fs.readFile({
+          filePath: tempFilePath,
+          encoding: 'base64',
+          success: (fileRes) => {
+            const base64 = 'data:image/jpeg;base64,' + fileRes.data
+            
+            // 保存到系统设置
+            const systemSettings = wx.getStorageSync('system_settings') || {}
+            systemSettings.serviceQrcode = base64
+            wx.setStorageSync('system_settings', systemSettings)
+            
+            this.setData({
+              serviceQRCode: base64
+            })
+            
+            wx.hideLoading()
+            wx.showToast({
+              title: '设置成功',
+              icon: 'success'
+            })
+            
+            console.log('✅ 售后二维码已更新')
+          },
+          fail: () => {
+            wx.hideLoading()
+            wx.showToast({
+              title: '上传失败',
+              icon: 'none'
+            })
+          }
+        })
+      }
+    })
+  },
+
+  // 预览售后二维码
+  previewServiceQRCode() {
+    wx.previewImage({
+      urls: [this.data.serviceQRCode],
+      current: this.data.serviceQRCode
     })
   }
 })

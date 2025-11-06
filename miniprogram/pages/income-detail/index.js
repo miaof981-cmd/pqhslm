@@ -3,12 +3,12 @@ const serviceIncome = require('../../utils/service-income.js')
 Page({
   data: {
     loading: true,
-    totalIncome: '0.00',
-    rewardIncome: '0.00',
-    orderIncome: '0.00',
-    serviceIncome: '0.00',
-    staffIncome: '0.00',
-    records: []
+    availableBalance: '0.00',      // 🎯 可提现余额
+    totalIncome: '0.00',           // 🎯 历史总收入
+    totalWithdrawn: '0.00',        // 🎯 已提现金额
+    records: [],                   // 🎯 账单流水（收入+提现）
+    showWithdrawRecordsModal: false, // 🎯 提现记录弹窗
+    withdrawRecords: []            // 🎯 提现记录列表
   },
 
   onLoad() {
@@ -19,7 +19,7 @@ Page({
     this.loadIncomeData()
   },
 
-  // 加载收入数据
+  // 🎯 加载账单流水数据
   loadIncomeData() {
     this.setData({ loading: true })
 
@@ -74,90 +74,134 @@ Page({
       // 🎯 6. 计算总收入
       const totalIncomeAmount = rewardIncomeAmount + orderIncomeAmount + csIncomeAmount + staffIncomeAmount
 
-      // 🎯 7. 构建收入明细记录
-      const records = []
+      // 🎯 7. 获取提现记录
+      const withdrawRecords = wx.getStorageSync('withdraw_records') || []
+      const myWithdraws = withdrawRecords.filter(r => String(r.userId) === userKey && r.status === 'success')
+      const totalWithdrawnAmount = myWithdraws.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
 
-      // 添加打赏记录
+      // 🎯 8. 构建账单流水（收入+提现）
+      const transactions = []
+
+      // 添加打赏收入
       myRewards.forEach(reward => {
-        records.push({
+        transactions.push({
           id: `reward_${reward.id}`,
-          type: 'reward',
-          typeText: '打赏',
+          type: 'income',
+          subType: 'reward',
+          typeText: '打赏收入',
           title: reward.productName || `订单 ${reward.orderId}`,
-          amount: parseFloat(reward.amount).toFixed(2),
-          time: reward.time || '时间未知'
+          amount: parseFloat(reward.amount),
+          isIncome: true,
+          timestamp: new Date(reward.time || Date.now()).getTime(),
+          time: this.formatTime(reward.time)
         })
       })
 
-      // 添加订单稿费记录（已减去5元平台扣除）
+      // 添加订单稿费收入
       myCompletedOrders.forEach(order => {
         const orderAmount = parseFloat(order.totalPrice) || parseFloat(order.price) || 0
         const artistShare = Math.max(0, orderAmount - PLATFORM_DEDUCTION)
-        records.push({
+        transactions.push({
           id: `order_${order.id}`,
-          type: 'order',
+          type: 'income',
+          subType: 'order',
           typeText: '订单稿费',
           title: order.productName || `订单 ${order.id}`,
-          amount: artistShare.toFixed(2),
-          originalAmount: orderAmount.toFixed(2),
+          amount: artistShare,
+          isIncome: true,
+          timestamp: new Date(order.completedAt || order.createTime).getTime(),
           time: this.formatTime(order.completedAt || order.createTime)
         })
       })
 
-      // 添加客服分成记录
+      // 添加客服分成收入
       csIncomeLedger.forEach(entry => {
-        records.push({
+        transactions.push({
           id: `service_${entry.id}`,
-          type: 'service',
+          type: 'income',
+          subType: 'service',
           typeText: '客服分成',
-          title: entry.note || `订单 ${entry.orderNo || entry.orderId}`,
-          amount: parseFloat(entry.amount).toFixed(2),
+          title: entry.note || `订单分成`,
+          amount: parseFloat(entry.amount),
+          isIncome: true,
+          timestamp: new Date(entry.orderCompletedAt || entry.createdAt).getTime(),
           time: this.formatTime(entry.orderCompletedAt || entry.createdAt)
         })
       })
 
-      // 添加管理员分成记录
+      // 添加管理员分成收入
       staffIncomeLedger.forEach(entry => {
-        records.push({
+        transactions.push({
           id: `staff_${entry.id}`,
-          type: 'staff_share',
+          type: 'income',
+          subType: 'staff_share',
           typeText: '管理员分成',
-          title: entry.note || `订单 ${entry.orderNo || entry.orderId}`,
-          amount: parseFloat(entry.amount).toFixed(2),
+          title: entry.note || `订单分成`,
+          amount: parseFloat(entry.amount),
+          isIncome: true,
+          timestamp: new Date(entry.orderCompletedAt || entry.createdAt).getTime(),
           time: this.formatTime(entry.orderCompletedAt || entry.createdAt)
         })
       })
 
-      // 按时间倒序排序
-      records.sort((a, b) => {
-        const timeA = new Date(a.time).getTime() || 0
-        const timeB = new Date(b.time).getTime() || 0
-        return timeB - timeA
+      // 添加提现支出
+      myWithdraws.forEach(withdraw => {
+        transactions.push({
+          id: `withdraw_${withdraw.id}`,
+          type: 'withdraw',
+          subType: 'withdraw',
+          typeText: '提现',
+          title: withdraw.bankName ? `${withdraw.bankName}(****${withdraw.bankCard})` : '提现到账',
+          amount: parseFloat(withdraw.amount),
+          isIncome: false,
+          timestamp: new Date(withdraw.completedTime || withdraw.time).getTime(),
+          time: this.formatTime(withdraw.completedTime || withdraw.time)
+        })
       })
+
+      // 🎯 9. 按时间正序排序（从早到晚）
+      transactions.sort((a, b) => a.timestamp - b.timestamp)
+
+      // 🎯 10. 计算每笔交易后的余额
+      let currentBalance = 0
+      transactions.forEach(trans => {
+        if (trans.isIncome) {
+          currentBalance += trans.amount
+        } else {
+          currentBalance -= trans.amount
+        }
+        trans.balance = currentBalance
+        trans.amountText = (trans.isIncome ? '+' : '-') + trans.amount.toFixed(2)
+        trans.balanceText = currentBalance.toFixed(2)
+      })
+
+      // 🎯 11. 倒序显示（最新的在上面）
+      transactions.reverse()
+
+      // 🎯 12. 计算可提现余额
+      const availableBalanceAmount = totalIncomeAmount - totalWithdrawnAmount
 
       this.setData({
+        availableBalance: availableBalanceAmount.toFixed(2),
         totalIncome: totalIncomeAmount.toFixed(2),
-        rewardIncome: rewardIncomeAmount.toFixed(2),
-        orderIncome: orderIncomeAmount.toFixed(2),
-        serviceIncome: csIncomeAmount.toFixed(2),
-        staffIncome: staffIncomeAmount.toFixed(2),
-        records
+        totalWithdrawn: totalWithdrawnAmount.toFixed(2),
+        records: transactions
       })
 
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      console.log('📊 收入明细 (income-detail)')
+      console.log('📊 账单流水 (income-detail)')
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
       console.log('👤 用户ID:', userKey)
-      console.log('📦 订单去重:', orders.length + pendingOrders.length + completedOrders.length, '→', allOrders.length)
       console.log('')
-      console.log('💰 收入统计:')
-      console.log('  - 打赏收入:', rewardIncomeAmount.toFixed(2), '元 (', myRewards.length, '次)')
-      console.log('  - 订单稿费:', orderIncomeAmount.toFixed(2), '元 (', myCompletedOrders.length, '单)')
-      console.log('  - 客服分成:', csIncomeAmount.toFixed(2), '元 (', csIncomeLedger.length, '笔)')
-      console.log('  - 管理员分成:', staffIncomeAmount.toFixed(2), '元 (', staffIncomeLedger.length, '笔)')
+      console.log('💰 资金统计:')
+      console.log('  - 历史总收入:', totalIncomeAmount.toFixed(2), '元')
+      console.log('  - 已提现:', totalWithdrawnAmount.toFixed(2), '元')
+      console.log('  - 可提现余额:', availableBalanceAmount.toFixed(2), '元')
       console.log('')
-      console.log('✅ 总收入:', totalIncomeAmount.toFixed(2), '元')
-      console.log('📝 明细记录数:', records.length)
+      console.log('📝 交易记录:')
+      console.log('  - 收入笔数:', transactions.filter(t => t.isIncome).length, '笔')
+      console.log('  - 提现笔数:', transactions.filter(t => !t.isIncome).length, '笔')
+      console.log('  - 总记录数:', transactions.length, '笔')
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     } catch (error) {
       console.error('❌ 加载收入数据失败:', error)
@@ -184,5 +228,32 @@ Page({
     const minutes = String(date.getMinutes()).padStart(2, '0')
     
     return `${year}-${month}-${day} ${hours}:${minutes}`
+  },
+
+  // 🎯 显示提现记录弹窗
+  showWithdrawRecordsModal() {
+    const userId = wx.getStorageSync('userId')
+    const userKey = String(userId)
+    const allRecords = wx.getStorageSync('withdraw_records') || []
+    const myRecords = allRecords.filter(r => String(r.userId) === userKey)
+    
+    // 按时间倒序
+    myRecords.sort((a, b) => {
+      const timeA = new Date(b.completedTime || b.time).getTime()
+      const timeB = new Date(a.completedTime || a.time).getTime()
+      return timeA - timeB
+    })
+    
+    this.setData({
+      withdrawRecords: myRecords,
+      showWithdrawRecordsModal: true
+    })
+  },
+
+  // 关闭提现记录弹窗
+  closeWithdrawRecordsModal() {
+    this.setData({
+      showWithdrawRecordsModal: false
+    })
   }
 })

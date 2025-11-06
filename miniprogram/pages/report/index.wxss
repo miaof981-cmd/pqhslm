@@ -1,12 +1,254 @@
-.container { min-height: 100vh; background: #F5F5F5; }
-.loading { display: flex; justify-content: center; align-items: center; height: 400rpx; color: #999; }
-.header-bar { background: white; padding: 30rpx; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20rpx; }
-.page-title { font-size: 32rpx; font-weight: 600; color: #333; }
-.add-btn { padding: 15rpx 30rpx; background: linear-gradient(135deg, #A8E6CF 0%, #D0F0C0 100%); color: white; border-radius: 25rpx; font-size: 26rpx; border: none; }
-.list { padding: 0 20rpx; }
-.list-item { background: white; padding: 25rpx; margin-bottom: 20rpx; border-radius: 16rpx; display: flex; justify-content: space-between; align-items: center; }
-.item-title { font-size: 28rpx; color: #333; flex: 1; }
-.item-actions { display: flex; gap: 15rpx; }
-.action-btn { padding: 10rpx 20rpx; border-radius: 8rpx; font-size: 24rpx; border: none; }
-.action-btn.edit { background: #E3F2FD; color: #2196F3; }
-.action-btn.delete { background: #FFEBEE; color: #F44336; }
+/* 容器 */
+.container {
+  min-height: 100vh;
+  background: #F5F5F5;
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 200rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}
+
+/* 时间筛选器 */
+.time-filter {
+  display: flex;
+  gap: 16rpx;
+  padding: 20rpx;
+  background: white;
+  border-bottom: 1rpx solid #E0E0E0;
+}
+
+.filter-item {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 28rpx;
+  color: #666;
+  background: #F5F5F5;
+  border-radius: 12rpx;
+  transition: all 0.3s;
+}
+
+.filter-item.active {
+  background: linear-gradient(135deg, #66BB6A, #81C784);
+  color: white;
+  font-weight: 500;
+}
+
+/* 自定义时间选择 */
+.custom-date-picker {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx;
+  background: white;
+  border-bottom: 1rpx solid #E0E0E0;
+}
+
+.date-input {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  background: #F5F5F5;
+  border-radius: 12rpx;
+}
+
+.date-label {
+  font-size: 26rpx;
+  color: #666;
+  margin-right: 8rpx;
+}
+
+.date-value {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.date-separator {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* Tab栏 */
+.tab-bar {
+  display: flex;
+  background: white;
+  border-bottom: 2rpx solid #E0E0E0;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 30rpx;
+  color: #666;
+  position: relative;
+}
+
+.tab-item.active {
+  color: #66BB6A;
+  font-weight: 600;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 6rpx;
+  background: #66BB6A;
+  border-radius: 3rpx;
+}
+
+/* 表格容器 */
+.table-container {
+  padding: 20rpx;
+}
+
+.table-scroll {
+  width: 100%;
+  background: white;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.data-table {
+  min-width: 100%;
+  display: table;
+}
+
+/* 表头 */
+.table-header {
+  display: table-row;
+  background: linear-gradient(135deg, #E8F5E9, #F1F8E9);
+  font-weight: 600;
+}
+
+.th {
+  display: table-cell;
+  padding: 24rpx 16rpx;
+  font-size: 26rpx;
+  color: #4CAF50;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+  border-bottom: 2rpx solid #C8E6C9;
+}
+
+.th-user {
+  min-width: 200rpx;
+  text-align: left;
+  padding-left: 24rpx;
+}
+
+.th-count {
+  min-width: 120rpx;
+}
+
+.th-money {
+  min-width: 140rpx;
+}
+
+/* 数据行 */
+.table-row {
+  display: table-row;
+  background: white;
+  transition: background 0.2s;
+}
+
+.table-row:hover {
+  background: #FAFAFA;
+}
+
+.table-row:nth-child(even) {
+  background: #F9F9F9;
+}
+
+.td {
+  display: table-cell;
+  padding: 24rpx 16rpx;
+  font-size: 26rpx;
+  color: #666;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.td-user {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding-left: 24rpx;
+}
+
+.user-avatar {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  border: 2rpx solid #E0E0E0;
+  flex-shrink: 0;
+}
+
+.user-name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.td-count {
+  color: #2196F3;
+  font-weight: 500;
+}
+
+.td-money {
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+}
+
+/* 高亮金额 */
+.highlight-revenue {
+  color: #2196F3;
+  font-weight: 600;
+}
+
+.highlight-total {
+  color: #FF9800;
+  font-weight: 600;
+}
+
+.highlight-available {
+  color: #4CAF50;
+  font-weight: 600;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 40rpx;
+  background: white;
+  border-radius: 16rpx;
+}
+
+.empty-icon {
+  font-size: 100rpx;
+  margin-bottom: 24rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+

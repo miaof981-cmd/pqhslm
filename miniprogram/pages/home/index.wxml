@@ -21,11 +21,11 @@
 
   <!-- 搜索筛选栏 -->
   <view class="search-filter-bar">
-    <view class="search-input" bindtap="onSearch">
+    <view class="search-input" hover-class="search-input-hover" bindtap="onSearch">
       <view class="search-icon"></view>
       <text class="search-placeholder">搜索你想要的画师作品</text>
     </view>
-    <view class="filter-btn" bindtap="toggleFilter">
+    <view class="filter-btn" hover-class="filter-btn-hover" bindtap="toggleFilter">
       <view class="filter-icon"></view>
       <text class="filter-text">筛选</text>
     </view>

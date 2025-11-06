@@ -26,6 +26,7 @@ function isPlaceholderServiceName(name) {
 Page({
   data: {
     loading: true,
+    refunding: false,  // 🎯 退款处理中标志
     currentTab: 'dashboard',
     timeFilter: 'today',
     chartType: '7days',
@@ -155,12 +156,15 @@ Page({
     // 🎯 加载管理员个人收入
     await this.loadMyIncome()
     
+    // 🎯 根据时间筛选过滤订单
+    const filteredOrders = this.filterOrdersByTime(allOrders)
+    
     // 计算订单统计
-    const orderCount = allOrders.length
+    const orderCount = filteredOrders.length
     const processingStatuses = new Set(['processing', 'paid', 'inProgress', 'waitingConfirm', 'nearDeadline'])
-    const processingOrders = allOrders.filter(o => processingStatuses.has(o.status))
-    const completedOrders = allOrders.filter(o => o.status === 'completed')
-    const refundingOrders = allOrders.filter(o => o.status === 'refunding' || o.status === 'refunded')
+    const processingOrders = filteredOrders.filter(o => processingStatuses.has(o.status))
+    const completedOrders = filteredOrders.filter(o => o.status === 'completed')
+    const refundingOrders = filteredOrders.filter(o => o.status === 'refunding' || o.status === 'refunded')
     
     // 计算总收入（已完成订单）
     const totalRevenue = completedOrders.reduce((sum, order) => {
@@ -176,16 +180,16 @@ Page({
     const approvedArtists = allApplications.filter(app => app.status === 'approved')
     const artistCount = approvedArtists.length
     
-    // 计算用户数量（从订单中去重买家）
-    const uniqueBuyers = new Set(allOrders.map(o => o.buyerId || o.buyer))
+    // 计算用户数量（从筛选后的订单中去重买家）
+    const uniqueBuyers = new Set(filteredOrders.map(o => o.buyerId || o.buyer))
     const buyerCount = uniqueBuyers.size
     
-    // 计算待处理数量
+    // 计算待处理数量（使用全部订单，不受时间筛选影响）
     const pendingStatuses = new Set(['unpaid', 'paid', 'processing', 'inProgress', 'waitingConfirm', 'nearDeadline'])
     const pendingOrders = allOrders.filter(o => pendingStatuses.has(o.status)).length
     const pendingApplicationsCount = allApplications.filter(app => app.status === 'pending').length
     
-    // 计算逾期订单（截止日期已过但未完成）
+    // 计算逾期订单（使用全部订单）
     const now = new Date()
     const overdueOrders = allOrders.filter(o => {
       if (o.status === 'completed' || o.status === 'refunded') return false
@@ -215,6 +219,7 @@ Page({
     })
     
     console.log('仪表盘数据:', {
+      时间筛选: this.data.timeFilter,
       订单总数: orderCount,
       总收入: totalRevenue,
       画师数: artistCount,
@@ -222,6 +227,49 @@ Page({
       待处理订单: pendingOrders,
       逾期订单: overdueOrders,
       待审核申请: pendingApplicationsCount
+    })
+  },
+
+  // 🎯 新增：根据时间筛选过滤订单
+  filterOrdersByTime(orders) {
+    const timeFilter = this.data.timeFilter
+    if (!timeFilter || timeFilter === 'all') return orders
+
+    const now = new Date()
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+    
+    return orders.filter(order => {
+      const orderTime = new Date(order.createdAt || order.createTime || order.orderTime)
+      if (isNaN(orderTime.getTime())) return false
+
+      switch (timeFilter) {
+        case 'today':
+          // 今日：00:00 - 23:59
+          return orderTime >= todayStart && orderTime <= todayEnd
+
+        case 'yesterday':
+          // 昨日
+          const yesterdayStart = new Date(todayStart)
+          yesterdayStart.setDate(yesterdayStart.getDate() - 1)
+          const yesterdayEnd = new Date(todayEnd)
+          yesterdayEnd.setDate(yesterdayEnd.getDate() - 1)
+          return orderTime >= yesterdayStart && orderTime <= yesterdayEnd
+
+        case 'week':
+          // 本周：本周一00:00 至今
+          const weekStart = new Date(todayStart)
+          weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1) // 本周一
+          return orderTime >= weekStart && orderTime <= now
+
+        case 'month':
+          // 本月：本月1号00:00 至今
+          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0)
+          return orderTime >= monthStart && orderTime <= now
+
+        default:
+          return true
+      }
     })
   },
 
@@ -280,29 +328,41 @@ Page({
         }
       }
       
-      // 获取画师名称
+      // 🎯 优化：获取画师名称（优先级：申请信息 > 用户信息 > 商品自带名称）
       const artistId = product.artistId ? String(product.artistId) : ''
-      let artistName = product.artistName || ''
-      if (!artistName && artistId && artistMap.has(artistId)) {
+      let artistName = ''
+      
+      // 1. 优先从画师申请中获取
+      if (artistId && artistMap.has(artistId)) {
         const application = artistMap.get(artistId)
         artistName = application.name || application.realName || ''
-      }
-      if (!artistName && artistId && userMap.has(artistId)) {
-        const user = userMap.get(artistId)
-        artistName = user.nickname || user.nickName || user.name || `用户${artistId}`
-      }
-      if (!artistName) {
-        artistName = '未知'
+        if (artistName) {
+          console.log(`✅ 从申请记录获取画师名称: ${artistName}`)
+        }
       }
       
-      // 调试日志
-      if (artistName === '未知') {
-        console.log(`⚠️ 商品 "${product.name}" 找不到画师:`)
-        console.log('  - 商品artistId:', product.artistId)
-        console.log('  - 画师申请数量:', artistApplications.length)
-        if (allUsers.length > 0) {
-          console.log('  - 用户列表示例:', allUsers.slice(0, 3).map(u => ({ userId: u.userId, nickname: u.nickname || u.nickName })))
+      // 2. 其次从用户信息中获取
+      if (!artistName && artistId && userMap.has(artistId)) {
+        const user = userMap.get(artistId)
+        artistName = user.nickname || user.nickName || user.name || ''
+        if (artistName) {
+          console.log(`✅ 从用户信息获取画师名称: ${artistName}`)
         }
+      }
+      
+      // 3. 最后使用商品自带的artistName（但过滤掉英文默认值）
+      if (!artistName && product.artistName) {
+        const productArtistName = String(product.artistName).trim()
+        // 🎯 过滤掉英文默认值
+        const isEnglishDefault = /^(unknown|artist\d+|user\d+|default)$/i.test(productArtistName)
+        if (!isEnglishDefault && productArtistName.length > 0) {
+          artistName = productArtistName
+        }
+      }
+      
+      // 4. 如果还是没有，显示"画师ID"
+      if (!artistName) {
+        artistName = artistId ? `画师${artistId}` : '未知画师'
       }
       
       // 生成规格信息摘要
@@ -456,11 +516,33 @@ Page({
     
     this.setData({
       allOrders: formattedOrders,
-      orders: formattedOrders,
       orderStats: orderStats
     })
 
+    // 🎯 应用当前筛选条件（确保刷新后保持筛选状态）
+    this.applyCurrentOrderFilter()
+
     this.collectAlerts()
+  },
+
+  // 🎯 新增：应用当前订单筛选
+  applyCurrentOrderFilter() {
+    const filter = this.data.orderFilter
+    const allOrders = this.data.allOrders
+
+    if (filter === 'all') {
+      this.setData({ orders: allOrders })
+    } else if (filter === 'processing') {
+      const processingSet = new Set(['processing', 'paid', 'inProgress', 'waitingConfirm', 'nearDeadline'])
+      const filtered = allOrders.filter(o => processingSet.has(o.status))
+      this.setData({ orders: filtered })
+    } else if (filter === 'refunding') {
+      const filtered = allOrders.filter(o => o.status === 'refunding' || o.status === 'refunded')
+      this.setData({ orders: filtered })
+    } else {
+      const filtered = allOrders.filter(o => o.status === filter)
+      this.setData({ orders: filtered })
+    }
   },
 
   // 加载画师列表
@@ -1129,42 +1211,107 @@ Page({
   initiateRefund(e) {
     const orderId = e.currentTarget.dataset.id
     
+    // 🎯 防止重复点击
+    if (this.data.refunding) {
+      wx.showToast({
+        title: '正在处理中...',
+        icon: 'none'
+      })
+      return
+    }
+    
+    // 查找订单获取金额
+    const allOrders = orderHelper.getAllOrders()
+    const order = allOrders.find(o => o.id === orderId)
+    
+    if (!order) {
+      wx.showToast({
+        title: '订单不存在',
+        icon: 'none'
+      })
+      return
+    }
+    
+    if (order.status === 'refunded') {
+      wx.showToast({
+        title: '订单已退款',
+        icon: 'none'
+      })
+      return
+    }
+    
+    const amount = parseFloat(order.price || order.totalAmount || order.totalPrice || 0)
+    const amountText = amount > 0 ? `¥${amount.toFixed(2)}` : '该订单金额'
+    
     wx.showModal({
-      title: '确认退款',
-      content: '确认对此订单进行退款操作？\n\n退款后订单状态将变为"已退款"，此操作不可撤销。',
+      title: '⚠️ 管理员退款确认',
+      content: `请仔细核对退款信息：\n\n订单编号：${orderId}\n退款金额：${amountText}\n\n确认后将立即退款，操作不可撤销！`,
       confirmText: '确认退款',
-      confirmColor: '#FF6B6B',
+      confirmColor: '#FF5722',
+      cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
-          this.doRefund(orderId)
+          this.doRefund(orderId, amount, order)
         }
       }
     })
   },
 
   // 执行退款
-  doRefund(orderId) {
+  doRefund(orderId, refundAmount, orderInfo) {
+    // 🎯 设置退款中标志
+    this.setData({ refunding: true })
+    
+    wx.showLoading({ title: '退款处理中...', mask: true })
+    
     // 同时从两个存储源读取
     let ordersFromOrders = wx.getStorageSync('orders') || []
     let ordersFromPending = wx.getStorageSync('pending_orders') || []
+    const timestamp = new Date().toISOString()
+    
+    const refundData = {
+      status: 'refunded',
+      statusText: '已退款',
+      refundStatus: 'refunded',
+      refundAmount: refundAmount || orderInfo?.price || 0,
+      refundTime: timestamp,
+      refundCompletedAt: timestamp,
+      refundHistory: [
+        ...(orderInfo?.refundHistory || []),
+        {
+          status: 'refunded',
+          operator: 'admin',
+          operatorId: wx.getStorageSync('userId'),
+          time: timestamp,
+          amount: refundAmount || orderInfo?.price || 0,
+          note: '管理员执行退款'
+        }
+      ]
+    }
     
     // 先在 pending_orders 中查找
     const pendingIndex = ordersFromPending.findIndex(o => o.id === orderId)
     if (pendingIndex !== -1) {
-      ordersFromPending[pendingIndex].status = 'refunded'
-      ordersFromPending[pendingIndex].refundTime = new Date().toISOString()
+      ordersFromPending[pendingIndex] = orderHelper.mergeOrderRecords(
+        ordersFromPending[pendingIndex],
+        refundData
+      )
       wx.setStorageSync('pending_orders', ordersFromPending)
     }
     
     // 再在 orders 中查找（如果存在）
     const orderIndex = ordersFromOrders.findIndex(o => o.id === orderId)
     if (orderIndex !== -1) {
-      ordersFromOrders[orderIndex].status = 'refunded'
-      ordersFromOrders[orderIndex].refundTime = new Date().toISOString()
+      ordersFromOrders[orderIndex] = orderHelper.mergeOrderRecords(
+        ordersFromOrders[orderIndex],
+        refundData
+      )
       wx.setStorageSync('orders', ordersFromOrders)
     }
 
     if (pendingIndex === -1 && orderIndex === -1) {
+      wx.hideLoading()
+      this.setData({ refunding: false })
       wx.showToast({
         title: '订单不存在',
         icon: 'none'
@@ -1174,15 +1321,22 @@ Page({
 
     console.log('✅ 订单已退款:')
     console.log('  - 订单ID:', orderId)
+    console.log('  - 退款金额:', refundAmount)
     console.log('  - 退款时间:', new Date().toLocaleString())
 
-    wx.showToast({
-      title: '退款成功',
-      icon: 'success'
-    })
-
-    // 刷新订单列表
-    this.loadOrders()
+    // 🎯 延迟500ms后刷新
+    setTimeout(() => {
+      wx.hideLoading()
+      this.setData({ refunding: false })
+      
+      wx.showToast({
+        title: '退款成功',
+        icon: 'success'
+      })
+      
+      // 刷新订单列表
+      this.loadOrders()
+    }, 500)
   },
 
   processRefund(e) {
@@ -1496,12 +1650,6 @@ Page({
     })
   },
 
-  goToMedia() {
-    wx.navigateTo({
-      url: '/pages/media-library/index'
-    })
-  },
-
   goToBanners() {
     wx.navigateTo({
       url: '/pages/banner-manage/index'
@@ -1511,12 +1659,6 @@ Page({
   goToNotices() {
     wx.navigateTo({
       url: '/pages/notice-manage/index'
-    })
-  },
-
-  goToSettings() {
-    wx.navigateTo({
-      url: '/pages/system-settings/index'
     })
   },
 

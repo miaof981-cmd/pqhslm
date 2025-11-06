@@ -130,10 +130,23 @@
   color: #333;
 }
 
+/* 🎯 增强画师行的可点击性 */
+.info-row:last-child {
+  transition: background-color 0.2s ease;
+  margin: 0 -20rpx;
+  padding: 0 20rpx;
+  border-radius: 8rpx;
+}
+
+.info-row:last-child:active {
+  background-color: #F5F5F5;
+}
+
 .arrow {
   font-size: 32rpx;
-  color: #CCC;
-  font-weight: 300;
+  color: #A8E6CF;
+  font-weight: 600;
+  margin-left: 8rpx;
 }
 
 /* ===== 商品详情 ===== */

@@ -271,6 +271,7 @@ function fixHistoricalOrders() {
   
   const orders = wx.getStorageSync('orders') || []
   const pendingOrders = wx.getStorageSync('pending_orders') || []
+  const currentUser = wx.getStorageSync('userInfo') || {}
   
   let fixedCount = 0
   
@@ -293,11 +294,11 @@ function fixHistoricalOrders() {
     }
 
     if (!patched.buyerName) {
-      patched.buyerName = currentUser?.nickName || `用户_${String(userId).slice(-4)}`
+      patched.buyerName = currentUser?.nickName || currentUser?.name || currentUser?.nickname || `用户_${String(userId).slice(-4)}`
     }
 
     if (!patched.buyerAvatar || patched.buyerAvatar === 'undefined' || patched.buyerAvatar.startsWith('http://tmp/')) {
-      patched.buyerAvatar = currentUser?.avatarUrl || ''
+      patched.buyerAvatar = currentUser?.avatarUrl || currentUser?.avatar || ''
     }
 
     return patched

@@ -30,19 +30,12 @@
     <text class="balance-hint">订单、打赏与分成收入可提现</text>
   </view>
 
-  <!-- 查看记录入口 -->
+  <!-- 历史记录入口 -->
   <view class="view-records">
     <view class="record-entry" bindtap="viewIncomeDetail">
-      <text class="entry-label">资金明细</text>
+      <text class="entry-label">历史记录</text>
       <view class="entry-right">
-        <text class="entry-hint">查看收入记录</text>
-        <text class="entry-arrow">›</text>
-      </view>
-    </view>
-    <view class="record-entry" bindtap="viewWithdrawRecords">
-      <text class="entry-label">提现记录</text>
-      <view class="entry-right">
-        <text class="entry-hint">查看提现历史</text>
+        <text class="entry-hint">账单流水</text>
         <text class="entry-arrow">›</text>
       </view>
     </view>
@@ -141,5 +134,36 @@
 
     <!-- 提交按钮 -->
     <button class="modal-submit-btn" bindtap="submitVerify">完成认证</button>
+  </view>
+</view>
+
+<!-- 🎯 提现记录弹窗 -->
+<view wx:if="{{showWithdrawRecordsModal}}" class="records-modal-mask" bindtap="closeWithdrawRecordsModal">
+  <view class="records-modal-content" catchtap="stopPropagation">
+    <view class="records-modal-header">
+      <text class="records-modal-title">提现记录</text>
+      <text class="records-modal-close" bindtap="closeWithdrawRecordsModal">×</text>
+    </view>
+    
+    <view class="records-modal-body">
+      <view wx:if="{{withdrawRecords.length === 0}}" class="records-empty">
+        <text class="records-empty-icon">📝</text>
+        <text class="records-empty-text">暂无提现记录</text>
+      </view>
+      
+      <view wx:else class="records-list">
+        <view wx:for="{{withdrawRecords}}" wx:key="id" class="records-item status-{{item.status}}">
+          <view class="records-item-header">
+            <text class="records-item-amount">-¥{{item.amount}}</text>
+            <view class="records-item-status">{{item.statusText}}</view>
+          </view>
+          <view class="records-item-info">
+            <text class="records-info-line">提现银行：{{item.bankName || '未知银行'}}(****{{item.bankCard || '0000'}})</text>
+            <text class="records-info-line">提现时间：{{item.time}}</text>
+            <text wx:if="{{item.completedTime}}" class="records-info-line">完成时间：{{item.completedTime}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </view>

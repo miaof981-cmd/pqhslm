@@ -3,6 +3,7 @@ const { computeVisualStatus } = require('../../utils/order-visual-status')
 const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
 const staffFinance = require('../../utils/staff-finance.js')
 const serviceIncome = require('../../utils/service-income.js')  // 🎯 新增：客服收入管理
+const productSales = require('../../utils/product-sales.js')  // 🎯 新增：商品销量更新
 
 Page({
   data: {
@@ -108,33 +109,39 @@ Page({
   
   // 加载客服二维码
   loadServiceQRCode(order) {
-    if (order.serviceQRCode) {
-      return
-    }
-
-    const orderQr = order.serviceQRCode || order.serviceQrcodeUrl || order.serviceQrcode
-    if (orderQr) {
+    // 🎯 修复：先检查订单数据中的多个可能字段
+    const orderQr = order.serviceQRCode || order.serviceQrcodeUrl || order.serviceQrcode || order.qrCode
+    if (orderQr && orderQr.trim()) {
+      console.log('✅ 从订单数据加载客服二维码')
       this.setData({
         'order.serviceQRCode': orderQr
       })
       return
     }
 
+    // 如果订单中没有，尝试从客服列表加载
     if (!order.serviceId) {
       console.warn('⚠️ 订单未分配客服，无法加载二维码')
       return
     }
     
-    // 从本地存储读取客服列表
-    const serviceList = wx.getStorageSync('customer_service_list') || []
-    const service = serviceList.find(s => s.id === order.serviceId || s.userId === order.serviceId)
+    // 从本地存储读取客服列表（尝试多个存储key）
+    let serviceList = wx.getStorageSync('customer_service_list') || []
+    if (!serviceList.length) {
+      serviceList = wx.getStorageSync('service_list') || []
+    }
+    
+    const service = serviceList.find(s => 
+      String(s.id) === String(order.serviceId) || 
+      String(s.userId) === String(order.serviceId)
+    )
     
     const qrImage = service
-      ? service.qrCode || service.qrcodeUrl || service.serviceQrcodeUrl || service.qrcode
+      ? service.qrCode || service.qrcodeUrl || service.serviceQrcodeUrl || service.qrcode || service.qrcodeNumber
       : ''
     
-    if (service && qrImage) {
-      console.log('✅ 成功加载客服二维码:', service.name)
+    if (service && qrImage && qrImage.trim()) {
+      console.log('✅ 成功从客服列表加载二维码:', service.name || service.nickName)
       this.setData({
         'order.serviceQRCode': qrImage
       })
@@ -142,7 +149,8 @@ Page({
       console.warn('⚠️ 客服二维码未找到:', {
         serviceId: order.serviceId,
         serviceName: order.serviceName,
-        找到的客服: service ? service.name : '未找到'
+        找到的客服: service ? (service.name || service.nickName) : '未找到',
+        客服列表数量: serviceList.length
       })
     }
   },
@@ -379,6 +387,79 @@ Page({
     })
   },
 
+  // 🎯 新增：申请退款
+  requestRefund() {
+    const order = this.data.order
+    
+    wx.showModal({
+      title: '申请退款',
+      content: `您确定要申请退款吗？\n\n订单号：${order.id}\n商品：${order.productName}\n金额：¥${order.price}\n\n退款申请提交后，客服将在24小时内处理`,
+      confirmText: '确认申请',
+      cancelText: '我再想想',
+      success: (res) => {
+        if (res.confirm) {
+          this.doRequestRefund(order)
+        }
+      }
+    })
+  },
+
+  // 执行退款申请
+  doRequestRefund(order) {
+    wx.showLoading({ title: '提交中...', mask: true })
+    
+    // 更新订单退款状态为"申请中"
+    order.refundStatus = 'requesting'
+    order.refundRequestTime = new Date().toISOString()
+    order.refundRequestor = 'buyer' // 买家申请
+    
+    // 保存到本地存储
+    const orderHelper = require('../../utils/order-helper.js')
+    const allOrders = orderHelper.getAllOrders()
+    const orderIndex = allOrders.findIndex(o => o.id === order.id)
+    
+    if (orderIndex !== -1) {
+      allOrders[orderIndex] = { ...allOrders[orderIndex], ...order }
+      
+      // 根据订单状态保存到对应的存储
+      if (order.status === 'completed') {
+        const completedOrders = wx.getStorageSync('completed_orders') || []
+        const cIndex = completedOrders.findIndex(o => o.id === order.id)
+        if (cIndex !== -1) {
+          completedOrders[cIndex] = order
+          wx.setStorageSync('completed_orders', completedOrders)
+        }
+      } else {
+        const pendingOrders = wx.getStorageSync('pending_orders') || []
+        const pIndex = pendingOrders.findIndex(o => o.id === order.id)
+        if (pIndex !== -1) {
+          pendingOrders[pIndex] = order
+          wx.setStorageSync('pending_orders', pendingOrders)
+        }
+      }
+      
+      console.log('✅ 退款申请已提交:', order.id)
+      
+      setTimeout(() => {
+        wx.hideLoading()
+        wx.showToast({
+          title: '退款申请已提交',
+          icon: 'success',
+          duration: 2000
+        })
+        
+        // 刷新页面
+        this.loadOrderDetail(order.id)
+      }, 500)
+    } else {
+      wx.hideLoading()
+      wx.showToast({
+        title: '订单不存在',
+        icon: 'error'
+      })
+    }
+  },
+
   // 隐藏二维码弹窗
   hideQRModal() {
     this.setData({
@@ -500,6 +581,9 @@ Page({
                 // 🎯 新的收入分配逻辑：固定¥5分配给客服和管理员
                 serviceIncome.recordOrderIncome(recordedOrder)
                 console.log('✅ 订单收入分配完成')
+                
+                // 🎯 更新商品销量
+                productSales.updateProductSales(recordedOrder)
               } catch (err) {
                 console.error('⚠️ 记录订单收入失败:', err)
               }

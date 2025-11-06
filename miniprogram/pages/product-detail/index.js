@@ -37,6 +37,7 @@ Page({
     })
     this.loadProduct()
     this.loadCartCount() // 加载购物车数量
+    this.loadServiceQR() // 🎯 修复：首次进入时加载客服二维码
   },
   
   onShow() {
@@ -308,14 +309,11 @@ Page({
 
   // 显示/隐藏客服二维码
   toggleServiceQR() {
-    if (!this.data.orderQR && (!this.data.serviceQR || !this.data.serviceQR.imageUrl)) {
-      wx.showToast({
-        title: '暂无客服二维码',
-        icon: 'none'
-      })
-      return
-    }
+    // 🎯 修复：即使没有二维码也显示弹窗（显示"未配置"提示）
     console.log('toggleServiceQR 被调用，当前状态:', this.data.showServiceQR)
+    console.log('客服信息:', this.data.serviceInfo)
+    console.log('客服二维码:', this.data.serviceQR)
+    
     this.setData({
       showServiceQR: !this.data.showServiceQR
     })
@@ -714,18 +712,60 @@ Page({
     // }
   },
 
-  // 查看画师主页
-  viewArtist() {
-    const artist = this.data.artist
-    if (!artist || !artist.id) {
+  // 🎯 新增：预览商品图片
+  previewImages(e) {
+    const current = e.currentTarget.dataset.current
+    const urls = this.data.product.images || []
+    
+    if (urls.length === 0) {
       wx.showToast({
-        title: '暂无画师信息',
+        title: '暂无图片',
         icon: 'none'
       })
       return
     }
+    
+    wx.previewImage({
+      current: current, // 当前显示图片的链接
+      urls: urls // 需要预览的图片链接列表
+    })
+  },
+
+  // 🎯 优化：查看画师主页（增强调试和错误提示）
+  viewArtist() {
+    console.log('🎨 点击查看画师主页')
+    const artist = this.data.artist
+    console.log('画师信息:', artist)
+    
+    if (!artist) {
+      console.error('❌ 画师对象不存在')
+      wx.showToast({
+        title: '画师信息缺失',
+        icon: 'none'
+      })
+      return
+    }
+    
+    if (!artist.id || artist.id === '') {
+      console.error('❌ 画师ID为空:', artist)
+      wx.showToast({
+        title: '该商品未关联画师',
+        icon: 'none',
+        duration: 2000
+      })
+      return
+    }
+    
+    console.log(`✅ 跳转到画师详情页: ${artist.id}`)
     wx.navigateTo({
-      url: `/pages/artist-detail/index?id=${artist.id}`
+      url: `/pages/artist-detail/index?id=${artist.id}`,
+      fail: (err) => {
+        console.error('❌ 跳转失败:', err)
+        wx.showToast({
+          title: '页面跳转失败',
+          icon: 'none'
+        })
+      }
     })
   }
 })

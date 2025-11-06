@@ -726,9 +726,8 @@ Page({
      // 验证保存
       const savedPending = wx.getStorageSync('pending_orders') || []
       const savedAll = orderHelper.getAllOrders()
-      if (isNewOrder) {
-        this.incrementProductSales(orderItems)
-      }
+      // ❌ 已移除：下单时增加销量的错误逻辑
+      // 销量应在订单完成时更新，而非下单时
      
      console.log('========================================')
       console.log('✅ 订单保存成功！')
@@ -750,28 +749,10 @@ Page({
     }
   },
 
-  incrementProductSales(orderItems = []) {
-    if (!Array.isArray(orderItems) || orderItems.length === 0) return
-    const products = wx.getStorageSync('mock_products') || []
-    if (!Array.isArray(products) || products.length === 0) return
-
-    let changed = false
-
-    orderItems.forEach(item => {
-      if (!item || !item.productId) return
-      const targetIndex = products.findIndex(product => String(product.id || product._id) === String(item.productId))
-      if (targetIndex === -1) return
-
-      const quantity = Number(item.quantity) || 1
-      const currentSales = Number(products[targetIndex].sales) || 0
-      products[targetIndex].sales = currentSales + quantity
-      changed = true
-    })
-
-    if (changed) {
-      wx.setStorageSync('mock_products', products)
-    }
-  },
+  // ❌ 已废弃：销量应在订单完成时更新，使用 utils/product-sales.js
+  // incrementProductSales(orderItems = []) {
+  //   ...
+  // }
 
   // 生成订单号
   generateOrderNo() {

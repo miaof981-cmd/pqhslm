@@ -1,7 +1,7 @@
 {
-  "navigationBarTitleText": "业绩报表",
-  "navigationBarBackgroundColor": "#ffffff",
-  "navigationBarTextStyle": "black",
+  "navigationBarTitleText": "角色收入统计",
+  "navigationBarBackgroundColor": "#66BB6A",
+  "navigationBarTextStyle": "white",
   "backgroundColor": "#F5F5F5",
   "enablePullDownRefresh": true
 }

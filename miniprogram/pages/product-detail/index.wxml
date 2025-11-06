@@ -13,7 +13,11 @@
             autoplay="{{true}}"
             interval="{{3000}}">
       <swiper-item wx:for="{{product.images}}" wx:key="*this">
-        <image class="swiper-image" src="{{item}}" mode="aspectFill" />
+        <image class="swiper-image" 
+               src="{{item}}" 
+               mode="aspectFill" 
+               data-current="{{item}}"
+               bindtap="previewImages" />
       </swiper-item>
     </swiper>
 
@@ -39,9 +43,10 @@
 
     <!-- 基础信息 -->
     <view class="info-section">
-      <view wx:if="{{product.categoryName}}" class="info-row">
+      <!-- 🎯 修复：始终显示分类，未设置时显示"未分类" -->
+      <view class="info-row">
         <text class="info-label">分类</text>
-        <text class="info-value">{{product.categoryName}}</text>
+        <text class="info-value">{{product.categoryName || '未分类'}}</text>
       </view>
       <view class="info-row">
         <text class="info-label">出稿时间</text>

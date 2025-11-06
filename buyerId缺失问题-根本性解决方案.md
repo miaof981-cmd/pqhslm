@@ -119,6 +119,7 @@ onLaunch() {
 - ✅ 每次启动自动检查并修复历史订单
 - ✅ 从全局变量同步 userId 到本地
 - ✅ 为后续云端同步预留接口
+- 🔄 最新更新：`fixHistoricalOrders()` 现已从 `wx.getStorageSync('userInfo')` 读取昵称与头像，避免引用未定义的 `currentUser` 并确保修复后订单保留买家信息。
 
 ---
 
@@ -354,4 +355,3 @@ console.log('是否游客:', isGuest)
 **文档维护者**: AI Assistant  
 **最后更新**: 2025-10-28  
 **审查建议**: 感谢提供的专业技术审查，本方案已根据建议优化完成
-

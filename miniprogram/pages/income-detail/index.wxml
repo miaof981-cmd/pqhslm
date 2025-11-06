@@ -2,82 +2,85 @@
   <view wx:if="{{loading}}" class="loading">加载中...</view>
 
   <view wx:else>
-    <!-- 收入总览 -->
-    <view class="income-summary">
-      <!-- 总收入父容器 -->
-      <view class="total-income-card">
-        <view class="total-header">
-          <text class="total-label">总收入</text>
-          <text class="total-amount">¥{{totalIncome}}</text>
+    <!-- 🎯 余额卡片 -->
+    <view class="balance-card">
+      <view class="balance-main">
+        <text class="balance-label">可提现余额</text>
+        <text class="balance-amount">¥{{availableBalance}}</text>
+      </view>
+      <view class="balance-actions">
+        <view class="balance-info-item">
+          <text class="info-label">历史总收入</text>
+          <text class="info-value">¥{{totalIncome}}</text>
         </view>
-        
-        <!-- 收入明细子项 -->
-        <view class="income-breakdown">
-          <view class="breakdown-item reward">
-            <view class="item-left">
-              <view class="item-dot"></view>
-              <text class="item-label">打赏收入</text>
-            </view>
-            <text class="item-amount">¥{{rewardIncome}}</text>
-          </view>
-          
-          <view class="breakdown-item order">
-            <view class="item-left">
-              <view class="item-dot"></view>
-              <text class="item-label">订单稿费</text>
-            </view>
-            <text class="item-amount">¥{{orderIncome}}</text>
-          </view>
-          
-          <view class="breakdown-item service">
-            <view class="item-left">
-              <view class="item-dot"></view>
-              <text class="item-label">客服分成</text>
-            </view>
-            <text class="item-amount">¥{{serviceIncome}}</text>
-          </view>
-          
-          <view class="breakdown-item admin">
-            <view class="item-left">
-              <view class="item-dot"></view>
-              <text class="item-label">管理员分成</text>
-            </view>
-            <text class="item-amount">¥{{staffIncome}}</text>
-          </view>
+        <view class="balance-divider"></view>
+        <view class="balance-action-btn" bindtap="showWithdrawRecordsModal">
+          <text class="action-label">提现记录</text>
+          <text class="action-arrow">›</text>
         </view>
       </view>
     </view>
 
-    <!-- 收入明细列表 -->
-    <view class="detail-list">
+    <!-- 🎯 账单流水 -->
+    <view class="transaction-list">
       <view class="list-header">
-        <text class="title">收入明细</text>
-        <text class="count">共 {{records.length}} 笔</text>
+        <text class="header-title">账单流水</text>
+        <text class="header-count">共 {{records.length}} 笔</text>
       </view>
 
       <view wx:if="{{records.length === 0}}" class="empty-state">
-        <view class="empty-icon">💰</view>
-        <text class="empty-text">暂无收入记录</text>
-        <text class="empty-hint">完成订单或收到打赏后会显示在这里</text>
+        <view class="empty-icon">📋</view>
+        <text class="empty-text">暂无账单记录</text>
+        <text class="empty-hint">收入和提现记录会显示在这里</text>
       </view>
 
-      <view wx:else class="record-list">
+      <view wx:else class="transaction-items">
         <view 
           wx:for="{{records}}" 
           wx:key="id" 
-          class="record-item {{item.type}}"
+          class="transaction-item type-{{item.subType}}"
         >
-          <view class="record-left">
-            <view class="record-type-badge {{item.type}}">
-              <text>{{item.typeText}}</text>
-            </view>
-            <view class="record-info">
-              <text class="record-title">{{item.title}}</text>
-              <text class="record-time">{{item.time}}</text>
-            </view>
+          <view class="item-badge {{item.subType}}">
+            <text>{{item.typeText}}</text>
           </view>
-          <view class="record-right">
-            <text class="record-amount">+¥{{item.amount}}</text>
+          <view class="item-content">
+            <text class="item-title">{{item.title}}</text>
+            <text class="item-time">{{item.time}}</text>
+          </view>
+          <view class="item-right">
+            <text class="item-amount {{item.isIncome ? 'income' : 'outcome'}}">{{item.amountText}}</text>
+            <text class="item-balance">余额 ¥{{item.balanceText}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 🎯 提现记录弹窗 -->
+<view wx:if="{{showWithdrawRecordsModal}}" class="withdraw-modal-mask" bindtap="closeWithdrawRecordsModal">
+  <view class="withdraw-modal-content" catchtap="stopPropagation">
+    <view class="withdraw-modal-header">
+      <text class="withdraw-modal-title">提现记录</text>
+      <text class="withdraw-modal-close" bindtap="closeWithdrawRecordsModal">×</text>
+    </view>
+    
+    <view class="withdraw-modal-body">
+      <view wx:if="{{withdrawRecords.length === 0}}" class="withdraw-empty">
+        <text class="withdraw-empty-icon">📝</text>
+        <text class="withdraw-empty-text">暂无提现记录</text>
+      </view>
+      
+      <view wx:else class="withdraw-list">
+        <view wx:for="{{withdrawRecords}}" wx:key="id" class="withdraw-item status-{{item.status}}">
+          <view class="withdraw-item-header">
+            <text class="withdraw-item-amount">-¥{{item.amount}}</text>
+            <view class="withdraw-item-status">{{item.statusText}}</view>
+          </view>
+          <view class="withdraw-item-info">
+            <text class="withdraw-info-line">提现银行：{{item.bankName || '未知银行'}}(****{{item.bankCard || '0000'}})</text>
+            <text class="withdraw-info-line">提现时间：{{item.time}}</text>
+            <text wx:if="{{item.completedTime}}" class="withdraw-info-line">完成时间：{{item.completedTime}}</text>
           </view>
         </view>
       </view>

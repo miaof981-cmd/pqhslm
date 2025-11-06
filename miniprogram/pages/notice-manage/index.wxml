@@ -4,18 +4,118 @@
   </view>
   
   <view wx:else>
-    <view class="header-bar">
-      <text class="page-title">公告管理</text>
+    <!-- 页面头部 -->
+    <view class="page-header">
+      <view class="header-left">
+        <text class="page-title">公告管理</text>
+        <text class="page-desc">共 {{notices.length}} 条公告</text>
+      </view>
       <button class="add-btn" bindtap="showAddModal">+ 添加公告</button>
     </view>
     
-    <view class="list">
-      <view wx:for="{{items}}" wx:key="_id" class="list-item">
-        <text class="item-title">{{item.name || item.title}}</text>
-        <view class="item-actions">
-          <button class="action-btn edit" bindtap="editItem" data-id="{{item._id}}">编辑</button>
-          <button class="action-btn delete" bindtap="deleteItem" data-id="{{item._id}}">删除</button>
+    <!-- 公告列表 -->
+    <view wx:if="{{notices.length === 0}}" class="empty-state">
+      <text class="empty-icon">📢</text>
+      <text class="empty-text">暂无公告</text>
+      <text class="empty-hint">点击右上角添加公告</text>
+    </view>
+    
+    <view wx:else class="notice-list">
+      <view wx:for="{{notices}}" wx:key="id" class="notice-item">
+        <view class="notice-header">
+          <view class="notice-type type-{{item.type}}">
+            <text wx:if="{{item.type === 'info'}}">📘 普通</text>
+            <text wx:elif="{{item.type === 'warning'}}">⚠️ 提示</text>
+            <text wx:elif="{{item.type === 'important'}}">🔴 重要</text>
+          </view>
+          <view class="notice-status" 
+                data-id="{{item.id}}" 
+                bindtap="toggleStatus">
+            <text wx:if="{{item.status === 'active'}}" class="status-active">✓ 已启用</text>
+            <text wx:else class="status-inactive">○ 已停用</text>
+          </view>
         </view>
+        
+        <view class="notice-content">
+          <text class="notice-title">{{item.title}}</text>
+          <text class="notice-text">{{item.content}}</text>
+        </view>
+        
+        <view class="notice-meta">
+          <text class="meta-time">创建：{{item.createTime}}</text>
+          <view class="notice-actions">
+            <button class="action-btn edit" data-id="{{item.id}}" bindtap="editNotice">编辑</button>
+            <button class="action-btn delete" data-id="{{item.id}}" bindtap="deleteNotice">删除</button>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 编辑弹窗 -->
+  <view wx:if="{{showModal}}" class="modal-mask" bindtap="closeModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">{{isEdit ? '编辑公告' : '添加公告'}}</text>
+        <view class="modal-close" bindtap="closeModal">×</view>
+      </view>
+      
+      <view class="modal-body">
+        <view class="form-field">
+          <text class="field-label">标题 *</text>
+          <input class="field-input" 
+                 placeholder="请输入公告标题" 
+                 value="{{formData.title}}"
+                 bindinput="onTitleInput" 
+                 maxlength="50" />
+        </view>
+        
+        <view class="form-field">
+          <text class="field-label">内容 *</text>
+          <textarea class="field-textarea" 
+                    placeholder="请输入公告内容" 
+                    value="{{formData.content}}"
+                    bindinput="onContentInput" 
+                    maxlength="500"
+                    auto-height />
+        </view>
+        
+        <view class="form-field">
+          <text class="field-label">类型</text>
+          <radio-group class="radio-group" bindchange="onTypeChange">
+            <label class="radio-label">
+              <radio value="info" checked="{{formData.type === 'info'}}" color="#2196F3" />
+              <text>普通</text>
+            </label>
+            <label class="radio-label">
+              <radio value="warning" checked="{{formData.type === 'warning'}}" color="#FF9800" />
+              <text>提示</text>
+            </label>
+            <label class="radio-label">
+              <radio value="important" checked="{{formData.type === 'important'}}" color="#F44336" />
+              <text>重要</text>
+            </label>
+          </radio-group>
+        </view>
+        
+        <view class="form-field">
+          <text class="field-label">状态</text>
+          <radio-group class="radio-group" bindchange="onStatusChange">
+            <label class="radio-label">
+              <radio value="active" checked="{{formData.status === 'active'}}" color="#4CAF50" />
+              <text>启用</text>
+            </label>
+            <label class="radio-label">
+              <radio value="inactive" checked="{{formData.status === 'inactive'}}" color="#999" />
+              <text>停用</text>
+            </label>
+          </radio-group>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="btn btn-cancel" bindtap="closeModal">取消</button>
+        <button class="btn btn-primary" bindtap="saveNotice">保存</button>
       </view>
     </view>
   </view>

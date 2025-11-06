@@ -116,15 +116,7 @@
           <view wx:if="{{totalBalance > 0}}" class="function-badge">¥{{totalBalance}}</view>
         </view>
         
-        <view class="function-item" data-type="favorite" bindtap="handleFunctionTap">
-          <view class="function-icon icon-favorite"></view>
-          <text class="function-label">收藏和关注</text>
-        </view>
-        <view class="function-item" data-type="history" bindtap="handleFunctionTap">
-          <view class="function-icon icon-history"></view>
-          <text class="function-label">历史足迹</text>
-        </view>
-        <view class="function-item" data-type="service" bindtap="handleFunctionTap">
+        <view class="function-item" bindtap="showServiceQrcode">
           <view class="function-icon icon-service"></view>
           <text class="function-label">平台售后</text>
         </view>
@@ -151,6 +143,26 @@
     <view class="copyright">
       <text class="copyright-text">画师商城版权所有©2024</text>
       <text class="copyright-text">让创意更有价值</text>
+    </view>
+  </view>
+
+  <!-- 🎯 平台售后二维码弹窗 -->
+  <view wx:if="{{showServiceQrcodeModal}}" class="qrcode-modal-mask" bindtap="closeServiceQrcodeModal">
+    <view class="qrcode-modal-content" catchtap="stopPropagation">
+      <view class="qrcode-header">
+        <text class="qrcode-title">平台售后</text>
+        <text class="qrcode-close" bindtap="closeServiceQrcodeModal">×</text>
+      </view>
+      <view class="qrcode-body">
+        <text class="qrcode-hint">扫码添加售后客服微信</text>
+        <image 
+          class="qrcode-image" 
+          src="{{serviceQrcode}}" 
+          mode="aspectFit"
+          bindtap="previewServiceQrcode"
+        />
+        <text class="qrcode-tip">点击图片可放大查看</text>
+      </view>
     </view>
   </view>
 </view>

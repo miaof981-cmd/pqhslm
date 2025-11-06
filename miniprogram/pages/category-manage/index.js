@@ -24,8 +24,11 @@ Page({
 
   // 检查管理员权限
   checkPermission() {
-    const role = wx.getStorageSync('userRole') || 'customer'
-    if (role !== 'admin') {
+    // ✅ 修复：使用 userRoles 数组而不是 userRole
+    const roles = wx.getStorageSync('userRoles') || ['customer']
+    const hasAdminRole = Array.isArray(roles) && roles.indexOf('admin') !== -1
+    
+    if (!hasAdminRole) {
       wx.showModal({
         title: '权限不足',
         content: '您不是管理员，无法访问此页面',

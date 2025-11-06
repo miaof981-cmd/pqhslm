@@ -4,19 +4,173 @@
   </view>
   
   <view wx:else>
-    <view class="header-bar">
-      <text class="page-title">业绩报表</text>
-      <button class="add-btn" bindtap="showAddModal">+ 添加报表</button>
-    </view>
-    
-    <view class="list">
-      <view wx:for="{{items}}" wx:key="_id" class="list-item">
-        <text class="item-title">{{item.name || item.title}}</text>
-        <view class="item-actions">
-          <button class="action-btn edit" bindtap="editItem" data-id="{{item._id}}">编辑</button>
-          <button class="action-btn delete" bindtap="deleteItem" data-id="{{item._id}}">删除</button>
-        </view>
+    <!-- 时间筛选器 -->
+    <view class="time-filter">
+      <view class="filter-item {{timeRange === '7days' ? 'active' : ''}}" 
+            data-range="7days" 
+            bindtap="switchTimeRange">
+        近7天
+      </view>
+      <view class="filter-item {{timeRange === '30days' ? 'active' : ''}}" 
+            data-range="30days" 
+            bindtap="switchTimeRange">
+        近30天
+      </view>
+      <view class="filter-item {{timeRange === 'custom' ? 'active' : ''}}" 
+            data-range="custom" 
+            bindtap="switchTimeRange">
+        自定义
       </view>
     </view>
+
+    <!-- 自定义时间选择 -->
+    <view wx:if="{{timeRange === 'custom'}}" class="custom-date-picker">
+      <picker mode="date" value="{{customStartDate}}" bindchange="onStartDateChange">
+        <view class="date-input">
+          <text class="date-label">开始日期：</text>
+          <text class="date-value">{{customStartDate || '请选择'}}</text>
+        </view>
+      </picker>
+      <text class="date-separator">至</text>
+      <picker mode="date" value="{{customEndDate}}" bindchange="onEndDateChange">
+        <view class="date-input">
+          <text class="date-label">结束日期：</text>
+          <text class="date-value">{{customEndDate || '请选择'}}</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- Tab切换 -->
+    <view class="tab-bar">
+      <view class="tab-item {{currentTab === 'artist' ? 'active' : ''}}" 
+            data-tab="artist" 
+            bindtap="switchTab">
+        画师 ({{artistList.length}})
+      </view>
+      <view class="tab-item {{currentTab === 'service' ? 'active' : ''}}" 
+            data-tab="service" 
+            bindtap="switchTab">
+        客服 ({{serviceList.length}})
+      </view>
+      <view class="tab-item {{currentTab === 'admin' ? 'active' : ''}}" 
+            data-tab="admin" 
+            bindtap="switchTab">
+        管理员 ({{adminList.length}})
+      </view>
+    </view>
+
+    <!-- 画师表格 -->
+    <view wx:if="{{currentTab === 'artist'}}" class="table-container">
+      <view wx:if="{{artistList.length === 0}}" class="empty-state">
+        <text class="empty-icon">👨‍🎨</text>
+        <text class="empty-text">该时间段内暂无画师收入数据</text>
+      </view>
+      
+      <scroll-view wx:else scroll-x class="table-scroll">
+        <view class="data-table">
+          <!-- 表头 -->
+          <view class="table-header">
+            <view class="th th-user">画师</view>
+            <view class="th th-count">订单数</view>
+            <view class="th th-money">营业额</view>
+            <view class="th th-money">实际收益</view>
+            <view class="th th-money">打赏收入</view>
+            <view class="th th-money">总收入</view>
+            <view class="th th-money">已提现</view>
+            <view class="th th-money">可提现</view>
+          </view>
+          
+          <!-- 数据行 -->
+          <view wx:for="{{artistList}}" wx:key="userId" class="table-row">
+            <view class="td td-user">
+              <image class="user-avatar" src="{{item.avatar}}" mode="aspectFill" />
+              <text class="user-name">{{item.name}}</text>
+            </view>
+            <view class="td td-count">{{item.orderCount}}</view>
+            <view class="td td-money highlight-revenue">¥{{item.totalRevenue}}</view>
+            <view class="td td-money">¥{{item.actualIncome}}</view>
+            <view class="td td-money">¥{{item.rewardIncome}}</view>
+            <view class="td td-money highlight-total">¥{{item.totalIncome}}</view>
+            <view class="td td-money">¥{{item.withdrawn}}</view>
+            <view class="td td-money highlight-available">¥{{item.available}}</view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 客服表格 -->
+    <view wx:if="{{currentTab === 'service'}}" class="table-container">
+      <view wx:if="{{serviceList.length === 0}}" class="empty-state">
+        <text class="empty-icon">👔</text>
+        <text class="empty-text">该时间段内暂无客服收入数据</text>
+      </view>
+      
+      <scroll-view wx:else scroll-x class="table-scroll">
+        <view class="data-table">
+          <!-- 表头 -->
+          <view class="table-header">
+            <view class="th th-user">客服</view>
+            <view class="th th-count">服务订单</view>
+            <view class="th th-money">营业额</view>
+            <view class="th th-money">实际收益</view>
+            <view class="th th-money">总收入</view>
+            <view class="th th-money">已提现</view>
+            <view class="th th-money">可提现</view>
+          </view>
+          
+          <!-- 数据行 -->
+          <view wx:for="{{serviceList}}" wx:key="userId" class="table-row">
+            <view class="td td-user">
+              <image class="user-avatar" src="{{item.avatar}}" mode="aspectFill" />
+              <text class="user-name">{{item.name}}</text>
+            </view>
+            <view class="td td-count">{{item.orderCount}}</view>
+            <view class="td td-money highlight-revenue">¥{{item.totalRevenue}}</view>
+            <view class="td td-money">¥{{item.actualIncome}}</view>
+            <view class="td td-money highlight-total">¥{{item.totalIncome}}</view>
+            <view class="td td-money">¥{{item.withdrawn}}</view>
+            <view class="td td-money highlight-available">¥{{item.available}}</view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 管理员表格 -->
+    <view wx:if="{{currentTab === 'admin'}}" class="table-container">
+      <view wx:if="{{adminList.length === 0}}" class="empty-state">
+        <text class="empty-icon">💼</text>
+        <text class="empty-text">该时间段内暂无管理员收入数据</text>
+      </view>
+      
+      <scroll-view wx:else scroll-x class="table-scroll">
+        <view class="data-table">
+          <!-- 表头 -->
+          <view class="table-header">
+            <view class="th th-user">管理员</view>
+            <view class="th th-count">分成订单</view>
+            <view class="th th-money">营业额</view>
+            <view class="th th-money">实际收益</view>
+            <view class="th th-money">总收入</view>
+            <view class="th th-money">已提现</view>
+            <view class="th th-money">可提现</view>
+          </view>
+          
+          <!-- 数据行 -->
+          <view wx:for="{{adminList}}" wx:key="userId" class="table-row">
+            <view class="td td-user">
+              <image class="user-avatar" src="{{item.avatar}}" mode="aspectFill" />
+              <text class="user-name">{{item.name}}</text>
+            </view>
+            <view class="td td-count">{{item.orderCount}}</view>
+            <view class="td td-money highlight-revenue">¥{{item.totalRevenue}}</view>
+            <view class="td td-money">¥{{item.actualIncome}}</view>
+            <view class="td td-money highlight-total">¥{{item.totalIncome}}</view>
+            <view class="td td-money">¥{{item.withdrawn}}</view>
+            <view class="td td-money highlight-available">¥{{item.available}}</view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
   </view>
+
 </view>

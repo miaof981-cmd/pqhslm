@@ -1,15 +1,16 @@
 const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
 const categoryService = require('../../utils/category-service.js')
 
+// 🎯 更新：根据实际橱窗类型调整分类
 const DEFAULT_CATEGORY_OPTIONS = [
-  { id: 'portrait', name: '头像设计', icon: '👤' },
-  { id: 'illustration', name: '插画设计', icon: '🎨' },
+  { id: 'chibi_portrait', name: 'Q版头像', icon: '😊' },
+  { id: 'half_body', name: '半身像', icon: '👤' },
+  { id: 'full_body', name: '全身像', icon: '🧍' },
+  { id: 'scene', name: '场景插画', icon: '🖼️' },
+  { id: 'emoticon', name: '表情包', icon: '😄' },
   { id: 'logo', name: 'LOGO设计', icon: '🏷️' },
-  { id: 'poster', name: '海报设计', icon: '🖼️' },
-  { id: 'emoticon', name: '表情包', icon: '😊' },
   { id: 'ui', name: 'UI设计', icon: '📱' },
-  { id: 'animation', name: '动画设计', icon: '🎬' },
-  { id: 'banner', name: '横幅设计', icon: '📐' }
+  { id: 'animation', name: '动画设计', icon: '🎬' }
 ]
 
 Page({
@@ -492,12 +493,7 @@ Page({
       const savedDraft = wx.getStorageSync('product_draft')
       if (savedDraft && savedDraft.timestamp === draftData.timestamp) {
         console.log('✅ 草稿保存成功')
-        
-        // 显示保存提示
-        this.setData({ draftSaved: true })
-        setTimeout(() => {
-          this.setData({ draftSaved: false })
-        }, 2000)
+        // 🎯 修复：不显示保存提示，避免频繁打扰用户
       } else {
         console.error('❌ 草稿保存验证失败')
       }
@@ -904,11 +900,20 @@ Page({
   },
 
   addFirstSpec() {
-    this.setData({
-      spec1Selected: true,
-      spec1Name: '',
-      spec1Values: [{ name: '', addPrice: '0', image: '' }]
-    })
+    // 🎯 修复：如果已有规格数据，不重置
+    if (this.data.spec1Values && this.data.spec1Values.length > 0) {
+      // 只标记为选中，不清空数据
+      this.setData({
+        spec1Selected: true
+      })
+    } else {
+      // 首次设置，初始化空规格
+      this.setData({
+        spec1Selected: true,
+        spec1Name: '',
+        spec1Values: [{ name: '', addPrice: '0', image: '' }]
+      })
+    }
     this.saveDraft()
   },
 

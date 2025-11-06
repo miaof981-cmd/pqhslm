@@ -316,11 +316,28 @@ function mergeOrderRecords(existing, incoming) {
     ...Object.keys(incoming)
   ])
 
+  // 🎯 关键字段：始终使用 incoming 的值（最新数据优先）
+  const priorityKeys = [
+    'status', 
+    'refundStatus', 
+    'refundCompletedAt', 
+    'refundHistory',
+    'completedAt',
+    'wasOverdue',
+    'overdueDays'
+  ]
+
   keys.forEach(key => {
     if (!Object.prototype.hasOwnProperty.call(incoming, key)) return
 
     const incomingValue = incoming[key]
     const currentValue = merged[key]
+
+    // 🔥 优先级字段：直接覆盖（确保状态更新不被旧数据阻断）
+    if (priorityKeys.includes(key) && incomingValue !== undefined) {
+      merged[key] = incomingValue
+      return
+    }
 
     const incomingMeaningful = isMeaningfulForMerge(key, incomingValue)
     const currentMeaningful = isMeaningfulForMerge(key, currentValue)
