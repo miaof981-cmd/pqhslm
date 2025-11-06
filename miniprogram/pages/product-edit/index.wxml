@@ -117,116 +117,60 @@
         <text class="title-desc">选择定价方式</text>
       </view>
 
-      <!-- 定价方式选择（2选1引导） -->
+      <!-- 定价方式选择（2选1 Tab式） -->
       <view class="pricing-guide">
         <view class="guide-tip">
           <text class="tip-icon">💡</text>
-          <text class="tip-text">选择一种定价方式：单一价格 或 多规格定价</text>
+          <text class="tip-text">选择定价方式（二选一）</text>
         </view>
         
-        <view class="pricing-options">
-          <!-- 选项1：基础价格 -->
-          <view class="pricing-option {{!spec1Selected ? 'active' : ''}}" bindtap="selectBasicPricing">
-            <view class="option-header">
-              <view class="option-icon">💰</view>
-              <view class="option-info">
-                <text class="option-title">单一价格</text>
-                <text class="option-desc">商品只有一个固定价格</text>
-              </view>
-              <view wx:if="{{!spec1Selected}}" class="option-badge">已选择</view>
-            </view>
-            
-            <!-- 基础价格输入（选中时显示） -->
-            <view wx:if="{{!spec1Selected}}" class="option-content">
-              <view class="price-input-large">
-                <text class="price-symbol-large">¥</text>
-                <input class="price-input-main" 
-                       type="digit"
-                       placeholder="请输入价格" 
-                       value="{{formData.basePrice}}"
-                       bindinput="onBasePriceInput"
-                       focus="{{!spec1Selected}}" />
-              </view>
-              <view class="price-hint">设置统一的商品价格</view>
+        <!-- Tab式选择器 -->
+        <view class="pricing-tabs">
+          <view class="pricing-tab {{!spec1Selected ? 'active' : ''}}" bindtap="selectBasicPricing">
+            <view class="tab-icon">💰</view>
+            <text class="tab-title">单一价格</text>
+            <view wx:if="{{!spec1Selected}}" class="tab-indicator"></view>
+          </view>
+          
+          <view class="pricing-tab {{spec1Selected ? 'active' : ''}}" bindtap="selectSpecPricing">
+            <view class="tab-icon">📋</view>
+            <text class="tab-title">多规格定价</text>
+            <view wx:if="{{spec1Selected}}" class="tab-indicator"></view>
+          </view>
+        </view>
+        
+        <!-- 内容区域（根据选择显示） -->
+        <view class="pricing-content">
+          <!-- 单一价格内容 -->
+          <view wx:if="{{!spec1Selected}}" class="price-content-panel">
+            <view class="panel-desc">为商品设置统一的价格</view>
+            <view class="price-input-large">
+              <text class="price-symbol-large">¥</text>
+              <input class="price-input-main" 
+                     type="digit"
+                     placeholder="0" 
+                     value="{{formData.basePrice}}"
+                     bindinput="onBasePriceInput" />
             </view>
           </view>
-
-          <!-- 选项2：多规格定价 -->
-          <view class="pricing-option {{spec1Selected ? 'active' : ''}}" bindtap="selectSpecPricing">
-            <view class="option-header">
-              <view class="option-icon">📋</view>
-              <view class="option-info">
-                <text class="option-title">多规格定价</text>
-                <text class="option-desc">不同规格有不同价格</text>
-              </view>
-              <view wx:if="{{spec1Selected}}" class="option-badge">已选择</view>
+          
+          <!-- 多规格定价内容 -->
+          <view wx:if="{{spec1Selected}}" class="spec-content-panel">
+            <view class="panel-desc">为不同规格设置不同价格</view>
+            <view class="spec-example">
+              <text class="example-icon">💡</text>
+              <text class="example-text">示例：头像 ¥50 / 半身像 ¥80 / 全身像 ¥120</text>
             </view>
-            
-            <!-- 规格说明（选中时显示） -->
-            <view wx:if="{{spec1Selected}}" class="option-content">
-              <view class="spec-example">
-                <text class="example-title">示例：</text>
-                <text class="example-text">头像类型：大头像 ¥50 / 半身像 ¥80 / 全身像 ¥120</text>
-              </view>
-              <button class="setup-spec-btn" bindtap="addFirstSpec">开始设置规格</button>
-            </view>
+            <button class="setup-spec-btn" bindtap="addFirstSpec">
+              <text class="btn-icon">+</text>
+              <text>开始设置规格</text>
+            </button>
           </view>
         </view>
       </view>
 
-      <!-- 库存设置 -->
-      <view class="form-group">
-        <view class="group-label">库存管理</view>
-        <view class="stock-mode-selector">
-          <view class="stock-mode-item {{!enableStockLimit ? 'active' : ''}}" 
-                bindtap="toggleStockMode" 
-                data-mode="auto">
-            <view class="mode-icon">♾️</view>
-            <view class="mode-info">
-              <text class="mode-title">自动补货</text>
-              <text class="mode-desc">无限库存，不限制购买</text>
-            </view>
-          </view>
-          <view class="stock-mode-item {{enableStockLimit ? 'active' : ''}}" 
-                bindtap="toggleStockMode" 
-                data-mode="limit">
-            <view class="mode-icon">📦</view>
-            <view class="mode-info">
-              <text class="mode-title">限量库存</text>
-              <text class="mode-desc">设置具体库存数量</text>
-            </view>
-          </view>
-        </view>
-        
-        <!-- 库存数量设置（仅在限量模式下显示） -->
-        <view wx:if="{{enableStockLimit}}" class="stock-setting">
-          <view class="stock-control">
-            <button class="stock-btn minus" bindtap="decreaseStock">-</button>
-            <input class="stock-input" 
-                   type="number"
-                   value="{{formData.stock}}"
-                   bindinput="onStockInput" 
-                   placeholder="请输入库存" />
-            <button class="stock-btn plus" bindtap="increaseStock">+</button>
-          </view>
-          <view class="group-hint">当前库存：{{formData.stock || 0}} 件</view>
-        </view>
-      </view>
-
-      <!-- 规格设置 -->
-      <view class="spec-guide">
-        <view class="guide-header">
-          <text class="guide-title">💡 规格设置（选填）</text>
-          <text class="guide-desc">为商品添加不同规格和价格组合</text>
-        </view>
-
-        <!-- 一级规格 -->
-        <view wx:if="{{!spec1Selected}}" class="add-spec-tip">
-          <button class="add-first-spec-btn" bindtap="addFirstSpec">+ 添加规格</button>
-        </view>
-
-        <!-- 规格配置 -->
-        <view wx:if="{{spec1Selected}}" class="spec-config">
+      <!-- 🎯 当选择多规格定价时，显示规格配置区域 -->
+      <view wx:if="{{spec1Selected}}" class="spec-config-wrapper">
           <view class="spec-card">
             <view class="spec-card-header">
               <view class="spec-header-left">
@@ -350,6 +294,44 @@
               </view>
             </view>
           </view>
+      </view>
+
+      <!-- 库存设置（统一放在底部） -->
+      <view class="form-group">
+        <view class="group-label">库存管理</view>
+        <view class="stock-mode-selector">
+          <view class="stock-mode-item {{!enableStockLimit ? 'active' : ''}}" 
+                bindtap="toggleStockMode" 
+                data-mode="auto">
+            <view class="mode-icon">♾️</view>
+            <view class="mode-info">
+              <text class="mode-title">自动补货</text>
+              <text class="mode-desc">无限库存，不限制购买</text>
+            </view>
+          </view>
+          <view class="stock-mode-item {{enableStockLimit ? 'active' : ''}}" 
+                bindtap="toggleStockMode" 
+                data-mode="limit">
+            <view class="mode-icon">📦</view>
+            <view class="mode-info">
+              <text class="mode-title">限量库存</text>
+              <text class="mode-desc">设置具体库存数量</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 库存数量设置（仅在限量模式下显示） -->
+        <view wx:if="{{enableStockLimit}}" class="stock-setting">
+          <view class="stock-control">
+            <button class="stock-btn minus" bindtap="decreaseStock">-</button>
+            <input class="stock-input" 
+                   type="number"
+                   value="{{formData.stock}}"
+                   bindinput="onStockInput" 
+                   placeholder="请输入库存" />
+            <button class="stock-btn plus" bindtap="increaseStock">+</button>
+          </view>
+          <view class="group-hint">当前库存：{{formData.stock || 0}} 件</view>
         </view>
       </view>
 

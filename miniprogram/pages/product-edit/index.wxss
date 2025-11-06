@@ -358,94 +358,144 @@
   color: #999;
 }
 
-/* ===== 定价方式2选1引导 ===== */
+/* ===== 定价方式2选1 Tab式 ===== */
 .pricing-guide {
-  margin-top: 24rpx;
+  background: white;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
 }
 
 .guide-tip {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12rpx;
   padding: 20rpx;
-  background: #FFF9E6;
+  background: linear-gradient(135deg, #FFF9E6 0%, #FFECB3 100%);
   border-radius: 12rpx;
   margin-bottom: 24rpx;
-  border-left: 4rpx solid #FFB300;
+  box-shadow: 0 2rpx 8rpx rgba(255, 179, 0, 0.1);
 }
 
 .guide-tip .tip-icon {
-  font-size: 32rpx;
+  font-size: 36rpx;
+  flex-shrink: 0;
 }
 
 .guide-tip .tip-text {
-  font-size: 26rpx;
+  font-size: 28rpx;
   color: #E65100;
+  font-weight: 700;
   line-height: 1.5;
 }
 
-.pricing-options {
+/* Tab选择器 */
+.pricing-tabs {
+  display: flex;
+  background: #F5F5F5;
+  border-radius: 12rpx;
+  padding: 8rpx;
+  margin-bottom: 24rpx;
+  gap: 8rpx;
+}
+
+.pricing-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 24rpx 16rpx;
+  background: transparent;
+  border-radius: 8rpx;
+  transition: all 0.3s;
+  position: relative;
+  cursor: pointer;
+}
+
+.pricing-tab.active {
+  background: white;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.tab-icon {
+  font-size: 52rpx;
+  transition: transform 0.3s;
+}
+
+.pricing-tab.active .tab-icon {
+  transform: scale(1.15);
+}
+
+.tab-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #999;
+  transition: color 0.3s;
+}
+
+.pricing-tab.active .tab-title {
+  color: #66BB6A;
+  font-weight: 700;
+}
+
+.tab-indicator {
+  position: absolute;
+  bottom: 8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 6rpx;
+  background: linear-gradient(90deg, #66BB6A 0%, #A8E6CF 100%);
+  border-radius: 3rpx;
+  animation: tabIndicatorIn 0.3s ease;
+}
+
+@keyframes tabIndicatorIn {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 40rpx;
+    opacity: 1;
+  }
+}
+
+/* 内容区域 */
+.pricing-content {
+  background: #F8F8F8;
+  border-radius: 12rpx;
+  padding: 30rpx;
+  animation: contentFadeIn 0.3s ease;
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.price-content-panel,
+.spec-content-panel {
   display: flex;
   flex-direction: column;
   gap: 20rpx;
 }
 
-.pricing-option {
-  background: white;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  border: 2rpx solid #E0E0E0;
-  transition: all 0.3s;
-}
-
-.pricing-option.active {
-  border-color: #66BB6A;
-  background: #F1F8F4;
-  box-shadow: 0 4rpx 16rpx rgba(102, 187, 106, 0.15);
-}
-
-.option-header {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.option-icon {
-  font-size: 48rpx;
-  flex-shrink: 0;
-}
-
-.option-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
-.option-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.option-desc {
-  font-size: 24rpx;
-  color: #999;
-}
-
-.option-badge {
-  padding: 6rpx 16rpx;
-  background: #66BB6A;
-  color: white;
-  font-size: 22rpx;
-  border-radius: 12rpx;
-  font-weight: 500;
-}
-
-.option-content {
-  margin-top: 24rpx;
-  padding-top: 24rpx;
-  border-top: 1rpx solid #E0E0E0;
+.panel-desc {
+  text-align: center;
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.5;
 }
 
 /* 基础价格输入（大号） */
@@ -453,68 +503,82 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12rpx;
-  padding: 32rpx;
+  gap: 16rpx;
+  padding: 40rpx 32rpx;
   background: white;
-  border-radius: 12rpx;
-  border: 2rpx solid #66BB6A;
+  border-radius: 16rpx;
+  border: 3rpx solid #66BB6A;
+  box-shadow: 0 4rpx 16rpx rgba(102, 187, 106, 0.1);
 }
 
 .price-symbol-large {
-  font-size: 48rpx;
+  font-size: 56rpx;
   font-weight: bold;
   color: #66BB6A;
 }
 
 .price-input-main {
   flex: 1;
-  font-size: 64rpx;
+  font-size: 72rpx;
   font-weight: bold;
   color: #333;
   text-align: center;
+  border: none;
+  background: transparent;
 }
 
-.price-hint {
-  margin-top: 16rpx;
-  text-align: center;
-  font-size: 24rpx;
-  color: #666;
+.price-input-main::placeholder {
+  color: #E0E0E0;
 }
 
 /* 规格示例 */
 .spec-example {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
   padding: 20rpx;
-  background: #FFF9E6;
-  border-radius: 8rpx;
-  margin-bottom: 16rpx;
+  background: linear-gradient(135deg, #E8F5E9 0%, #F1F8F4 100%);
+  border-radius: 12rpx;
+  border: 2rpx solid #C8E6C9;
 }
 
-.example-title {
-  font-size: 24rpx;
-  color: #E65100;
-  font-weight: 600;
-  margin-right: 8rpx;
+.example-icon {
+  font-size: 32rpx;
+  flex-shrink: 0;
 }
 
 .example-text {
+  flex: 1;
   font-size: 24rpx;
-  color: #666;
+  color: #388E3C;
   line-height: 1.6;
+  font-weight: 500;
 }
 
 .setup-spec-btn {
   width: 100%;
-  padding: 24rpx;
-  background: #66BB6A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 28rpx;
+  background: linear-gradient(135deg, #66BB6A 0%, #A8E6CF 100%);
   color: white;
-  font-size: 28rpx;
-  font-weight: 600;
-  border-radius: 12rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  border-radius: 16rpx;
   border: none;
+  box-shadow: 0 4rpx 16rpx rgba(102, 187, 106, 0.3);
+  transition: all 0.3s;
 }
 
 .setup-spec-btn::after {
   border: none;
+}
+
+.btn-icon {
+  font-size: 36rpx;
+  font-weight: normal;
 }
 
 /* ===== 标签选择 ===== */
@@ -666,54 +730,21 @@
   font-weight: bold;
 }
 
-/* ===== 规格设置引导 ===== */
-.spec-guide {
-  background: white;
-  border-radius: 16rpx;
-  padding: 30rpx;
-  margin-bottom: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
+/* ===== 规格配置包装 ===== */
+.spec-config-wrapper {
+  margin-top: 24rpx;
+  animation: slideDown 0.3s ease;
 }
 
-.guide-header {
-  margin-bottom: 30rpx;
-  text-align: center;
-}
-
-.guide-title {
-  display: block;
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 8rpx;
-}
-
-.guide-desc {
-  display: block;
-  font-size: 24rpx;
-  color: #999;
-}
-
-.add-spec-tip {
-  text-align: center;
-  padding: 40rpx 0;
-}
-
-.add-first-spec-btn {
-  padding: 20rpx 60rpx;
-  background: linear-gradient(135deg, #A8E6CF 0%, #88D4AB 100%);
-  border: none;
-  color: white;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  font-weight: bold;
-  line-height: 1;
-  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.3);
-}
-
-/* ===== 规格配置 ===== */
-.spec-config {
-  padding-top: 20rpx;
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .spec-card {
