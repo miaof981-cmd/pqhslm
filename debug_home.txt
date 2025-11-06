@@ -1,0 +1,33 @@
+请在微信开发者工具控制台运行以下代码来诊断问题：
+
+// 诊断脚本
+console.log('=== 🔍 首页诊断 ===')
+
+// 1. 检查商品数据
+const products = wx.getStorageSync('mock_products') || []
+console.log('1️⃣ 商品数量:', products.length)
+if (products.length > 0) {
+  console.log('   商品列表:', products.map(p => p.name))
+}
+
+// 2. 检查轮播图
+const banners = wx.getStorageSync('home_banners') || []
+console.log('2️⃣ 轮播图数量:', banners.length)
+
+// 3. 检查当前页面栈
+const pages = getCurrentPages()
+const currentPage = pages[pages.length - 1]
+console.log('3️⃣ 当前页面:', currentPage.route)
+console.log('   页面数据:', {
+  loading: currentPage.data.loading,
+  productsCount: currentPage.data.products?.length || 0,
+  allProductsCount: currentPage.data.allProducts?.length || 0
+})
+
+// 4. 测试图片转换
+if (products.length > 0 && products[1]) {
+  const testImage = products[1].images?.[0]
+  console.log('4️⃣ 测试图片转换:')
+  console.log('   原始图片:', testImage?.substring(0, 30) + '...')
+  console.log('   是否base64:', testImage?.startsWith('data:image'))
+}

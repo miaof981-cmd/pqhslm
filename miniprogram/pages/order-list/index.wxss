@@ -200,6 +200,8 @@
   height: 100%;
   border-radius: 12rpx;
   background: #F5F5F5;
+  object-fit: cover;
+  object-position: center;
 }
 
 .product-image-placeholder {
@@ -383,6 +385,7 @@
 .order-actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 15rpx;
   padding: 20rpx 25rpx;
   border-top: 1rpx solid #F5F5F5;
@@ -410,6 +413,13 @@
 .action-btn.warning {
   background: #FFE5B4;
   color: #856404;
+}
+
+.action-status {
+  font-size: 24rpx;
+  color: #4ECDC4;
+  align-self: center;
+  padding: 12rpx 20rpx;
 }
 
 /* 空状态 */

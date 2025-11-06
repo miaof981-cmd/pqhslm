@@ -1,3 +1,5 @@
+const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
+
 Page({
   data: {
     loading: true,
@@ -57,10 +59,15 @@ Page({
             productImage = '/assets/default-product.png'
           }
           
+          const coverImage = ensureRenderableImage(productImage, {
+            namespace: 'cart-product',
+            fallback: DEFAULT_PLACEHOLDER
+          })
+          
           return {
             ...cartItem,
             productName: product.name || cartItem.productName || '商品',
-            productImage: productImage,
+            productImage: coverImage,
             artistName: product.artistName || '画师',
             // 如果购物车中没有价格，从商品中获取
             price: cartItem.price || this.getProductPrice(product, cartItem.spec1, cartItem.spec2),
@@ -69,9 +76,14 @@ Page({
           }
         }
         // 如果找不到商品，也要确保有默认图片
+        const coverImage = ensureRenderableImage(productImage, {
+          namespace: 'cart-product',
+          fallback: DEFAULT_PLACEHOLDER
+        })
+
         return {
           ...cartItem,
-          productImage: cartItem.productImage && !cartItem.productImage.includes('tmp') ? cartItem.productImage : '/assets/default-product.png'
+          productImage: coverImage
         }
       })
       
@@ -158,11 +170,16 @@ Page({
         if (product.images && product.images.length > 0 && product.images[0] && !product.images[0].includes('tmp')) {
           productImage = product.images[0]
         }
+        const coverImage = ensureRenderableImage(productImage, {
+          namespace: 'cart-recommend',
+          fallback: DEFAULT_PLACEHOLDER
+        })
         
         return {
           _id: product.id,
           name: product.name,
-          image: productImage,
+          image: coverImage,
+          coverImage,
           price: displayPrice,
           deliveryDays: product.deliveryDays || 7 // 添加出稿天数
         }
@@ -293,6 +310,34 @@ Page({
     })
   },
 
+  cacheOrderSuccessItems(items = []) {
+    if (!Array.isArray(items)) return
+    const formatted = items
+      .filter(Boolean)
+      .map(item => {
+        const unitPrice = parseFloat(item.price) || 0
+        const quantity = Number(item.quantity) || 1
+        return {
+          productId: item.productId || item.id || '',
+          productName: item.productName || item.name || '',
+          productImage: item.productImage || '',
+          spec1: item.spec1 || '',
+          spec2: item.spec2 || '',
+          quantity,
+          unitPrice,
+          totalPrice: Number((unitPrice * quantity).toFixed(2)),
+          deliveryDays: item.deliveryDays || 0,
+          categoryId: item.category || item.categoryId || '',
+          tags: item.tags || []
+        }
+      })
+    if (formatted.length > 0) {
+      wx.setStorageSync('order_success_items', formatted)
+    } else {
+      wx.removeStorageSync('order_success_items')
+    }
+  },
+
   // 结算
   checkout() {
     if (this.data.selectedCount === 0) {
@@ -311,6 +356,8 @@ Page({
       setTimeout(() => {
         wx.hideLoading()
         
+        this.cacheOrderSuccessItems([item])
+
         // 移除已结算商品
         const remainingItems = this.data.cartItems.filter(i => !i.selected)
         wx.setStorageSync('cart_items', remainingItems)
@@ -332,6 +379,8 @@ Page({
             setTimeout(() => {
               wx.hideLoading()
               
+              this.cacheOrderSuccessItems(selectedItems)
+
               // 移除已结算商品
               const remainingItems = this.data.cartItems.filter(item => !item.selected)
               wx.setStorageSync('cart_items', remainingItems)

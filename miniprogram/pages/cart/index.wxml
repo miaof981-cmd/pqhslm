@@ -14,7 +14,7 @@
 
         <!-- 商品信息 -->
         <view class="item-content" bindtap="viewProduct" data-id="{{item.productId}}">
-          <image class="product-image" src="{{item.productImage}}" mode="aspectFill" />
+          <image class="product-image" src="{{item.productImage}}" mode="aspectFill"></image>
           <view class="product-info">
             <text class="product-name">{{item.productName}}</text>
             <!-- 规格信息 -->
@@ -48,7 +48,7 @@
       <view class="recommend-list">
         <view wx:for="{{recommendProducts}}" wx:key="_id" class="recommend-item" bindtap="viewProduct" data-id="{{item._id}}">
           <view class="recommend-image-wrapper">
-            <image class="recommend-image" src="{{item.image}}" mode="aspectFill" />
+            <image class="recommend-image" src="{{item.image}}" mode="aspectFill"></image>
           </view>
           <text class="recommend-name">{{item.name}}</text>
           <view class="recommend-footer">
@@ -79,7 +79,7 @@
       <view class="recommend-list">
         <view wx:for="{{recommendProducts}}" wx:key="_id" class="recommend-item" bindtap="viewProduct" data-id="{{item._id}}">
           <view class="recommend-image-wrapper">
-            <image class="recommend-image" src="{{item.image}}" mode="aspectFill" />
+            <image class="recommend-image" src="{{item.image}}" mode="aspectFill"></image>
           </view>
           <text class="recommend-name">{{item.name}}</text>
           <view class="recommend-footer">

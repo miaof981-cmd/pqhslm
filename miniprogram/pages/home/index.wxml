@@ -44,7 +44,7 @@
             bindtap="onProductTap">
         <!-- 商品图片（正方形） -->
         <view class="product-image-wrapper">
-          <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
+          <image class="product-image" src="{{item.coverImage}}" mode="aspectFill"></image>
         </view>
         <!-- 商品信息 -->
         <view class="product-info">
@@ -137,7 +137,7 @@
         
         <!-- 商品图片（正方形） -->
         <view class="product-image-wrapper">
-          <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
+          <image class="product-image" src="{{item.coverImage}}" mode="aspectFill"></image>
         </view>
         
         <!-- 商品信息 -->
@@ -152,6 +152,29 @@
           </view>
         </view>
       </view>
+    </view>
+  </view>
+
+  <!-- 🧪 临时测试按钮 - 快速创建测试商品 -->
+  <view class="temp-test-btn" bindtap="showTestMenu">
+    <text class="test-btn-text">测试</text>
+  </view>
+
+  <!-- 测试商品选择弹窗 -->
+  <view wx:if="{{showTestModal}}" class="test-modal-mask" bindtap="hideTestMenu">
+    <view class="test-modal" catchtap="stopPropagation">
+      <view class="test-modal-title">创建测试商品</view>
+      <view class="test-options">
+        <view class="test-option" bindtap="createTestProduct" data-type="single">
+          <text class="option-icon">📦</text>
+          <text class="option-text">单一价格商品</text>
+        </view>
+        <view class="test-option" bindtap="createTestProduct" data-type="spec">
+          <text class="option-icon">📋</text>
+          <text class="option-text">多规格商品</text>
+        </view>
+      </view>
+      <view class="test-modal-close" bindtap="hideTestMenu">取消</view>
     </view>
   </view>
 </view>

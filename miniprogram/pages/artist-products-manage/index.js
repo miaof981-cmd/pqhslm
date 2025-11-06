@@ -1,3 +1,5 @@
+const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
+
 Page({
   data: {
     artistId: '',
@@ -139,6 +141,10 @@ Page({
     }).map(product => {
       // 确保价格正确显示（与首页保持一致的逻辑）
       let displayPrice = parseFloat(product.price) || parseFloat(product.basePrice) || 0
+      const coverImage = ensureRenderableImage(
+        Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : product.productImage,
+        { namespace: 'product-cover', fallback: DEFAULT_PLACEHOLDER }
+      )
       
       console.log(`商品 ${product.name} 价格处理:`, {
         原始price: product.price,
@@ -148,7 +154,9 @@ Page({
       
       return {
         ...product,
-        price: displayPrice // 确保 price 是数字
+        price: displayPrice, // 确保 price 是数字
+        coverImage,
+        image: coverImage
       }
     })
     
@@ -274,4 +282,3 @@ Page({
     })
   }
 })
-

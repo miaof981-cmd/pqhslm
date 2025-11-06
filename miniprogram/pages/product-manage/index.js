@@ -1,3 +1,5 @@
+const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
+
 Page({
   data: {
     artistId: '',
@@ -46,11 +48,17 @@ Page({
       // 转换本地存储的商品格式为页面显示格式
       products = products.map(p => {
         console.log(`商品: ${p.name}, artistId: ${p.artistId}, isOnSale: ${p.isOnSale}`)
+        const coverImage = ensureRenderableImage(
+          Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : p.productImage,
+          { namespace: 'product-cover', fallback: DEFAULT_PLACEHOLDER }
+        )
+
         return {
           _id: p.id || p._id,
           id: p.id || p._id,
           name: p.name || '未命名商品',
-          image: (p.images && p.images[0]) || 'https://via.placeholder.com/200',
+          coverImage,
+          image: coverImage,
           images: p.images || [],
           price: p.price || p.basePrice || '0.00',
           basePrice: p.basePrice || '0.00',
@@ -196,4 +204,3 @@ Page({
     })
   }
 })
-

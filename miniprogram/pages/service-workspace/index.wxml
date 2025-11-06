@@ -110,6 +110,9 @@
             <view class="order-header">
               <view class="order-id-wrapper">
                 <text class="order-id" bindtap="copyOrderNo" data-id="{{item.id}}" catchtap="copyOrderNo">订单 {{item.id}}</text>
+                <view class="copy-order-id-icon" bindtap="copyOrderNo" data-id="{{item.id}}" catchtap="copyOrderNo">
+                  <view class="icon-copy"></view>
+                </view>
                 <view class="copy-group-name-icon" bindtap="copyGroupName" data-order="{{item}}" catchtap="copyGroupName">
                   <view class="icon-group"></view>
                 </view>

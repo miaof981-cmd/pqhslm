@@ -8,16 +8,9 @@ App({
   },
 
   onLaunch() {
-    // 初始化用户信息
+    // 初始化用户信息（包含自增ID、openid、缓存用户信息）
     this.initUserInfo()
-    const currentId = this.globalData.userId
-    if (currentId) {
-      const maxUserId = wx.getStorageSync('maxUserId') || 0
-      if (currentId > maxUserId) {
-        wx.setStorageSync('maxUserId', currentId)
-      }
-    }
-    
+
     // ✅ 引入用户助手模块
     const userHelper = require('./utils/user-helper.js')
     
@@ -45,85 +38,82 @@ App({
 
   // 初始化用户信息
   initUserInfo() {
-    // 检查本地存储是否有用户信息
-    const userInfo = wx.getStorageSync('userInfo')
-    const resetFlag = wx.getStorageSync('resetUserId')  // ✅ 新增：重置标志
-    let userId = wx.getStorageSync('userId')
+    const resetFlag = wx.getStorageSync('resetUserId')
+
+    if (resetFlag) {
+      wx.removeStorageSync('userId')
+      wx.removeStorageSync('openid')
+      wx.removeStorageSync('userInfo')
+      wx.removeStorageSync('hasLoggedIn')
+      wx.removeStorageSync('isGuestMode')
+      wx.removeStorageSync('resetUserId')
+      console.log('🔄 检测到重置标志，已清空旧用户信息')
+    }
+
+    const userId = this.ensureUserId()
+    this.globalData.userId = userId
+
     let openid = wx.getStorageSync('openid')
-    
-    // ✅ 修改：增加重置逻辑
-    if (userId && openid && !resetFlag) {
-      // 已有基础信息，继续使用
-      this.globalData.userId = userId
-      this.globalData.openid = openid
-      
-      if (userInfo) {
-        this.globalData.userInfo = userInfo
-        console.log('✅ 用户信息已加载')
-        console.log('  - 来源: 本地缓存')
-        console.log('  - 用户ID:', userId)
-        console.log('  - 昵称:', userInfo.nickName)
-      } else {
-        console.log('✅ 用户ID已加载:', userId, '(来源: 本地缓存)')
-      }
+    if (!openid) {
+      openid = `openid-${userId}-${Date.now()}`
+      wx.setStorageSync('openid', openid)
+    }
+    this.globalData.openid = openid
+
+    const userInfo = wx.getStorageSync('userInfo')
+    if (userInfo) {
+      this.globalData.userInfo = userInfo
+      console.log('✅ 用户信息已加载', { userId, nickName: userInfo.nickName })
     } else {
-      // 没有用户信息，或者需要重置，生成新的自增ID
-      const newUserId = this.generateNewUserId()
-      const newOpenid = `openid-${newUserId}-${Date.now()}`
-      
-      this.globalData.userId = newUserId
-      this.globalData.openid = newOpenid
-      
-      wx.setStorageSync('userId', newUserId)
-      wx.setStorageSync('openid', newOpenid)
-      
-      // ✅ 清除重置标志
-      if (resetFlag) {
-        wx.removeStorageSync('resetUserId')
-        console.log('🔄 用户ID已重置')
-      }
-      
-      console.log('🆕 生成新用户ID')
-      console.log('  - 来源:', resetFlag ? '手动重置' : '首次创建')
-      console.log('  - 新ID:', newUserId)
+      console.log('✅ 用户ID已加载:', userId)
     }
   },
 
-  // 生成新的自增用户ID
-  generateNewUserId() {
-    // 获取当前最大的用户ID
-    let maxUserId = wx.getStorageSync('maxUserId') || 1000
-    
-    // 新用户ID = 最大ID + 1
-    const newUserId = maxUserId + 1
-    
-    // 保存新的最大ID
-    wx.setStorageSync('maxUserId', newUserId)
-    
-    console.log('📊 ID生成逻辑:')
-    console.log('  - 当前最大ID:', maxUserId)
-    console.log('  - 新用户ID:', newUserId)
-    console.log('  - 已更新maxUserId为:', newUserId)
-    
-    return newUserId
+  ensureUserId() {
+    const STORAGE_KEY = 'userId'
+    const COUNTER_KEY = 'userId_counter'
+
+    let existing = wx.getStorageSync(STORAGE_KEY)
+    if (existing) {
+      this.globalData.userId = existing
+      return existing
+    }
+
+    let counter = Number(wx.getStorageSync(COUNTER_KEY))
+    if (!counter || counter < 1000) {
+      counter = 1000
+    }
+
+    counter += 1
+    wx.setStorageSync(COUNTER_KEY, counter)
+    wx.setStorageSync(STORAGE_KEY, counter)
+
+    this.globalData.userId = counter
+    console.log('🆕 生成新用户ID', counter)
+
+    return counter
   },
 
   // 重置用户ID（开发调试用）
   resetUserId() {
     console.log('⚠️ 准备重置用户ID...')
     
-    // 设置重置标志
-    wx.setStorageSync('resetUserId', true)
-    
-    // 清除当前用户数据
     wx.removeStorageSync('userId')
     wx.removeStorageSync('openid')
     wx.removeStorageSync('userInfo')
     wx.removeStorageSync('hasLoggedIn')
-    
-    console.log('✅ 用户数据已清除，下次启动将生成新ID')
-    
-    // 重新启动小程序
+    wx.removeStorageSync('isGuestMode')
+
+    const newUserId = this.ensureUserId()
+    const newOpenid = `openid-${newUserId}-${Date.now()}`
+    wx.setStorageSync('openid', newOpenid)
+
+    this.globalData.userId = newUserId
+    this.globalData.openid = newOpenid
+    this.globalData.userInfo = null
+
+    console.log('✅ 已生成新用户ID:', newUserId)
+
     wx.reLaunch({
       url: '/pages/login/index',
       success: () => {

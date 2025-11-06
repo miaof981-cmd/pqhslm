@@ -1,0 +1,80 @@
+<view class="my-buyer-show-page">
+  <!-- 顶部提示卡片 -->
+  <view class="banner-card">
+    <view class="banner-title">我的买家秀</view>
+    <view class="banner-desc">管理你发布的所有买家秀</view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{posts.length === 0}}" class="empty-section">
+    <view class="empty-illustration">📸</view>
+    <view class="empty-text">你还没有发布买家秀</view>
+    <block wx:for="{{emptyTips}}" wx:key="*this">
+      <text class="empty-tip">{{item}}</text>
+    </block>
+    <button class="empty-button" bindtap="goPublishGuide">去查看订单</button>
+  </view>
+
+  <!-- 瀑布流布局 -->
+  <view wx:else class="waterfall-container">
+    <!-- 左列 -->
+    <view class="waterfall-column">
+      <block wx:for="{{leftPosts}}" wx:key="id">
+        <view class="post-card">
+          <view class="post-cover-wrapper" bindtap="viewPost" data-id="{{item.id}}">
+            <image class="post-cover" src="{{item.coverImage}}" mode="widthFix" />
+            <view wx:if="{{item.images && item.images.length > 1}}" class="image-count">
+              <text class="count-icon">📷</text>
+              <text>{{item.images.length}}</text>
+            </view>
+          </view>
+          <view class="post-info">
+            <view class="post-title" bindtap="viewPost" data-id="{{item.id}}">
+              {{item.comment || '这次合作超级满意~'}}
+            </view>
+            <view class="post-meta">
+              <text class="meta-text">{{item.productName || '商品'}}</text>
+              <text class="meta-time">{{item.displayTime || ''}}</text>
+            </view>
+          </view>
+          <view class="post-actions">
+            <button class="delete-btn" data-id="{{item.id}}" bindtap="deletePost">
+              <text class="delete-icon">🗑️</text>
+              <text>删除</text>
+            </button>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <!-- 右列 -->
+    <view class="waterfall-column">
+      <block wx:for="{{rightPosts}}" wx:key="id">
+        <view class="post-card">
+          <view class="post-cover-wrapper" bindtap="viewPost" data-id="{{item.id}}">
+            <image class="post-cover" src="{{item.coverImage}}" mode="widthFix" />
+            <view wx:if="{{item.images && item.images.length > 1}}" class="image-count">
+              <text class="count-icon">📷</text>
+              <text>{{item.images.length}}</text>
+            </view>
+          </view>
+          <view class="post-info">
+            <view class="post-title" bindtap="viewPost" data-id="{{item.id}}">
+              {{item.comment || '这次合作超级满意~'}}
+            </view>
+            <view class="post-meta">
+              <text class="meta-text">{{item.productName || '商品'}}</text>
+              <text class="meta-time">{{item.displayTime || ''}}</text>
+            </view>
+          </view>
+          <view class="post-actions">
+            <button class="delete-btn" data-id="{{item.id}}" bindtap="deletePost">
+              <text class="delete-icon">🗑️</text>
+              <text>删除</text>
+            </button>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

@@ -2,6 +2,7 @@
 
 const orderStatusUtil = require('./order-status.js')
 const { DEFAULT_AVATAR_DATA } = require('./constants.js')
+const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('./image-helper.js')
 
 const PLACEHOLDER_NAME_KEYWORDS = ['未知', '待分配', '未分配', '默认', 'unknown']
 const PLACEHOLDER_ARTIST_NAMES = ['画师', '匿名画师', 'artist']
@@ -203,7 +204,64 @@ function normalizeOrders(orders, options = {}) {
     processed.statusText = orderStatusUtil.textOf(processed.status)
     processed.statusClass = orderStatusUtil.classOf(processed.status)
 
-    // === 🔟 不写默认头像，让 WXML 自己兜底 ===
+    // === 🔟 转换可渲染图片路径 ===
+    processed.productImage = ensureRenderableImage(
+      processed.productImage || (product && product.images && product.images[0]),
+      { namespace: 'order-product', fallback: DEFAULT_PLACEHOLDER }
+    )
+
+    processed.artistAvatar = ensureRenderableImage(processed.artistAvatar, {
+      namespace: 'order-artist',
+      fallback: DEFAULT_AVATAR_DATA
+    })
+
+    processed.serviceAvatar = ensureRenderableImage(processed.serviceAvatar, {
+      namespace: 'order-service',
+      fallback: DEFAULT_AVATAR_DATA
+    })
+
+    processed.buyerAvatar = ensureRenderableImage(processed.buyerAvatar, {
+      namespace: 'order-buyer',
+      fallback: DEFAULT_AVATAR_DATA
+    })
+
+    if (!processed.serviceStatus && order.serviceStatus) {
+      processed.serviceStatus = order.serviceStatus
+    }
+    if (order.serviceStatus && processed.serviceStatus) {
+      processed.serviceStatus = String(processed.serviceStatus)
+    }
+    if (typeof order.needsService === 'boolean') {
+      processed.needsService = order.needsService
+    }
+
+    const hasServiceName = isMeaningfulName(processed.serviceName, 'service')
+    const hasServiceId = !!normalizeString(processed.serviceId)
+    if (!processed.serviceStatus) {
+      if (hasServiceId || hasServiceName) {
+        processed.serviceStatus = 'assigned'
+        processed.needsService = false
+      } else {
+        processed.serviceStatus = 'pending'
+        processed.needsService = true
+      }
+    } else if (String(processed.serviceStatus).toLowerCase() === 'assigned') {
+      processed.needsService = false
+    }
+
+    if (Array.isArray(processed.items) && processed.items.length > 0) {
+      processed.items = processed.items.map(item => {
+        if (!item) return item
+        const normalized = { ...item }
+        normalized.productImage = ensureRenderableImage(normalized.productImage, {
+          namespace: 'order-item',
+          fallback: DEFAULT_PLACEHOLDER
+        })
+        return normalized
+      })
+    }
+
+    // === 11️⃣ 不写默认头像，让 WXML 自己兜底 ===
     return processed
   })
 }

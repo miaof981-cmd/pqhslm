@@ -437,7 +437,9 @@
   left: 0;
   width: 100%;
   height: 100%;
-  display: block;
+  background-color: #F5F5F5;
+  object-fit: cover;
+  object-position: center;
 }
 
 /* 出稿时间标签（在商品信息区） */
@@ -505,3 +507,100 @@
   line-height: 1;
   flex-shrink: 0;
 }
+
+/* ==================== 🧪 临时测试按钮 ==================== */
+.temp-test-btn {
+  position: fixed;
+  right: 30rpx;
+  bottom: 120rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  border-radius: 50%;
+  box-shadow: 0 8rpx 20rpx rgba(255, 107, 107, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.test-btn-text {
+  font-size: 24rpx;
+  color: white;
+  font-weight: 600;
+}
+
+.test-modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.test-modal {
+  width: 600rpx;
+  background: white;
+  border-radius: 24rpx;
+  padding: 40rpx;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3);
+}
+
+.test-modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.test-options {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.test-option {
+  background: linear-gradient(135deg, #F5F5F5, #EFEFEF);
+  border-radius: 16rpx;
+  padding: 32rpx;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  transition: all 0.3s;
+}
+
+.test-option:active {
+  transform: scale(0.98);
+  background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+}
+
+.option-icon {
+  font-size: 48rpx;
+}
+
+.option-text {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.test-modal-close {
+  margin-top: 24rpx;
+  text-align: center;
+  color: #999;
+  font-size: 26rpx;
+  padding: 20rpx;
+}
+/* ==================== 🧪 测试功能结束 ==================== */

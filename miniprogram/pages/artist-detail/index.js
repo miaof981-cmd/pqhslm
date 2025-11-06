@@ -1,5 +1,7 @@
 const orderHelper = require('../../utils/order-helper.js')
 
+const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
+
 Page({
   data: {
     loading: true,
@@ -110,10 +112,14 @@ Page({
       // 统计每个商品的销量
       const products = artistProducts.map(product => {
         const productOrders = allOrders.filter(o => o.productId == product.id && o.status === 'completed')
+        const coverImage = ensureRenderableImage(
+          Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : product.productImage,
+          { namespace: 'product-cover', fallback: DEFAULT_PLACEHOLDER }
+        )
         return {
           _id: product.id,
           name: product.name,
-          image: product.images && product.images.length > 0 ? product.images[0] : '/assets/default-product.png',
+          coverImage,
           price: product.basePrice ? product.basePrice.toFixed(2) : '0.00',
           sales: productOrders.length
         }

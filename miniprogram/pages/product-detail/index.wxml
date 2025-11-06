@@ -39,14 +39,18 @@
 
     <!-- 基础信息 -->
     <view class="info-section">
+      <view wx:if="{{product.categoryName}}" class="info-row">
+        <text class="info-label">分类</text>
+        <text class="info-value">{{product.categoryName}}</text>
+      </view>
       <view class="info-row">
         <text class="info-label">出稿时间</text>
         <text class="info-value">{{product.deliveryDays}}天</text>
       </view>
-      <view wx:if="{{artist && artist.name && artist.name !== '画师'}}" class="info-row" bindtap="viewArtist">
+      <view wx:if="{{artist && artist.name}}" class="info-row" bindtap="viewArtist">
         <text class="info-label">画师</text>
         <text class="info-value">{{artist.name}}</text>
-        <text class="arrow">›</text>
+        <text wx:if="{{artist.id}}" class="arrow">›</text>
       </view>
     </view>
 
@@ -87,7 +91,7 @@
           <view class="bubble-dot"></view>
         </view>
       </view>
-      <text class="service-text">客服</text>
+      <text class="service-text">{{serviceInfo && serviceInfo.serviceName ? serviceInfo.serviceName : '客服'}}</text>
     </view>
     <button class="buy-btn" bindtap="buyProduct">立即购买</button>
   </view>
@@ -119,11 +123,21 @@
   <!-- 客服二维码弹窗 -->
   <view class="modal-overlay" wx:if="{{showServiceQR}}" catchtap="toggleServiceQR">
     <view class="modal-content" catchtap="stopPropagation">
-      <view class="modal-title">扫码添加客服</view>
-      <image class="qr-image" 
-             src="{{hasOrder ? orderQR : serviceQR.imageUrl}}" 
-             mode="aspectFit" />
-      <text class="qr-hint">{{hasOrder ? '专属客服二维码' : '随机客服二维码'}}</text>
+      <view class="modal-title">{{serviceInfo && serviceInfo.serviceName ? serviceInfo.serviceName : '扫码添加客服'}}</view>
+      <block wx:if="{{hasOrder && orderQR}}">
+        <image class="qr-image" src="{{orderQR}}" mode="aspectFit" />
+        <text class="qr-hint">专属客服二维码</text>
+      </block>
+      <block wx:elif="{{serviceQR && serviceQR.imageUrl}}">
+        <image class="qr-image" src="{{serviceQR.imageUrl}}" mode="aspectFit" />
+        <text class="qr-hint">长按识别添加客服微信</text>
+      </block>
+      <block wx:else>
+        <view class="qr-placeholder">
+          <text class="qr-placeholder-text">客服二维码未配置</text>
+          <text class="qr-placeholder-hint">请稍后再试，或联系管理员</text>
+        </view>
+      </block>
       <button class="modal-close" catchtap="toggleServiceQR">关闭</button>
     </view>
   </view>

@@ -1,10 +1,14 @@
 const orderHelper = require('../../utils/order-helper.js')
+const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
+const categoryService = require('../../utils/category-service.js')
 
 Page({
   data: {
     orderInfo: null,
     productInfo: null,
     serviceQR: null,
+    serviceInfo: null,
+    orderItems: [],
     countdown: 3 // 倒计时秒数
   },
 
@@ -104,49 +108,54 @@ Page({
       service = await this.assignService()
     } catch (err) {
       console.error('❌ 客服分配异常:', err)
-      const hint = err && err.displayMessage ? err.displayMessage : '客服分配失败，请稍后再试'
-      wx.showModal({
-        title: '客服未就绪',
-        content: hint,
-        showCancel: false,
-        complete: () => wx.navigateBack()
-      })
-      return
+      service = {
+        serviceId: '',
+        serviceName: '待分配客服',
+        serviceAvatar: '',
+        serviceQrcodeUrl: '',
+        serviceQrcodeNumber: null,
+        isPlaceholder: true
+      }
     }
     
-    // ⚠️ 验证客服分配
-    if (!service || !service.serviceId || !service.serviceName || !service.serviceAvatar) {
-      console.error('❌ 客服分配失败:', service)
-      wx.showModal({
-        title: '系统错误',
-        content: '客服分配失败，请稍后再试',
-        showCancel: false,
-        complete: () => wx.navigateBack()
-      })
-      return
+    const isPlaceholderService = service?.isPlaceholder === true
+    
+    if (!isPlaceholderService) {
+      // ⚠️ 验证客服分配
+      if (!service || !service.serviceId || !service.serviceName || !service.serviceAvatar) {
+        console.error('❌ 客服分配失败:', service)
+        wx.showModal({
+          title: '系统错误',
+          content: '客服分配失败，请稍后再试',
+          showCancel: false,
+          complete: () => wx.navigateBack()
+        })
+        return
+      }
+      
+      // ⚠️ 禁止临时路径
+      if (service.serviceAvatar.startsWith('http://tmp/') || service.serviceAvatar.startsWith('/assets/')) {
+        console.error('❌ 客服头像是临时路径或本地路径:', service.serviceAvatar)
+        wx.showModal({
+          title: '系统错误',
+          content: '客服头像路径无效，请联系管理员',
+          showCancel: false,
+          complete: () => wx.navigateBack()
+        })
+        return
+      }
     }
     
-    // ⚠️ 禁止临时路径
-    if (service.serviceAvatar.startsWith('http://tmp/') || service.serviceAvatar.startsWith('/assets/')) {
-      console.error('❌ 客服头像是临时路径或本地路径:', service.serviceAvatar)
-      wx.showModal({
-        title: '系统错误',
-        content: '客服头像路径无效，请联系管理员',
-        showCancel: false,
-        complete: () => wx.navigateBack()
-      })
-      return
-    }
-    
-    console.log('✅ 客服分配验证通过:', { 
-      serviceId: service.serviceId, 
-      serviceName: service.serviceName, 
-      serviceAvatar: service.serviceAvatar.substring(0, 50) + '...' 
+    console.log('✅ 客服分配结果:', { 
+      serviceId: service.serviceId || '',
+      serviceName: service.serviceName,
+      serviceAvatar: service.serviceAvatar ? service.serviceAvatar.substring(0, 50) + '...' : '(空)',
+      isPlaceholder: isPlaceholderService
     })
     
-    const serviceId = service.serviceId
-    const serviceName = service.serviceName
-    const serviceAvatar = service.serviceAvatar
+    const serviceId = service.serviceId || ''
+    const serviceName = service.serviceName || '待分配客服'
+    const serviceAvatar = service.serviceAvatar || ''
     
     // --- 控制台打印检查 ---
     console.log("📦 下单前检查:", { 
@@ -188,19 +197,64 @@ Page({
     console.log('订单信息:', orderInfo)
     console.log('原始参数:', options)
     
+    let orderItems = []
+    const cachedOrderItems = wx.getStorageSync('order_success_items')
+    if (Array.isArray(cachedOrderItems) && cachedOrderItems.length > 0) {
+      orderItems = cachedOrderItems
+        .map(item => this.normalizeOrderItem(item, orderInfo.productImage))
+        .filter(Boolean)
+      wx.removeStorageSync('order_success_items')
+    }
+    
+    if (orderItems.length === 0) {
+      orderItems = [
+        this.normalizeOrderItem({
+          productId: orderInfo.productId,
+          productName: orderInfo.productName,
+          productImage: orderInfo.productImage,
+          spec1: orderInfo.spec1,
+          spec2: orderInfo.spec2,
+          quantity: orderInfo.quantity,
+          unitPrice: orderInfo.price || orderInfo.totalAmount,
+          totalPrice: orderInfo.totalAmount,
+          deliveryDays: orderInfo.deliveryDays,
+          categoryId: product.category || '',
+          categoryName: product.categoryName || ''
+        }, orderInfo.productImage)
+      ].filter(Boolean)
+    }
+    
+    const totalQuantity = orderItems.reduce((sum, item) => sum + item.quantity, 0)
+    const totalAmountFromItems = orderItems.reduce((sum, item) => sum + item.totalPrice, 0)
+    orderInfo.items = orderItems
+    orderInfo.quantity = totalQuantity
+    orderInfo.totalAmount = Number(totalAmountFromItems.toFixed(2))
+    orderInfo.totalAmountDisplay = orderInfo.totalAmount.toFixed(2)
+    orderInfo.productImage = ensureRenderableImage(orderInfo.productImage, {
+      namespace: 'order-success-cover',
+      fallback: DEFAULT_PLACEHOLDER
+    })
+    if (!orderInfo.productImage && orderItems[0]) {
+      orderInfo.productImage = orderItems[0].productImage
+    }
+    orderInfo.serviceStatus = isPlaceholderService ? 'pending' : 'assigned'
+    orderInfo.serviceAssigned = !isPlaceholderService
+    orderInfo.needsService = isPlaceholderService
+    
     // 构建客服信息对象
     const serviceInfo = {
       serviceId: serviceId,
       serviceName: serviceName,
       serviceAvatar: serviceAvatar,
       serviceQrcodeUrl: service?.serviceQrcodeUrl || service?.qrcodeUrl || '',
-      serviceQrcodeNumber: service?.serviceQrcodeNumber || service?.qrcodeNumber || null
+      serviceQrcodeNumber: service?.serviceQrcodeNumber || service?.qrcodeNumber || null,
+      isPlaceholder: isPlaceholderService
     }
     
     // 获取客服二维码（如果有）
-    const serviceQR = serviceInfo.serviceQrcodeUrl 
+    const serviceQR = !isPlaceholderService && serviceInfo.serviceQrcodeUrl 
       ? { imageUrl: serviceInfo.serviceQrcodeUrl, number: serviceInfo.serviceQrcodeNumber }
-      : { imageUrl: 'https://via.placeholder.com/400x400.png?text=客服二维码', number: null }
+      : null
 
     console.log('📋 订单成功页面数据:')
     console.log('- 客服ID:', serviceInfo.serviceId)
@@ -210,15 +264,50 @@ Page({
     
     this.setData({
       orderInfo: orderInfo,
+      orderItems: orderItems,
       serviceInfo: serviceInfo,  // 保存客服信息
-      serviceQR: serviceQR
+      serviceQR: serviceQR,
+      servicePending: isPlaceholderService
     })
     
     // ✅ 自动保存订单到本地存储（包含客服信息）
-    this.saveOrderToLocal(orderInfo, serviceInfo)
+    this.saveOrderToLocal(orderInfo, serviceInfo, orderItems)
 
     // 禁止用户返回（可选）
     // wx.hideHomeButton() // 隐藏返回首页按钮
+  },
+
+  normalizeOrderItem(item, fallbackImage = '') {
+    if (!item) return null
+    const quantity = Number(item.quantity) || 1
+    const rawUnitPrice = item.unitPrice != null ? item.unitPrice : item.price
+    const unitPrice = parseFloat(rawUnitPrice) || 0
+    const totalPrice = item.totalPrice != null ? parseFloat(item.totalPrice) : unitPrice * quantity
+    const categoryId = item.categoryId || item.category || ''
+    const categoryName = item.categoryName || categoryService.getCategoryNameById(categoryId) || ''
+    const productImage = ensureRenderableImage(item.productImage || fallbackImage, {
+      namespace: 'order-success-item',
+      fallback: DEFAULT_PLACEHOLDER
+    })
+    const specParts = []
+    if (item.spec1) specParts.push(item.spec1)
+    if (item.spec2) specParts.push(item.spec2)
+
+    return {
+      productId: item.productId || item.id || '',
+      productName: item.productName || item.name || '商品',
+      productImage,
+      spec1: item.spec1 || '',
+      spec2: item.spec2 || '',
+      specText: specParts.join(' / '),
+      quantity,
+      unitPrice: Number(unitPrice.toFixed(2)),
+      totalPrice: Number(totalPrice.toFixed(2)),
+      deliveryDays: item.deliveryDays || 0,
+      categoryId,
+      categoryName,
+      tags: item.tags || []
+    }
   },
   
   // 自动分配客服（异步，确保头像转换完成）
@@ -242,10 +331,15 @@ Page({
     }
     
     if (serviceList.length === 0) {
-      console.error('❌ 当前未配置任何客服账号')
-      const error = new Error('SERVICE_LIST_EMPTY')
-      error.displayMessage = '当前环境未配置客服账号，请先在客服管理中添加客服后再继续'
-      throw error
+      console.warn('⚠️ 当前未配置任何客服账号，将以待分配状态继续下单')
+      return {
+        serviceId: '',
+        serviceName: '待分配客服',
+        serviceAvatar: '',
+        serviceQrcodeUrl: '',
+        serviceQrcodeNumber: null,
+        isPlaceholder: true
+      }
     }
     
     // 🎯 确保至少有一个客服在线
@@ -265,7 +359,19 @@ Page({
     const nextIndex = (lastAssignedIndex + 1) % finalActiveServices.length
     wx.setStorageSync('lastAssignedServiceIndex', nextIndex)
     
-    const assignedService = finalActiveServices[nextIndex]
+    let assignedService = finalActiveServices[nextIndex]
+
+    if (!assignedService) {
+      console.warn('⚠️ 未找到可用客服，将使用占位信息')
+      return {
+        serviceId: '',
+        serviceName: '待分配客服',
+        serviceAvatar: '',
+        serviceQrcodeUrl: '',
+        serviceQrcodeNumber: null,
+        isPlaceholder: true
+      }
+    }
     
     console.log('📞 客服分配结果:')
     console.log('- 在线客服数:', finalActiveServices.length)
@@ -298,7 +404,8 @@ Page({
       serviceName: assignedService.name || assignedService.nickName,
       serviceAvatar: serviceAvatar,
       serviceQrcodeUrl: assignedService.qrcodeUrl || '',
-      serviceQrcodeNumber: assignedService.qrcodeNumber
+      serviceQrcodeNumber: assignedService.qrcodeNumber,
+      isPlaceholder: false
     }
   },
   
@@ -448,7 +555,7 @@ Page({
   },
   
   // 自动保存订单到本地存储
-  saveOrderToLocal(orderInfo, serviceInfo) {
+  saveOrderToLocal(orderInfo, serviceInfo, orderItems = []) {
     console.log(
       '[order-success] 保存订单',
       {
@@ -487,6 +594,11 @@ Page({
       console.log('- 是否游客:', isGuest ? '是 ⚠️' : '否 ✅')
       
       // 构建订单数据
+      const primaryItem = orderItems[0] || {}
+      const specSummary = primaryItem.specText || (orderInfo.spec1 || orderInfo.spec2
+        ? `${orderInfo.spec1 || ''}${orderInfo.spec2 ? ' / ' + orderInfo.spec2 : ''}`
+        : '')
+
       const newOrder = {
         id: orderInfo.orderNo,
         productId: orderInfo.productId,
@@ -496,10 +608,12 @@ Page({
         productImage: orderInfo.productImage && !orderInfo.productImage.startsWith('data:image') 
           ? orderInfo.productImage 
           : '',
-        spec: `${orderInfo.spec1}${orderInfo.spec2 ? ' / ' + orderInfo.spec2 : ''}`,
-        price: orderInfo.totalAmount,
+        spec: specSummary || '无',
+        price: Number(orderInfo.totalAmount),
         quantity: orderInfo.quantity,
         deliveryDays: orderInfo.deliveryDays,
+        items: orderItems,
+        totalAmount: Number(orderInfo.totalAmount),
         
         // ✅ 时间字段（多个字段确保兼容性）
         createTime: orderInfo.createTime,
@@ -525,7 +639,9 @@ Page({
         serviceName: serviceInfo.serviceName,
         serviceAvatar: serviceInfo.serviceAvatar,
         serviceQrcodeUrl: serviceInfo.serviceQrcodeUrl,
-        serviceQrcodeNumber: serviceInfo.serviceQrcodeNumber
+      serviceQrcodeNumber: serviceInfo.serviceQrcodeNumber,
+      serviceStatus: serviceInfo.isPlaceholder ? 'pending' : 'assigned',
+      needsService: serviceInfo.isPlaceholder ? true : false
       }
       
       console.log('[order-success] newOrder.service', {
@@ -544,16 +660,23 @@ Page({
       console.log('serviceId:', newOrder.serviceId)
       console.log('serviceName:', newOrder.serviceName)
       console.log('serviceAvatar:', newOrder.serviceAvatar ? newOrder.serviceAvatar.substring(0, 60) + '...' : '❌ 空')
+      console.log('serviceStatus:', newOrder.serviceStatus)
+      
+      const serviceAssigned = !serviceInfo?.isPlaceholder
       
       // ⚠️ 验证必填字段
       const requiredFields = [
         { name: 'artistId', value: newOrder.artistId },
         { name: 'artistName', value: newOrder.artistName },
-        { name: 'artistAvatar', value: newOrder.artistAvatar },
-        { name: 'serviceId', value: newOrder.serviceId },
-        { name: 'serviceName', value: newOrder.serviceName },
-        { name: 'serviceAvatar', value: newOrder.serviceAvatar }
+        { name: 'artistAvatar', value: newOrder.artistAvatar }
       ]
+      if (serviceAssigned) {
+        requiredFields.push(
+          { name: 'serviceId', value: newOrder.serviceId },
+          { name: 'serviceName', value: newOrder.serviceName },
+          { name: 'serviceAvatar', value: newOrder.serviceAvatar }
+        )
+      }
       
       const missingFields = requiredFields.filter(f => !f.value)
       if (missingFields.length > 0) {
@@ -568,7 +691,7 @@ Page({
         wx.showToast({ title: '画师头像无效', icon: 'none' })
         return
       }
-      if (newOrder.serviceAvatar.startsWith('http://tmp/') || newOrder.serviceAvatar.startsWith('/assets/')) {
+      if (serviceAssigned && (newOrder.serviceAvatar.startsWith('http://tmp/') || newOrder.serviceAvatar.startsWith('/assets/'))) {
         console.error('❌ 客服头像是临时路径:', newOrder.serviceAvatar)
         wx.showToast({ title: '客服头像无效', icon: 'none' })
         return
@@ -577,11 +700,14 @@ Page({
       console.log('✅ 订单验证通过，准备保存')
       console.log('========================================')
       
+      let isNewOrder = false
+
       if (existingIndex !== -1) {
         console.log('⚠️ 订单已存在，进行合并更新')
         pendingOrders[existingIndex] = orderHelper.mergeOrderRecords(pendingOrders[existingIndex], newOrder)
       } else {
         pendingOrders.push(newOrder)
+        isNewOrder = true
       }
       
       // 保存到本地存储
@@ -596,12 +722,15 @@ Page({
         confirmedOrders.push(newOrder)
       }
       wx.setStorageSync('orders', confirmedOrders)
-      
-      // 验证保存
+     
+     // 验证保存
       const savedPending = wx.getStorageSync('pending_orders') || []
       const savedAll = orderHelper.getAllOrders()
-      
-      console.log('========================================')
+      if (isNewOrder) {
+        this.incrementProductSales(orderItems)
+      }
+     
+     console.log('========================================')
       console.log('✅ 订单保存成功！')
       console.log('========================================')
       console.log('订单号:', orderInfo.orderNo)
@@ -618,6 +747,29 @@ Page({
       console.log('========================================')
       console.error('错误信息:', error)
       console.log('========================================')
+    }
+  },
+
+  incrementProductSales(orderItems = []) {
+    if (!Array.isArray(orderItems) || orderItems.length === 0) return
+    const products = wx.getStorageSync('mock_products') || []
+    if (!Array.isArray(products) || products.length === 0) return
+
+    let changed = false
+
+    orderItems.forEach(item => {
+      if (!item || !item.productId) return
+      const targetIndex = products.findIndex(product => String(product.id || product._id) === String(item.productId))
+      if (targetIndex === -1) return
+
+      const quantity = Number(item.quantity) || 1
+      const currentSales = Number(products[targetIndex].sales) || 0
+      products[targetIndex].sales = currentSales + quantity
+      changed = true
+    })
+
+    if (changed) {
+      wx.setStorageSync('mock_products', products)
     }
   },
 

@@ -1,0 +1,86 @@
+<view class="income-detail-container">
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <view wx:else>
+    <!-- 收入总览 -->
+    <view class="income-summary">
+      <!-- 总收入父容器 -->
+      <view class="total-income-card">
+        <view class="total-header">
+          <text class="total-label">总收入</text>
+          <text class="total-amount">¥{{totalIncome}}</text>
+        </view>
+        
+        <!-- 收入明细子项 -->
+        <view class="income-breakdown">
+          <view class="breakdown-item reward">
+            <view class="item-left">
+              <view class="item-dot"></view>
+              <text class="item-label">打赏收入</text>
+            </view>
+            <text class="item-amount">¥{{rewardIncome}}</text>
+          </view>
+          
+          <view class="breakdown-item order">
+            <view class="item-left">
+              <view class="item-dot"></view>
+              <text class="item-label">订单稿费</text>
+            </view>
+            <text class="item-amount">¥{{orderIncome}}</text>
+          </view>
+          
+          <view class="breakdown-item service">
+            <view class="item-left">
+              <view class="item-dot"></view>
+              <text class="item-label">客服分成</text>
+            </view>
+            <text class="item-amount">¥{{serviceIncome}}</text>
+          </view>
+          
+          <view class="breakdown-item admin">
+            <view class="item-left">
+              <view class="item-dot"></view>
+              <text class="item-label">管理员分成</text>
+            </view>
+            <text class="item-amount">¥{{staffIncome}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 收入明细列表 -->
+    <view class="detail-list">
+      <view class="list-header">
+        <text class="title">收入明细</text>
+        <text class="count">共 {{records.length}} 笔</text>
+      </view>
+
+      <view wx:if="{{records.length === 0}}" class="empty-state">
+        <view class="empty-icon">💰</view>
+        <text class="empty-text">暂无收入记录</text>
+        <text class="empty-hint">完成订单或收到打赏后会显示在这里</text>
+      </view>
+
+      <view wx:else class="record-list">
+        <view 
+          wx:for="{{records}}" 
+          wx:key="id" 
+          class="record-item {{item.type}}"
+        >
+          <view class="record-left">
+            <view class="record-type-badge {{item.type}}">
+              <text>{{item.typeText}}</text>
+            </view>
+            <view class="record-info">
+              <text class="record-title">{{item.title}}</text>
+              <text class="record-time">{{item.time}}</text>
+            </view>
+          </view>
+          <view class="record-right">
+            <text class="record-amount">+¥{{item.amount}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

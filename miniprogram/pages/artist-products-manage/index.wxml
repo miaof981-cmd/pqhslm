@@ -37,7 +37,7 @@
   <!-- 商品列表 -->
   <view class="products-list">
     <view wx:for="{{filteredProducts}}" wx:key="id" class="product-card">
-      <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
+      <image class="product-image" src="{{item.coverImage}}" mode="aspectFill"></image>
       
       <view class="product-info">
         <view class="product-header">
@@ -78,4 +78,3 @@
     </view>
   </view>
 </view>
-

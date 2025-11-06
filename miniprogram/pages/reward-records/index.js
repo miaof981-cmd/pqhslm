@@ -1,5 +1,6 @@
 const orderHelper = require('../../utils/order-helper.js')
 const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
+const { ensureRenderableImage } = require('../../utils/image-helper.js')
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const THIRTY_DAYS_MS = 30 * DAY_MS
@@ -228,10 +229,15 @@ Page({
           console.log('⚠️ 使用默认头像')
         }
 
+        const displayArtistAvatar = ensureRenderableImage(finalArtistAvatar, {
+          namespace: 'reward-artist',
+          fallback: DEFAULT_AVATAR_DATA
+        })
+
         const display = {
           id: order.id,
           artistName: order.artistName || '未知画师',
-          artistAvatar: finalArtistAvatar,
+          artistAvatar: displayArtistAvatar,
           productName: order.productName ? `橱窗：${order.productName}` : `订单 #${order.id}`,
           completedAt: completedTs,
           completedText: completedTs ? formatDate(completedTs) : '时间未知',
@@ -372,9 +378,18 @@ Page({
   persistReward(order, amount) {
     const rewards = wx.getStorageSync('reward_records') || []
     const now = Date.now()
+    
+    // 🎯 从订单中获取 artistId
+    const orders = wx.getStorageSync('orders') || []
+    const storedPendingOrders = wx.getStorageSync('pending_orders') || []
+    const completedOrders = wx.getStorageSync('completed_orders') || []
+    const allOrders = [...orders, ...storedPendingOrders, ...completedOrders]
+    const fullOrder = allOrders.find(o => String(o.id) === String(order.id))
+    
     const record = {
       id: now,
       orderId: order.id,
+      artistId: fullOrder?.artistId || order.artistId || '',  // 🎯 添加 artistId
       amount,
       artistName: order.artistName,
       artistAvatar: order.artistAvatar,
@@ -384,6 +399,12 @@ Page({
 
     rewards.push(record)
     wx.setStorageSync('reward_records', rewards)
+    
+    console.log('✅ 打赏记录已保存:', {
+      orderId: record.orderId,
+      artistId: record.artistId,
+      amount: record.amount
+    })
 
     // 将订单从可打赏移动到已打赏
     const pendingOrders = this.data.pendingOrders.filter(item => String(item.id) !== String(order.id))

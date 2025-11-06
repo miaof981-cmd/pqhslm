@@ -354,6 +354,27 @@
   margin-bottom: 30rpx;
 }
 
+.qr-placeholder {
+  width: 100%;
+  min-height: 260rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+}
+
+.qr-placeholder-text {
+  font-size: 30rpx;
+  color: #444;
+  font-weight: 600;
+}
+
+.qr-placeholder-hint {
+  font-size: 26rpx;
+  color: #999;
+}
+
 .modal-close {
   width: 100%;
   height: 80rpx;

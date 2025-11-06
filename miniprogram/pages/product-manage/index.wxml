@@ -39,7 +39,7 @@
   <!-- 商品列表 -->
   <view class="product-list">
     <view wx:for="{{products}}" wx:key="_id" class="product-card">
-      <image class="product-image" src="{{item.image}}" mode="aspectFill" />
+      <image class="product-image" src="{{item.coverImage}}" mode="aspectFill"></image>
       
       <view class="product-info">
         <view class="product-header">

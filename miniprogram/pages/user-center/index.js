@@ -1,4 +1,6 @@
 const orderHelper = require('../../utils/order-helper.js')
+const staffFinance = require('../../utils/staff-finance.js')
+const serviceIncome = require('../../utils/service-income.js')
 
 Page({
   data: {
@@ -17,6 +19,10 @@ Page({
     // ✅ 新增：预计算的布尔值，供 WXML 使用
     isArtist: false,
     isAdmin: false,
+    isStaff: false,  // 🎯 新增：是否为管理员
+    staffBalance: 0, // 🎯 新增：管理员分成余额
+    totalBalance: 0, // 🎯 新增：总余额（画师+客服+管理员）
+    hasIncome: false, // 🎯 新增：是否有任何收入
     shouldShowCert: true,      // 是否显示画师认证
     shouldShowWorkspace: false, // 是否显示工作台
     hasWorkQRCode: false,      // 是否已设置工作二维码
@@ -30,6 +36,7 @@ Page({
 
   onLoad(options) {
     this.loadData()
+    this.checkAllIncome() // 🎯 检查所有收入
   },
 
   onShow() {
@@ -50,6 +57,7 @@ Page({
       setTimeout(() => {
         this.loadUserRole()
         this.loadData()
+        this.checkAllIncome() // 🎯 刷新所有收入
       }, 100)
       
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
@@ -64,6 +72,7 @@ Page({
     // 延迟加载
     setTimeout(() => {
       this.loadUserRole()
+      this.checkAllIncome() // 🎯 刷新所有收入
     }, 100)
     
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
@@ -269,6 +278,48 @@ Page({
     })
   },
 
+  editNickname() {
+    const currentName = this.data.userInfo?.name || ''
+    wx.showModal({
+      title: '修改昵称',
+      editable: true,
+      placeholderText: currentName,
+      confirmText: '保存',
+      success: (res) => {
+        if (res.confirm) {
+          const newName = (res.content || '').trim()
+          if (!newName) {
+            wx.showToast({
+              title: '昵称不能为空',
+              icon: 'none'
+            })
+            return
+          }
+
+          const storedUserInfo = wx.getStorageSync('userInfo') || {}
+          const updatedUserInfo = {
+            ...storedUserInfo,
+            nickName: newName,
+            avatarUrl: storedUserInfo.avatarUrl || this.data.userInfo.avatar
+          }
+          wx.setStorageSync('userInfo', updatedUserInfo)
+
+          const app = getApp()
+          app.globalData.userInfo = updatedUserInfo
+
+          this.setData({
+            'userInfo.name': newName
+          })
+
+          wx.showToast({
+            title: '昵称已更新',
+            icon: 'success'
+          })
+        }
+      }
+    })
+  },
+
   // 更新用户信息（手动授权）
   async updateUserInfo() {
     const app = getApp()
@@ -361,7 +412,16 @@ Page({
 
   // 加载订单
   async loadOrders() {
-    const userId = wx.getStorageSync('userId')
+      const userId = wx.getStorageSync('userId')
+      const storageKey = `processing_count_${userId}`
+      const cachedProcessing = wx.getStorageSync(storageKey)
+      if (typeof cachedProcessing === 'number') {
+        this.setData({
+          orderStats: {
+            processing: cachedProcessing
+          }
+        })
+      }
     const customerOrders = orderHelper.prepareOrdersForPage({
       role: 'customer',
       userId
@@ -390,6 +450,8 @@ Page({
         processing: processingCount
       }
     })
+
+    wx.setStorageSync(`processing_count_${userId}`, processingCount)
   },
 
   // 申请成为画师
@@ -461,32 +523,178 @@ Page({
   },
 
   // 打赏入口
+  // 🎯 检查所有收入（画师+客服+管理员）
+  checkAllIncome() {
+    const userId = wx.getStorageSync('userId')
+    if (!userId) {
+      this.setData({ 
+        isStaff: false, 
+        staffBalance: 0,
+        totalBalance: 0,
+        hasIncome: false
+      })
+      return
+    }
+
+    const userKey = String(userId)
+    
+    // 🎯 1. 获取所有订单并去重（避免订单在多个数组中重复）
+    const orders = wx.getStorageSync('orders') || []
+    const pendingOrders = wx.getStorageSync('pending_orders') || []
+    const completedOrders = wx.getStorageSync('completed_orders') || []
+    
+    // 使用Map去重，key为订单ID
+    const orderMap = new Map()
+    ;[...orders, ...pendingOrders, ...completedOrders].forEach(order => {
+      if (order && order.id) {
+        orderMap.set(order.id, order)
+      }
+    })
+    const allOrders = Array.from(orderMap.values())
+    
+    console.log('📦 订单去重:', {
+      原始订单数: orders.length + pendingOrders.length + completedOrders.length,
+      去重后订单数: allOrders.length
+    })
+    
+    // 🎯 2. 计算画师订单稿费（仅画师角色）
+    const PLATFORM_DEDUCTION = 5.00
+    const myCompletedOrders = allOrders.filter(o => 
+      o.status === 'completed' && String(o.artistId) === userKey
+    )
+    const orderIncome = myCompletedOrders.reduce((sum, order) => {
+      const orderAmount = parseFloat(order.totalPrice) || parseFloat(order.price) || 0
+      const artistShare = Math.max(0, orderAmount - PLATFORM_DEDUCTION)
+      return sum + artistShare
+    }, 0)
+    
+    console.log('🎨 画师订单稿费:', {
+      已完成订单数: myCompletedOrders.length,
+      订单稿费: orderIncome.toFixed(2)
+    })
+    
+    // 🎯 3. 计算打赏收入（画师角色）
+    const rewardRecords = wx.getStorageSync('reward_records') || []
+    const myRewards = rewardRecords.filter(record => {
+      if (record.artistId) {
+        return String(record.artistId) === userKey
+      }
+      const order = allOrders.find(o => String(o.id) === String(record.orderId))
+      if (!order) return false
+      return String(order.artistId) === userKey
+    })
+    const rewardIncome = myRewards.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
+    
+    console.log('💝 画师打赏收入:', {
+      打赏次数: myRewards.length,
+      打赏收入: rewardIncome.toFixed(2)
+    })
+    
+    // 🎯 4. 画师总收入 = 订单稿费 + 打赏
+    const artistIncome = orderIncome + rewardIncome
+    
+    // 🎯 5. 计算客服收入（客服角色，来自service-income记录）
+    const csIncome = serviceIncome.computeIncomeByUserId(userId, 'service')
+    console.log('👔 客服分成收入:', csIncome.toFixed(2))
+    
+    // 🎯 6. 计算管理员分成收入（管理员角色，来自service-income记录）
+    const staffIncome = serviceIncome.computeIncomeByUserId(userId, 'admin_share')
+    console.log('💼 管理员分成收入:', staffIncome.toFixed(2))
+    
+    // 🎯 7. 计算已提现金额
+    const withdrawRecords = wx.getStorageSync('withdraw_records') || []
+    const withdrawn = withdrawRecords
+      .filter(r => String(r.userId) === userKey && r.status === 'success')
+      .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
+    
+    // 🎯 8. 计算总余额（三种角色收入相加）
+    const totalIncome = artistIncome + csIncome + staffIncome
+    const availableBalance = Math.max(0, totalIncome - withdrawn)
+    
+    // 🎯 9. 检查是否为管理员
+    const staffList = staffFinance.getStaffList()
+    const staff = staffList.find(s => String(s.userId) === userKey)
+    const isStaff = staff && staff.isActive !== false
+    
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    console.log('💰 收入统计汇总 (user-center)')
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    console.log('👤 用户ID:', userKey)
+    console.log('📦 订单去重:', orders.length + pendingOrders.length + completedOrders.length, '→', allOrders.length)
+    console.log('')
+    console.log('🎨 画师角色:')
+    console.log('  - 订单稿费:', orderIncome.toFixed(2), '元 (', myCompletedOrders.length, '单)')
+    console.log('  - 打赏收入:', rewardIncome.toFixed(2), '元 (', myRewards.length, '次)')
+    console.log('  - 小计:', artistIncome.toFixed(2), '元')
+    console.log('')
+    console.log('👔 客服角色:', csIncome.toFixed(2), '元')
+    console.log('💼 管理员角色:', staffIncome.toFixed(2), '元')
+    console.log('')
+    console.log('💵 总收入:', totalIncome.toFixed(2), '元')
+    console.log('💸 已提现:', withdrawn.toFixed(2), '元')
+    console.log('✅ 可提现:', availableBalance.toFixed(2), '元')
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    
+    this.setData({
+      isStaff,
+      staffBalance: staffIncome.toFixed(2),
+      totalBalance: availableBalance.toFixed(2),
+      hasIncome: availableBalance > 0
+    })
+  },
+
+  // 🎯 跳转到提现页面
+  goToWithdraw() {
+    wx.navigateTo({
+      url: '/pages/withdraw/index'
+    })
+  },
+
   goToRewardPage() {
     wx.navigateTo({
       url: '/pages/reward-records/index'
     })
   },
 
+  handleFunctionTap(e) {
+    const type = e.currentTarget.dataset.type
+    let message = ''
+    switch (type) {
+      case 'favorite':
+        message = '收藏功能开发中'
+        break
+      case 'history':
+        message = '历史足迹功能开发中'
+        break
+      case 'service':
+        message = '售后请联系您的专属客服'
+        break
+      default:
+        message = '功能开发中'
+        break
+    }
+    wx.showToast({
+      title: message,
+      icon: 'none'
+    })
+  },
+
   // 我的买家秀
   goToMyBuyerShow() {
-    // 获取当前用户发布的买家秀
-    const userId = this.data.userId
-    const allPosts = wx.getStorageSync('buyer_show_posts') || []
-    const myPosts = allPosts.filter(post => String(post.authorId) === String(userId))
+    console.log('🎨 点击了"我的买家秀"')
     
-    if (myPosts.length === 0) {
-      wx.showModal({
-        title: '暂无买家秀',
-        content: '您还没有发布买家秀，完成订单后可以在订单详情页发布哦~',
-        showCancel: false,
-        confirmText: '知道了'
-      })
-      return
-    }
-    
-    // 跳转到买家秀列表页，并传递参数表示只显示我的
     wx.navigateTo({
-      url: '/pages/buyer-show/index/index?showMyOnly=true'
+      url: '/pages/my-buyer-show/index',
+      success: () => {
+        console.log('✅ 跳转成功')
+      },
+      fail: (err) => {
+        console.error('❌ 跳转失败:', err)
+        wx.showToast({
+          title: '页面打开失败',
+          icon: 'none'
+        })
+      }
     })
   },
 
@@ -513,15 +721,15 @@ Page({
     
     wx.showModal({
       title: '更新头像和昵称',
-      content: '重新登录即可更新您的头像和昵称',
-      confirmText: '立即登录',
+      content: '重新授权即可更新您的头像和昵称',
+      confirmText: '重新授权',
       cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
-          console.log('✅ 用户确认重新登录')
-          this.doLogout()
+          console.log('✅ 用户确认更新头像昵称')
+          this.updateUserInfo()
         } else {
-          console.log('❌ 用户取消重新登录')
+          console.log('❌ 用户取消更新头像昵称')
         }
       }
     })

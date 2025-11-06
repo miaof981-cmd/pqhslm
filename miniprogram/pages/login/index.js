@@ -100,17 +100,8 @@ Page({
       console.log('  - 头像类型:', finalAvatarUrl.startsWith('data:image') ? 'base64' : finalAvatarUrl.startsWith('http') ? '网络图片' : '其他')
       
       // ✅ 生成或获取用户ID
-      let userId = wx.getStorageSync('userId')
-      if (!userId) {
-        // 新用户：生成自增ID
-        const maxUserId = wx.getStorageSync('maxUserId') || 1000
-        userId = maxUserId + 1
-        wx.setStorageSync('userId', userId)
-        wx.setStorageSync('maxUserId', userId)
-        console.log('✅ 新用户，生成ID:', userId)
-      } else {
-        console.log('✅ 已有用户ID:', userId)
-      }
+      const userId = app.ensureUserId()
+      console.log('✅ 当前用户ID:', userId)
       
       // ✅ 初始化用户角色（如果不存在）
       let userRoles = wx.getStorageSync('userRoles')
@@ -287,4 +278,3 @@ Page({
     })
   }
 })
-

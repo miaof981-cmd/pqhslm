@@ -1,3 +1,5 @@
+const categoryService = require('../../utils/category-service.js')
+
 Page({
   data: {
     productId: '',
@@ -6,6 +8,7 @@ Page({
     artist: null,
     showServiceQR: false,
     serviceQR: null,
+    serviceInfo: null,
     orderQR: null,
     hasOrder: false,
     loading: true,
@@ -39,6 +42,7 @@ Page({
   onShow() {
     // 页面显示时更新购物车数量
     this.loadCartCount()
+    this.loadServiceQR()
   },
   
   // 加载购物车数量
@@ -106,6 +110,11 @@ Page({
         }
       }
       
+      const categoryName = product.categoryName || categoryService.getCategoryNameById(product.category)
+      const artistId = product.artistId || (product.artist && (product.artist.id || product.artist.userId)) || ''
+      const artistName = product.artistName || (product.artist && (product.artist.name || product.artist.nickname)) || '画师'
+      const artistAvatar = product.artistAvatar || (product.artist && (product.artist.avatar || product.artist.avatarUrl)) || ''
+
       // 解析商品简介中的图片占位符
       const summaryContent = this.parseSummaryContent(product.summary || '', product.summaryImages || [])
       
@@ -114,20 +123,20 @@ Page({
       this.setData({
         product: {
           ...product,
-          price: displayPrice
+          price: displayPrice,
+          categoryName: categoryName || ''
         },
         summaryContent: summaryContent,
         artist: { 
-          name: product.artistName || '画师',
-          id: product.artistId || ''
-        },
-        serviceQR: {
-          imageUrl: 'https://via.placeholder.com/200x200.png?text=客服二维码'
+          name: artistName,
+          id: artistId,
+          avatar: artistAvatar
         },
         loading: false
       })
       
       console.log('商品数据加载完成，显示价格:', displayPrice)
+      await this.loadServiceQR()
       
     } catch (error) {
       console.error('加载商品失败', error)
@@ -251,31 +260,61 @@ Page({
 
   // 加载客服二维码
   async loadServiceQR() {
-    // 暂时使用模拟数据
-    this.setData({ 
-      serviceQR: {
-        imageUrl: 'https://via.placeholder.com/200x200.png?text=客服二维码'
+    try {
+      let serviceList = wx.getStorageSync('customer_service_list') || []
+      if (!Array.isArray(serviceList) || serviceList.length === 0) {
+        serviceList = wx.getStorageSync('service_list') || []
       }
-    })
-    
-    // 云开发版本（需要先开通云开发）
-    // try {
-    //   const res = await wx.cloud.database().collection('serviceQR')
-    //     .where({ isActive: true })
-    //     .get()
-    //   
-    //   if (res.data.length > 0) {
-    //     // 随机选择一个二维码
-    //     const randomIndex = Math.floor(Math.random() * res.data.length)
-    //     this.setData({ serviceQR: res.data[randomIndex] })
-    //   }
-    // } catch (error) {
-    //   console.error('加载客服二维码失败', error)
-    // }
+
+      if (!Array.isArray(serviceList) || serviceList.length === 0) {
+        this.setData({
+          serviceQR: null,
+          serviceInfo: null
+        })
+        return
+      }
+
+      const activeServices = serviceList.filter(service => service && service.isActive !== false)
+      const target = activeServices[0] || serviceList[0]
+
+      if (!target) {
+        this.setData({
+          serviceQR: null,
+          serviceInfo: null
+        })
+        return
+      }
+
+      const rawImageUrl = target.qrcodeUrl || target.qrCode || target.qrcode || ''
+      const imageUrl = typeof rawImageUrl === 'string' && !rawImageUrl.startsWith('http://tmp/') ? rawImageUrl : ''
+
+      this.setData({
+        serviceQR: imageUrl ? { imageUrl } : null,
+        serviceInfo: {
+          serviceId: target.userId || target.id || '',
+          serviceName: target.name || target.nickName || '客服',
+          serviceAvatar: target.avatar || target.avatarUrl || '',
+          imageUrl
+        }
+      })
+    } catch (error) {
+      console.error('加载客服二维码失败', error)
+      this.setData({
+        serviceQR: null,
+        serviceInfo: null
+      })
+    }
   },
 
   // 显示/隐藏客服二维码
   toggleServiceQR() {
+    if (!this.data.orderQR && (!this.data.serviceQR || !this.data.serviceQR.imageUrl)) {
+      wx.showToast({
+        title: '暂无客服二维码',
+        icon: 'none'
+      })
+      return
+    }
     console.log('toggleServiceQR 被调用，当前状态:', this.data.showServiceQR)
     this.setData({
       showServiceQR: !this.data.showServiceQR
@@ -601,6 +640,21 @@ Page({
           serviceAvatar: undefined
         })
         
+        const orderItems = [{
+          productId: product.id || product._id || '',
+          productName: product.name,
+          productImage,
+          spec1: spec1Name,
+          spec2: spec2Name,
+          quantity,
+          unitPrice: currentPrice,
+          totalPrice: Number((currentPrice * quantity).toFixed(2)),
+          deliveryDays: product.deliveryDays || 0,
+          categoryId: product.category || '',
+          tags: product.tags || []
+        }]
+        wx.setStorageSync('order_success_items', orderItems)
+        
         // 跳转到订单成功页面
         wx.redirectTo({
           url: `/pages/order-success/index?productId=${product.id || ''}&productName=${encodeURIComponent(product.name)}&productImage=${encodeURIComponent(productImage)}&spec1=${encodeURIComponent(spec1Name)}&spec2=${encodeURIComponent(spec2Name)}&quantity=${quantity}&price=${currentPrice}&totalAmount=${currentPrice * quantity}&deliveryDays=${product.deliveryDays || 7}&artistId=${artistId}&artistName=${encodeURIComponent(artistName)}&artistAvatar=${encodeURIComponent(artistAvatar)}`
@@ -662,10 +716,16 @@ Page({
 
   // 查看画师主页
   viewArtist() {
-    if (this.data.artist) {
-      wx.navigateTo({
-        url: `/pages/user-center/index?userId=${this.data.artist._id}`
+    const artist = this.data.artist
+    if (!artist || !artist.id) {
+      wx.showToast({
+        title: '暂无画师信息',
+        icon: 'none'
       })
+      return
     }
+    wx.navigateTo({
+      url: `/pages/artist-detail/index?id=${artist.id}`
+    })
   }
 })

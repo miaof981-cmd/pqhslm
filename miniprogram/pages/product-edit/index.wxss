@@ -176,7 +176,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover;  /* 🎯 关键：覆盖填充，不拉伸 */
+  object-position: center;  /* 🎯 居中裁剪 */
 }
 
 .cover-badge {
@@ -509,12 +510,14 @@
   border-radius: 16rpx;
   border: 3rpx solid #66BB6A;
   box-shadow: 0 4rpx 16rpx rgba(102, 187, 106, 0.1);
+  min-height: 160rpx;
 }
 
 .price-symbol-large {
   font-size: 56rpx;
   font-weight: bold;
   color: #66BB6A;
+  flex-shrink: 0;
 }
 
 .price-input-main {
@@ -525,6 +528,9 @@
   text-align: center;
   border: none;
   background: transparent;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
 }
 
 .price-input-main::placeholder {

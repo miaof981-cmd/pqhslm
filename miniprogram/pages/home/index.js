@@ -1,4 +1,6 @@
 const { createLogger, isVerboseLoggingEnabled } = require('../../utils/logger')
+const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
+const categoryService = require('../../utils/category-service.js')
 
 const logger = createLogger('home')
 
@@ -17,7 +19,8 @@ Page({
     tempCategory: 'all',
     deliverySort: 'default', // 出稿时间排序：default/fastest/slowest
     tempDeliverySort: 'default',
-    bannerHeight: 200 // 轮播图初始高度（px）
+    bannerHeight: 200, // 轮播图初始高度（px）
+    showTestModal: false // 🧪 临时测试弹窗
   },
 
   onLoad() {
@@ -64,17 +67,13 @@ Page({
 
   // 加载商品分类
   async loadCategories() {
+    this.setSelectableCategories(this.data.currentCategory || 'all')
+  },
+
+  setSelectableCategories(selectedId = 'all') {
+    const categories = categoryService.getSelectableCategories(selectedId)
     this.setData({
-      categories: [
-        { id: 'all', name: '全部', active: true },
-        { id: 'portrait', name: '头像', active: false },
-        { id: 'illustration', name: '插画', active: false },
-        { id: 'logo', name: 'LOGO', active: false },
-        { id: 'poster', name: '海报', active: false },
-        { id: 'emoticon', name: '表情包', active: false },
-        { id: 'ui', name: 'UI设计', active: false },
-        { id: 'animation', name: '动画', active: false }
-      ]
+      categories
     })
   },
 
@@ -107,6 +106,12 @@ Page({
             })
           }
           
+          const coverImage = ensureRenderableImage(
+            Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : p.productImage,
+            { namespace: 'product-cover', fallback: DEFAULT_PLACEHOLDER }
+          )
+          const categoryName = p.categoryName || categoryService.getCategoryNameById(p.category)
+          
           return {
             _id: p.id || p._id,
             id: p.id,
@@ -114,8 +119,11 @@ Page({
             price: displayPrice,
             artistName: p.artistName || p.artist?.name || '画师',
             // ⚠️ 性能优化：只传第一张图片，不传整个数组
-            images: p.images && p.images.length > 0 ? [p.images[0]] : ['https://via.placeholder.com/300x300.png?text=商品图'],
+            coverImage,
+            image: coverImage,
+            images: Array.isArray(p.images) ? p.images : [],
             category: p.category || 'other',
+            categoryName: categoryName || '',
             deliveryDays: p.deliveryDays || 7,
             tags: p.tags || [],
             isOnSale: p.isOnSale !== false
@@ -175,17 +183,10 @@ Page({
   // 切换分类（在筛选面板中）
   switchCategory(e) {
     const categoryId = e.currentTarget.dataset.id
-    
-    // 更新临时分类状态
-    const categories = this.data.categories.map(cat => ({
-      ...cat,
-      active: cat.id === categoryId
-    }))
-    
     this.setData({
-      categories: categories,
       tempCategory: categoryId
     })
+    this.setSelectableCategories(categoryId)
   },
 
   // 切换筛选面板
@@ -205,16 +206,11 @@ Page({
 
   // 重置筛选
   resetFilter() {
-    const categories = this.data.categories.map(cat => ({
-      ...cat,
-      active: cat.id === 'all'
-    }))
-    
     this.setData({
-      categories: categories,
       tempCategory: 'all',
       tempDeliverySort: 'default'
     })
+    this.setSelectableCategories('all')
   },
 
   // 确认筛选
@@ -230,6 +226,7 @@ Page({
       deliverySort: deliverySort,
       showFilter: false
     })
+    this.setSelectableCategories(categoryId)
     
     // 根据分类和排序筛选商品
     this.filterAndSortProducts(categoryId, deliverySort)
@@ -244,17 +241,19 @@ Page({
       filteredProducts = filteredProducts.filter(product => product.category === categoryId)
     }
     
+    let sortedProducts = filteredProducts
+
     // 2. 再按出稿时间排序
     if (deliverySort === 'fastest') {
       // 最快优先：出稿天数从小到大
-      filteredProducts = filteredProducts.sort((a, b) => {
+      sortedProducts = filteredProducts.slice().sort((a, b) => {
         const daysA = a.deliveryDays || 999
         const daysB = b.deliveryDays || 999
         return daysA - daysB
       })
     } else if (deliverySort === 'slowest') {
       // 最慢优先：出稿天数从大到小
-      filteredProducts = filteredProducts.sort((a, b) => {
+      sortedProducts = filteredProducts.slice().sort((a, b) => {
         const daysA = a.deliveryDays || 0
         const daysB = b.deliveryDays || 0
         return daysB - daysA
@@ -263,7 +262,7 @@ Page({
     // default: 保持原顺序（最新上传的在前）
     
     this.setData({
-      products: filteredProducts
+      products: deliverySort === 'default' ? filteredProducts.slice() : sortedProducts
     })
   },
   
@@ -274,18 +273,13 @@ Page({
 
   // 取消筛选
   clearFilter() {
-    const categories = this.data.categories.map(cat => ({
-      ...cat,
-      active: cat.id === 'all'
-    }))
-    
     this.setData({
-      categories: categories,
       currentCategory: 'all',
       currentCategoryName: '全部商品',
       tempCategory: 'all',
       products: this.data.allProducts
     })
+    this.setSelectableCategories('all')
   },
 
   // 点击商品
@@ -333,5 +327,99 @@ Page({
     wx.navigateTo({
       url: '/pages/search/index'
     })
+  },
+
+  // ==================== 🧪 临时测试功能 ====================
+  // 显示测试菜单
+  showTestMenu() {
+    this.setData({ showTestModal: true })
+  },
+
+  // 隐藏测试菜单
+  hideTestMenu() {
+    this.setData({ showTestModal: false })
+  },
+
+  // 阻止冒泡
+  stopPropagation() {},
+
+  // 创建测试商品
+  createTestProduct(e) {
+    const type = e.currentTarget.dataset.type
+    const userInfo = wx.getStorageSync('userInfo') || {}
+    const userId = wx.getStorageSync('userId') || 1001
+    
+    // 占位图片（透明1x1像素图片）
+    const placeholderImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+    
+    const timestamp = Date.now()
+    const productId = `test_product_${timestamp}`
+    
+    let newProduct = {
+      id: productId,
+      name: type === 'single' ? `测试商品-单价${timestamp}` : `测试商品-规格${timestamp}`,
+      summary: '这是一个测试商品，用于测试下单流程',
+      category: '测试分类',
+      images: [placeholderImage],
+      coverImage: placeholderImage,
+      tags: ['测试'],
+      isOnSale: true,
+      deliveryDays: 3,
+      stock: 999,
+      maxBuyCount: 10,
+      artistId: userId,
+      artistName: userInfo.nickName || userInfo.name || '测试画师',
+      artistAvatar: userInfo.avatarUrl || userInfo.avatar || placeholderImage,
+      createdAt: new Date().toISOString()
+    }
+
+    if (type === 'single') {
+      // 单一价格
+      newProduct.price = 19.9
+      newProduct.basePrice = 19.9
+      newProduct.hasSpecs = false
+    } else {
+      // 多规格
+      newProduct.hasSpecs = true
+      newProduct.specs = {
+        spec1Name: '尺寸',
+        spec1Values: [
+          { name: '小', addPrice: 19.9 },
+          { name: '中', addPrice: 29.9 },
+          { name: '大', addPrice: 39.9 }
+        ],
+        spec2Name: '材质',
+        spec2Values: [
+          { name: '普通', addPrice: 0 },
+          { name: '高级', addPrice: 10 }
+        ]
+      }
+      newProduct.price = 19.9 // 最低价
+      newProduct.basePrice = 0
+    }
+
+    // 保存到本地存储
+    const products = wx.getStorageSync('mock_products') || []
+    products.unshift(newProduct)
+    
+    try {
+      wx.setStorageSync('mock_products', products)
+      this.hideTestMenu()
+      wx.showToast({
+        title: '测试商品已创建',
+        icon: 'success'
+      })
+      // 刷新页面
+      setTimeout(() => {
+        this.loadProducts()
+      }, 500)
+    } catch (error) {
+      console.error('创建测试商品失败', error)
+      wx.showToast({
+        title: '创建失败，存储空间可能不足',
+        icon: 'none'
+      })
+    }
   }
+  // ==================== 🧪 测试功能结束 ====================
 })

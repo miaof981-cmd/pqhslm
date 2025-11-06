@@ -1,0 +1,63 @@
+<view class="search-page">
+  <view class="search-header">
+    <view class="search-box">
+      <view class="search-icon"></view>
+      <input class="search-input"
+             placeholder="输入关键词搜索商品或画师"
+             value="{{keyword}}"
+             confirm-type="search"
+             bindinput="handleInput"
+             bindconfirm="handleConfirm"
+             focus="{{true}}" />
+      <view wx:if="{{keyword}}" class="clear-icon" bindtap="handleClearKeyword"></view>
+    </view>
+    <text class="cancel-btn" bindtap="goBack">取消</text>
+  </view>
+
+  <view wx:if="{{history.length > 0}}" class="history-section">
+    <view class="section-header">
+      <text class="section-title">搜索历史</text>
+      <text class="section-action" bindtap="clearHistory">清空</text>
+    </view>
+    <view class="history-tags">
+      <view wx:for="{{history}}" wx:key="*this"
+            class="history-tag"
+            data-value="{{item}}"
+            bindtap="selectHistory">
+        {{item}}
+      </view>
+    </view>
+  </view>
+
+  <view class="result-section">
+    <view wx:if="{{loading}}" class="loading">
+      <text>加载中...</text>
+    </view>
+
+    <view wx:elif="{{empty}}" class="empty">
+      <view class="empty-icon">🧐</view>
+      <text class="empty-text">没有找到相关商品</text>
+      <text class="empty-hint">换个关键词试试吧</text>
+    </view>
+
+    <scroll-view wx:else scroll-y class="result-list">
+      <view wx:for="{{results}}" wx:key="id"
+            class="result-item"
+            data-id="{{item.id}}"
+            bindtap="openProduct">
+        <image class="result-cover" src="{{item.coverImage}}" mode="aspectFill"></image>
+        <view class="result-info">
+          <view class="result-name">{{item.name}}</view>
+          <view class="result-meta">
+            <text wx:if="{{item.categoryName}}" class="meta-tag">{{item.categoryName}}</text>
+            <text wx:if="{{item.deliveryDays}}" class="meta-tag">{{item.deliveryDays}}天出稿</text>
+            <block wx:if="{{item.tags && item.tags.length}}">
+              <text wx:for="{{item.tags}}" wx:key="*this" class="meta-tag">{{item}}</text>
+            </block>
+          </view>
+          <view class="result-price">¥{{item.price}}</view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

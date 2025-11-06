@@ -46,6 +46,41 @@ page {
   line-height: 1;
 }
 
+.income-summary {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  margin: 24rpx 0 10rpx;
+  background: #F5FBF6;
+  border-radius: 20rpx;
+  overflow: hidden;
+}
+
+.summary-item {
+  flex: 1;
+  padding: 20rpx 10rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.summary-label {
+  font-size: 22rpx;
+  color: #6D8F7A;
+}
+
+.summary-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2E7D32;
+}
+
+.summary-divider {
+  width: 1rpx;
+  background: rgba(110,150,120,0.25);
+  margin: 12rpx 0;
+}
+
 .balance-hint {
   display: block;
   font-size: 24rpx;

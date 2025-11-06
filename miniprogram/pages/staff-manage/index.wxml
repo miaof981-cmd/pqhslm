@@ -2,20 +2,105 @@
   <view wx:if="{{loading}}" class="loading">
     <text>加载中...</text>
   </view>
-  
+
   <view wx:else>
     <view class="header-bar">
       <text class="page-title">人员管理</text>
       <button class="add-btn" bindtap="showAddModal">+ 添加人员</button>
     </view>
-    
+
     <view class="list">
-      <view wx:for="{{items}}" wx:key="_id" class="list-item">
-        <text class="item-title">{{item.name || item.title}}</text>
-        <view class="item-actions">
-          <button class="action-btn edit" bindtap="editItem" data-id="{{item._id}}">编辑</button>
-          <button class="action-btn delete" bindtap="deleteItem" data-id="{{item._id}}">删除</button>
+      <view wx:if="{{!staffList.length}}" class="empty">
+        <text class="empty-title">还没有管理员</text>
+        <text class="empty-desc">点击右上角添加按钮，绑定真实管理员并设置分成</text>
+      </view>
+
+      <block wx:for="{{staffList}}" wx:key="_id">
+        <view class="list-item">
+          <view class="item-main">
+            <view class="item-row">
+              <text class="item-name">{{item.name || '未命名管理员'}}</text>
+              <text class="status-tag {{item.isActive ? 'active' : 'inactive'}}">{{item.isActive ? '启用中' : '已停用'}}</text>
+            </view>
+            <text wx:if="{{item.roleType}}" class="item-role">{{item.roleType}}</text>
+            <text class="item-meta">用户ID：{{item.userId || '未设置'}}</text>
+            <view class="item-share">
+              <text wx:if="{{item.enableShare}}" class="share-enabled">💰 每单分成 ¥{{item.shareAmountDisplay}}</text>
+              <text wx:else class="share-disabled">不参与分成</text>
+            </view>
+            <text wx:if="{{item.description}}" class="item-desc">{{item.description}}</text>
+          </view>
+          <view class="item-actions">
+            <button class="action-btn edit" bindtap="editItem" data-id="{{item._id}}">编辑</button>
+            <button class="action-btn delete" bindtap="deleteItem" data-id="{{item._id}}">删除</button>
+          </view>
         </view>
+      </block>
+    </view>
+  </view>
+
+  <view wx:if="{{showModal}}" class="modal-mask" bindtap="hideModal">
+    <view class="modal-panel" catchtap="stopPropagation" catchtouchmove="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">{{modalMode === 'add' ? '添加管理员' : '编辑管理员'}}</text>
+      </view>
+
+      <scroll-view class="modal-body" scroll-y="{{true}}" scroll-with-animation="{{true}}">
+        <view class="form-content">
+        <view class="form-field">
+          <text class="field-label">姓名 <text class="required">*</text></text>
+          <input class="field-input" placeholder="请输入姓名" value="{{formData.name}}" data-field="name" bindinput="onInputChange" />
+        </view>
+
+        <view class="form-field">
+          <text class="field-label">角色类型</text>
+          <input class="field-input" placeholder="例如：主管、专员、客服等" value="{{formData.roleType}}" data-field="roleType" bindinput="onInputChange" />
+          <view class="field-hint">用于区分不同职责的管理员（如主管¥2/单、专员¥1/单等）</view>
+        </view>
+
+        <view class="form-field">
+          <text class="field-label">绑定用户ID <text class="required">*</text></text>
+          <input class="field-input" type="number" placeholder="请输入用户ID" value="{{formData.userId}}" data-field="userId" bindinput="onInputChange" />
+          <view class="field-hint">登录后可在提现页查看收入</view>
+        </view>
+
+        <!-- 🎯 分成配置开关 -->
+        <view class="form-field toggle-field">
+          <view class="field-label-row">
+            <text class="field-label">订单分成</text>
+            <switch checked="{{formData.enableShare}}" bindchange="onShareEnableChange" color="#A8E6CF" />
+          </view>
+          <view class="field-hint">⚠️ 仅影响【新完成】的订单，不追溯历史</view>
+        </view>
+
+        <!-- 🎯 分成金额（条件显示） -->
+        <view wx:if="{{formData.enableShare}}" class="form-field amount-field">
+          <text class="field-label">每单分成金额（元） <text class="required">*</text></text>
+          <view class="amount-input-wrapper">
+            <text class="amount-symbol">¥</text>
+            <input class="amount-input" type="digit" placeholder="0.00" value="{{formData.shareAmount}}" data-field="shareAmount" bindinput="onInputChange" />
+          </view>
+          <view class="field-hint">每完成一单订单，该管理员可获得此金额</view>
+        </view>
+
+        <view class="form-field">
+          <text class="field-label">备注</text>
+          <textarea class="field-textarea" placeholder="补充说明，选填" value="{{formData.description}}" data-field="description" bindinput="onInputChange" maxlength="200" />
+        </view>
+
+        <view class="form-field toggle-field">
+          <view class="field-label-row">
+            <text class="field-label">后台权限</text>
+            <switch checked="{{formData.isActive}}" bindchange="onActiveChange" color="#A8E6CF" />
+          </view>
+          <view class="field-hint">⚠️ 关闭后该管理员将无法登录后台，且不再参与分成</view>
+        </view>
+        </view>
+      </scroll-view>
+
+      <view class="modal-actions">
+        <button class="modal-btn cancel" bindtap="hideModal">取消</button>
+        <button class="modal-btn confirm" bindtap="submitForm">{{modalMode === 'add' ? '添加' : '保存'}}</button>
       </view>
     </view>
   </view>

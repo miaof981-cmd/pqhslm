@@ -3,11 +3,13 @@ const orderHelper = require('../../utils/order-helper.js')
 const orderStatusUtil = require('../../utils/order-status.js')
 const { computeVisualStatus } = require('../../utils/order-visual-status')
 const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
+const staffFinance = require('../../utils/staff-finance.js')
+const serviceIncome = require('../../utils/service-income.js')  // 🎯 新增：客服收入管理
 
 Page({
   data: {
     DEFAULT_AVATAR_DATA,
-    currentTab: 'all',
+    currentTab: 'processing',  // 🎯 默认显示制作中的订单
     tabs: [],  // 动态生成，只显示有订单的Tab
     orders: [],
     allOrders: [],
@@ -45,9 +47,6 @@ Page({
     this.setData({ loading: true })
     
     try {
-      // 模拟加载订单数据
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
       const userId = wx.getStorageSync('userId')
       
       console.log('========================================')
@@ -159,7 +158,7 @@ Page({
           isOverdue,
           isNearDeadline,
           overdueDays: order.overdueDays || 0,
-          reviewed: false,
+          reviewed: Boolean(order.reviewed),
           hasBuyerShow: Boolean(buyerShowId),
           buyerShowId
         }
@@ -387,6 +386,7 @@ Page({
           // 在两个存储中都查找并更新
           let updated = false
           
+          let recordedOrder = null
           const updateOrderStatus = (orderList) => {
             return orderList.map(order => {
               if (order.id === orderId) {
@@ -406,7 +406,7 @@ Page({
                   脱稿天数: overdueDays
                 })
                 
-                return {
+                const nextOrder = {
                   ...order,
                   status: 'completed',
                   completedAt: new Date().toLocaleString('zh-CN', {
@@ -421,6 +421,12 @@ Page({
                   wasOverdue,
                   overdueDays
                 }
+
+                if (order.status !== 'completed' && !recordedOrder) {
+                  recordedOrder = nextOrder
+                }
+
+                return nextOrder
               }
               return order
             })
@@ -434,15 +440,23 @@ Page({
             wx.setStorageSync('orders', updatedOrders)
             wx.setStorageSync('pending_orders', updatedPendingOrders)
             
+            if (recordedOrder) {
+              try {
+                // 🎯 新的收入分配逻辑：固定¥5分配给客服和管理员
+                serviceIncome.recordOrderIncome(recordedOrder)
+                console.log('✅ 订单收入分配完成')
+              } catch (err) {
+                console.error('⚠️ 记录订单收入失败:', err)
+              }
+            }
+            
             wx.showToast({
               title: '订单已完成',
               icon: 'success'
             })
             
-            // 延迟刷新，让用户看到提示
-            setTimeout(() => {
-              this.loadOrders()
-            }, 500)
+            // 🎯 立即刷新订单列表（移除延迟，确保数据同步）
+            this.loadOrders()
           } else {
             wx.showToast({
               title: '订单未找到',
@@ -467,17 +481,61 @@ Page({
     // 空函数，用于阻止点击弹窗内容时关闭
   },
 
-  // 申请退款（已废弃，替换为投诉）
+  // 申请退款
   applyRefund(e) {
     const id = e.currentTarget.dataset.id
     wx.showModal({
       title: '申请退款',
-      content: '确认申请退款？退款后订单将被取消',
+      content: '确认申请退款？客服将尽快审核并与您联系',
       confirmColor: '#FF9800',
+      confirmText: '申请退款',
       success: (res) => {
         if (res.confirm) {
-          wx.showToast({ title: '已提交退款申请', icon: 'success' })
-          this.loadOrders()
+          const timestamp = new Date().toISOString()
+          const appendRefundHistory = (history = []) => {
+            return [
+              ...history,
+              {
+                status: 'refunding',
+                operator: 'customer',
+                time: timestamp,
+                note: '买家发起退款申请'
+              }
+            ]
+          }
+
+          const updateStatus = (orders = []) => {
+            let changed = false
+            const updated = orders.map(order => {
+              if (order.id === id) {
+                changed = true
+                return orderHelper.mergeOrderRecords(order, {
+                  status: 'refunding',
+                  statusText: '退款中',
+                  refundStatus: 'refunding',
+                  refundRequestedAt: timestamp,
+                  refundHistory: appendRefundHistory(order.refundHistory)
+                })
+              }
+              return order
+            })
+            return { updated, changed }
+          }
+
+          const ordersStore = wx.getStorageSync('orders') || []
+          const pendingStore = wx.getStorageSync('pending_orders') || []
+
+          const { updated: updatedOrders, changed } = updateStatus(ordersStore)
+          const { updated: updatedPending } = updateStatus(pendingStore)
+
+          if (changed) {
+            wx.setStorageSync('orders', updatedOrders)
+            wx.setStorageSync('pending_orders', updatedPending)
+            wx.showToast({ title: '已提交退款申请', icon: 'success' })
+            setTimeout(() => this.loadOrders(), 400)
+          } else {
+            wx.showToast({ title: '订单不存在或已退款', icon: 'none' })
+          }
         }
       }
     })

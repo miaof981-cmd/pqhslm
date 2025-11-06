@@ -124,6 +124,78 @@
   color: #FF6B6B;
 }
 
+.order-items {
+  margin-bottom: 10rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.order-item {
+  display: flex;
+  gap: 20rpx;
+  align-items: center;
+}
+
+.order-item-cover {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 16rpx;
+  background-color: #F5F5F5;
+  flex-shrink: 0;
+}
+
+.order-item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.order-item-name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.order-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.order-item-tag {
+  font-size: 22rpx;
+  color: #4ECDC4;
+  background-color: rgba(78, 205, 196, 0.12);
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+}
+
+.order-item-spec {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.order-item-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-item-qty {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.order-item-price {
+  font-size: 28rpx;
+  color: #FF6B6B;
+  font-weight: 600;
+}
+
 /* ===== 客服引导区域 ===== */
 .service-guide-section {
   margin: 0 30rpx 20rpx;
@@ -306,6 +378,13 @@
   border: 2rpx dashed #4ECDC4;
 }
 
+.qr-missing {
+  font-size: 26rpx;
+  color: #999;
+  text-align: center;
+  padding: 60rpx 20rpx 40rpx;
+}
+
 /* ===== 温馨提示 ===== */
 .warm-tips {
   margin: 0 30rpx 30rpx;
@@ -368,4 +447,3 @@
   color: white;
   font-weight: bold;
 }
-

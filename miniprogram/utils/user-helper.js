@@ -274,25 +274,37 @@ function fixHistoricalOrders() {
   
   let fixedCount = 0
   
-  // 修复 orders
-  const fixedOrders = orders.map(order => {
-    if (!order.buyerId || order.buyerId === 'undefined' || order.buyerId === 'null') {
+  const needsFix = (order) => {
+    if (!order) return false
+    const buyerKey = order.buyerId != null ? String(order.buyerId).trim() : ''
+    if (!buyerKey || buyerKey === 'undefined' || buyerKey === 'null') return true
+    if (buyerKey.startsWith('guest_')) return true
+    return false
+  }
+
+  const normalizeBuyer = (order) => {
+    if (!order) return order
+    const patched = { ...order }
+
+    if (needsFix(patched)) {
       fixedCount++
-      logger.debug(`修复订单 ${order.id} 的 buyerId`)
-      return { ...order, buyerId: userId }
+      logger.debug(`修复订单 ${patched.id} 的 buyerId`, { oldBuyerId: patched.buyerId, newBuyerId: userId })
+      patched.buyerId = userId
     }
-    return order
-  })
-  
-  // 修复 pending_orders
-  const fixedPendingOrders = pendingOrders.map(order => {
-    if (!order.buyerId || order.buyerId === 'undefined' || order.buyerId === 'null') {
-      fixedCount++
-      logger.debug(`修复订单 ${order.id} 的 buyerId`)
-      return { ...order, buyerId: userId }
+
+    if (!patched.buyerName) {
+      patched.buyerName = currentUser?.nickName || `用户_${String(userId).slice(-4)}`
     }
-    return order
-  })
+
+    if (!patched.buyerAvatar || patched.buyerAvatar === 'undefined' || patched.buyerAvatar.startsWith('http://tmp/')) {
+      patched.buyerAvatar = currentUser?.avatarUrl || ''
+    }
+
+    return patched
+  }
+
+  const fixedOrders = orders.map(normalizeBuyer)
+  const fixedPendingOrders = pendingOrders.map(normalizeBuyer)
   
   if (fixedCount > 0) {
     wx.setStorageSync('orders', fixedOrders)
@@ -312,4 +324,3 @@ module.exports = {
   fixHistoricalOrders,
   logUserError
 }
-

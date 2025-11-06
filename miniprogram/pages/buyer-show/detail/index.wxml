@@ -26,8 +26,8 @@
       <view class="section-title">相关商品</view>
       <view class="product-card">
         <image class="product-thumb" src="{{post.productImage || '/assets/default-product.png'}}" mode="aspectFill" />
-        <view class="product-info">
-          <view class="product-name">{{post.productName || '关联商品'}}</view>
+      <view class="product-info">
+        <view class="product-name">{{post.productName || '关联商品'}}</view>
           <view class="product-tip">点击查看详情，和Ta一样下单</view>
         </view>
         <view class="product-arrow">›</view>

@@ -19,7 +19,10 @@
           <view class="user-roles">
             <text wx:for="{{roleTexts}}" wx:key="*this" class="role-tag">{{item}}</text>
           </view>
-          <text class="auth-hint" bindtap="promptRelogin">点击头像重新登录</text>
+          <view class="user-actions">
+            <text class="edit-profile" bindtap="editNickname">修改昵称</text>
+            <text class="auth-hint" bindtap="promptRelogin">更新头像</text>
+          </view>
         </view>
       </view>
       <view class="role-manage-btn" bindtap="goToRoleManage">权限</view>
@@ -106,15 +109,22 @@
       <text class="section-title">其他</text>
       
       <view class="function-grid">
-        <view class="function-item">
+        <!-- 🎯 统一提现入口（画师+客服+管理员） -->
+        <view wx:if="{{hasIncome}}" class="function-item" bindtap="goToWithdraw">
+          <view class="function-icon icon-withdraw"></view>
+          <text class="function-label">提现</text>
+          <view wx:if="{{totalBalance > 0}}" class="function-badge">¥{{totalBalance}}</view>
+        </view>
+        
+        <view class="function-item" data-type="favorite" bindtap="handleFunctionTap">
           <view class="function-icon icon-favorite"></view>
           <text class="function-label">收藏和关注</text>
         </view>
-        <view class="function-item">
+        <view class="function-item" data-type="history" bindtap="handleFunctionTap">
           <view class="function-icon icon-history"></view>
           <text class="function-label">历史足迹</text>
         </view>
-        <view class="function-item">
+        <view class="function-item" data-type="service" bindtap="handleFunctionTap">
           <view class="function-icon icon-service"></view>
           <text class="function-label">平台售后</text>
         </view>

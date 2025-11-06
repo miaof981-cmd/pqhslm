@@ -14,7 +14,14 @@ Page({
   },
 
   loadRecords() {
-    const records = wx.getStorageSync('withdraw_records') || []
+    const userId = wx.getStorageSync('userId')
+    const userKey = userId != null ? String(userId) : ''
+    const allRecords = wx.getStorageSync('withdraw_records') || []
+    const records = allRecords.filter(record => {
+      if (!userKey) return true
+      if (record.userId == null) return true
+      return String(record.userId) === userKey
+    })
     
     // 计算累计提现（只计算成功的）
     const totalWithdrawn = records
@@ -28,4 +35,3 @@ Page({
     })
   }
 })
-

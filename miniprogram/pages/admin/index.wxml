@@ -17,7 +17,7 @@
       <view class="main-tab {{currentTab === 'order' ? 'active' : ''}}" data-tab="order" bindtap="switchMainTab">
         <view class="tab-icon icon-order"></view>
         <text>订单</text>
-        <view wx:if="{{pendingOrders > 0}}" class="tab-badge">{{pendingOrders}}</view>
+        <!-- 🎯 移除未读数字徽章，避免性能问题 -->
       </view>
       <view class="main-tab {{currentTab === 'artist' ? 'active' : ''}}" data-tab="artist" bindtap="switchMainTab">
         <view class="tab-icon icon-artist"></view>
@@ -37,6 +37,51 @@
         <view class="filter-item {{timeFilter === 'yesterday' ? 'active' : ''}}" data-filter="yesterday" bindtap="switchTimeFilter">昨日</view>
         <view class="filter-item {{timeFilter === 'week' ? 'active' : ''}}" data-filter="week" bindtap="switchTimeFilter">本周</view>
         <view class="filter-item {{timeFilter === 'month' ? 'active' : ''}}" data-filter="month" bindtap="switchTimeFilter">本月</view>
+      </view>
+
+      <view wx:if="{{alerts.length}}" class="alert-section">
+        <view class="alert-section-header">
+          <text class="section-icon">{{blockingIssues > 0 ? '🆘' : '🔔'}}</text>
+          <view class="section-title-wrapper">
+            <text class="section-title">{{blockingIssues > 0 ? '系统阻断项' : '系统提示'}}</text>
+            <text class="section-subtitle">{{blockingIssues > 0 ? '以下问题会影响正常下单，请立即处理' : '以下问题需要关注'}}</text>
+          </view>
+        </view>
+        <view class="alert-list">
+          <view wx:for="{{alerts}}" wx:key="id" class="alert-card alert-{{item.level}}">
+            <view class="alert-icon">{{item.level === 'error' ? '❌' : '⚠️'}}</view>
+            <view class="alert-content">
+              <text class="alert-title">{{item.title}}</text>
+              <text class="alert-message">{{item.message}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 🎯 管理员个人收入卡片 - 清新简洁版 -->
+      <view wx:if="{{myIncome.isStaff}}" class="my-income-card">
+        <view class="income-header">
+          <view class="income-title-row">
+            <view class="income-icon-custom"></view>
+            <view class="income-info">
+              <text class="income-title">{{myIncome.staffName}}</text>
+              <text class="income-subtitle">{{myIncome.staffRole}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="income-stats">
+          <view class="income-stat-item main-stat">
+            <text class="stat-value">¥{{myIncome.available}}</text>
+            <text class="stat-label">可提现</text>
+          </view>
+          <view class="income-stat-item">
+            <text class="stat-value-small">¥{{myIncome.totalShare}}</text>
+            <text class="stat-label-small">累计已赚</text>
+          </view>
+        </view>
+        <button class="withdraw-btn-bottom" bindtap="goToWithdraw">
+          <text>立即提现</text>
+        </button>
       </view>
 
       <!-- 核心数据卡片 -->
@@ -210,7 +255,7 @@
       <!-- 商品列表 -->
       <view class="product-list">
         <view wx:for="{{products}}" wx:key="_id" class="product-card">
-          <image class="product-image" src="{{item.image}}" mode="aspectFill" />
+        <image class="product-image" src="{{item.coverImage}}" mode="aspectFill"></image>
           
           <view class="product-info">
             <view class="product-header">

@@ -22,21 +22,38 @@
   <!-- 客服信息卡片（紧跟引导区域） -->
   <view class="service-info-card">
     <view class="service-header">
-      <image class="service-avatar" src="{{serviceInfo.serviceAvatar}}" mode="aspectFill" />
+      <image class="service-avatar" src="{{serviceInfo && serviceInfo.serviceAvatar ? serviceInfo.serviceAvatar : '/assets/default-avatar.png'}}" mode="aspectFill" />
       <view class="service-details">
-        <view class="service-name">{{serviceInfo.serviceName}}</view>
-        <view class="service-role">您的专属客服</view>
+        <view class="service-name">{{serviceInfo && serviceInfo.serviceName ? serviceInfo.serviceName : '客服'}}</view>
+        <view class="service-role">
+          {{serviceInfo && serviceInfo.isPlaceholder ? '客服正在分配中，请耐心等待' : '您的专属客服'}}
+        </view>
       </view>
     </view>
     
     <view class="qr-section">
       <view class="qr-wrapper">
-        <view class="qr-label">长按识别添加 {{serviceInfo.serviceName}}</view>
-        <image class="qr-image" 
-               src="{{serviceQR.imageUrl}}" 
-               mode="aspectFit"
-               bindlongpress="onLongPressQR" />
-        <view class="qr-hint">长按二维码 → 识别 → 添加好友</view>
+        <view class="qr-label">
+          <block wx:if="{{serviceInfo && serviceInfo.isPlaceholder}}">
+            客服正在安排中，稍后将通过消息联系您
+          </block>
+          <block wx:else>
+            长按识别添加 {{serviceInfo && serviceInfo.serviceName ? serviceInfo.serviceName : '客服'}}
+          </block>
+        </view>
+        <block wx:if="{{serviceQR && serviceQR.imageUrl}}">
+          <image class="qr-image" 
+                 src="{{serviceQR.imageUrl}}" 
+                 mode="aspectFit"
+                 bindlongpress="onLongPressQR" />
+          <view class="qr-hint">长按二维码 → 识别 → 添加好友</view>
+        </block>
+        <block wx:elif="{{serviceInfo && serviceInfo.isPlaceholder}}">
+          <view class="qr-missing">暂无二维码，可直接回复下单时填写的联系方式，客服将尽快与您对接。</view>
+        </block>
+        <block wx:else>
+          <view class="qr-missing">客服二维码暂未配置，请稍后联系</view>
+        </block>
       </view>
     </view>
   </view>
@@ -52,15 +69,23 @@
         <text class="copy-btn" bindtap="copyOrderNo">复制</text>
       </view>
     </view>
-    
-    <view class="info-row">
-      <text class="info-label">商品名称</text>
-      <text class="info-value">{{orderInfo.productName}}</text>
-    </view>
-    
-    <view wx:if="{{orderInfo.spec1}}" class="info-row">
-      <text class="info-label">规格</text>
-      <text class="info-value">{{orderInfo.spec1}}{{orderInfo.spec2 ? ' / ' + orderInfo.spec2 : ''}}</text>
+
+    <view wx:if="{{orderItems.length > 0}}" class="order-items">
+      <view wx:for="{{orderItems}}" wx:key="index" class="order-item">
+        <image class="order-item-cover" src="{{item.productImage}}" mode="aspectFill"></image>
+        <view class="order-item-info">
+          <view class="order-item-name">{{item.productName}}</view>
+          <view wx:if="{{item.categoryName || (item.tags && item.tags.length)}}" class="order-item-tags">
+            <text wx:if="{{item.categoryName}}" class="order-item-tag">{{item.categoryName}}</text>
+            <text wx:for="{{item.tags}}" wx:key="*this" class="order-item-tag">{{item}}</text>
+          </view>
+          <view wx:if="{{item.specText}}" class="order-item-spec">{{item.specText}}</view>
+          <view class="order-item-meta">
+            <text class="order-item-qty">×{{item.quantity}}</text>
+            <text class="order-item-price">¥{{item.totalPrice}}</text>
+          </view>
+        </view>
+      </view>
     </view>
     
     <view class="info-row">
@@ -70,7 +95,7 @@
     
     <view class="info-row total">
       <text class="info-label">订单金额</text>
-      <text class="info-value amount">¥{{orderInfo.totalAmount}}</text>
+      <text class="info-value amount">¥{{orderInfo.totalAmountDisplay || orderInfo.totalAmount}}</text>
     </view>
   </view>
 
@@ -91,4 +116,3 @@
     <button class="action-btn primary" bindtap="backToHome">返回首页</button>
   </view>
 </view>
-

@@ -42,8 +42,8 @@
         <view class="group-label">商品主图 <text class="required">*</text></view>
         <view class="group-hint">上传作品示意图，第一张为封面</view>
         <view class="image-grid">
-          <view wx:for="{{formData.images}}" wx:key="*this" class="image-item">
-            <image src="{{item}}" mode="aspectFill" class="preview-image" />
+          <view wx:for="{{formData.images}}" wx:for-index="index" wx:key="*this" class="image-item">
+            <image class="preview-image" src="{{previewImages[index]}}" mode="aspectFill"></image>
             <view wx:if="{{index === 0}}" class="cover-badge">封面</view>
             <view class="delete-btn" data-index="{{index}}" bindtap="deleteImage">×</view>
           </view>

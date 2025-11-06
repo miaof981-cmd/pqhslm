@@ -549,6 +549,53 @@ page {
   cursor: pointer;
 }
 
+.copy-order-id-icon {
+  width: 36rpx;
+  height: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  border-radius: 8rpx;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.copy-order-id-icon:active {
+  transform: scale(0.9);
+  background: linear-gradient(135deg, #C8E6C9 0%, #A5D6A7 100%);
+}
+
+.icon-copy {
+  width: 18rpx;
+  height: 18rpx;
+  position: relative;
+}
+
+.icon-copy::before,
+.icon-copy::after {
+  content: '';
+  position: absolute;
+  border: 2rpx solid #4CAF50;
+  border-radius: 4rpx;
+}
+
+.icon-copy::before {
+  width: 18rpx;
+  height: 14rpx;
+  top: 2rpx;
+  left: 0;
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+.icon-copy::after {
+  width: 14rpx;
+  height: 12rpx;
+  top: 6rpx;
+  left: 4rpx;
+  background-color: white;
+}
+
 .copy-group-name-icon {
   width: 36rpx;
   height: 36rpx;

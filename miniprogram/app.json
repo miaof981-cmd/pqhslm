@@ -2,6 +2,7 @@
   "pages": [
     "pages/login/index",
     "pages/home/index",
+    "pages/search/index",
     "pages/apply/index",
     "pages/category/index",
     "pages/cart/index",
@@ -39,8 +40,11 @@
     "pages/artist-products-manage/index",
     "pages/withdraw/index",
     "pages/withdraw-records/index",
+    "pages/income-detail/index",
+    "pages/identity-verify/index",
     "pages/data-stats/index",
-    "pages/service-workspace/index"
+    "pages/service-workspace/index",
+    "pages/my-buyer-show/index"
   ],
   "lazyCodeLoading": "requiredComponents",
   "window": {

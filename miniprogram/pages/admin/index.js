@@ -1,7 +1,27 @@
 // 引入统一工具函数
 const orderHelper = require('../../utils/order-helper.js')
+const staffFinance = require('../../utils/staff-finance.js')  // 🎯 新增
 const orderStatusUtil = require('../../utils/order-status.js')
 const { computeVisualStatus } = require('../../utils/order-visual-status')
+const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
+const { runOrderFlowDiagnostics } = require('../../utils/system-check.js')
+
+function resolveOrderAmount(order) {
+  return parseFloat(order.price || order.totalAmount || order.totalPrice || 0) || 0
+}
+
+function normalizeString(value) {
+  if (value == null) return ''
+  return String(value).trim()
+}
+
+function isPlaceholderServiceName(name) {
+  const normalized = normalizeString(name)
+  if (!normalized) return true
+  const lower = normalized.toLowerCase()
+  const placeholders = ['客服', '客服人员', '待分配', '未分配', 'customer service', 'service']
+  return placeholders.some(keyword => lower === keyword || lower.includes(keyword))
+}
 
 Page({
   data: {
@@ -14,6 +34,10 @@ Page({
     artistTab: 'list',
     productFilter: 'all',
     orderFilter: 'all',
+    alerts: [],
+    alertBanner: null,
+    blockingIssues: 0,
+    orderFlowSummary: null,
     
     // 仪表盘数据
     dashboard: {
@@ -29,6 +53,16 @@ Page({
       activeArtists: 0,
       userCount: 0,
       newUsers: 0
+    },
+    
+    // 🎯 新增：管理员个人收入数据
+    myIncome: {
+      totalShare: '0.00',      // 总分成
+      withdrawn: '0.00',       // 已提现
+      available: '0.00',       // 可提现
+      staffName: '',           // 管理员姓名
+      staffRole: '',           // 管理员角色
+      isStaff: false           // 是否为管理员
     },
     
     // 待处理数量
@@ -118,22 +152,24 @@ Page({
     const allOrders = orderHelper.getAllOrders()
     const allApplications = wx.getStorageSync('artist_applications') || []
     
+    // 🎯 加载管理员个人收入
+    await this.loadMyIncome()
+    
     // 计算订单统计
     const orderCount = allOrders.length
-    const processingOrders = allOrders.filter(o => o.status === 'processing' || o.status === 'paid')
+    const processingStatuses = new Set(['processing', 'paid', 'inProgress', 'waitingConfirm', 'nearDeadline'])
+    const processingOrders = allOrders.filter(o => processingStatuses.has(o.status))
     const completedOrders = allOrders.filter(o => o.status === 'completed')
     const refundingOrders = allOrders.filter(o => o.status === 'refunding' || o.status === 'refunded')
     
     // 计算总收入（已完成订单）
     const totalRevenue = completedOrders.reduce((sum, order) => {
-      const price = parseFloat(order.totalPrice) || 0
-      return sum + price
+      return sum + resolveOrderAmount(order)
     }, 0)
     
     // 计算退款金额
     const refundAmount = refundingOrders.reduce((sum, order) => {
-      const price = parseFloat(order.totalPrice) || 0
-      return sum + price
+      return sum + resolveOrderAmount(order)
     }, 0)
     
     // 计算画师数量
@@ -145,7 +181,8 @@ Page({
     const buyerCount = uniqueBuyers.size
     
     // 计算待处理数量
-    const pendingOrders = allOrders.filter(o => o.status === 'unpaid' || o.status === 'paid').length
+    const pendingStatuses = new Set(['unpaid', 'paid', 'processing', 'inProgress', 'waitingConfirm', 'nearDeadline'])
+    const pendingOrders = allOrders.filter(o => pendingStatuses.has(o.status)).length
     const pendingApplicationsCount = allApplications.filter(app => app.status === 'pending').length
     
     // 计算逾期订单（截止日期已过但未完成）
@@ -195,6 +232,20 @@ Page({
     
     // 获取所有用户信息（用于匹配画师名称）
     const allUsers = wx.getStorageSync('mock_users') || []
+    const userMap = new Map()
+    allUsers.forEach(user => {
+      if (user && user.userId) {
+        userMap.set(String(user.userId), user)
+      }
+    })
+
+    const artistApplications = wx.getStorageSync('artist_applications') || []
+    const artistMap = new Map()
+    artistApplications.forEach(app => {
+      if (app && app.userId) {
+        artistMap.set(String(app.userId), app)
+      }
+    })
     
     // 转换为管理后台需要的格式
     const formattedProducts = allProducts.map(product => {
@@ -230,16 +281,27 @@ Page({
       }
       
       // 获取画师名称
-      const artist = allUsers.find(u => u.userId == product.artistId)
-      const artistName = artist ? (artist.nickname || `用户${artist.userId}`) : '未知'
+      const artistId = product.artistId ? String(product.artistId) : ''
+      let artistName = product.artistName || ''
+      if (!artistName && artistId && artistMap.has(artistId)) {
+        const application = artistMap.get(artistId)
+        artistName = application.name || application.realName || ''
+      }
+      if (!artistName && artistId && userMap.has(artistId)) {
+        const user = userMap.get(artistId)
+        artistName = user.nickname || user.nickName || user.name || `用户${artistId}`
+      }
+      if (!artistName) {
+        artistName = '未知'
+      }
       
       // 调试日志
-      if (!artist) {
+      if (artistName === '未知') {
         console.log(`⚠️ 商品 "${product.name}" 找不到画师:`)
         console.log('  - 商品artistId:', product.artistId)
-        console.log('  - 用户列表数量:', allUsers.length)
+        console.log('  - 画师申请数量:', artistApplications.length)
         if (allUsers.length > 0) {
-          console.log('  - 用户列表示例:', allUsers.slice(0, 3).map(u => ({ userId: u.userId, nickname: u.nickname })))
+          console.log('  - 用户列表示例:', allUsers.slice(0, 3).map(u => ({ userId: u.userId, nickname: u.nickname || u.nickName })))
         }
       }
       
@@ -267,10 +329,17 @@ Page({
         }
       }
       
+      const coverImage = ensureRenderableImage(
+        product.images && product.images.length > 0 ? product.images[0] : product.image,
+        { namespace: 'product-cover', fallback: DEFAULT_PLACEHOLDER }
+      )
+      
       return {
         _id: product.id,
         name: product.name || '未命名商品',
-        image: (product.images && product.images[0]) || '',
+        coverImage,
+        image: coverImage,
+        images: Array.isArray(product.images) ? product.images : [],
         category: product.category || '未分类',
         price: displayPrice,
         status: product.isOnSale !== false ? 'online' : 'offline',
@@ -346,7 +415,7 @@ Page({
         _id: order.id,
         fullOrderNo: fullOrderNo,
         productName: order.productName,
-        productImage: order.productImage || '',
+        productImage: ensureRenderableImage(order.productImage, { namespace: 'order-product', fallback: DEFAULT_PLACEHOLDER }),
         userName: order.buyerName || order.buyer || '未知用户',
         userAvatar: order.buyerAvatar,
         userPhone: order.buyerPhone || '',
@@ -354,7 +423,7 @@ Page({
         artistAvatar: order.artistAvatar,
         serviceName: order.serviceName || '未分配',
         serviceAvatar: order.serviceAvatar,
-        amount: parseFloat(order.price || order.totalPrice || 0).toFixed(2),
+        amount: resolveOrderAmount(order).toFixed(2),
         status: order.status,
         statusText: order.statusText,
         createTime: formatTime(order.createdAt || order.createTime),
@@ -372,12 +441,15 @@ Page({
     })
     
     // 计算订单统计
+    const processingSet = new Set(['processing', 'paid', 'inProgress', 'waitingConfirm', 'nearDeadline'])
+    const refundingSet = new Set(['refunding', 'refunded'])
+
     const orderStats = {
       all: formattedOrders.length,
       unpaid: formattedOrders.filter(o => o.status === 'unpaid').length,
-      processing: formattedOrders.filter(o => o.status === 'processing' || o.status === 'paid').length,
+      processing: formattedOrders.filter(o => processingSet.has(o.status)).length,
       completed: formattedOrders.filter(o => o.status === 'completed').length,
-      refunding: formattedOrders.filter(o => o.status === 'refunding' || o.status === 'refunded').length
+      refunding: formattedOrders.filter(o => refundingSet.has(o.status)).length
     }
     
     console.log('加载订单列表:', formattedOrders.length, '个订单', orderStats)
@@ -387,6 +459,8 @@ Page({
       orders: formattedOrders,
       orderStats: orderStats
     })
+
+    this.collectAlerts()
   },
 
   // 加载画师列表
@@ -608,8 +682,8 @@ Page({
     if (filter === 'all') {
       this.setData({ orders: this.data.allOrders })
     } else if (filter === 'processing') {
-      // 制作中包含已支付和制作中状态
-      const filtered = this.data.allOrders.filter(o => o.status === 'processing' || o.status === 'paid')
+      const processingSet = new Set(['processing', 'paid', 'inProgress', 'waitingConfirm', 'nearDeadline'])
+      const filtered = this.data.allOrders.filter(o => processingSet.has(o.status))
       this.setData({ orders: filtered })
     } else if (filter === 'refunding') {
       // 退款包含退款中和已退款
@@ -629,12 +703,74 @@ Page({
       return
     }
     
-    const filtered = this.data.allOrders.filter(o => 
-      o.orderNo.toLowerCase().includes(keyword) ||
-      o.userName.toLowerCase().includes(keyword) ||
-      o.productName.toLowerCase().includes(keyword)
-    )
+    const filtered = this.data.allOrders.filter(o => {
+      const orderNo = (o.orderNo || '').toLowerCase()
+      const userName = (o.userName || '').toLowerCase()
+      const productName = (o.productName || '').toLowerCase()
+      return orderNo.includes(keyword) || userName.includes(keyword) || productName.includes(keyword)
+    })
     this.setData({ orders: filtered })
+  },
+
+  // 🎯 加载管理员个人收入
+  async loadMyIncome() {
+    const userId = wx.getStorageSync('userId')
+    if (!userId) {
+      this.setData({
+        'myIncome.isStaff': false
+      })
+      return
+    }
+
+    const staffList = staffFinance.getStaffList()
+    const staff = staffList.find(s => String(s.userId) === String(userId))
+    
+    console.log('🔍 检查管理员身份:', {
+      userId,
+      找到管理员: !!staff,
+      管理员信息: staff
+    })
+    
+    if (staff && staff.isActive !== false) {
+      // 计算收入
+      const totalShare = staffFinance.computeIncomeByUserId(userId)
+      const withdrawRecords = wx.getStorageSync('withdraw_records') || []
+      const withdrawn = withdrawRecords
+        .filter(r => String(r.userId) === String(userId) && r.status === 'success')
+        .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
+      
+      const available = Math.max(0, totalShare - withdrawn)
+      
+      this.setData({
+        myIncome: {
+          totalShare: totalShare.toFixed(2),
+          withdrawn: withdrawn.toFixed(2),
+          available: available.toFixed(2),
+          staffName: staff.name || '管理员',
+          staffRole: staff.roleType || '',
+          isStaff: true
+        }
+      })
+      
+      console.log('💰 管理员收入统计:', {
+        姓名: staff.name,
+        总分成: totalShare,
+        已提现: withdrawn,
+        可提现: available
+      })
+    } else {
+      this.setData({
+        'myIncome.isStaff': false
+      })
+      console.log('❌ 当前用户不是管理员或已停用')
+    }
+  },
+
+  // 🎯 跳转到提现页面
+  goToWithdraw() {
+    wx.navigateTo({
+      url: '/pages/withdraw/index'
+    })
   },
 
   // 导航方法
@@ -645,6 +781,73 @@ Page({
   goToRefunds() {
     this.setData({ currentTab: 'order', orderFilter: 'refunded' })
     this.filterOrders({ currentTarget: { dataset: { filter: 'refunded' } } })
+  },
+
+  collectAlerts() {
+    const alerts = []
+    const { issues, summary } = runOrderFlowDiagnostics()
+    if (Array.isArray(issues) && issues.length > 0) {
+      issues.forEach(issue => {
+        alerts.push({
+          id: issue.id,
+          level: issue.level || 'warning',
+          title: issue.title || '系统提示',
+          message: issue.message || ''
+        })
+      })
+    }
+
+    const orders = this.data.allOrders || []
+    const meaningfulStatuses = new Set(['created', 'paid', 'processing', 'inProgress', 'waitingConfirm', 'nearDeadline', 'refunding'])
+    const pendingAllocationOrders = orders.filter(order => {
+      if (!order) return false
+      if (!meaningfulStatuses.has(order.status)) return false
+
+      const statusText = String(order.serviceStatus || '').toLowerCase()
+      const needsService = order.needsService === true
+
+      const serviceId = normalizeString(order.serviceId)
+      const serviceName = normalizeString(order.serviceName)
+      const serviceMissing = !serviceId && ( !serviceName || isPlaceholderServiceName(serviceName) )
+
+      return statusText === 'pending' || needsService || serviceMissing
+    })
+
+    if (pendingAllocationOrders.length > 0) {
+      alerts.push({
+        id: 'orders-needing-service',
+        level: 'warning',
+        title: '存在待分配客服的订单',
+        message: `共有 ${pendingAllocationOrders.length} 笔订单等待分配客服，请尽快在「客服工作台」或订单详情中处理。`
+      })
+    }
+
+    const blockingCount = alerts.filter(alert => alert && alert.level === 'error').length
+    let alertBanner = null
+    if (alerts.length > 0) {
+      if (blockingCount > 0) {
+        alertBanner = {
+          variant: 'critical',
+          icon: '🆘',
+          title: '下单流程存在阻断项',
+          description: `共有 ${blockingCount} 个关键阻断项需要立即处理，建议优先检查客服、画师和商品配置。`
+        }
+      } else {
+        alertBanner = {
+          variant: 'warning',
+          icon: '🔔',
+          title: '下单流程存在待处理事项',
+          description: '当前存在需要关注的配置问题，请尽快处理以避免影响买家体验。'
+        }
+      }
+    }
+
+    this.setData({ 
+      alerts,
+      alertBanner,
+      blockingIssues: blockingCount,
+      orderFlowSummary: summary || null
+    })
   },
 
   goToUsers() {

@@ -6,7 +6,28 @@
       <text class="symbol">¥</text>
       <text class="value">{{balance}}</text>
     </view>
-    <text class="balance-hint">打赏收入和订单收入可提现</text>
+    <view class="income-summary">
+      <view wx:if="{{incomeSummary.order > 0}}" class="summary-item">
+        <text class="summary-label">订单稿费</text>
+        <text class="summary-value">¥{{incomeSummary.order}}</text>
+      </view>
+      <view wx:if="{{incomeSummary.order > 0 && (incomeSummary.reward > 0 || incomeSummary.service > 0 || incomeSummary.staff > 0)}}" class="summary-divider"></view>
+      <view wx:if="{{incomeSummary.reward > 0}}" class="summary-item">
+        <text class="summary-label">画师打赏</text>
+        <text class="summary-value">¥{{incomeSummary.reward}}</text>
+      </view>
+      <view wx:if="{{incomeSummary.reward > 0 && (incomeSummary.service > 0 || incomeSummary.staff > 0)}}" class="summary-divider"></view>
+      <view wx:if="{{incomeSummary.service > 0}}" class="summary-item">
+        <text class="summary-label">客服分成</text>
+        <text class="summary-value">¥{{incomeSummary.service}}</text>
+      </view>
+      <view wx:if="{{incomeSummary.service > 0 && incomeSummary.staff > 0}}" class="summary-divider"></view>
+      <view wx:if="{{incomeSummary.staff > 0}}" class="summary-item">
+        <text class="summary-label">管理员分成</text>
+        <text class="summary-value">¥{{incomeSummary.staff}}</text>
+      </view>
+    </view>
+    <text class="balance-hint">订单、打赏与分成收入可提现</text>
   </view>
 
   <!-- 查看记录入口 -->

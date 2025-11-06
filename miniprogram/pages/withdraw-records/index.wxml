@@ -25,9 +25,9 @@
       </view>
       <view class="record-info">
         <text class="info-item">提现时间：{{item.time}}</text>
-        <text class="info-item">订单号：{{item.id}}</text>
+        <text class="info-item">来源：{{item.source === 'staff' ? '人员分成' : item.source === 'mixed' ? '打赏+分成' : '打赏/订单'}}</text>
+        <text class="info-item">记录编号：{{item.id}}</text>
       </view>
     </view>
   </view>
 </view>
-

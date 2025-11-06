@@ -15,7 +15,7 @@ Page({
   },
 
   loadPosts(callback) {
-    const posts = (wx.getStorageSync('buyer_show_posts') || [])
+    const allPosts = (wx.getStorageSync('buyer_show_posts') || [])
       .slice()
       .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
 
@@ -23,7 +23,7 @@ Page({
     const leftPosts = []
     const rightPosts = []
     
-    posts.forEach((post, index) => {
+    allPosts.forEach((post, index) => {
       if (index % 2 === 0) {
         leftPosts.push(post)
       } else {
@@ -32,7 +32,7 @@ Page({
     })
 
     this.setData({
-      posts,
+      posts: allPosts,
       leftPosts,
       rightPosts
     })

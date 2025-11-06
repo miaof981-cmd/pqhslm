@@ -1,0 +1,288 @@
+.income-detail-container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #F0F9FF 0%, #FAFAFA 100%);
+  padding: 24rpx;
+}
+
+.loading {
+  text-align: center;
+  padding: 120rpx 0;
+  color: #999;
+}
+
+/* 收入总览 */
+.income-summary {
+  margin-bottom: 32rpx;
+}
+
+.total-income-card {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 32rpx 28rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  border: 2rpx solid #F0F0F0;
+}
+
+.total-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 24rpx;
+  margin-bottom: 24rpx;
+  border-bottom: 2rpx solid #F5F5F5;
+}
+
+.total-label {
+  font-size: 32rpx;
+  color: #666;
+  font-weight: 500;
+}
+
+.total-amount {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #1A1A1A;
+  letter-spacing: 1rpx;
+}
+
+/* 收入明细子项 */
+.income-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 16rpx;
+  background: #FAFAFA;
+  border-radius: 12rpx;
+  border-left: 4rpx solid #E0E0E0;
+}
+
+.breakdown-item.reward {
+  border-left-color: #FFD700;
+}
+
+.breakdown-item.order {
+  border-left-color: #4CAF50;
+}
+
+.breakdown-item.service {
+  border-left-color: #FF9800;
+}
+
+.breakdown-item.admin {
+  border-left-color: #2196F3;
+}
+
+.item-left {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.item-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.breakdown-item.reward .item-dot {
+  background: #FFD700;
+}
+
+.breakdown-item.order .item-dot {
+  background: #4CAF50;
+}
+
+.breakdown-item.service .item-dot {
+  background: #FF9800;
+}
+
+.breakdown-item.admin .item-dot {
+  background: #2196F3;
+}
+
+.item-label {
+  font-size: 28rpx;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-amount {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1A1A1A;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+  min-width: 120rpx;
+  text-align: right;
+}
+
+/* 明细列表 */
+.detail-list {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.list-header .title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.list-header .count {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* 空状态 */
+.empty-state {
+  padding: 120rpx 0;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+
+.empty-text {
+  display: block;
+  font-size: 32rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+}
+
+.empty-hint {
+  display: block;
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* 记录列表 */
+.record-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.record-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  background: #FFFFFF;
+  border-radius: 12rpx;
+  border-left: 4rpx solid #E0E0E0;
+  transition: all 0.3s;
+}
+
+.record-item.reward {
+  border-left-color: #FFD700;
+}
+
+.record-item.order {
+  border-left-color: #4CAF50;
+}
+
+.record-item.service {
+  border-left-color: #FF9800;
+}
+
+.record-item.staff_share {
+  border-left-color: #2196F3;
+}
+
+.record-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  flex: 1;
+}
+
+.record-type-badge {
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.record-type-badge.reward {
+  background: rgba(255, 215, 0, 0.15);
+  color: #C4A000;
+}
+
+.record-type-badge.order {
+  background: rgba(76, 175, 80, 0.15);
+  color: #388E3C;
+}
+
+.record-type-badge.service {
+  background: rgba(255, 152, 0, 0.15);
+  color: #E65100;
+}
+
+.record-type-badge.staff_share {
+  background: rgba(33, 150, 243, 0.15);
+  color: #1565C0;
+}
+
+.record-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  flex: 1;
+  min-width: 0;
+  max-width: calc(100% - 150rpx);
+}
+
+.record-title {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.record-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.record-right {
+  flex-shrink: 0;
+  margin-left: 16rpx;
+  min-width: 120rpx;
+  max-width: 180rpx;
+  text-align: right;
+}
+
+.record-amount {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #FF6B6B;
+  word-break: break-all;
+  line-height: 1.2;
+}

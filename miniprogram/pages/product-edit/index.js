@@ -1,3 +1,17 @@
+const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
+const categoryService = require('../../utils/category-service.js')
+
+const DEFAULT_CATEGORY_OPTIONS = [
+  { id: 'portrait', name: '头像设计', icon: '👤' },
+  { id: 'illustration', name: '插画设计', icon: '🎨' },
+  { id: 'logo', name: 'LOGO设计', icon: '🏷️' },
+  { id: 'poster', name: '海报设计', icon: '🖼️' },
+  { id: 'emoticon', name: '表情包', icon: '😊' },
+  { id: 'ui', name: 'UI设计', icon: '📱' },
+  { id: 'animation', name: '动画设计', icon: '🎬' },
+  { id: 'banner', name: '横幅设计', icon: '📐' }
+]
+
 Page({
   data: {
     loading: false,
@@ -22,6 +36,7 @@ Page({
       isOnSale: true,
       maxBuyCount: 0
     },
+    previewImages: [],
     
     // 库存管理
     enableStockLimit: false, // 默认自动补货模式
@@ -36,16 +51,7 @@ Page({
     draftSaved: false,
     
     // 第一步：基础信息
-    categories: [
-      { id: 'portrait', name: '头像设计', icon: '👤' },
-      { id: 'illustration', name: '插画设计', icon: '🎨' },
-      { id: 'logo', name: 'LOGO设计', icon: '🏷️' },
-      { id: 'poster', name: '海报设计', icon: '🖼️' },
-      { id: 'emoticon', name: '表情包', icon: '😊' },
-      { id: 'ui', name: 'UI设计', icon: '📱' },
-      { id: 'animation', name: '动画设计', icon: '🎬' },
-      { id: 'banner', name: '横幅设计', icon: '📐' }
-    ],
+    categories: DEFAULT_CATEGORY_OPTIONS.slice(),
     categoryIndex: -1,
     categoryName: '请选择分类',
     deliveryDays: 7, // 默认7天
@@ -63,6 +69,8 @@ Page({
   },
 
   onLoad(options) {
+    this.initCategoryOptions()
+
     if (options.id) {
       // 编辑模式：加载商品数据
       this.setData({
@@ -73,6 +81,95 @@ Page({
     } else {
       // 新增模式：尝试恢复草稿
       this.loadDraft()
+    }
+  },
+
+  initCategoryOptions() {
+    const serviceOptions = categoryService.getCategoryOptions()
+    const legacyCandidates =
+      wx.getStorageSync('product_category_options') ||
+      wx.getStorageSync('product_categories') ||
+      wx.getStorageSync('categories') ||
+      []
+
+    const merged = []
+    const pushUnique = item => {
+      if (!item) return
+      const id = item.id || item._id || item.code || item.value
+      if (!id) return
+      if (merged.some(existing => String(existing.id || existing._id) === String(id))) return
+      merged.push(item)
+    }
+
+    if (Array.isArray(serviceOptions)) {
+      serviceOptions.forEach(pushUnique)
+    }
+    if (Array.isArray(legacyCandidates)) {
+      legacyCandidates.forEach(pushUnique)
+    }
+
+    const normalized = this.normalizeCategoryOptions(merged.length > 0 ? merged : DEFAULT_CATEGORY_OPTIONS)
+    if (normalized.length > 0) {
+      this.setData({ categories: normalized })
+      this.syncCategorySelection(normalized)
+    }
+  },
+
+  normalizeCategoryOptions(rawList) {
+    if (!Array.isArray(rawList)) return []
+
+    return rawList
+      .map((item, index) => {
+        if (!item) return null
+        const id = item.id || item._id || item.code || item.value
+        const name = item.name || item.title || item.label
+        if (!id || !name) return null
+
+        const icon =
+          item.icon ||
+          DEFAULT_CATEGORY_OPTIONS[index % DEFAULT_CATEGORY_OPTIONS.length]?.icon ||
+          ''
+
+        return {
+          id: String(id),
+          name,
+          icon
+        }
+      })
+      .filter(Boolean)
+  },
+
+  syncCategorySelection(categories = this.data.categories) {
+    const currentId = this.data.formData?.category
+    if (!currentId) return
+    const normalizedId = String(currentId)
+    const idx = (categories || []).findIndex(item => String(item.id) === normalizedId)
+    if (idx !== -1) {
+      this.setData({
+        categoryIndex: idx,
+        categoryName: categories[idx].name
+      })
+    }
+  },
+
+  ensureCategoryInList(categoryId, categoryName) {
+    if (!categoryId) return
+    const normalizedId = String(categoryId)
+    const categories = this.data.categories || []
+    const exists = categories.some(item => String(item.id) === normalizedId)
+    if (!exists) {
+      const nextCategories = [
+        ...categories,
+        {
+          id: normalizedId,
+          name: categoryName || normalizedId,
+          icon: ''
+        }
+      ]
+      this.setData({ categories: nextCategories })
+      this.syncCategorySelection(nextCategories)
+    } else {
+      this.syncCategorySelection(categories)
     }
   },
 
@@ -106,6 +203,8 @@ Page({
       const deliveryDays = product.deliveryDays || 7
       
       // 恢复表单数据
+      const restoredImages = Array.isArray(product.images) ? product.images : []
+
       this.setData({
         formData: {
           name: product.name || '',
@@ -114,7 +213,7 @@ Page({
           basePrice: product.basePrice || '',
           stock: product.stock || 0,
           category: product.category || '',
-          images: product.images || [],
+          images: restoredImages,
           tags: product.tags || [],
           isOnSale: product.isOnSale !== false,
           maxBuyCount: product.maxBuyCount || 0
@@ -122,8 +221,11 @@ Page({
         categoryIndex: categoryIndex >= 0 ? categoryIndex : -1,
         categoryName,
         deliveryDays,
-        enableStockLimit: product.stock > 0
+        enableStockLimit: product.stock > 0,
+        previewImages: this.createPreviewImages(restoredImages)
       })
+      
+      this.ensureCategoryInList(product.category || product.categoryId, categoryName)
       
       // 恢复规格数据
       if (product.specs && product.specs.length > 0) {
@@ -244,6 +346,35 @@ Page({
         })
         return false
       }
+
+      // ⚠️ 最低价格验证：不得低于9.9元
+      const MINIMUM_PRICE = 9.9
+      
+      // 检查基础价格
+      if (hasBasePrice) {
+        const basePrice = parseFloat(formData.basePrice)
+        if (basePrice < MINIMUM_PRICE) {
+          wx.showToast({ 
+            title: `商品价格不得低于¥${MINIMUM_PRICE}`, 
+            icon: 'none',
+            duration: 2500
+          })
+          return false
+        }
+      }
+      
+      // 检查规格价格
+      if (hasValidSpecs) {
+        const minSpecPrice = this.getMinimumSpecPrice()
+        if (minSpecPrice < MINIMUM_PRICE) {
+          wx.showToast({ 
+            title: `规格价格不得低于¥${MINIMUM_PRICE}`, 
+            icon: 'none',
+            duration: 2500
+          })
+          return false
+        }
+      }
     }
     
     return true
@@ -268,6 +399,45 @@ Page({
     }
     
     return false
+  },
+
+  // 获取规格价格中的最低价
+  getMinimumSpecPrice() {
+    let minPrice = Infinity
+    
+    // 检查一级规格
+    if (this.data.spec1Selected && this.data.spec1Values.length > 0) {
+      this.data.spec1Values.forEach(v => {
+        if (v.name && v.name.trim() && v.addPrice) {
+          const price = parseFloat(v.addPrice)
+          if (!isNaN(price) && price >= 0) {
+            minPrice = Math.min(minPrice, price)
+          }
+        }
+      })
+    }
+    
+    // 检查二级规格（如果有二级规格，可能需要加到一级规格价格上）
+    if (this.data.spec2Selected && this.data.spec2Values.length > 0) {
+      let minSpec1Price = 0
+      if (this.data.spec1Selected && this.data.spec1Values.length > 0) {
+        minSpec1Price = Math.min(...this.data.spec1Values
+          .filter(v => v.name && v.name.trim() && v.addPrice)
+          .map(v => parseFloat(v.addPrice) || 0)
+        )
+      }
+      
+      this.data.spec2Values.forEach(v => {
+        if (v.name && v.name.trim() && v.addPrice) {
+          const price = parseFloat(v.addPrice)
+          if (!isNaN(price) && price >= 0) {
+            minPrice = Math.min(minPrice, minSpec1Price + price)
+          }
+        }
+      })
+    }
+    
+    return minPrice === Infinity ? 0 : minPrice
   },
 
   // 保存草稿（防抖版本）
@@ -334,6 +504,18 @@ Page({
     } catch (error) {
       console.error('❌ 保存草稿失败', error)
       
+      // 尝试清理旧草稿释放空间后重试
+      try {
+        const oldDraft = wx.getStorageSync('product_draft')
+        if (oldDraft) {
+          wx.removeStorageSync('product_draft')
+          console.log('✅ 已清理旧草稿，尝试重新保存')
+          // 不再重试，避免循环
+        }
+      } catch (e) {
+        console.error('清理草稿失败', e)
+      }
+      
       // 静默失败，不打扰用户
       console.warn('草稿保存失败，但不影响继续编辑')
     }
@@ -346,8 +528,17 @@ Page({
     try {
       const draft = wx.getStorageSync('product_draft')
       if (draft && draft.timestamp) {
-        // 草稿有效期：24小时
-        const isValid = Date.now() - draft.timestamp < 24 * 60 * 60 * 1000
+        // 草稿有效期：7天（避免累积太多过期草稿）
+        const DRAFT_EXPIRY = 7 * 24 * 60 * 60 * 1000
+        const isValid = Date.now() - draft.timestamp < DRAFT_EXPIRY
+        
+        if (!isValid) {
+          // 草稿已过期，自动清理
+          wx.removeStorageSync('product_draft')
+          console.log('✅ 已清理过期草稿（超过7天）')
+          return
+        }
+        
         if (isValid) {
           // 生成草稿摘要
           const productName = draft.formData?.name || '(未命名)'
@@ -377,8 +568,14 @@ Page({
                   spec2Selected: draft.spec2Selected || false,
                   spec2Name: draft.spec2Name || '',
                   spec2Values: draft.spec2Values || [],
-                  pricePreviewTable: draft.pricePreviewTable || []
+                  pricePreviewTable: draft.pricePreviewTable || [],
+                  previewImages: this.createPreviewImages(draft.formData?.images || [])
                 })
+                
+                this.ensureCategoryInList(
+                  draft.formData?.category,
+                  draft.categoryName
+                )
                 
                 wx.showToast({
                   title: '草稿已恢复',
@@ -437,8 +634,10 @@ Page({
       wx.hideLoading()
       
       if (validImages.length > 0) {
+        const newImages = [...this.data.formData.images, ...validImages]
         this.setData({
-          'formData.images': [...this.data.formData.images, ...validImages]
+          'formData.images': newImages,
+          previewImages: this.createPreviewImages(newImages)
         })
         
         wx.showToast({ 
@@ -530,6 +729,14 @@ Page({
     })
   },
   
+  createPreviewImages(images = []) {
+    if (!Array.isArray(images)) return []
+    return images.map(image => ensureRenderableImage(image, {
+      namespace: 'product-cover',
+      fallback: DEFAULT_PLACEHOLDER
+    }))
+  },
+
   // 直接转换（降级方案）
   directConvertToBase64(tempPath, resolve) {
     const fs = wx.getFileSystemManager()
@@ -561,7 +768,8 @@ Page({
     const images = [...this.data.formData.images]
     images.splice(index, 1)
     this.setData({
-      'formData.images': images
+      'formData.images': images,
+      previewImages: this.createPreviewImages(images)
     })
   },
 
@@ -569,14 +777,25 @@ Page({
   // 分类点选（卡片式）
   onCategorySelect(e) {
     const index = parseInt(e.currentTarget.dataset.index)
+    console.log('🏷️ 点击分类, index:', index)
+    console.log('📋 categories length:', this.data.categories.length)
+    
     if (index >= 0 && index < this.data.categories.length) {
       const category = this.data.categories[index]
+      console.log('✅ 选中分类:', category.name, category.id)
+      
       this.setData({
         'formData.category': category.id,
         categoryIndex: index,
         categoryName: category.name
       })
+      
+      console.log('📌 更新后 categoryIndex:', this.data.categoryIndex)
+      console.log('📌 更新后 formData.category:', this.data.formData.category)
+      
       this.saveDraft()
+    } else {
+      console.error('❌ 分类索引超出范围:', index)
     }
   },
 
@@ -1374,14 +1593,22 @@ Page({
         console.log('✅ 草稿已清除')
         
       } catch (storageError) {
-        // 存储失败（比如超出10MB限制）
+        // 存储失败（微信小程序localStorage有10MB总限制）
         wx.hideLoading()
         console.error('❌ 存储失败:', storageError)
         
-        // 保留草稿，允许用户修改后重试
+        // 尝试清理旧草稿释放空间
+        try {
+          wx.removeStorageSync('product_draft')
+          console.log('✅ 已清理旧草稿')
+        } catch (e) {
+          console.error('清理草稿失败', e)
+        }
+        
+        // 提示用户
         wx.showModal({
-          title: '保存失败',
-          content: '可能是图片过多导致存储超限。请尝试：\n1. 减少图片数量\n2. 删除部分规格图片\n\n草稿已保留，可稍后继续编辑。',
+          title: '存储空间不足',
+          content: '微信小程序存储空间已满（10MB限制）。\n\n建议：\n1. 减少商品图片数量\n2. 降低图片质量\n3. 删除部分旧商品\n\n提示：接入后端后将不受此限制。',
           showCancel: false
         })
         return // 提前返回，不执行后续操作

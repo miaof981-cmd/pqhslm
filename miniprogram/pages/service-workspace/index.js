@@ -366,9 +366,9 @@ Page({
   // 联系客户
   contactCustomer(e) {
     const orderId = e.currentTarget.dataset.id
-    wx.showToast({
-      title: '功能开发中',
-      icon: 'none'
+    if (!orderId) return
+    wx.navigateTo({
+      url: `/pages/order-detail/index?id=${orderId}&source=service`
     })
   },
 
@@ -378,10 +378,20 @@ Page({
     const order = this.data.allOrders.find(o => o.id === orderId)
     
     if (!order) return
+    if (order.status === 'refunded') {
+      wx.showToast({
+        title: '订单已退款',
+        icon: 'none'
+      })
+      return
+    }
+    
+    const amount = parseFloat(order.price || order.totalAmount || order.totalPrice || 0)
+    const amountText = amount > 0 ? `¥${amount.toFixed(2)}` : '该订单金额'
     
     wx.showModal({
       title: '确认退款',
-      content: `确定要为订单 ${order.id} 处理退款吗？`,
+      content: `确定要为订单 ${order.id} 处理退款吗？\n退款金额：${amountText}`,
       success: (res) => {
         if (res.confirm) {
           this.doRefund(orderId)
@@ -395,12 +405,27 @@ Page({
     // 更新订单状态
     const orders = wx.getStorageSync('orders') || []
     const pendingOrders = wx.getStorageSync('pending_orders') || []
+    const timestamp = new Date().toISOString()
     
     // 更新两个数据源
     const updateStatus = (list) => {
       return list.map(o => {
         if (o.id === orderId) {
-          return { ...o, status: 'refunded' }
+          return orderHelper.mergeOrderRecords(o, {
+            status: 'refunded',
+            statusText: '已退款',
+            refundStatus: 'refunded',
+            refundCompletedAt: timestamp,
+            refundHistory: [
+              ...(o.refundHistory || []),
+              {
+                status: 'refunded',
+                operator: 'service',
+                time: timestamp,
+                note: '客服已完成退款'
+              }
+            ]
+          })
         }
         return o
       })

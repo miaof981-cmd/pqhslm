@@ -1,5 +1,8 @@
 const orderStatusUtil = require('../../utils/order-status')
 const { computeVisualStatus } = require('../../utils/order-visual-status')
+const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
+const staffFinance = require('../../utils/staff-finance.js')
+const serviceIncome = require('../../utils/service-income.js')  // 🎯 新增：客服收入管理
 
 Page({
   data: {
@@ -105,6 +108,18 @@ Page({
   
   // 加载客服二维码
   loadServiceQRCode(order) {
+    if (order.serviceQRCode) {
+      return
+    }
+
+    const orderQr = order.serviceQRCode || order.serviceQrcodeUrl || order.serviceQrcode
+    if (orderQr) {
+      this.setData({
+        'order.serviceQRCode': orderQr
+      })
+      return
+    }
+
     if (!order.serviceId) {
       console.warn('⚠️ 订单未分配客服，无法加载二维码')
       return
@@ -114,10 +129,14 @@ Page({
     const serviceList = wx.getStorageSync('customer_service_list') || []
     const service = serviceList.find(s => s.id === order.serviceId || s.userId === order.serviceId)
     
-    if (service && service.qrCode) {
+    const qrImage = service
+      ? service.qrCode || service.qrcodeUrl || service.serviceQrcodeUrl || service.qrcode
+      : ''
+    
+    if (service && qrImage) {
       console.log('✅ 成功加载客服二维码:', service.name)
       this.setData({
-        'order.serviceQRCode': service.qrCode
+        'order.serviceQRCode': qrImage
       })
     } else {
       console.warn('⚠️ 客服二维码未找到:', {
@@ -430,6 +449,7 @@ Page({
           
           // 在两个存储中都查找并更新
           let updated = false
+          let recordedOrder = null
           
           const updateOrderStatus = (orderList) => {
             return orderList.map(order => {
@@ -441,7 +461,7 @@ Page({
                 const wasOverdue = now > deadline
                 const overdueDays = wasOverdue ? Math.ceil((now - deadline) / (24 * 60 * 60 * 1000)) : 0
                 
-                return {
+                const nextOrder = {
                   ...order,
                   status: 'completed',
                   completedAt: new Date().toLocaleString('zh-CN', {
@@ -456,6 +476,12 @@ Page({
                   wasOverdue,
                   overdueDays
                 }
+
+                if (order.status !== 'completed' && !recordedOrder) {
+                  recordedOrder = nextOrder
+                }
+
+                return nextOrder
               }
               return order
             })
@@ -468,6 +494,16 @@ Page({
             // 保存更新后的订单
             wx.setStorageSync('orders', updatedOrders)
             wx.setStorageSync('pending_orders', updatedPendingOrders)
+
+            if (recordedOrder) {
+              try {
+                // 🎯 新的收入分配逻辑：固定¥5分配给客服和管理员
+                serviceIncome.recordOrderIncome(recordedOrder)
+                console.log('✅ 订单收入分配完成')
+              } catch (err) {
+                console.error('⚠️ 记录订单收入失败:', err)
+              }
+            }
             
             wx.showToast({
               title: '订单已完成',
@@ -578,10 +614,46 @@ Page({
       serviceAvatar = DEFAULT_AVATAR_DATA
     }
 
+    const artistAvatarPath = ensureRenderableImage(artistAvatar, {
+      namespace: 'artist-avatar',
+      fallback: DEFAULT_AVATAR_DATA
+    })
+
+    const serviceAvatarPath = ensureRenderableImage(serviceAvatar, {
+      namespace: 'service-avatar',
+      fallback: DEFAULT_AVATAR_DATA
+    })
+
+    const buyerAvatarPath = ensureRenderableImage(order.buyerAvatar, {
+      namespace: 'buyer-avatar',
+      fallback: DEFAULT_AVATAR_DATA
+    })
+
+    let productImageSource = order.productImage
+    if (
+      !productImageSource ||
+      productImageSource.startsWith('http://tmp/') ||
+      productImageSource.startsWith('wxfile://')
+    ) {
+      if (order.productId) {
+        const product = productMap.get(String(order.productId))
+        if (product && Array.isArray(product.images) && product.images.length > 0) {
+          productImageSource = product.images[0]
+        }
+      }
+    }
+
+    const productImagePath = ensureRenderableImage(productImageSource, {
+      namespace: 'order-product',
+      fallback: DEFAULT_PLACEHOLDER
+    })
+
     return {
       ...order,
-      artistAvatar,
-      serviceAvatar
+      artistAvatar: artistAvatarPath,
+      serviceAvatar: serviceAvatarPath,
+      buyerAvatar: buyerAvatarPath,
+      productImage: productImagePath
     }
   }
 })

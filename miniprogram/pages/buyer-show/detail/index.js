@@ -1,3 +1,5 @@
+const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../../utils/image-helper.js')
+
 Page({
   data: {
     post: null,
@@ -44,7 +46,23 @@ Page({
       return
     }
 
-    this.setData({ post })
+    const avatarFallback = this.data.DEFAULT_AVATAR_DATA
+    const enhancedPost = {
+      ...post,
+      images: Array.isArray(post.images)
+        ? post.images.map(img => ensureRenderableImage(img, { namespace: 'buyer-show-detail', fallback: DEFAULT_PLACEHOLDER }))
+        : [],
+      authorAvatar: ensureRenderableImage(post.authorAvatar, {
+        namespace: 'buyer-avatar-detail',
+        fallback: avatarFallback
+      }),
+      productImage: ensureRenderableImage(post.productImage, {
+        namespace: 'buyer-show-product',
+        fallback: DEFAULT_PLACEHOLDER
+      })
+    }
+
+    this.setData({ post: enhancedPost })
   },
 
   previewImage(event) {

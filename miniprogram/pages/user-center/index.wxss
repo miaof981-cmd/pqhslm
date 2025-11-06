@@ -48,11 +48,26 @@
   flex: 1;
 }
 
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-top: 8rpx;
+}
+
+.edit-profile {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 6rpx 18rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.6);
+  border-radius: 999rpx;
+  line-height: 1;
+}
+
 .auth-hint {
   font-size: 22rpx;
   color: rgba(255, 255, 255, 0.8);
   text-decoration: underline;
-  margin-top: 4rpx;
 }
 
 .user-name {
@@ -864,6 +879,31 @@
   transform: translateX(-50%);
 }
 
+/* 🎯 提现图标 - 统一样式 */
+.icon-withdraw::before {
+  content: '';
+  position: absolute;
+  width: 20rpx;
+  height: 20rpx;
+  border: 3rpx solid white;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.icon-withdraw::after {
+  content: '';
+  position: absolute;
+  width: 2rpx;
+  height: 12rpx;
+  background: white;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -65%);
+  border-radius: 1rpx;
+}
+
 /* 管理后台 - 齿轮 */
 .icon-admin::before {
   width: 20rpx;
@@ -939,4 +979,23 @@
   font-size: 22rpx;
   color: #999;
   margin-bottom: 8rpx;
+}
+
+/* 🎯 提现徽章样式 */
+.function-item {
+  position: relative;
+}
+
+.function-badge {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+  background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  color: white;
+  font-size: 20rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 8rpx rgba(255, 107, 107, 0.3);
+  font-weight: 600;
+  z-index: 1;
 }
