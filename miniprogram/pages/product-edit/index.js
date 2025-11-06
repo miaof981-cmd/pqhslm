@@ -306,10 +306,27 @@ Page({
         timestamp: Date.now()
       }
       
+      // 计算草稿大小
+      const draftSize = JSON.stringify(draftData).length
+      const draftSizeKB = (draftSize / 1024).toFixed(2)
+      
       console.log('=== 保存草稿 ===')
       console.log('商品名称:', draftData.formData.name)
       console.log('图片数量:', draftData.formData.images.length)
       console.log('当前步骤:', draftData.currentStep)
+      console.log('草稿大小:', draftSizeKB, 'KB')
+      
+      // 检查是否超过localStorage限制（10MB，预留安全边界）
+      if (draftSize > 8 * 1024 * 1024) { // 8MB限制
+        console.error('❌ 草稿过大:', draftSizeKB, 'KB')
+        wx.showModal({
+          title: '保存失败',
+          content: `图片过多导致存储超限。请尝试：\n1. 减少图片数量\n2. 删除部分规格图片\n\n草稿已保留，可稍后继续编辑。`,
+          showCancel: false,
+          confirmText: '知道了'
+        })
+        return
+      }
       
       wx.setStorageSync('product_draft', draftData)
       
@@ -328,9 +345,21 @@ Page({
       }
     } catch (error) {
       console.error('❌ 保存草稿失败', error)
-      wx.showToast({
-        title: '草稿保存失败',
-        icon: 'none'
+      
+      // 判断是否是配额超限错误
+      const isQuotaExceeded = error.message && (
+        error.message.includes('exceed') || 
+        error.message.includes('quota') ||
+        error.message.includes('storage')
+      )
+      
+      wx.showModal({
+        title: '保存失败',
+        content: isQuotaExceeded 
+          ? '可能是图片过多导致存储超限。请尝试：\n1. 减少图片数量\n2. 删除部分规格图片\n\n草稿已保留，可稍后继续编辑。'
+          : '草稿保存失败，请稍后重试',
+        showCancel: false,
+        confirmText: '知道了'
       })
     }
   },
@@ -431,6 +460,41 @@ Page({
       const validImages = base64Images.filter(img => img !== null)
       
       if (validImages.length > 0) {
+        // 检测图片总大小
+        const totalNewSize = validImages.reduce((sum, img) => sum + img.length, 0)
+        const existingSize = this.data.formData.images.reduce((sum, img) => sum + img.length, 0)
+        const totalSize = totalNewSize + existingSize
+        const totalSizeKB = (totalSize / 1024).toFixed(2)
+        
+        console.log('📊 图片存储统计:')
+        console.log('  新增图片:', (totalNewSize / 1024).toFixed(2), 'KB')
+        console.log('  现有图片:', (existingSize / 1024).toFixed(2), 'KB')
+        console.log('  总大小:', totalSizeKB, 'KB')
+        
+        // 如果总大小超过3MB，给出提示
+        if (totalSize > 3 * 1024 * 1024) {
+          wx.hideLoading()
+          wx.showModal({
+            title: '图片较多',
+            content: `当前图片总大小 ${totalSizeKB}KB。建议：\n1. 控制图片数量在6张以内\n2. 如遇保存失败，请减少图片`,
+            showCancel: true,
+            cancelText: '取消添加',
+            confirmText: '继续添加',
+            success: (modalRes) => {
+              if (modalRes.confirm) {
+                this.setData({
+                  'formData.images': [...this.data.formData.images, ...validImages]
+                })
+                wx.showToast({ 
+                  title: `已添加${validImages.length}张图片`, 
+                  icon: 'success' 
+                })
+              }
+            }
+          })
+          return
+        }
+        
         this.setData({
           'formData.images': [...this.data.formData.images, ...validImages]
         })
@@ -456,17 +520,17 @@ Page({
     }
   },
   
-  // 压缩并转换图片为 base64（优化存储）
+  // 压缩并转换图片为 base64（优化质量和大小平衡）
   async compressAndConvertImage(tempPath) {
     return new Promise((resolve) => {
       // 先使用 canvas 压缩图片
       wx.getImageInfo({
         src: tempPath,
         success: (imgInfo) => {
-          // 计算压缩后的尺寸（最大宽度 800px）
+          // 计算压缩后的尺寸（最大宽度 1200px，提升质量）
           let width = imgInfo.width
           let height = imgInfo.height
-          const maxWidth = 800
+          const maxWidth = 1200
           
           if (width > maxWidth) {
             height = Math.floor(height * (maxWidth / width))
@@ -482,7 +546,7 @@ Page({
               canvasId: 'compressCanvas',
               destWidth: width,
               destHeight: height,
-              quality: 0.6, // 压缩质量 60%
+              quality: 0.75, // 压缩质量 75%，平衡质量和大小
               success: (canvasRes) => {
                 // 转换为 base64
                 const fs = wx.getFileSystemManager()
@@ -493,6 +557,12 @@ Page({
                     const base64 = 'data:image/jpeg;base64,' + fileRes.data
                     const sizeKB = (fileRes.data.length / 1024).toFixed(2)
                     console.log(`✅ 图片压缩成功: ${width}x${height}, ${sizeKB}KB`)
+                    
+                    // 检测单张图片大小，给出提示
+                    if (sizeKB > 500) {
+                      console.warn('⚠️ 单张图片较大:', sizeKB, 'KB，建议控制在500KB内')
+                    }
+                    
                     resolve(base64)
                   },
                   fail: (err) => {
