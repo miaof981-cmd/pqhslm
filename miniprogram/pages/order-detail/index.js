@@ -47,6 +47,11 @@ Page({
     
     let order = orders.find(o => o.id === orderId)
     
+    // 🎯 修复画师头像：从多个来源获取有效头像
+    if (order) {
+      order = this.fixOrderAvatars(order)
+    }
+    
     if (order) {
       // 自动计算订单状态
       order = orderStatusUtil.calculateOrderStatus(order)
@@ -489,4 +494,94 @@ Page({
   //   // 此函数已被 utils/order-visual-status.js 中的 computeVisualStatus 替代
   //   // 请勿再调用此函数
   // }
+
+  // 🎯 修复订单中的头像（画师、客服、买家）
+  fixOrderAvatars(order) {
+    const DEFAULT_AVATAR_DATA = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0E4RTZDRiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7nlKg8L3RleHQ+PC9zdmc+'
+    
+    // 准备数据源
+    const products = wx.getStorageSync('mock_products') || []
+    const productMap = new Map()
+    products.forEach(p => {
+      if (p.id) productMap.set(String(p.id), p)
+    })
+
+    const serviceList = wx.getStorageSync('service_list') || []
+    const userInfoMap = new Map()
+    serviceList.forEach(s => {
+      if (s.userId) userInfoMap.set(String(s.userId), s)
+    })
+
+    const artistApps = wx.getStorageSync('artist_applications') || []
+    const artistMap = new Map()
+    artistApps.forEach(app => {
+      if (app.userId) artistMap.set(String(app.userId), app)
+    })
+
+    // 修复画师头像
+    let artistAvatar = order.artistAvatar || ''
+    if (!artistAvatar || 
+        artistAvatar.startsWith('http://tmp/') || 
+        artistAvatar.startsWith('https://thirdwx.qlogo.cn/') ||
+        artistAvatar.startsWith('wxfile://')) {
+      
+      // 1. 从商品获取
+      if (order.productId) {
+        const product = productMap.get(String(order.productId))
+        if (product && product.artistAvatar && product.artistAvatar.startsWith('data:image')) {
+          artistAvatar = product.artistAvatar
+          console.log('✅ [订单详情] 从商品获取画师头像')
+        }
+      }
+      
+      // 2. 从画师申请获取
+      if ((!artistAvatar || !artistAvatar.startsWith('data:image')) && order.artistId) {
+        const artist = artistMap.get(String(order.artistId))
+        if (artist && artist.avatarUrl && artist.avatarUrl.startsWith('data:image')) {
+          artistAvatar = artist.avatarUrl
+          console.log('✅ [订单详情] 从画师申请获取头像')
+        }
+        
+        // 3. 从用户信息获取
+        if (!artistAvatar || !artistAvatar.startsWith('data:image')) {
+          const userInfo = userInfoMap.get(String(order.artistId))
+          if (userInfo && userInfo.avatar && userInfo.avatar.startsWith('data:image')) {
+            artistAvatar = userInfo.avatar
+            console.log('✅ [订单详情] 从用户信息获取画师头像')
+          }
+        }
+      }
+    }
+    
+    if (!artistAvatar || !artistAvatar.startsWith('data:image')) {
+      artistAvatar = DEFAULT_AVATAR_DATA
+      console.log('⚠️ [订单详情] 使用默认画师头像')
+    }
+
+    // 修复客服头像（类似逻辑）
+    let serviceAvatar = order.serviceAvatar || ''
+    if (!serviceAvatar || 
+        serviceAvatar.startsWith('http://tmp/') || 
+        serviceAvatar.startsWith('https://thirdwx.qlogo.cn/') ||
+        serviceAvatar.startsWith('wxfile://')) {
+      
+      if (order.serviceId) {
+        const serviceInfo = userInfoMap.get(String(order.serviceId))
+        if (serviceInfo && serviceInfo.avatar && serviceInfo.avatar.startsWith('data:image')) {
+          serviceAvatar = serviceInfo.avatar
+          console.log('✅ [订单详情] 从用户信息获取客服头像')
+        }
+      }
+    }
+    
+    if (!serviceAvatar || !serviceAvatar.startsWith('data:image')) {
+      serviceAvatar = DEFAULT_AVATAR_DATA
+    }
+
+    return {
+      ...order,
+      artistAvatar,
+      serviceAvatar
+    }
+  }
 })
