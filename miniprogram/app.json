@@ -42,6 +42,7 @@
     "pages/data-stats/index",
     "pages/service-workspace/index"
   ],
+  "lazyCodeLoading": "requiredComponents",
   "window": {
     "navigationBarTitleText": "画师商城",
     "navigationBarBackgroundColor": "#A8E6CF",
