@@ -124,7 +124,11 @@ function recordOrderShare(order) {
     const key = buildLedgerKey(order.id, staff._id)
     if (existingKeys.has(key)) return
 
-    const amount = toCurrencyNumber(staff.shareAmount, 0)
+    // 🎯 修复：根据订单数量计算分成金额
+    const quantity = parseInt(order.quantity) || 1
+    const baseAmount = toCurrencyNumber(staff.shareAmount, 0)
+    const amount = toCurrencyNumber(baseAmount * quantity, 0)
+    
     if (amount <= 0) return
 
     const entry = {
@@ -138,12 +142,14 @@ function recordOrderShare(order) {
       type: 'order_share',
       createdAt: baseTime,
       orderCompletedAt,
-      note: staff.roleType ? `${staff.roleType}分成` : '订单分成'
+      note: `${staff.roleType || '订单'}分成 (×${quantity})`
     }
 
     ledger.unshift(entry)
     existingKeys.add(key)
     changed = true
+    
+    console.log(`💰 管理员分成: ${staff.name} ${staff.roleType || ''} +¥${amount} (¥${baseAmount} × ${quantity}件)`)
   })
 
   if (changed) {

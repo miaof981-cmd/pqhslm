@@ -106,11 +106,13 @@
   margin-top: 16rpx;
 }
 
+/* 🎯 优化：统一对齐，避免文字歪斜 */
 .info-row {
   display: flex;
   align-items: center;
   padding: 28rpx 30rpx;
   border-bottom: 1rpx solid #F0F0F0;
+  transition: background-color 0.2s ease;
 }
 
 .info-row:last-child {
@@ -122,23 +124,26 @@
   color: #666;
   width: 160rpx;
   flex-shrink: 0;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
 }
 
 .info-value {
   flex: 1;
   font-size: 28rpx;
   color: #333;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
 }
 
-/* 🎯 增强画师行的可点击性 */
-.info-row:last-child {
-  transition: background-color 0.2s ease;
-  margin: 0 -20rpx;
-  padding: 0 20rpx;
-  border-radius: 8rpx;
+/* 🎯 增强画师行的可点击性（保持padding一致） */
+.info-row:hover {
+  background-color: #FAFAFA;
 }
 
-.info-row:last-child:active {
+.info-row:active {
   background-color: #F5F5F5;
 }
 
@@ -147,6 +152,9 @@
   color: #A8E6CF;
   font-weight: 600;
   margin-left: 8rpx;
+  line-height: 1;
+  display: flex;
+  align-items: center;
 }
 
 /* ===== 商品详情 ===== */

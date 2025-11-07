@@ -127,6 +127,17 @@
 .contact-btn {
   background: white;
   border: 2rpx solid #A8E6CF;
+}
+
+.contact-btn-full {
+  flex: 1;
+  background: white;
+  border: 2rpx solid #A8E6CF;
+  font-size: 28rpx;
+  padding: 18rpx 0;
+  border-radius: 50rpx;
+  line-height: 1.5;
+  font-weight: 600;
   color: #A8E6CF;
 }
 

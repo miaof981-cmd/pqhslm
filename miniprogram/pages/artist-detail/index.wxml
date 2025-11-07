@@ -22,23 +22,16 @@
             <text class="stat-label">订单</text>
           </view>
           <view class="stat-item">
-            <text class="stat-value">{{artist.rating}}</text>
-            <text class="stat-label">评分</text>
-          </view>
-          <view class="stat-item">
-            <text class="stat-value">{{artist.fans}}</text>
-            <text class="stat-label">粉丝</text>
+            <text class="stat-value">¥{{artist.totalRevenue}}</text>
+            <text class="stat-label">成交额</text>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- 操作按钮 -->
+    <!-- 🎯 操作按钮 - 移除关注按钮 -->
     <view wx:if="{{!isAdmin}}" class="action-bar">
-      <button class="action-btn follow-btn {{artist.isFollowed ? 'followed' : ''}}" bindtap="toggleFollow">
-        {{artist.isFollowed ? '已关注' : '+ 关注'}}
-      </button>
-      <button class="action-btn contact-btn" bindtap="contactArtist">联系画师</button>
+      <button class="action-btn contact-btn-full" bindtap="contactArtist">联系画师</button>
     </view>
     <view wx:else class="admin-hint">
       <text class="hint-icon">🔧</text>
@@ -74,7 +67,7 @@
       </view>
     </view>
 
-    <!-- 业绩数据 -->
+    <!-- 🎯 业绩数据 - 简化版 -->
     <view wx:elif="{{currentTab === 'performance'}}" class="performance-section">
       <view class="performance-card">
         <view class="card-title">本月业绩</view>
@@ -86,10 +79,6 @@
           <view class="perf-item">
             <text class="perf-label">成交额</text>
             <text class="perf-value">¥{{performance.monthRevenue}}</text>
-          </view>
-          <view class="perf-item">
-            <text class="perf-label">完成率</text>
-            <text class="perf-value">{{performance.completeRate}}%</text>
           </view>
         </view>
       </view>
@@ -105,17 +94,6 @@
             <text class="perf-label">总收入</text>
             <text class="perf-value">¥{{performance.totalRevenue}}</text>
           </view>
-          <view class="perf-item">
-            <text class="perf-label">好评率</text>
-            <text class="perf-value">{{performance.goodRate}}%</text>
-          </view>
-        </view>
-      </view>
-
-      <view class="performance-card">
-        <view class="card-title">月度趋势</view>
-        <view class="chart-placeholder">
-          <text class="chart-text">图表区域（待集成）</text>
         </view>
       </view>
     </view>

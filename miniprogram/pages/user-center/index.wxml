@@ -12,7 +12,7 @@
     <!-- 用户信息卡片 -->
     <view class="user-card">
       <view class="user-main-info">
-        <image class="user-avatar" src="{{userInfo.avatar}}" mode="aspectFill" bindtap="promptRelogin" />
+        <image class="user-avatar" src="{{userInfo.avatar}}" mode="aspectFill" bindtap="goToLogin" />
         <view class="user-details">
           <view class="user-name">{{userInfo.name}}</view>
           <view class="user-id">ID: {{userId}}</view>
@@ -20,8 +20,7 @@
             <text wx:for="{{roleTexts}}" wx:key="*this" class="role-tag">{{item}}</text>
           </view>
           <view class="user-actions">
-            <text class="edit-profile" bindtap="editNickname">修改昵称</text>
-            <text class="auth-hint" bindtap="promptRelogin">更新头像</text>
+            <text class="edit-profile" bindtap="goToLogin">更新用户信息</text>
           </view>
         </view>
       </view>

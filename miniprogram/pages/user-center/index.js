@@ -324,35 +324,65 @@ Page({
     })
   },
 
-  // 更新用户信息（手动授权）
+  // 🎯 更新用户信息（手动授权）- 修复头像未同步问题
   async updateUserInfo() {
     const app = getApp()
     
-    // 🎯 修复：授权前保存当前用户信息
+    // 授权前保存当前用户信息
     const backupUserInfo = wx.getStorageSync('userInfo') || null
+    const userId = wx.getStorageSync('userId')
     
     wx.showLoading({ title: '获取授权...' })
     
     try {
       const userInfo = await app.getWxUserInfo()
       
+      console.log('✅ 获取到微信用户信息:', {
+        nickName: userInfo.nickName,
+        avatarUrl: userInfo.avatarUrl
+      })
+      
+      // 🎯 重要：同步更新到 users 列表
+      const allUsers = wx.getStorageSync('users') || []
+      const userIndex = allUsers.findIndex(u => u.id == userId || u.userId == userId)
+      
+      if (userIndex !== -1) {
+        // 更新现有用户
+        allUsers[userIndex].nickName = userInfo.nickName
+        allUsers[userIndex].name = userInfo.nickName
+        allUsers[userIndex].avatarUrl = userInfo.avatarUrl
+        wx.setStorageSync('users', allUsers)
+        console.log('✅ 已同步更新 users 列表中的头像')
+      } else {
+        // 如果用户不在列表中，添加新用户
+        allUsers.push({
+          id: userId,
+          userId: userId,
+          nickName: userInfo.nickName,
+          name: userInfo.nickName,
+          avatarUrl: userInfo.avatarUrl
+        })
+        wx.setStorageSync('users', allUsers)
+        console.log('✅ 已添加用户到 users 列表')
+      }
+      
       // 重新加载用户信息
       await this.loadUserInfo()
       
       wx.hideLoading()
       wx.showToast({
-        title: '更新成功',
+        title: '头像和昵称已更新',
         icon: 'success'
       })
     } catch (error) {
-      // 🎯 修复：授权失败时恢复原有用户信息，避免数据清空
+      // 授权失败时恢复原有用户信息，避免数据清空
       if (backupUserInfo) {
         wx.setStorageSync('userInfo', backupUserInfo)
         app.globalData.userInfo = backupUserInfo
         console.log('✅ 授权失败，已恢复原用户信息')
       }
       
-      // 🎯 重要：刷新页面显示，恢复之前的头像和昵称
+      // 刷新页面显示，恢复之前的头像和昵称
       await this.loadUserInfo()
       
       wx.hideLoading()
@@ -574,14 +604,16 @@ Page({
       去重后订单数: allOrders.length
     })
     
-    // 🎯 2. 计算画师订单稿费（仅画师角色）
-    const PLATFORM_DEDUCTION = 5.00
+    // 🎯 2. 计算画师订单稿费（仅画师角色，按数量计算平台扣除）
+    const PLATFORM_DEDUCTION_PER_ITEM = 5.00
     const myCompletedOrders = allOrders.filter(o => 
       o.status === 'completed' && String(o.artistId) === userKey
     )
     const orderIncome = myCompletedOrders.reduce((sum, order) => {
       const orderAmount = parseFloat(order.totalPrice) || parseFloat(order.price) || 0
-      const artistShare = Math.max(0, orderAmount - PLATFORM_DEDUCTION)
+      const quantity = parseInt(order.quantity) || 1
+      const totalDeduction = PLATFORM_DEDUCTION_PER_ITEM * quantity
+      const artistShare = Math.max(0, orderAmount - totalDeduction)
       return sum + artistShare
     }, 0)
     
@@ -744,21 +776,38 @@ Page({
     })
   },
 
-  // 提示重新登录以更新头像昵称
-  promptRelogin() {
-    console.log('🔄 用户点击头像，提示重新登录')
+  // 🎯 跳转到登录页面更新用户信息
+  goToLogin() {
+    console.log('🔄 跳转到登录页面更新用户信息')
     
     wx.showModal({
-      title: '更新头像和昵称',
-      content: '重新授权即可更新您的头像和昵称',
-      confirmText: '重新授权',
+      title: '更新用户信息',
+      content: '将跳转到登录页面重新获取您的头像和昵称',
+      confirmText: '立即更新',
       cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
-          console.log('✅ 用户确认更新头像昵称')
-          this.updateUserInfo()
+          console.log('✅ 用户确认更新，跳转到登录页')
+          
+          // 清除登录标记，但保留用户ID和角色
+          wx.removeStorageSync('hasLoggedIn')
+          
+          // 跳转到登录页
+          wx.redirectTo({
+            url: '/pages/login/index',
+            success: () => {
+              console.log('✅ 已跳转到登录页')
+            },
+            fail: (err) => {
+              console.error('❌ 跳转失败:', err)
+              wx.showToast({
+                title: '跳转失败',
+                icon: 'none'
+              })
+            }
+          })
         } else {
-          console.log('❌ 用户取消更新头像昵称')
+          console.log('❌ 用户取消更新')
         }
       }
     })

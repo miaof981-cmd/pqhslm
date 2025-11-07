@@ -152,7 +152,7 @@ Page({
   // 计算画师收入
   loadArtistIncome(allOrders, rewardRecords, withdrawRecords, startDate, endDate) {
     const artistMap = new Map()
-    const PLATFORM_DEDUCTION = 5.00
+    const PLATFORM_DEDUCTION_PER_ITEM = 5.00
     
     // 统计已完成订单的画师收入
     const completedOrders = allOrders.filter(o => 
@@ -180,7 +180,9 @@ Page({
       
       const artist = artistMap.get(artistId)
       const orderAmount = parseFloat(order.totalPrice) || parseFloat(order.price) || 0
-      const artistShare = Math.max(0, orderAmount - PLATFORM_DEDUCTION)
+      const quantity = parseInt(order.quantity) || 1
+      const totalDeduction = PLATFORM_DEDUCTION_PER_ITEM * quantity
+      const artistShare = Math.max(0, orderAmount - totalDeduction)
       
       artist.orderCount++
       artist.totalRevenue += orderAmount

@@ -52,16 +52,27 @@ Page({
         return
       }
       
-      // 获取画师的头像和昵称
+      // 🎯 修复：获取画师的头像和昵称
       let avatar = ''
       let name = artistApp.name
       
-      // 如果是当前用户，读取微信头像
-      if (artistId == wx.getStorageSync('userId')) {
+      // 尝试从用户列表中获取头像
+      const allUsers = wx.getStorageSync('users') || []
+      const userInfo = allUsers.find(u => u.id == artistId || u.userId == artistId)
+      
+      if (userInfo && userInfo.avatarUrl) {
+        avatar = userInfo.avatarUrl
+        name = userInfo.nickName || userInfo.name || artistApp.name
+      } else {
+        // 兼容旧数据：从wxUserInfo读取
         const wxUserInfo = wx.getStorageSync('wxUserInfo') || {}
-        avatar = wxUserInfo.avatarUrl || ''
-        name = wxUserInfo.nickName || artistApp.name
+        if (artistId == wx.getStorageSync('userId')) {
+          avatar = wxUserInfo.avatarUrl || ''
+          name = wxUserInfo.nickName || artistApp.name
+        }
       }
+      
+      console.log('🎨 画师头像读取:', { artistId, avatar, name })
       
       // 读取商品和订单数据
       const allProducts = wx.getStorageSync('mock_products') || []
@@ -72,11 +83,10 @@ Page({
       const artistOrders = allOrders.filter(o => o.artistId == artistId)
       const completedOrders = artistOrders.filter(o => o.status === 'completed')
       
-      // 计算评分（根据完成订单数量）
-      let rating = 0
-      if (completedOrders.length > 0) {
-        rating = (4.5 + Math.min(completedOrders.length / 100, 0.5)).toFixed(1)
-      }
+      // 🎯 计算成交额
+      const totalRevenue = completedOrders.reduce((sum, order) => {
+        return sum + (parseFloat(order.totalPrice) || parseFloat(order.price) || 0)
+      }, 0)
       
       const artist = {
         _id: artistId,
@@ -85,9 +95,7 @@ Page({
         intro: artistApp.intro || '暂无简介',
         productCount: artistProducts.length,
         orderCount: artistOrders.length,
-        rating: parseFloat(rating),
-        fans: 0,
-        isFollowed: false
+        totalRevenue: totalRevenue.toFixed(2)
       }
 
       this.setData({ artist: artist })
@@ -177,42 +185,47 @@ Page({
     }
   },
 
-  // 加载评价列表
+  // 🎯 加载评价列表（关联买家秀）
   async loadReviews() {
     try {
-      const mockReviews = [
-        {
-          _id: '1',
-          userName: '用户A',
-          userAvatar: 'https://via.placeholder.com/50',
-          rating: 5,
-          content: '画师非常专业，画风很符合我的要求，沟通也很顺畅，强烈推荐！',
-          images: ['https://via.placeholder.com/200', 'https://via.placeholder.com/200'],
-          createTime: '2024-01-20'
-        },
-        {
-          _id: '2',
-          userName: '用户B',
-          userAvatar: 'https://via.placeholder.com/50',
-          rating: 5,
-          content: '超级满意，画得太好了！而且交稿很及时，五星好评！',
-          images: [],
-          createTime: '2024-01-18'
-        },
-        {
-          _id: '3',
-          userName: '用户C',
-          userAvatar: 'https://via.placeholder.com/50',
-          rating: 4,
-          content: '整体不错，就是修改了两次，不过最后效果很好。',
-          images: ['https://via.placeholder.com/200'],
-          createTime: '2024-01-15'
-        }
-      ]
-
-      this.setData({ reviews: mockReviews })
+      const artistId = this.data.artistId
+      
+      // 从买家秀中读取该画师的所有晒稿
+      const allPosts = wx.getStorageSync('buyer_show_posts') || []
+      const allOrders = orderHelper.getAllOrders()
+      
+      // 找出该画师的订单
+      const artistOrderIds = allOrders
+        .filter(o => o.artistId == artistId)
+        .map(o => String(o.id))
+      
+      // 找出这些订单的买家秀
+      const artistReviews = allPosts
+        .filter(post => {
+          return artistOrderIds.includes(String(post.orderId))
+        })
+        .map(post => {
+          // 获取发布者信息
+          const allUsers = wx.getStorageSync('users') || []
+          const user = allUsers.find(u => u.id == post.userId || u.userId == post.userId)
+          
+          return {
+            _id: post.id,
+            userName: user ? (user.nickName || user.name) : '用户',
+            userAvatar: user ? user.avatarUrl : '/assets/default-avatar.png',
+            rating: post.rating || 5,
+            content: post.comment || '买家暂无评价',
+            images: post.images || [],
+            createTime: this.formatTime(post.createdAt || post.publishTime),
+            orderId: post.orderId
+          }
+        })
+      
+      console.log('🎨 画师评价（买家秀）:', artistReviews.length, '条')
+      this.setData({ reviews: artistReviews })
     } catch (error) {
       console.error('加载评价失败', error)
+      this.setData({ reviews: [] })
     }
   },
 
@@ -241,8 +254,47 @@ Page({
   },
 
   // 联系画师
+  // 🎯 联系画师（显示画师联系方式）
   contactArtist() {
-    wx.showToast({ title: '请通过客服联系画师', icon: 'none' })
+    const artistId = this.data.artistId
+    
+    // 从画师申请中读取联系方式
+    const allApplications = wx.getStorageSync('artist_applications') || []
+    const artistApp = allApplications.find(app => app.userId == artistId && app.status === 'approved')
+    
+    if (!artistApp) {
+      wx.showToast({ title: '画师信息不存在', icon: 'none' })
+      return
+    }
+    
+    // 构建联系信息
+    let content = `画师：${artistApp.name}\n`
+    if (artistApp.phone) content += `电话：${artistApp.phone}\n`
+    if (artistApp.wechat) content += `微信：${artistApp.wechat}\n`
+    if (artistApp.email) content += `邮箱：${artistApp.email}\n`
+    
+    // 如果没有任何联系方式
+    if (!artistApp.phone && !artistApp.wechat && !artistApp.email) {
+      content += '\n该画师暂未填写联系方式\n请通过平台客服联系'
+    }
+    
+    wx.showModal({
+      title: '画师联系方式',
+      content: content,
+      showCancel: true,
+      cancelText: '关闭',
+      confirmText: '复制微信',
+      success: (res) => {
+        if (res.confirm && artistApp.wechat) {
+          wx.setClipboardData({
+            data: artistApp.wechat,
+            success: () => {
+              wx.showToast({ title: '已复制微信号', icon: 'success' })
+            }
+          })
+        }
+      }
+    })
   },
 
   // 查看作品

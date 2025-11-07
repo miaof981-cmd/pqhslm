@@ -92,11 +92,16 @@ function recordOrderIncome(order) {
   const baseTime = new Date().toISOString()
   const orderCompletedAt = order.completedAt || order.completeTime || order.finishTime || baseTime
   const orderNo = order.fullOrderNo || order.orderNumber || order.orderNo || order.id
+  
+  // 🎯 修复：根据订单数量计算分成金额
+  const quantity = parseInt(order.quantity) || 1
 
   // 1. 记录客服收入
   if (order.serviceId) {
     const key = buildLedgerKey(order.id, order.serviceId, 'service')
     if (!existingKeys.has(key)) {
+      const amount = toCurrencyNumber(SERVICE_SHARE * quantity, 0)
+      
       const entry = {
         id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
         orderId: order.id,
@@ -105,16 +110,16 @@ function recordOrderIncome(order) {
         recipientName: order.serviceName || '客服',
         recipientType: 'service',
         userId: order.serviceId,  // 用于关联登录用户
-        amount: SERVICE_SHARE,
+        amount,
         incomeType: 'service',
         createdAt: baseTime,
         orderCompletedAt,
-        note: '客服订单分成'
+        note: `客服订单分成 (×${quantity})`
       }
       ledger.unshift(entry)
       existingKeys.add(key)
       changed = true
-      console.log(`💰 已记录客服收入: ${order.serviceName} +¥${SERVICE_SHARE}`)
+      console.log(`💰 已记录客服收入: ${order.serviceName || '客服'} +¥${amount} (¥${SERVICE_SHARE} × ${quantity}件)`)
     }
   }
 
@@ -135,7 +140,8 @@ function recordOrderIncome(order) {
       const key = buildLedgerKey(order.id, staff._id, 'admin_share')
       if (existingKeys.has(key)) return
 
-      const amount = toCurrencyNumber(staff.shareAmount, 0)
+      const baseAmount = toCurrencyNumber(staff.shareAmount, 0)
+      const amount = toCurrencyNumber(baseAmount * quantity, 0)
       if (amount <= 0) return
 
       const entry = {
@@ -151,12 +157,12 @@ function recordOrderIncome(order) {
         roleType: staff.roleType || '管理员',
         createdAt: baseTime,
         orderCompletedAt,
-        note: `${staff.roleType || '管理员'}分成`
+        note: `${staff.roleType || '管理员'}分成 (×${quantity})`
       }
       ledger.unshift(entry)
       existingKeys.add(key)
       changed = true
-      console.log(`💰 已记录管理员收入: ${staff.name} (${staff.roleType || '管理员'}) +¥${amount}`)
+      console.log(`💰 已记录管理员收入: ${staff.name} (${staff.roleType || '管理员'}) +¥${amount} (¥${baseAmount} × ${quantity}件)`)
     })
 
   } catch (error) {
@@ -166,9 +172,11 @@ function recordOrderIncome(order) {
   if (changed) {
     saveLedger(ledger)
     if (SAFE_WX && typeof SAFE_WX.showToast === 'function') {
+      const totalDeduction = toCurrencyNumber(TOTAL_DEDUCTION * quantity, 0)
       console.log('💰 订单收入分配完成', {
         orderId: order.id,
-        totalDeduction: TOTAL_DEDUCTION
+        quantity,
+        totalDeduction: `¥${totalDeduction} (¥${TOTAL_DEDUCTION} × ${quantity}件)`
       })
     }
   }

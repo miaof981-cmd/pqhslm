@@ -58,14 +58,16 @@ Page({
     })
     const allOrders = Array.from(orderMap.values())
     
-    // 🎯 2. 计算画师订单稿费（已完成订单的：订单金额 - 5元平台扣除）
-    const PLATFORM_DEDUCTION = 5.00
+    // 🎯 2. 计算画师订单稿费（已完成订单的：订单金额 - 平台扣除，按数量计算）
+    const PLATFORM_DEDUCTION_PER_ITEM = 5.00
     const myCompletedOrders = allOrders.filter(o => 
       o.status === 'completed' && String(o.artistId) === userKey
     )
     const orderIncome = myCompletedOrders.reduce((sum, order) => {
       const orderAmount = parseFloat(order.totalPrice) || parseFloat(order.price) || 0
-      const artistShare = Math.max(0, orderAmount - PLATFORM_DEDUCTION)
+      const quantity = parseInt(order.quantity) || 1
+      const totalDeduction = PLATFORM_DEDUCTION_PER_ITEM * quantity
+      const artistShare = Math.max(0, orderAmount - totalDeduction)
       return sum + artistShare
     }, 0)
     
