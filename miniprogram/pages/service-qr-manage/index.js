@@ -161,40 +161,30 @@ Page({
       return
     }
 
-    // 检查用户是否存在
-    const currentUserId = wx.getStorageSync('userId')
-    
-    if (userId != currentUserId) {
-      wx.showModal({
-        title: '提示',
-        content: `当前只能将用户ID ${currentUserId} 设置为客服（开发环境限制）`,
-        showCancel: false
-      })
-      return
-    }
+    // 🎯 移除1001限制 - 允许添加任何用户ID为客服
+    // 注意：生产环境应从数据库验证用户是否存在
 
-    // 获取当前用户的头像和昵称
-    const userInfo = wx.getStorageSync('userInfo') || {}
+    // 🎯 从users列表获取用户信息
+    const allUsers = wx.getStorageSync('users') || []
+    const targetUser = allUsers.find(u => u.id == userId || u.userId == userId)
     const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
     
-    // ⚠️ 临时路径需要转换为永久存储
-    let userAvatar = userInfo.avatarUrl || DEFAULT_AVATAR_DATA
+    let userAvatar = DEFAULT_AVATAR_DATA
+    let userNickName = name
     
-    // 如果是临时路径，转换为 base64
-    if (userAvatar && userAvatar.startsWith('http://tmp/')) {
-      console.log('⚠️ 检测到临时头像路径，正在转换为 base64...')
-      try {
-        const fs = wx.getFileSystemManager()
-        const base64Data = fs.readFileSync(userAvatar, 'base64')
-        userAvatar = 'data:image/jpeg;base64,' + base64Data
-        console.log('✅ 头像转换成功')
-      } catch (err) {
-        console.error('❌ 头像转换失败:', err)
-        userAvatar = DEFAULT_AVATAR_DATA
+    if (targetUser) {
+      userAvatar = targetUser.avatarUrl || DEFAULT_AVATAR_DATA
+      userNickName = targetUser.nickName || targetUser.name || name
+      console.log('✅ 从users列表获取到用户信息:', userNickName)
+    } else {
+      // 如果是当前用户自己，从userInfo读取
+      const currentUserId = wx.getStorageSync('userId')
+      if (userId == currentUserId) {
+        const userInfo = wx.getStorageSync('userInfo') || {}
+        userAvatar = userInfo.avatarUrl || DEFAULT_AVATAR_DATA
+        userNickName = userInfo.nickName || name
       }
     }
-    
-    const userNickName = userInfo.nickName || name
 
     console.log('📋 准备添加客服:')
     console.log('  - 用户ID:', userId)
