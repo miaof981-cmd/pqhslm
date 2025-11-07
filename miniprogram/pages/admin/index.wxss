@@ -424,6 +424,41 @@
   gap: 20rpx;
 }
 
+/* 🎯 订单标题行（包含返回按钮和标题） */
+.order-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+}
+
+/* 🎯 返回仪表盘按钮 */
+.back-to-dashboard-btn {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 8rpx 16rpx;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  border: 1rpx solid #A8E6CF;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  color: #2E7D32;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.back-to-dashboard-btn:active {
+  background: linear-gradient(135deg, #C8E6C9 0%, #A8E6CF 100%);
+  transform: scale(0.95);
+}
+
+.back-icon {
+  font-size: 32rpx;
+  font-weight: bold;
+  line-height: 1;
+}
+
 .section-title-inline {
   font-size: 32rpx;
   font-weight: 700;

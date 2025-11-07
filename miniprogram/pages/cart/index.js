@@ -295,6 +295,11 @@ Page({
     })
   },
 
+  // 🎯 阻止事件冒泡（空方法，用于catchtap）
+  stopPropagation() {
+    // 阻止事件冒泡，不需要执行任何操作
+  },
+
   // 查看商品详情
   viewProduct(e) {
     const id = e.currentTarget.dataset.id

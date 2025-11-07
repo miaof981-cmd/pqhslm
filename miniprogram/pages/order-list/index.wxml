@@ -46,6 +46,8 @@
         </view>
         <view class="product-info">
           <text class="product-name">{{item.productName}}</text>
+          <!-- 🎯 添加：数量显示 -->
+          <text wx:if="{{item.quantity && item.quantity > 1}}" class="product-quantity">×{{item.quantity}}</text>
           <view class="product-meta">
             <text class="product-delivery">{{item.deliveryDays}}天出稿</text>
             <text class="product-price">¥{{item.amount}}</text>

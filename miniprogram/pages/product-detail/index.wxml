@@ -96,7 +96,8 @@
           <view class="bubble-dot"></view>
         </view>
       </view>
-      <text class="service-text">{{serviceInfo && serviceInfo.serviceName ? serviceInfo.serviceName : '客服'}}</text>
+      <!-- 🎯 修复：固定显示"客服"，避免显示个人名称误导用户 -->
+      <text class="service-text">客服</text>
     </view>
     <button class="buy-btn" bindtap="buyProduct">立即购买</button>
   </view>
@@ -125,17 +126,17 @@
            mode="aspectFill" />
   </view>
 
-  <!-- 客服二维码弹窗 -->
+  <!-- 🎯 修复：客服二维码弹窗标题明确说明 -->
   <view class="modal-overlay" wx:if="{{showServiceQR}}" catchtap="toggleServiceQR">
     <view class="modal-content" catchtap="stopPropagation">
-      <view class="modal-title">{{serviceInfo && serviceInfo.serviceName ? serviceInfo.serviceName : '扫码添加客服'}}</view>
+      <view class="modal-title">平台客服微信</view>
       <block wx:if="{{hasOrder && orderQR}}">
         <image class="qr-image" src="{{orderQR}}" mode="aspectFit" />
-        <text class="qr-hint">专属客服二维码</text>
+        <text class="qr-hint">您的专属客服微信二维码</text>
       </block>
       <block wx:elif="{{serviceQR && serviceQR.imageUrl}}">
         <image class="qr-image" src="{{serviceQR.imageUrl}}" mode="aspectFit" />
-        <text class="qr-hint">长按识别添加客服微信</text>
+        <text class="qr-hint">长按识别添加平台客服微信</text>
       </block>
       <block wx:else>
         <view class="qr-placeholder">

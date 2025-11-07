@@ -196,10 +196,10 @@
             <text class="refund-text">退款申请已提交，客服正在处理中...</text>
           </view>
         </block>
+        <!-- 🎯 修复：移除用户端"申请退款"按钮，只保留联系客服和确认完成 -->
         <!-- 进行中/待确认状态 -->
         <block wx:elif="{{order.status === 'inProgress' || order.status === 'processing' || order.status === 'overdue' || order.status === 'nearDeadline' || order.status === 'waitingConfirm'}}">
           <button class="action-btn default" bindtap="contactService">联系客服</button>
-          <button class="action-btn danger" bindtap="requestRefund">申请退款</button>
           <button class="action-btn primary" bindtap="confirmComplete">确认完成</button>
         </block>
         <!-- 已完成状态 -->

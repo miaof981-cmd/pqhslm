@@ -27,6 +27,7 @@ Page({
   data: {
     loading: true,
     refunding: false,  // 🎯 退款处理中标志
+    fromDashboard: false,  // 🎯 标记是否从仪表盘跳转而来
     currentTab: 'dashboard',
     timeFilter: 'today',
     chartType: '7days',
@@ -77,7 +78,7 @@ Page({
       unpaid: 0,
       processing: 0,
       completed: 0,
-      refunding: 0
+      refunded: 0  // 🎯 改名：退款中 → 已退款
     },
     
     // 数据列表
@@ -509,7 +510,7 @@ Page({
       unpaid: formattedOrders.filter(o => o.status === 'unpaid').length,
       processing: formattedOrders.filter(o => processingSet.has(o.status)).length,
       completed: formattedOrders.filter(o => o.status === 'completed').length,
-      refunding: formattedOrders.filter(o => refundingSet.has(o.status)).length
+      refunded: formattedOrders.filter(o => refundingSet.has(o.status)).length  // 🎯 改名：退款中 → 已退款
     }
     
     console.log('加载订单列表:', formattedOrders.length, '个订单', orderStats)
@@ -536,7 +537,8 @@ Page({
       const processingSet = new Set(['processing', 'paid', 'inProgress', 'waitingConfirm', 'nearDeadline'])
       const filtered = allOrders.filter(o => processingSet.has(o.status))
       this.setData({ orders: filtered })
-    } else if (filter === 'refunding') {
+    } else if (filter === 'refunded') {
+      // 🎯 已退款：包含 refunding 和 refunded 状态
       const filtered = allOrders.filter(o => o.status === 'refunding' || o.status === 'refunded')
       this.setData({ orders: filtered })
     } else {
@@ -694,7 +696,15 @@ Page({
   // 切换主标签
   switchMainTab(e) {
     const tab = e.currentTarget.dataset.tab
-    this.setData({ currentTab: tab })
+    this.setData({ 
+      currentTab: tab,
+      fromDashboard: false  // 🎯 手动切换标签时清除来源标记
+    })
+    
+    // 🎯 切换到订单标签时，确保应用筛选（修复首次进入时订单列表为空的问题）
+    if (tab === 'order') {
+      this.applyCurrentOrderFilter()
+    }
   },
 
   // 切换时间筛选
@@ -767,8 +777,8 @@ Page({
       const processingSet = new Set(['processing', 'paid', 'inProgress', 'waitingConfirm', 'nearDeadline'])
       const filtered = this.data.allOrders.filter(o => processingSet.has(o.status))
       this.setData({ orders: filtered })
-    } else if (filter === 'refunding') {
-      // 退款包含退款中和已退款
+    } else if (filter === 'refunded') {
+      // 🎯 已退款：包含 refunding 和 refunded 状态
       const filtered = this.data.allOrders.filter(o => o.status === 'refunding' || o.status === 'refunded')
       this.setData({ orders: filtered })
     } else {
@@ -856,13 +866,32 @@ Page({
   },
 
   // 导航方法
+  // 🎯 从仪表盘跳转到订单页（全部订单）
   goToOrders() {
-    this.setData({ currentTab: 'order' })
+    this.setData({ 
+      currentTab: 'order',
+      orderFilter: 'all',
+      fromDashboard: true  // 标记来自仪表盘
+    })
+    this.applyCurrentOrderFilter()
   },
 
+  // 🎯 从仪表盘跳转到已退款订单
   goToRefunds() {
-    this.setData({ currentTab: 'order', orderFilter: 'refunded' })
+    this.setData({ 
+      currentTab: 'order', 
+      orderFilter: 'refunded',
+      fromDashboard: true  // 标记来自仪表盘
+    })
     this.filterOrders({ currentTarget: { dataset: { filter: 'refunded' } } })
+  },
+  
+  // 🎯 返回仪表盘
+  backToDashboard() {
+    this.setData({ 
+      currentTab: 'dashboard',
+      fromDashboard: false
+    })
   },
 
   collectAlerts() {

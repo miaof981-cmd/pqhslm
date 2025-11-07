@@ -147,6 +147,7 @@ Page({
           buyerName: buyerName,
           buyerAvatar: buyerAvatar,
           deliveryDays: order.deliveryDays || 7,
+          quantity: order.quantity || 1,  // 🎯 添加：数量字段
           amount: order.price,
           status: order.status,
           statusText: order.statusText,

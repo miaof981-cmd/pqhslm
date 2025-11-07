@@ -12,7 +12,7 @@
     <scroll-view class="notice-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}">
       <text wx:for="{{notices}}" wx:key="id" 
             class="notice-item" 
-            data-id="{{item._id}}" 
+            data-id="{{item.id || item._id}}" 
             bindtap="onNoticeTap">
         {{item.title}}
       </text>

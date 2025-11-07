@@ -160,24 +160,31 @@ Page({
     })
   },
 
-  // 加载公告
+  // 🎯 加载公告（从后台公告管理读取）
   async loadNotices() {
-    this.setData({
-      notices: [
-        {
-          _id: '1',
-          title: '🎉 新用户专享优惠，首单立减50元！',
-          content: '新用户注册即可享受首单立减50元优惠，快来体验吧！',
-          createTime: '2024-01-01'
-        },
-        {
-          _id: '2',
-          title: '📢 画师认证通道开放，快来申请吧！',
-          content: '画师认证通道现已开放，通过认证即可开始接单赚钱！',
-          createTime: '2024-01-02'
-        }
-      ]
-    })
+    try {
+      // 从本地存储读取公告列表
+      const allNotices = wx.getStorageSync('notices') || []
+      
+      // 只显示启用状态的公告
+      const activeNotices = allNotices.filter(notice => notice.status === 'active')
+      
+      // 按创建时间倒序排序（最新的在前）
+      activeNotices.sort((a, b) => {
+        const timeA = new Date(b.createTime || 0).getTime()
+        const timeB = new Date(a.createTime || 0).getTime()
+        return timeA - timeB
+      })
+      
+      console.log('📢 加载首页公告:', activeNotices.length, '条')
+      
+      this.setData({
+        notices: activeNotices
+      })
+    } catch (error) {
+      console.error('加载公告失败:', error)
+      this.setData({ notices: [] })
+    }
   },
 
   // 切换分类（在筛选面板中）

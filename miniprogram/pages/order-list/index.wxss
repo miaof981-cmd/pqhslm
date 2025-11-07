@@ -238,6 +238,18 @@
   -webkit-box-orient: vertical;
 }
 
+/* 🎯 新增：数量标签 */
+.product-quantity {
+  display: inline-block;
+  font-size: 24rpx;
+  color: #666;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  margin-top: 8rpx;
+  font-weight: 600;
+}
+
 .product-artist {
   font-size: 24rpx;
   color: #999;

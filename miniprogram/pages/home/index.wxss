@@ -17,11 +17,11 @@
   display: block;
 }
 
-/* 公告滚动条 */
+/* 🎯 公告滚动条 - 优化排版，减少留白 */
 .notice-ticker {
   background: #FFF9E6;
   margin: 10rpx;
-  padding: 12rpx 15rpx;
+  padding: 10rpx 12rpx;
   border-radius: 12rpx;
   display: flex;
   align-items: center;
@@ -69,6 +69,8 @@
   font-size: 24rpx;
   color: #1a1a1a;
   font-weight: 500;
+  line-height: 1.4;
+  padding: 2rpx 0;
 }
 
 /* 搜索筛选栏 */

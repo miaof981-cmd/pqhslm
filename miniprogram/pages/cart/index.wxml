@@ -24,10 +24,11 @@
             </view>
             <view class="product-footer">
               <text class="product-price">¥{{item.price}}</text>
-              <view class="quantity-control">
-                <button class="quantity-btn minus" data-id="{{item._id}}" bindtap="decreaseQuantity">-</button>
+              <!-- 🎯 修复：阻止事件冒泡，避免点击+/-时跳转商品详情 -->
+              <view class="quantity-control" catchtap="stopPropagation">
+                <button class="quantity-btn minus" data-id="{{item._id}}" catchtap="decreaseQuantity">-</button>
                 <text class="quantity-text">{{item.quantity}}</text>
-                <button class="quantity-btn plus" data-id="{{item._id}}" bindtap="increaseQuantity">+</button>
+                <button class="quantity-btn plus" data-id="{{item._id}}" catchtap="increaseQuantity">+</button>
               </view>
             </view>
           </view>

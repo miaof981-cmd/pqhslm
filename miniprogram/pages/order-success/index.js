@@ -746,6 +746,13 @@ Page({
       console.log('========================================')
       console.error('错误信息:', error)
       console.log('========================================')
+    } finally {
+      // 🎯 清除用户中心订单数量缓存，确保下次加载时显示最新数据
+      const userId = wx.getStorageSync('userId')
+      if (userId) {
+        wx.removeStorageSync(`processing_count_${userId}`)
+        console.log('✅ 已清除订单数量缓存，下次进入用户中心将显示最新数据')
+      }
     }
   },
 

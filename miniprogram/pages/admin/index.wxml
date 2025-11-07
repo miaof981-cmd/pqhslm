@@ -282,8 +282,15 @@
     <!-- 3. 订单管理 -->
     <view wx:if="{{currentTab === 'order'}}" class="tab-content">
       <!-- 顶部操作栏 -->
+      <!-- 🎯 订单管理顶部栏（带返回仪表盘按钮） -->
       <view class="order-header-bar">
-        <text class="section-title-inline">订单管理</text>
+        <view class="order-title-row">
+          <button wx:if="{{fromDashboard}}" class="back-to-dashboard-btn" bindtap="backToDashboard">
+            <text class="back-icon">‹</text>
+            <text>返回仪表盘</text>
+          </button>
+          <text class="section-title-inline">订单管理</text>
+        </view>
         <view class="header-actions-inline">
           <input class="search-input-inline" placeholder="搜索订单号/买家" bindinput="searchOrders" value="{{searchKeyword}}" />
           <button class="export-btn-small" bindtap="exportOrders">导出</button>
@@ -305,8 +312,8 @@
           <view class="filter-item {{orderFilter === 'completed' ? 'active' : ''}}" data-filter="completed" bindtap="filterOrders">
             已完成<text class="filter-count">{{orderStats.completed}}</text>
           </view>
-          <view class="filter-item {{orderFilter === 'refunding' ? 'active' : ''}}" data-filter="refunding" bindtap="filterOrders">
-            退款中<text class="filter-count">{{orderStats.refunding}}</text>
+          <view class="filter-item {{orderFilter === 'refunded' ? 'active' : ''}}" data-filter="refunded" bindtap="filterOrders">
+            已退款<text class="filter-count">{{orderStats.refunded}}</text>
           </view>
         </view>
       </scroll-view>

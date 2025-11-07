@@ -266,6 +266,7 @@
   margin-bottom: 12rpx;
 }
 
+/* 🎯 修复：确保输入框宽度正确，文字完整显示 */
 .field-input, .field-textarea {
   width: 100%;
   padding: 20rpx;
@@ -273,10 +274,17 @@
   border-radius: 12rpx;
   font-size: 28rpx;
   box-sizing: border-box;
+  background: white;
+}
+
+.field-input {
+  height: 80rpx;
+  line-height: 40rpx;
 }
 
 .field-textarea {
   min-height: 200rpx;
+  line-height: 1.6;
 }
 
 .radio-group {
