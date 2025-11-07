@@ -961,9 +961,17 @@ Page({
     })
   },
 
+  // 🎯 查看所有用户列表
   goToUsers() {
     wx.navigateTo({
-      url: '/pages/user-manage/index'
+      url: '/pages/user-manage/index?type=all'
+    })
+  },
+  
+  // 🎯 查看今日下单用户（从仪表盘"下单人数"跳转）
+  goToBuyers() {
+    wx.navigateTo({
+      url: `/pages/user-manage/index?type=buyers&date=${this.data.timeFilter || 'today'}`
     })
   },
 

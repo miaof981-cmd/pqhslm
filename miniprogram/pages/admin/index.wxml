@@ -73,7 +73,7 @@
           </view>
         </view>
 
-        <view class="stat-card-fresh card-users" bindtap="goToUsers">
+        <view class="stat-card-fresh card-users" bindtap="goToBuyers">
           <view class="stat-icon-fresh icon-users"></view>
           <view class="stat-content-fresh">
             <text class="stat-label-fresh">下单人数</text>

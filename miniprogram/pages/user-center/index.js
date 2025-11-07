@@ -352,6 +352,9 @@ Page({
         console.log('✅ 授权失败，已恢复原用户信息')
       }
       
+      // 🎯 重要：刷新页面显示，恢复之前的头像和昵称
+      await this.loadUserInfo()
+      
       wx.hideLoading()
       wx.showToast({
         title: '取消授权，信息已保留',
