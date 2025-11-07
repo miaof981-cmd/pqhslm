@@ -120,37 +120,45 @@ Page({
     }
 
     // 如果订单中没有，尝试从客服列表加载
-    if (!order.serviceId) {
-      console.warn('⚠️ 订单未分配客服，无法加载二维码')
-      return
+    if (order.serviceId) {
+      // 从本地存储读取客服列表（尝试多个存储key）
+      let serviceList = wx.getStorageSync('customer_service_list') || []
+      if (!serviceList.length) {
+        serviceList = wx.getStorageSync('service_list') || []
+      }
+      
+      const service = serviceList.find(s => 
+        String(s.id) === String(order.serviceId) || 
+        String(s.userId) === String(order.serviceId)
+      )
+      
+      const qrImage = service
+        ? service.qrCode || service.qrcodeUrl || service.serviceQrcodeUrl || service.qrcode || service.qrcodeNumber
+        : ''
+      
+      if (service && qrImage && qrImage.trim()) {
+        console.log('✅ 成功从客服列表加载二维码:', service.name || service.nickName)
+        this.setData({
+          'order.serviceQRCode': qrImage
+        })
+        return
+      }
     }
     
-    // 从本地存储读取客服列表（尝试多个存储key）
-    let serviceList = wx.getStorageSync('customer_service_list') || []
-    if (!serviceList.length) {
-      serviceList = wx.getStorageSync('service_list') || []
-    }
+    // 🎯 兜底方案：从系统设置加载默认客服二维码
+    const systemSettings = wx.getStorageSync('system_settings') || {}
+    const defaultQr = systemSettings.serviceQrcode
     
-    const service = serviceList.find(s => 
-      String(s.id) === String(order.serviceId) || 
-      String(s.userId) === String(order.serviceId)
-    )
-    
-    const qrImage = service
-      ? service.qrCode || service.qrcodeUrl || service.serviceQrcodeUrl || service.qrcode || service.qrcodeNumber
-      : ''
-    
-    if (service && qrImage && qrImage.trim()) {
-      console.log('✅ 成功从客服列表加载二维码:', service.name || service.nickName)
+    if (defaultQr && defaultQr.trim()) {
+      console.log('✅ 使用系统默认客服二维码')
       this.setData({
-        'order.serviceQRCode': qrImage
+        'order.serviceQRCode': defaultQr
       })
     } else {
       console.warn('⚠️ 客服二维码未找到:', {
-        serviceId: order.serviceId,
-        serviceName: order.serviceName,
-        找到的客服: service ? (service.name || service.nickName) : '未找到',
-        客服列表数量: serviceList.length
+        订单ID: order.id,
+        客服ID: order.serviceId,
+        客服姓名: order.serviceName
       })
     }
   },

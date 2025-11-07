@@ -111,9 +111,11 @@
 .info-row {
   display: flex;
   align-items: center;
-  padding: 28rpx 30rpx;
+  padding: 32rpx 30rpx;
   border-bottom: 1rpx solid #F0F0F0;
   transition: background-color 0.2s ease;
+  cursor: pointer;
+  min-height: 100rpx;
 }
 
 .info-row:last-child {

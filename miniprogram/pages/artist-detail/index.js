@@ -42,37 +42,34 @@ Page({
     try {
       const artistId = this.data.artistId
       
-      // 从本地存储读取画师申请信息
+      // 🎯 修复：优先从用户列表获取信息
+      const allUsers = wx.getStorageSync('users') || []
+      const userInfo = allUsers.find(u => u.id == artistId || u.userId == artistId)
+      
+      // 从画师申请中获取额外信息
       const allApplications = wx.getStorageSync('artist_applications') || []
       const artistApp = allApplications.find(app => app.userId == artistId && app.status === 'approved')
       
-      if (!artistApp) {
-        wx.showToast({ title: '画师不存在', icon: 'none' })
+      // 🎯 至少要有用户信息才能显示
+      if (!userInfo) {
+        wx.showToast({ title: '用户不存在', icon: 'none' })
         setTimeout(() => wx.navigateBack(), 1500)
         return
       }
       
-      // 🎯 修复：获取画师的头像和昵称
-      let avatar = ''
-      let name = artistApp.name
+      // 获取画师的头像和昵称
+      let avatar = userInfo.avatarUrl || ''
+      let name = userInfo.nickName || userInfo.name || (artistApp ? artistApp.name : '画师')
+      let intro = artistApp ? artistApp.selfIntro : ''
       
-      // 尝试从用户列表中获取头像
-      const allUsers = wx.getStorageSync('users') || []
-      const userInfo = allUsers.find(u => u.id == artistId || u.userId == artistId)
-      
-      if (userInfo && userInfo.avatarUrl) {
-        avatar = userInfo.avatarUrl
-        name = userInfo.nickName || userInfo.name || artistApp.name
-      } else {
-        // 兼容旧数据：从wxUserInfo读取
-        const wxUserInfo = wx.getStorageSync('wxUserInfo') || {}
-        if (artistId == wx.getStorageSync('userId')) {
-          avatar = wxUserInfo.avatarUrl || ''
-          name = wxUserInfo.nickName || artistApp.name
-        }
+      // 兼容旧数据：如果当前登录用户就是画师，从wxUserInfo读取
+      const wxUserInfo = wx.getStorageSync('wxUserInfo') || {}
+      if (artistId == wx.getStorageSync('userId') && wxUserInfo.avatarUrl) {
+        avatar = wxUserInfo.avatarUrl
+        name = wxUserInfo.nickName || name
       }
       
-      console.log('🎨 画师头像读取:', { artistId, avatar, name })
+      console.log('🎨 画师头像读取:', { artistId, avatar, name, hasApp: !!artistApp })
       
       // 读取商品和订单数据
       const allProducts = wx.getStorageSync('mock_products') || []
@@ -92,7 +89,7 @@ Page({
         _id: artistId,
         name: name,
         avatar: avatar || '/assets/default-avatar.png',
-        intro: artistApp.intro || '暂无简介',
+        intro: intro || '暂无简介',
         productCount: artistProducts.length,
         orderCount: artistOrders.length,
         totalRevenue: totalRevenue.toFixed(2)
