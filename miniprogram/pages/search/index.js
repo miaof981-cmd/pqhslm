@@ -56,6 +56,8 @@ Page({
 
   loadProducts() {
     const rawProducts = wx.getStorageSync('mock_products') || []
+    const users = wx.getStorageSync('users') || []
+    
     const products = rawProducts.map(product => {
       const price = parseFloat(product.price) || parseFloat(product.basePrice) || 0
       const coverImage = ensureRenderableImage(
@@ -64,6 +66,13 @@ Page({
       )
       const categoryName = product.categoryName || categoryService.getCategoryNameById(product.category)
       const tags = Array.isArray(product.tags) ? product.tags : []
+      
+      // 🎯 获取画师名字
+      let artistName = product.artistName || ''
+      if (!artistName && product.artistId) {
+        const artist = users.find(u => u.id == product.artistId || u.userId == product.artistId)
+        artistName = artist ? (artist.nickName || artist.name || '') : ''
+      }
 
       return {
         id: product.id || product._id,
@@ -73,9 +82,11 @@ Page({
         tags,
         categoryName: categoryName || '',
         deliveryDays: product.deliveryDays || 0,
+        artistName, // 🎯 保存画师名字供显示
         searchTokens: [
           (product.name || '').toLowerCase(),
           (categoryName || '').toLowerCase(),
+          (artistName || '').toLowerCase(), // 🎯 添加画师名字到搜索tokens
           ...(tags.map(tag => String(tag).toLowerCase()))
         ].filter(Boolean)
       }

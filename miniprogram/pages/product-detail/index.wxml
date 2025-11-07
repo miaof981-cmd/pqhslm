@@ -15,7 +15,7 @@
       <swiper-item wx:for="{{product.images}}" wx:key="*this">
         <image class="swiper-image" 
                src="{{item}}" 
-               mode="aspectFill" 
+               mode="aspectFit" 
                data-current="{{item}}"
                bindtap="previewImages" />
       </swiper-item>
@@ -153,7 +153,7 @@
     <view class="buy-modal-content" catchtap="stopPropagation">
       <!-- 商品信息 -->
       <view class="buy-modal-header">
-        <image class="buy-modal-image" src="{{product.images[0]}}" mode="aspectFill" />
+        <image class="buy-modal-image" src="{{product.images[0]}}" mode="aspectFit" />
         <view class="buy-modal-info">
           <view class="buy-modal-price">¥{{currentPrice}}</view>
           <view class="buy-modal-stock">库存：{{product.stock === 0 ? '♾️' : product.stock}}</view>

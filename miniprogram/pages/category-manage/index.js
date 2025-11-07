@@ -47,68 +47,41 @@ Page({
     this.setData({ loading: true })
     
     try {
-      // 模拟数据 - 实际应从云数据库获取
-      const mockCategories = [
-        {
-          _id: '1',
-          name: '头像设计',
-          parentId: '',
-          sort: 1,
-          icon: 'https://via.placeholder.com/100',
-          status: 'active',
-          productCount: 15,
-          createTime: '2024-01-20 10:00',
-          children: [
-            { _id: '1-1', name: 'Q版头像', parentId: '1' },
-            { _id: '1-2', name: '写实头像', parentId: '1' }
-          ]
-        },
-        {
-          _id: '2',
-          name: '插画设计',
-          parentId: '',
-          sort: 2,
-          icon: 'https://via.placeholder.com/100',
-          status: 'active',
-          productCount: 23,
-          createTime: '2024-01-20 10:05',
-          children: [
-            { _id: '2-1', name: '场景插画', parentId: '2' },
-            { _id: '2-2', name: '人物插画', parentId: '2' }
-          ]
-        },
-        {
-          _id: '3',
-          name: 'LOGO设计',
-          parentId: '',
-          sort: 3,
-          icon: 'https://via.placeholder.com/100',
-          status: 'active',
-          productCount: 8,
-          createTime: '2024-01-20 10:10',
-          children: []
-        },
-        {
-          _id: '4',
-          name: '表情包',
-          parentId: '',
-          sort: 4,
-          icon: 'https://via.placeholder.com/100',
-          status: 'disabled',
-          productCount: 0,
-          createTime: '2024-01-20 10:15',
-          children: []
-        }
-      ]
+      // 🎯 从本地存储读取分类
+      let categories = wx.getStorageSync('product_categories') || []
+      
+      // 🎯 如果没有分类，初始化默认分类
+      if (categories.length === 0) {
+        categories = [
+          { id: 'chibi_portrait', _id: 'chibi_portrait', name: 'Q版头像', icon: '😊', status: 'active', sort: 1 },
+          { id: 'half_body', _id: 'half_body', name: '半身像', icon: '👤', status: 'active', sort: 2 },
+          { id: 'full_body', _id: 'full_body', name: '全身像', icon: '🧍', status: 'active', sort: 3 },
+          { id: 'scene', _id: 'scene', name: '场景插画', icon: '🖼️', status: 'active', sort: 4 },
+          { id: 'emoticon', _id: 'emoticon', name: '表情包', icon: '😄', status: 'active', sort: 5 },
+          { id: 'logo', _id: 'logo', name: 'LOGO设计', icon: '🏷️', status: 'active', sort: 6 },
+          { id: 'ui', _id: 'ui', name: 'UI设计', icon: '📱', status: 'active', sort: 7 },
+          { id: 'animation', _id: 'animation', name: '动画设计', icon: '🎬', status: 'active', sort: 8 }
+        ]
+        wx.setStorageSync('product_categories', categories)
+      }
+      
+      // 🎯 统计每个分类的商品数量
+      const products = wx.getStorageSync('mock_products') || []
+      categories = categories.map(cat => ({
+        ...cat,
+        _id: cat._id || cat.id,
+        productCount: products.filter(p => p.category === (cat.id || cat._id)).length,
+        createTime: cat.createTime || new Date().toISOString()
+      }))
       
       // 构建父分类列表（用于选择器）
       const parentCategories = [
         { _id: '', name: '无（顶级分类）' },
-        ...mockCategories.filter(c => !c.parentId)
+        ...categories.filter(c => !c.parentId)
       ]
       
       this.setData({
-        categories: mockCategories,
+        categories: categories,
         parentCategories: parentCategories
       })
     } catch (error) {
@@ -181,9 +154,15 @@ Page({
       content: `确认${action}此分类？${action === '禁用' ? '禁用后该分类下的商品将不显示' : ''}`,
       success: (res) => {
         if (res.confirm) {
-          // 实际应调用云函数更新
-          wx.showToast({ title: `已${action}`, icon: 'success' })
-          this.loadCategories()
+          // 🎯 更新分类状态
+          const categories = wx.getStorageSync('product_categories') || []
+          const index = categories.findIndex(c => (c._id || c.id) === id)
+          if (index !== -1) {
+            categories[index].status = status === 'active' ? 'disabled' : 'active'
+            wx.setStorageSync('product_categories', categories)
+            wx.showToast({ title: `已${action}`, icon: 'success' })
+            this.loadCategories()
+          }
         }
       }
     })
@@ -209,7 +188,10 @@ Page({
       confirmColor: '#FF6B6B',
       success: (res) => {
         if (res.confirm) {
-          // 实际应调用云函数删除
+          // 🎯 实际删除分类
+          let categories = wx.getStorageSync('product_categories') || []
+          categories = categories.filter(c => (c._id || c.id) !== id)
+          wx.setStorageSync('product_categories', categories)
           wx.showToast({ title: '已删除', icon: 'success' })
           this.loadCategories()
         }
@@ -265,7 +247,7 @@ Page({
 
   // 保存分类
   saveCategory() {
-    const { name, sort } = this.data.formData
+    const { name, sort, parentId, icon, status } = this.data.formData
     
     // 验证
     if (!name.trim()) {
@@ -273,10 +255,40 @@ Page({
       return
     }
     
-    // 实际应调用云函数保存
     wx.showLoading({ title: '保存中...' })
     
-    setTimeout(() => {
+    try {
+      let categories = wx.getStorageSync('product_categories') || []
+      
+      if (this.data.isEdit) {
+        // 🎯 编辑模式：更新现有分类
+        const index = categories.findIndex(c => (c._id || c.id) === this.data.currentId)
+        if (index !== -1) {
+          categories[index] = {
+            ...categories[index],
+            name: name.trim(),
+            sort: sort || categories[index].sort,
+            parentId: parentId || '',
+            icon: icon || categories[index].icon,
+            status: status || 'active'
+          }
+        }
+      } else {
+        // 🎯 新增模式：添加新分类
+        const newId = `cat_${Date.now()}`
+        categories.push({
+          id: newId,
+          _id: newId,
+          name: name.trim(),
+          sort: sort || categories.length + 1,
+          parentId: parentId || '',
+          icon: icon || '📦',
+          status: status || 'active',
+          createTime: new Date().toISOString()
+        })
+      }
+      
+      wx.setStorageSync('product_categories', categories)
       wx.hideLoading()
       wx.showToast({ 
         title: this.data.isEdit ? '修改成功' : '添加成功', 
@@ -284,7 +296,11 @@ Page({
       })
       this.closeModal()
       this.loadCategories()
-    }, 500)
+    } catch (error) {
+      wx.hideLoading()
+      console.error('保存分类失败', error)
+      wx.showToast({ title: '保存失败', icon: 'none' })
+    }
   },
 
   // 关闭弹窗
