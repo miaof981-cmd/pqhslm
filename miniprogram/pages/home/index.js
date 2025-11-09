@@ -19,6 +19,8 @@ Page({
     tempCategory: 'all',
     deliverySort: 'default', // 出稿时间排序：default/fastest/slowest
     tempDeliverySort: 'default',
+    priceRange: 'all', // 价格区间：all/low/mid/high
+    tempPriceRange: 'all',
     bannerHeight: 200, // 轮播图初始高度（px）
     showTestModal: false // 🧪 临时测试弹窗
   },
@@ -210,11 +212,20 @@ Page({
       tempDeliverySort: sort
     })
   },
+  
+  // 🎯 修改价格区间
+  changePriceRange(e) {
+    const range = e.currentTarget.dataset.range
+    this.setData({
+      tempPriceRange: range
+    })
+  },
 
   // 重置筛选
   resetFilter() {
     this.setData({
       tempCategory: 'all',
+      tempPriceRange: 'all',
       tempDeliverySort: 'default'
     })
     this.setSelectableCategories('all')
@@ -239,8 +250,8 @@ Page({
     this.filterAndSortProducts(categoryId, deliverySort)
   },
 
-  // 根据分类和排序筛选商品
-  filterAndSortProducts(categoryId, deliverySort) {
+  // 根据分类、排序和价格筛选商品
+  filterAndSortProducts(categoryId, deliverySort, priceRange) {
     let filteredProducts = this.data.allProducts
     
     // 1. 先按分类筛选
@@ -248,9 +259,20 @@ Page({
       filteredProducts = filteredProducts.filter(product => product.category === categoryId)
     }
     
+    // 2. 按价格区间筛选
+    if (priceRange && priceRange !== 'all') {
+      filteredProducts = filteredProducts.filter(product => {
+        const price = parseFloat(product.price) || 0
+        if (priceRange === 'low') return price < 50
+        if (priceRange === 'mid') return price >= 50 && price < 100
+        if (priceRange === 'high') return price >= 100
+        return true
+      })
+    }
+    
     let sortedProducts = filteredProducts
 
-    // 2. 再按出稿时间排序
+    // 3. 再按出稿时间排序
     if (deliverySort === 'fastest') {
       // 最快优先：出稿天数从小到大
       sortedProducts = filteredProducts.slice().sort((a, b) => {
@@ -275,7 +297,7 @@ Page({
   
   // 根据分类筛选商品（兼容旧代码）
   filterProductsByCategory(categoryId) {
-    this.filterAndSortProducts(categoryId, this.data.deliverySort)
+    this.filterAndSortProducts(categoryId, this.data.deliverySort, this.data.priceRange)
   },
 
   // 取消筛选

@@ -15,9 +15,25 @@ Page({
   },
 
   loadPosts(callback) {
+    const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../../utils/image-helper.js')
+    
     const allPosts = (wx.getStorageSync('buyer_show_posts') || [])
       .slice()
       .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+      .map(post => ({
+        ...post,
+        // 🎯 修复：确保图片可渲染
+        images: Array.isArray(post.images) 
+          ? post.images.map((img, idx) => ensureRenderableImage(img, { 
+              namespace: `buyer-show-${post.id}-${idx}`, 
+              fallback: DEFAULT_PLACEHOLDER 
+            }))
+          : [],
+        authorAvatar: ensureRenderableImage(post.authorAvatar, {
+          namespace: `buyer-avatar-${post.id}`,
+          fallback: this.data.DEFAULT_AVATAR_DATA
+        })
+      }))
 
     // 瀑布流分配：奇数索引到左列，偶数索引到右列
     const leftPosts = []
@@ -58,7 +74,8 @@ Page({
   },
 
   goOrderList() {
-    wx.switchTab({
+    // 🎯 修复：使用navigateTo而非switchTab
+    wx.navigateTo({
       url: '/pages/order-list/index'
     })
   }

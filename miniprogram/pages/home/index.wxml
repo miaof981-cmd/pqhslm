@@ -87,20 +87,47 @@
         <view class="filter-section">
           <view class="section-title">出稿时间</view>
           <view class="filter-group">
-            <view class="filter-item {{deliverySort === 'default' ? 'active' : ''}}" 
+            <view class="filter-item {{tempDeliverySort === 'default' ? 'active' : ''}}" 
                   data-sort="default" 
                   bindtap="changeDeliverySort">
               <text class="filter-item-name">默认排序</text>
             </view>
-            <view class="filter-item {{deliverySort === 'fastest' ? 'active' : ''}}" 
+            <view class="filter-item {{tempDeliverySort === 'fastest' ? 'active' : ''}}" 
                   data-sort="fastest" 
                   bindtap="changeDeliverySort">
               <text class="filter-item-name">最快优先</text>
             </view>
-            <view class="filter-item {{deliverySort === 'slowest' ? 'active' : ''}}" 
+            <view class="filter-item {{tempDeliverySort === 'slowest' ? 'active' : ''}}" 
                   data-sort="slowest" 
                   bindtap="changeDeliverySort">
               <text class="filter-item-name">最慢优先</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 价格区间 -->
+        <view class="filter-section">
+          <view class="section-title">价格区间</view>
+          <view class="filter-group">
+            <view class="filter-item {{priceRange === 'all' ? 'active' : ''}}" 
+                  data-range="all" 
+                  bindtap="changePriceRange">
+              <text class="filter-item-name">不限</text>
+            </view>
+            <view class="filter-item {{priceRange === 'low' ? 'active' : ''}}" 
+                  data-range="low" 
+                  bindtap="changePriceRange">
+              <text class="filter-item-name">0-50元</text>
+            </view>
+            <view class="filter-item {{priceRange === 'mid' ? 'active' : ''}}" 
+                  data-range="mid" 
+                  bindtap="changePriceRange">
+              <text class="filter-item-name">50-100元</text>
+            </view>
+            <view class="filter-item {{priceRange === 'high' ? 'active' : ''}}" 
+                  data-range="high" 
+                  bindtap="changePriceRange">
+              <text class="filter-item-name">100元以上</text>
             </view>
           </view>
         </view>

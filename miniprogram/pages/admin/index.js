@@ -526,11 +526,15 @@ Page({
     this.collectAlerts()
   },
 
-  // 🎯 新增：应用当前订单筛选
+  // 🎯 新增：应用当前订单筛选（状态+时间）
   applyCurrentOrderFilter() {
     const filter = this.data.orderFilter
-    const allOrders = this.data.allOrders
+    let allOrders = this.data.allOrders
+    
+    // 🎯 修复：先应用时间筛选
+    allOrders = this.filterOrdersByTime(allOrders)
 
+    // 再应用状态筛选
     if (filter === 'all') {
       this.setData({ orders: allOrders })
     } else if (filter === 'processing') {
@@ -588,14 +592,22 @@ Page({
           avatar = app.avatar || app.avatarUrl
         }
       } else {
-  // 其他画师，尝试从申请记录读取头像
-  // 兼容两种字段名：avatar 和 avatarUrl
-  if (app.avatar || app.avatarUrl) {
-    avatar = app.avatar || app.avatarUrl
-  }
-  // 使用申请时填写的姓名
-  nickname = app.name
-}
+        // 🎯 其他画师，优先从users列表获取昵称和头像
+        const allUsers = wx.getStorageSync('users') || []
+        const targetUser = allUsers.find(u => u.id == app.userId || u.userId == app.userId)
+        
+        if (targetUser) {
+          avatar = targetUser.avatarUrl || avatar
+          nickname = targetUser.nickName || targetUser.name || app.name
+          console.log(`✅ 从users列表获取画师信息: ${nickname}`)
+        } else {
+          // 兜底：从申请记录读取
+          if (app.avatar || app.avatarUrl) {
+            avatar = app.avatar || app.avatarUrl
+          }
+          nickname = app.name
+        }
+      }
       
       // 如果还是没有头像，使用默认SVG头像（绿色背景 + "画"字）
       if (!avatar) {
