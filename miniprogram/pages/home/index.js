@@ -235,6 +235,7 @@ Page({
   confirmFilter() {
     const categoryId = this.data.tempCategory
     const deliverySort = this.data.tempDeliverySort
+    const priceRange = this.data.tempPriceRange
     const category = this.data.categories.find(cat => cat.id === categoryId)
     const categoryName = categoryId === 'all' ? '全部商品' : (category ? category.name : '全部商品')
     
@@ -242,12 +243,13 @@ Page({
       currentCategory: categoryId,
       currentCategoryName: categoryName,
       deliverySort: deliverySort,
+      priceRange: priceRange,
       showFilter: false
     })
     this.setSelectableCategories(categoryId)
     
-    // 根据分类和排序筛选商品
-    this.filterAndSortProducts(categoryId, deliverySort)
+    // 根据分类、排序和价格筛选商品
+    this.filterAndSortProducts(categoryId, deliverySort, priceRange)
   },
 
   // 根据分类、排序和价格筛选商品
