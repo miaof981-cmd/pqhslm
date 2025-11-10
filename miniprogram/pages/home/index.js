@@ -1,8 +1,14 @@
 const { createLogger, isVerboseLoggingEnabled } = require('../../utils/logger')
 const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
 const categoryService = require('../../utils/category-service.js')
+const orderStatusUtil = require('../../utils/order-status.js')
 
 const logger = createLogger('home')
+
+/**
+ * 🔧 iOS兼容的日期解析函数
+ */
+const parseDate = orderStatusUtil.parseDate
 
 Page({
   data: {
@@ -175,8 +181,9 @@ Page({
       
       // 按创建时间倒序排序（最新的在前）
       activeNotices.sort((a, b) => {
-        const timeA = new Date(b.createTime || 0).getTime()
-        const timeB = new Date(a.createTime || 0).getTime()
+        // 🔧 iOS兼容：使用parseDate
+        const timeA = b.createTime ? parseDate(b.createTime).getTime() : 0
+        const timeB = a.createTime ? parseDate(a.createTime).getTime() : 0
         return timeA - timeB
       })
       

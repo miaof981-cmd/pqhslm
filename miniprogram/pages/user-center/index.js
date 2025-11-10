@@ -1,6 +1,12 @@
 const orderHelper = require('../../utils/order-helper.js')
 const staffFinance = require('../../utils/staff-finance.js')
 const serviceIncome = require('../../utils/service-income.js')
+const orderStatusUtil = require('../../utils/order-status.js')
+
+/**
+ * 🔧 iOS兼容的日期解析函数
+ */
+const parseDate = orderStatusUtil.parseDate
 
 Page({
   data: {
@@ -155,7 +161,8 @@ Page({
     let applicationApproved = false
     
     if (userApplications.length > 0) {
-      userApplications.sort((a, b) => new Date(b.submitTime) - new Date(a.submitTime))
+      // 🔧 iOS兼容：使用parseDate
+      userApplications.sort((a, b) => parseDate(b.submitTime) - parseDate(a.submitTime))
       const latestApp = userApplications[0]
       applicationApproved = (latestApp.status === 'approved')
       console.log('📋 最新申请状态:', latestApp.status, '→ applicationApproved:', applicationApproved)
@@ -897,7 +904,8 @@ Page({
     }
     
     // 按提交时间排序，取最新的
-    userApplications.sort((a, b) => new Date(b.submitTime) - new Date(a.submitTime))
+    // 🔧 iOS兼容：使用parseDate
+    userApplications.sort((a, b) => parseDate(b.submitTime) - parseDate(a.submitTime))
     const latestApplication = userApplications[0]
     
     console.log('📋 最新申请状态:', latestApplication.status)
@@ -914,7 +922,8 @@ Page({
     // 格式化时间
     const formatTime = (timeStr) => {
       if (!timeStr) return ''
-      const date = new Date(timeStr)
+      // 🔧 iOS兼容：使用parseDate
+      const date = parseDate(timeStr)
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
     }
     

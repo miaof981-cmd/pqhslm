@@ -528,7 +528,8 @@ Page({
       // 🔧 格式化时间用于显示：只显示月-日 时:分
       const formatTimeForDisplay = (timestamp) => {
         if (!timestamp) return ''
-        const date = new Date(timestamp)
+        // 🔧 iOS兼容：使用parseDate而不是直接new Date
+        const date = parseDate(timestamp)
         const month = (date.getMonth() + 1).toString().padStart(2, '0')
         const day = date.getDate().toString().padStart(2, '0')
         const hour = date.getHours().toString().padStart(2, '0')

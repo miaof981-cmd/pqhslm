@@ -100,7 +100,8 @@ Page({
           title: reward.productName || `订单 ${reward.orderId}`,
           amount: parseFloat(reward.amount),
           isIncome: true,
-          timestamp: new Date(reward.time || Date.now()).getTime(),
+          // 🔧 iOS兼容：使用parseDate
+          timestamp: reward.time ? parseDate(reward.time).getTime() : Date.now(),
           time: this.formatTime(reward.time)
         })
       })
@@ -167,7 +168,8 @@ Page({
           title: withdraw.bankName ? `${withdraw.bankName}(****${withdraw.bankCard})` : '提现到账',
           amount: parseFloat(withdraw.amount),
           isIncome: false,
-          timestamp: new Date(withdraw.completedTime || withdraw.time).getTime(),
+          // 🔧 iOS兼容：使用parseDate
+          timestamp: parseDate(withdraw.completedTime || withdraw.time).getTime(),
           time: this.formatTime(withdraw.completedTime || withdraw.time)
         })
       })
@@ -231,7 +233,8 @@ Page({
   formatTime(timestamp) {
     if (!timestamp) return '时间未知'
     
-    const date = new Date(timestamp)
+    // 🔧 iOS兼容：使用parseDate
+    const date = parseDate(timestamp)
     if (isNaN(date.getTime())) return '时间未知'
     
     const year = date.getFullYear()
@@ -252,8 +255,9 @@ Page({
     
     // 按时间倒序
     myRecords.sort((a, b) => {
-      const timeA = new Date(b.completedTime || b.time).getTime()
-      const timeB = new Date(a.completedTime || a.time).getTime()
+      // 🔧 iOS兼容：使用parseDate
+      const timeA = parseDate(b.completedTime || b.time).getTime()
+      const timeB = parseDate(a.completedTime || a.time).getTime()
       return timeA - timeB
     })
     
