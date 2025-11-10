@@ -86,9 +86,11 @@ Page({
           success: (fileRes) => {
             const base64 = 'data:image/jpeg;base64,' + fileRes.data
             
-            // 保存到系统设置
+            // 保存到系统设置（同时保存到多个字段以确保兼容性）
             const systemSettings = wx.getStorageSync('system_settings') || {}
             systemSettings.serviceQrcode = base64
+            systemSettings.complaintQrcode = base64  // 🎯 同时保存为售后二维码
+            systemSettings.complaintQRCode = base64  // 🎯 兼容大小写
             wx.setStorageSync('system_settings', systemSettings)
             
             this.setData({

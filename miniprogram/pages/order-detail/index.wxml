@@ -164,6 +164,7 @@
           class="qr-image" 
           src="{{order.serviceQRCode}}" 
           mode="aspectFit"
+          show-menu-by-longpress="{{true}}"
         />
         <view wx:else class="qr-placeholder">
           <text class="placeholder-text">客服二维码加载中...</text>
@@ -171,6 +172,26 @@
         </view>
         <text class="qr-hint">长按识别二维码添加客服微信</text>
         <text class="qr-desc">客服会与您进一步沟通绘画要求</text>
+      </view>
+    </view>
+    
+    <!-- 投诉/售后二维码（买家可见） -->
+    <view wx:if="{{userRole === 'customer'}}" class="section-card qr-section complaint-qr">
+      <view class="section-title">售后/投诉专员</view>
+      <view class="qr-container">
+        <image 
+          wx:if="{{order.complaintQRCode}}"
+          class="qr-image" 
+          src="{{order.complaintQRCode}}" 
+          mode="aspectFit"
+          show-menu-by-longpress="{{true}}"
+        />
+        <view wx:else class="qr-placeholder">
+          <text class="placeholder-text">售后二维码暂未配置</text>
+          <text class="placeholder-hint">请联系客服获取售后渠道</text>
+        </view>
+        <text class="qr-hint">长按识别二维码联系投诉专员</text>
+        <text class="qr-desc">遇到售后/投诉问题请扫描上方二维码</text>
       </view>
     </view>
 
@@ -224,7 +245,7 @@
       <view class="qr-modal-close" catchtap="hideQRModal">✕</view>
     </view>
     <view class="qr-modal-body">
-      <image class="qr-modal-image" src="{{serviceQRCode}}" mode="aspectFit"/>
+      <image class="qr-modal-image" src="{{serviceQRCode}}" mode="aspectFit" show-menu-by-longpress="{{true}}"/>
       <text class="qr-modal-hint">长按识别二维码添加客服微信</text>
     </view>
   </view>
@@ -238,7 +259,7 @@
       <view class="qr-modal-close" catchtap="hideQRModal">✕</view>
     </view>
     <view class="qr-modal-body">
-      <image class="qr-modal-image" src="{{complaintQRCode}}" mode="aspectFit"/>
+      <image class="qr-modal-image" src="{{complaintQRCode}}" mode="aspectFit" show-menu-by-longpress="{{true}}"/>
       <text class="qr-modal-hint">长按识别二维码联系投诉专员</text>
       <text class="qr-modal-desc">我们会认真处理每一条投诉</text>
     </view>
