@@ -116,18 +116,50 @@ Page({
       const artistName = product.artistName || (product.artist && (product.artist.name || product.artist.nickname)) || '画师'
       const artistAvatar = product.artistAvatar || (product.artist && (product.artist.avatar || product.artist.avatarUrl)) || ''
 
-      // 🎯 新增：获取画师的独立编号（artistNumber）
+      // 🎯 修复：多来源兜底 + 统一格式解析画师编号
       let artistNumber = ''
       if (artistUserId) {
+        // 1. 多来源兜底取值
         const allApplications = wx.getStorageSync('artist_applications') || []
-        const artistApp = allApplications.find(app => 
+        const allProfiles = wx.getStorageSync('artist_profiles') || {}
+        
+        const fromApp = allApplications.find(app => 
           app.userId === artistUserId && app.status === 'approved'
         )
-        if (artistApp && artistApp.artistNumber) {
-          artistNumber = artistApp.artistNumber
+        const fromProfile = allProfiles[artistUserId]
+        
+        // 尝试多个可能的字段来源
+        let raw = (fromProfile && fromProfile.artistNumber)
+               || (fromApp && fromApp.artistNumber)
+               || (fromApp && fromApp.approvedProfile && fromApp.approvedProfile.artistNumber)
+               || ''
+        
+        console.table({
+          '来源检查': '画师编号多来源诊断',
+          'fromApp存在': !!fromApp,
+          'appArtistNumber': fromApp?.artistNumber,
+          'appApprovedArtistNumber': fromApp?.approvedProfile?.artistNumber,
+          'fromProfile存在': !!fromProfile,
+          'profileArtistNumber': fromProfile?.artistNumber,
+          'raw原始值': raw,
+          'raw类型': typeof raw
+        })
+        
+        // 2. 统一为三位字符串格式：001/002/003...
+        if (raw !== '' && raw !== null && raw !== undefined) {
+          raw = String(raw).trim()
+          // 如果是纯数字（1/2/3），统一补齐为 001/002/003
+          if (/^\d+$/.test(raw)) {
+            raw = raw.padStart(3, '0')
+            console.log(`🔧 画师编号格式化: ${raw}`)
+          }
+          artistNumber = raw
+        }
+        
+        if (artistNumber) {
           console.log(`✅ 找到画师编号: ${artistNumber} (用户ID: ${artistUserId})`)
         } else {
-          console.log(`⚠️ 未找到画师编号，用户ID: ${artistUserId}`)
+          console.log(`⚠️ 未找到画师编号，将降级显示用户ID: ${artistUserId}`)
         }
       }
 
@@ -136,6 +168,7 @@ Page({
       
       console.log('解析后的商品简介:', summaryContent)
       
+      // 🎯 修复：一次性setData，避免首屏渲染后再补数据
       this.setData({
         product: {
           ...product,
@@ -144,19 +177,20 @@ Page({
         },
         summaryContent: summaryContent,
         artist: { 
-          name: artistName,
-          id: artistNumber || artistUserId, // 🎯 优先使用画师编号，降级为用户ID
-          artistNumber: artistNumber || '', // 🎯 画师独立编号（空字符串代替undefined）
-          userId: artistUserId || '', // 🎯 用户ID（内部使用）
-          avatar: artistAvatar
+          name: artistName || '',
+          id: artistNumber || artistUserId, // 优先使用画师编号，降级为用户ID
+          artistNumber: artistNumber || '', // 画师独立编号（空字符串交给WXML降级）
+          userId: artistUserId || '', // 用户ID（内部使用）
+          avatar: artistAvatar || ''
         },
         loading: false
       })
       
-      console.log('🎨 画师信息已设置:', {
+      console.log('🎨 画师信息已设置（一次性setData完成）:', {
         name: artistName,
-        artistNumber: artistNumber || '未分配',
-        userId: artistUserId
+        artistNumber: artistNumber || '(空-将降级为userId)',
+        userId: artistUserId,
+        '首屏时机': 'onLoad完成'
       })
       console.log('商品数据加载完成，显示价格:', displayPrice)
       await this.loadServiceQR()

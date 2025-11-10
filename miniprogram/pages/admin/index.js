@@ -28,7 +28,8 @@ function isPlaceholderServiceName(name) {
 Page({
   data: {
     loading: true,
-    orderLoading: false,  // 🎯 新增：订单列表独立加载状态
+    orderLoading: false,  // 🎯 订单列表独立加载状态
+    orderInFlight: false,  // 🎯 新增：订单加载互斥锁（防重复调用）
     refunding: false,  // 🎯 退款处理中标志
     fromDashboard: false,  // 🎯 标记是否从仪表盘跳转而来
     currentTab: 'dashboard',
@@ -38,7 +39,7 @@ Page({
     // 子标签
     artistTab: 'list',
     productFilter: 'all',
-    orderFilter: 'all',
+    orderFilter: 'all',  // 🎯 关键：订单筛选状态（必须初始化为'all'）
     alerts: [],
     alertBanner: null,
     blockingIssues: 0,
@@ -84,10 +85,10 @@ Page({
       refunded: 0  // 🎯 改名：退款中 → 已退款
     },
     
-    // 数据列表
+    // 数据列表（关键：orders 永远是数组，不允许 null/undefined）
     products: [],
     allProducts: [],
-    orders: [],
+    orders: [],  // 🎯 关键：初始化为空数组，确保WXML判断正确
     allOrders: [],
     artists: [],
     applications: [],
@@ -437,14 +438,53 @@ Page({
     })
   },
 
+  // 🎯 新增：统一的"安全拉单"函数（处理节流/依赖/异常）
+  async safeLoadOrders() {
+    try {
+      // 防重复调用
+      if (this.data.orderInFlight) {
+        console.warn('[订单加载] 已有加载任务进行中，跳过本次调用')
+        return
+      }
+      
+      console.log('📋 [安全加载] 开始加载订单，设置互斥锁')
+      this.setData({ orderInFlight: true })
+      
+      // 依赖就绪校验（可选，根据实际情况）
+      const userId = wx.getStorageSync('userId')
+      if (!userId) {
+        console.warn('[订单加载] 用户ID未就绪，跳过本轮加载')
+        this.setData({ 
+          orderLoading: false, 
+          orderInFlight: false 
+        })
+        return
+      }
+      
+      // 调用真正的加载函数
+      await this.loadOrders()
+      
+    } catch (err) {
+      console.error('[订单加载] 异常:', err)
+      this.setData({ 
+        orderLoading: false, 
+        orderInFlight: false,
+        orders: []  // 异常时确保是空数组
+      })
+    }
+  },
+  
   // 加载订单列表
   async loadOrders() {
     console.log('========================================')
     console.log('📦 [管理后台] 使用统一工具加载订单')
     console.log('========================================')
     
-    // 🎯 开始加载，显示加载状态
-    this.setData({ orderLoading: true })
+    // 🎯 如果从switchMainTab进来，orderLoading已经设置为true
+    // 否则手动设置
+    if (!this.data.orderLoading) {
+      this.setData({ orderLoading: true })
+    }
     
     // 🎯 使用统一工具函数获取并标准化订单（管理员看所有订单）
     let allOrders = orderHelper.prepareOrdersForPage({
@@ -537,7 +577,7 @@ Page({
       已退款: orderStats.refunded
     })
     
-    // 🎯 关键修复：使用 setData 的回调确保数据更新完成后再应用筛选
+    // 🎯 关键修复：一次性setData，避免多次渲染抖动
     this.setData({
       allOrders: formattedOrders,
       orderStats: orderStats,
@@ -548,8 +588,13 @@ Page({
       console.log('✅ 当前筛选器:', this.data.orderFilter)
       this.applyCurrentOrderFilter()
       this.collectAlerts()
-      // 🎯 筛选完成后关闭订单加载状态
-      this.setData({ orderLoading: false })
+      
+      // 🎯 筛选完成后，一次性关闭加载状态并释放互斥锁
+      this.setData({ 
+        orderLoading: false,
+        orderInFlight: false  // ✅ 释放互斥锁
+      })
+      console.log('✅ 订单加载完成，互斥锁已释放')
     })
   },
 
@@ -805,16 +850,27 @@ Page({
   switchMainTab(e) {
     const tab = e.currentTarget.dataset.tab
     
-    // 🎯 切换到订单标签时，强制重新加载订单（确保数据最新）
+    // 🎯 修复：切换到订单标签时，一次性设置所有状态，再调用加载
     if (tab === 'order') {
-      console.log('📋 ========== 切换到订单标签，强制刷新 ==========')
-      // 🎯 切换标签，loadOrders会自动设置orderLoading
+      console.log('📋 ========== 切换到订单标签，立即显示加载状态 ==========')
+      console.log('当前状态快照:', {
+        currentTab: this.data.currentTab,
+        orderFilter: this.data.orderFilter,
+        orderInFlight: this.data.orderInFlight,
+        ordersLength: this.data.orders.length
+      })
+      
+      // 🎯 关键：一次性setData，立即显示加载中，避免闪现"暂无订单"
       this.setData({ 
         currentTab: tab,
-        fromDashboard: false  // 🎯 手动切换标签时清除来源标记
+        fromDashboard: false,  // 手动切换标签时清除来源标记
+        orderLoading: true,    // ✅ 立即显示加载中
+        orders: [],            // ✅ 清空旧数据，避免闪回
+        orderFilter: this.data.orderFilter || 'all'  // ✅ 确保筛选状态明确
       })
-      // 🎯 修复：强制重新加载订单，loadOrders内部会设置orderLoading并调用applyCurrentOrderFilter
-      this.loadOrders()
+      
+      // 然后调用安全加载函数
+      this.safeLoadOrders()
     } else {
       this.setData({ 
         currentTab: tab,

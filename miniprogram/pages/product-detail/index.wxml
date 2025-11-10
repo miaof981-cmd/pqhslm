@@ -62,9 +62,9 @@
         <text class="info-label">画师</text>
         <view class="info-value-wrap">
           <text class="info-value">{{artist.name}}</text>
-          <!-- 🎯 修复：始终显示画师编号，如果没有则显示用户ID -->
-          <text wx:if="{{artist.artistNumber}}" class="artist-id">编号: {{artist.artistNumber}}</text>
-          <text wx:elif="{{artist.userId}}" class="artist-id">ID: {{artist.userId}}</text>
+          <!-- 🎯 修复：UI层兜底判断（防止编号为0/空白/undefined） -->
+          <text class="artist-id" wx:if="{{artist.artistNumber && artist.artistNumber.length > 0}}">编号: {{artist.artistNumber}}</text>
+          <text class="artist-id" wx:else>ID: {{artist.userId}}</text>
         </view>
       </view>
     </view>
