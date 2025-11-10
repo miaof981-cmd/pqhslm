@@ -38,7 +38,7 @@ Page({
         icon: 'none'
       })
     } finally {
-      this.setData({ loading: false })
+    this.setData({ loading: false })
     }
   }
 })

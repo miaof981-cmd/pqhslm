@@ -89,8 +89,15 @@ Page({
   },
 
   goPublishGuide() {
-    wx.switchTab({
-      url: '/pages/order-list/index'
+    const targetUrl = '/pages/order-list/index?status=processing'
+    wx.navigateTo({
+      url: targetUrl,
+      fail: () => {
+        // 部分版本可能限制 navigateTo，兜底使用 switchTab
+        wx.switchTab({
+          url: '/pages/user-center/index'
+        })
+      }
     })
   }
 })

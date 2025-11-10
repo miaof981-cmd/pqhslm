@@ -2,6 +2,7 @@ const orderHelper = require('../../utils/order-helper.js')
 const orderStatusUtil = require('../../utils/order-status.js')
 const { computeVisualStatus } = require('../../utils/order-visual-status')
 const { buildGroupName } = require('../../utils/group-helper.js')
+const productSales = require('../../utils/product-sales.js')  // 🎯 新增：库存管理
 
 Page({
   data: {
@@ -218,6 +219,9 @@ Page({
       filtered = allOrders.filter(o => o.status === 'waitingConfirm')
     } else if (currentFilter === 'completed') {
       filtered = allOrders.filter(o => o.status === 'completed')
+    } else if (currentFilter === 'refunded') {
+      // 🎯 新增：已退款筛选
+      filtered = allOrders.filter(o => o.status === 'refunded' || o.status === 'refunding')
     }
 
     // 2. 按搜索关键词筛选
@@ -441,16 +445,41 @@ Page({
     
     wx.showLoading({ title: '退款处理中...', mask: true })
     
-    // 更新订单状态
+    // 🎯 读取所有可能的订单存储源
     const orders = wx.getStorageSync('orders') || []
     const pendingOrders = wx.getStorageSync('pending_orders') || []
+    const completedOrders = wx.getStorageSync('completed_orders') || []
     const mockOrders = wx.getStorageSync('mock_orders') || []
     const timestamp = new Date().toISOString()
+    
+    console.log('🔄 开始退款处理:', {
+      orderId,
+      订单数源: {
+        orders: orders.length,
+        pending: pendingOrders.length,
+        completed: completedOrders.length,
+        mock: mockOrders.length
+      }
+    })
+    
+    // 🎯 先找到订单信息（用于库存回退）
+    let targetOrder = null
+    const findOrder = (list) => {
+      const found = list.find(o => o.id === orderId)
+      if (found && !targetOrder) {
+        targetOrder = found
+      }
+    }
+    findOrder(orders)
+    findOrder(pendingOrders)
+    findOrder(completedOrders)
+    findOrder(mockOrders)
     
     // 更新所有数据源
     const updateStatus = (list) => {
       return list.map(o => {
         if (o.id === orderId) {
+          console.log(`✅ 找到订单 ${orderId}，正在更新状态为 refunded`)
           return orderHelper.mergeOrderRecords(o, {
             status: 'refunded',
             statusText: '已退款',
@@ -474,9 +503,26 @@ Page({
       })
     }
     
+    // 🎯 更新所有4个数据源（包括 completed_orders）
     wx.setStorageSync('orders', updateStatus(orders))
     wx.setStorageSync('pending_orders', updateStatus(pendingOrders))
+    wx.setStorageSync('completed_orders', updateStatus(completedOrders))
     wx.setStorageSync('mock_orders', updateStatus(mockOrders))
+    
+    console.log('💾 已保存退款状态到所有数据源')
+    
+    // 🎯 新增：退款时回退库存
+    if (targetOrder && targetOrder.productId) {
+      const quantity = targetOrder.quantity || 1
+      const restored = productSales.increaseStock(targetOrder.productId, quantity)
+      if (restored) {
+        console.log('✅ 库存已回退:', { productId: targetOrder.productId, quantity })
+      } else {
+        console.warn('⚠️ 库存回退失败（可能是无限库存商品）')
+      }
+    } else {
+      console.warn('⚠️ 订单信息不完整，无法回退库存')
+    }
     
     // 🎯 延迟500ms后刷新（确保存储完成）
     setTimeout(() => {

@@ -66,9 +66,16 @@ function parseDate(dateStr) {
  * @returns {Object} 更新后的订单对象
  */
 function calculateOrderStatus(order) {
-  // 如果订单已完成，不需要重新计算
-  if (order.status === 'completed') {
-    return { ...order, statusText: '已完成' }
+  // 🎯 修复：检查所有终态（Terminal States），终态不可被重新计算覆盖
+  const TERMINAL_STATES = ['completed', 'refunded', 'refunding', 'cancelled']
+  
+  if (TERMINAL_STATES.includes(order.status)) {
+    console.log(`🔒 [状态计算] 订单 ${order.id} 处于终态 ${order.status}，跳过重新计算`)
+    // 保持原状态，只补充 statusText
+    return { 
+      ...order, 
+      statusText: STATUS_TEXT_MAP[order.status] || order.statusText || order.status 
+    }
   }
   
   // 如果订单已标记为画师完成（等待客户确认），保持该状态
@@ -111,6 +118,8 @@ function calculateOrderStatus(order) {
     statusText = '制作中'
     urgent = false
   }
+  
+  console.log(`📊 [状态计算] 订单 ${order.id}: ${order.status} → ${status}`)
   
   return {
     ...order,

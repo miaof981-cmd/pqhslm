@@ -92,7 +92,7 @@ function recordOrderIncome(order) {
   const baseTime = new Date().toISOString()
   const orderCompletedAt = order.completedAt || order.completeTime || order.finishTime || baseTime
   const orderNo = order.fullOrderNo || order.orderNumber || order.orderNo || order.id
-  
+
   // 🎯 修复：根据订单数量计算分成金额
   const quantity = parseInt(order.quantity) || 1
 

@@ -1218,6 +1218,19 @@
 }
 
 /* 空状态 */
+/* 🎯 订单加载中状态 */
+.order-loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 100rpx 0;
+  color: #999;
+}
+
+.loading-text {
+  font-size: 28rpx;
+}
+
 .empty-order-state {
   display: flex;
   justify-content: center;

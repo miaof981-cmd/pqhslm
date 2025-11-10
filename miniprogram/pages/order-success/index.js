@@ -1,6 +1,7 @@
 const orderHelper = require('../../utils/order-helper.js')
 const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
 const categoryService = require('../../utils/category-service.js')
+const productSales = require('../../utils/product-sales.js')
 
 Page({
   data: {
@@ -399,11 +400,16 @@ Page({
       }
     }
     
+    // 🎯 重要：订单只保存 serviceId，不保存二维码 URL
+    // 这样订单详情页每次都会从客服列表动态读取最新二维码
+    // 即使客服更换二维码，历史订单也能显示最新的
+    console.log('✅ 客服分配完成，订单将保存 serviceId，二维码将动态读取')
+    
     return {
       serviceId: assignedService.userId || assignedService.id,
       serviceName: assignedService.name || assignedService.nickName,
       serviceAvatar: serviceAvatar,
-      serviceQrcodeUrl: assignedService.qrcodeUrl || '',
+      serviceQrcodeUrl: '',  // ⚠️ 故意留空，强制动态读取
       serviceQrcodeNumber: assignedService.qrcodeNumber,
       isPlaceholder: false
     }
@@ -699,6 +705,22 @@ Page({
       
       console.log('✅ 订单验证通过，准备保存')
       console.log('========================================')
+      
+      // 🎯 新增：下单时扣减库存
+      if (existingIndex === -1) {
+        // 只有新订单才扣减库存，避免重复扣减
+        const stockResult = productSales.decreaseStock(orderInfo.productId, orderInfo.quantity)
+        if (!stockResult.success) {
+          console.error('❌ 库存扣减失败:', stockResult.message)
+          wx.showToast({ title: stockResult.message, icon: 'none', duration: 2000 })
+          // 库存不足，不继续保存订单
+          if (stockResult.message.includes('库存不足')) {
+            return
+          }
+        } else {
+          console.log('✅ 库存扣减成功，剩余库存:', stockResult.remainingStock === Infinity ? '无限' : stockResult.remainingStock)
+        }
+      }
       
       let isNewOrder = false
 

@@ -489,6 +489,10 @@ page {
   background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
 }
 
+.qr-section.complaint-qr {
+  background: linear-gradient(135deg, #FFF3E0 0%, #FFF8E1 100%);
+}
+
 .qr-container {
   display: flex;
   flex-direction: column;
@@ -542,6 +546,14 @@ page {
   color: #66BB6A;
   text-align: center;
   line-height: 1.6;
+}
+
+.complaint-qr .qr-hint {
+  color: #8D6E63;
+}
+
+.complaint-qr .qr-desc {
+  color: #EF6C00;
 }
 
 /* ========== 操作按钮 ========== */

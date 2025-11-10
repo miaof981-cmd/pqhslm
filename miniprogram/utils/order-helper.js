@@ -90,16 +90,35 @@ function normalizeOrders(orders, options = {}) {
   return orders.map(order => {
     if (!order) return order
 
-    // === 1️⃣ 备份原始字段 ===
+    // === 1️⃣ 备份原始字段（包括终态状态） ===
     const rawArtistName = getMeaningfulName(order.artistName, 'artist')
     const rawArtistAvatar = getMeaningfulAvatar(order.artistAvatar)
     const rawServiceName = getMeaningfulName(order.serviceName, 'service')
     const rawServiceAvatar = getMeaningfulAvatar(order.serviceAvatar)
+    // 🎯 新增：备份终态相关字段
+    const rawStatus = order.status
+    const rawRefundStatus = order.refundStatus
+    const rawRefundData = {
+      refundCompletedAt: order.refundCompletedAt,
+      refundAmount: order.refundAmount,
+      refundHistory: order.refundHistory
+    }
 
-    // === 2️⃣ 计算状态（不改字段） ===
+    // === 2️⃣ 计算状态（终态不会被覆盖） ===
     let processed = orderStatusUtil.calculateOrderStatus
       ? orderStatusUtil.calculateOrderStatus(order)
       : { ...order }
+    
+    // 🎯 双重保险：如果原订单是终态，强制恢复
+    const TERMINAL_STATES = ['completed', 'refunded', 'refunding', 'cancelled']
+    if (TERMINAL_STATES.includes(rawStatus) && processed.status !== rawStatus) {
+      console.warn(`⚠️ [订单标准化] 订单 ${order.id} 终态被覆盖 ${rawStatus} → ${processed.status}，强制恢复`)
+      processed.status = rawStatus
+      processed.refundStatus = rawRefundStatus
+      processed.refundCompletedAt = rawRefundData.refundCompletedAt
+      processed.refundAmount = rawRefundData.refundAmount
+      processed.refundHistory = rawRefundData.refundHistory
+    }
 
     // 统一清理占位符，避免后续判断被字符串"未知"阻断
     if (!isMeaningfulName(processed.artistName, 'artist')) processed.artistName = ''
@@ -369,10 +388,11 @@ function getAllOrders() {
   const legacyOrders = wx.getStorageSync('mock_orders') || []
   const orders = wx.getStorageSync('orders') || []
   const pendingOrders = wx.getStorageSync('pending_orders') || []
+  const completedOrders = wx.getStorageSync('completed_orders') || []  // 🎯 新增：已完成订单源
   
   // 合并订单（去重，以 id 为准）
   const orderMap = new Map()
-  ;[...legacyOrders, ...orders, ...pendingOrders].forEach(order => {
+  ;[...legacyOrders, ...orders, ...pendingOrders, ...completedOrders].forEach(order => {
     if (!order || !order.id) return
 
     if (!orderMap.has(order.id)) {

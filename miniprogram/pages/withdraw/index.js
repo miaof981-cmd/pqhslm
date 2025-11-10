@@ -592,13 +592,21 @@ Page({
     const userKey = String(userId)
     const allRecords = wx.getStorageSync('withdraw_records') || []
     const myRecords = allRecords.filter(r => String(r.userId) === userKey)
+
+    const parseRecordTime = (record) => {
+      const raw = record.completedTime || record.time || record.updatedAt || record.createdAt || ''
+      if (!raw) return 0
+      const normalized = String(raw)
+        .replace(/年|\.|\/|月/g, '-')
+        .replace(/日|号/g, '')
+        .replace(/T/g, ' ')
+        .replace(/--+/g, '-')
+      const ms = new Date(normalized).getTime()
+      return Number.isNaN(ms) ? 0 : ms
+    }
     
     // 按时间倒序
-    myRecords.sort((a, b) => {
-      const timeA = new Date(b.completedTime || b.time).getTime()
-      const timeB = new Date(a.completedTime || a.time).getTime()
-      return timeA - timeB
-    })
+    myRecords.sort((a, b) => parseRecordTime(b) - parseRecordTime(a))
     
     this.setData({
       withdrawRecords: myRecords,

@@ -39,6 +39,13 @@
         <text class="entry-arrow">›</text>
       </view>
     </view>
+    <view class="record-entry" bindtap="showWithdrawRecordsModal">
+      <text class="entry-label">提现记录</text>
+      <view class="entry-right">
+        <text class="entry-hint">查看提现明细</text>
+        <text class="entry-arrow">›</text>
+      </view>
+    </view>
   </view>
 
   <!-- 提现说明 -->

@@ -187,6 +187,7 @@ Page({
         { label: '全部', value: 'all' },
         { label: '制作中', value: 'processing' },
         { label: '已完成', value: 'completed' },
+        { label: '已退款', value: 'refunded' },
         { label: '待支付', value: 'unpaid' }
       ]
 

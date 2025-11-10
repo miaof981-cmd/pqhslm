@@ -300,6 +300,9 @@ Page({
             return
           }
 
+          const userId = wx.getStorageSync('userId')
+          
+          // 1️⃣ 更新 userInfo
           const storedUserInfo = wx.getStorageSync('userInfo') || {}
           const updatedUserInfo = {
             ...storedUserInfo,
@@ -310,6 +313,39 @@ Page({
 
           const app = getApp()
           app.globalData.userInfo = updatedUserInfo
+
+          // 2️⃣ 同步更新 users 列表
+          const allUsers = wx.getStorageSync('users') || []
+          const userIndex = allUsers.findIndex(u => u.id == userId || u.userId == userId)
+          if (userIndex !== -1) {
+            allUsers[userIndex].nickName = newName
+            allUsers[userIndex].name = newName
+            wx.setStorageSync('users', allUsers)
+            console.log('✅ 已同步更新 users 列表中的昵称')
+          }
+
+          // 3️⃣ 同步更新该画师的所有商品的 artistName
+          const allProducts = wx.getStorageSync('mock_products') || []
+          let updatedCount = 0
+          allProducts.forEach(product => {
+            if (product.artistId == userId) {
+              product.artistName = newName
+              updatedCount++
+            }
+          })
+          if (updatedCount > 0) {
+            wx.setStorageSync('mock_products', allProducts)
+            console.log(`✅ 已同步更新 ${updatedCount} 个商品的画师昵称`)
+          }
+
+          // 4️⃣ 同步更新画师申请记录中的昵称
+          const allApplications = wx.getStorageSync('artist_applications') || []
+          const appIndex = allApplications.findIndex(app => app.userId == userId)
+          if (appIndex !== -1) {
+            allApplications[appIndex].name = newName
+            wx.setStorageSync('artist_applications', allApplications)
+            console.log('✅ 已同步更新画师申请记录中的昵称')
+          }
 
           this.setData({
             'userInfo.name': newName
@@ -364,6 +400,32 @@ Page({
         })
         wx.setStorageSync('users', allUsers)
         console.log('✅ 已添加用户到 users 列表')
+      }
+
+      // 🎯 同步更新该画师的所有商品的 artistName 和 artistAvatar
+      const allProducts = wx.getStorageSync('mock_products') || []
+      let updatedCount = 0
+      allProducts.forEach(product => {
+        if (product.artistId == userId) {
+          product.artistName = userInfo.nickName
+          product.artistAvatar = userInfo.avatarUrl
+          updatedCount++
+        }
+      })
+      if (updatedCount > 0) {
+        wx.setStorageSync('mock_products', allProducts)
+        console.log(`✅ 已同步更新 ${updatedCount} 个商品的画师信息`)
+      }
+
+      // 🎯 同步更新画师申请记录
+      const allApplications = wx.getStorageSync('artist_applications') || []
+      const appIndex = allApplications.findIndex(app => app.userId == userId)
+      if (appIndex !== -1) {
+        allApplications[appIndex].name = userInfo.nickName
+        allApplications[appIndex].avatar = userInfo.avatarUrl
+        allApplications[appIndex].avatarUrl = userInfo.avatarUrl
+        wx.setStorageSync('artist_applications', allApplications)
+        console.log('✅ 已同步更新画师申请记录')
       }
       
       // 重新加载用户信息
@@ -712,9 +774,9 @@ Page({
     const serviceQrcode = systemSettings.serviceQrcode || ''
     
     if (!serviceQrcode) {
-      wx.showToast({
+    wx.showToast({
         title: '售后二维码未配置',
-        icon: 'none'
+      icon: 'none'
       })
       return
     }

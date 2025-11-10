@@ -19,8 +19,10 @@ Page({
     tempCategory: 'all',
     deliverySort: 'default', // 出稿时间排序：default/fastest/slowest
     tempDeliverySort: 'default',
-    priceRange: 'all', // 价格区间：all/low/mid/high
+    priceRange: 'all', // 价格区间：all/low/mid/high/custom
     tempPriceRange: 'all',
+    customMinPrice: '', // 自定义最低价
+    customMaxPrice: '', // 自定义最高价
     bannerHeight: 200, // 轮播图初始高度（px）
     showTestModal: false // 🧪 临时测试弹窗
   },
@@ -180,7 +182,7 @@ Page({
       
       console.log('📢 加载首页公告:', activeNotices.length, '条')
       
-      this.setData({
+    this.setData({
         notices: activeNotices
       })
     } catch (error) {
@@ -211,6 +213,7 @@ Page({
     this.setData({
       tempDeliverySort: sort
     })
+    console.log('✅ 出稿时间已选择:', sort)
   },
   
   // 🎯 修改价格区间
@@ -219,6 +222,20 @@ Page({
     this.setData({
       tempPriceRange: range
     })
+    console.log('✅ 价格区间已选择:', range)
+  },
+
+  // 🆕 自定义价格输入
+  onMinPriceInput(e) {
+    this.setData({
+      customMinPrice: e.detail.value
+    })
+  },
+
+  onMaxPriceInput(e) {
+    this.setData({
+      customMaxPrice: e.detail.value
+    })
   },
 
   // 重置筛选
@@ -226,7 +243,9 @@ Page({
     this.setData({
       tempCategory: 'all',
       tempPriceRange: 'all',
-      tempDeliverySort: 'default'
+      tempDeliverySort: 'default',
+      customMinPrice: '',
+      customMaxPrice: ''
     })
     this.setSelectableCategories('all')
   },
@@ -265,6 +284,25 @@ Page({
     if (priceRange && priceRange !== 'all') {
       filteredProducts = filteredProducts.filter(product => {
         const price = parseFloat(product.price) || 0
+        
+        if (priceRange === 'custom') {
+          // 自定义价格区间
+          const minPrice = parseFloat(this.data.customMinPrice) || 0
+          const maxPrice = parseFloat(this.data.customMaxPrice) || Infinity
+          
+          // 验证输入有效性
+          if (minPrice > maxPrice && maxPrice > 0) {
+            wx.showToast({
+              title: '最低价不能大于最高价',
+              icon: 'none'
+            })
+            return true
+          }
+          
+          return price >= minPrice && (maxPrice === Infinity || price <= maxPrice)
+        }
+        
+        // 预设价格区间
         if (priceRange === 'low') return price < 50
         if (priceRange === 'mid') return price >= 50 && price < 100
         if (priceRange === 'high') return price >= 100
@@ -291,6 +329,8 @@ Page({
       })
     }
     // default: 保持原顺序（最新上传的在前）
+    
+    console.log(`✅ 筛选完成: ${filteredProducts.length}/${this.data.allProducts.length} 个商品`)
     
     this.setData({
       products: deliverySort === 'default' ? filteredProducts.slice() : sortedProducts

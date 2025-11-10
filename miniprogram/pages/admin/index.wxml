@@ -249,10 +249,10 @@
               <text class="product-delivery">{{item.deliveryDays}}天出稿</text>
             </view>
             
+            <!-- 🎯 修改：移除浏览数字，只保留销量和库存 -->
             <view class="product-stats">
               <text class="stat-text">销量：{{item.sales || 0}}</text>
               <text class="stat-text">库存：{{item.stock === 0 ? '♾️' : item.stock}}</text>
-              <text class="stat-text">浏览：{{item.views || 0}}</text>
             </view>
             
             <view wx:if="{{item.isHot || item.isRecommend || item.isSpecial}}" class="product-tags">
@@ -320,7 +320,13 @@
 
       <!-- 订单列表 -->
       <view class="order-list">
-        <view wx:for="{{orders}}" wx:key="_id" class="order-card order-card-{{item.statusKey || 'normal'}}" bindtap="viewOrderDetail" data-id="{{item._id}}">
+        <!-- 🎯 订单加载中 -->
+        <view wx:if="{{orderLoading}}" class="order-loading-state">
+          <text class="loading-text">加载中...</text>
+        </view>
+        
+        <!-- 订单卡片列表 -->
+        <view wx:elif="{{orders.length > 0}}" wx:for="{{orders}}" wx:key="_id" class="order-card order-card-{{item.statusKey || 'normal'}}" bindtap="viewOrderDetail" data-id="{{item._id}}">
           <!-- 订单头部：订单号 + 状态 -->
           <view class="order-header">
             <view class="order-id-actions">
@@ -401,8 +407,8 @@
           </view>
         </view>
 
-        <!-- 空状态 -->
-        <view wx:if="{{orders.length === 0}}" class="empty-order-state">
+        <!-- 🎯 空状态：只在非加载状态且订单为空时显示 -->
+        <view wx:else class="empty-order-state">
           <text class="empty-text">暂无订单</text>
         </view>
       </view>

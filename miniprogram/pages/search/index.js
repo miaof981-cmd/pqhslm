@@ -57,6 +57,7 @@ Page({
   loadProducts() {
     const rawProducts = wx.getStorageSync('mock_products') || []
     const users = wx.getStorageSync('users') || []
+    const artistApplications = wx.getStorageSync('artist_applications') || []
     
     const products = rawProducts.map(product => {
       const price = parseFloat(product.price) || parseFloat(product.basePrice) || 0
@@ -67,11 +68,23 @@ Page({
       const categoryName = product.categoryName || categoryService.getCategoryNameById(product.category)
       const tags = Array.isArray(product.tags) ? product.tags : []
       
-      // 🎯 获取画师名字
+      // 🎯 获取画师名字和编号
       let artistName = product.artistName || ''
+      let artistNumber = ''
+      
       if (!artistName && product.artistId) {
         const artist = users.find(u => u.id == product.artistId || u.userId == product.artistId)
         artistName = artist ? (artist.nickName || artist.name || '') : ''
+      }
+      
+      // 🎯 新增：获取画师编号用于搜索
+      if (product.artistId) {
+        const artistApp = artistApplications.find(app => 
+          app.userId == product.artistId && app.status === 'approved'
+        )
+        if (artistApp && artistApp.artistNumber) {
+          artistNumber = String(artistApp.artistNumber)
+        }
       }
 
       return {
@@ -83,12 +96,14 @@ Page({
         categoryName: categoryName || '',
         deliveryDays: product.deliveryDays || 0,
         artistName, // 🎯 保存画师名字供显示
+        artistNumber, // 🎯 保存画师编号供显示
         searchTokens: [
           (product.name || '').toLowerCase(),
           (categoryName || '').toLowerCase(),
-          (artistName || '').toLowerCase(), // 🎯 添加画师名字到搜索tokens
+          (artistName || '').toLowerCase(), // 🎯 画师名字
+          artistNumber ? String(artistNumber).toLowerCase() : '', // 🎯 画师编号（确保不为undefined）
           ...(tags.map(tag => String(tag).toLowerCase()))
-        ].filter(Boolean)
+        ].filter(token => token && token.length > 0) // 🎯 过滤空字符串
       }
     }).filter(item => !!item.id)
 

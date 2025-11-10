@@ -93,6 +93,11 @@
                 data-filter="completed">
             已完成
           </view>
+          <view class="filter-tab {{currentFilter === 'refunded' ? 'active' : ''}}" 
+                bindtap="filterOrders" 
+                data-filter="refunded">
+            已退款
+          </view>
         </view>
       </view>
 

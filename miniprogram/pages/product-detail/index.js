@@ -112,9 +112,24 @@ Page({
       }
       
       const categoryName = product.categoryName || categoryService.getCategoryNameById(product.category)
-      const artistId = product.artistId || (product.artist && (product.artist.id || product.artist.userId)) || ''
+      const artistUserId = product.artistId || (product.artist && (product.artist.id || product.artist.userId)) || ''
       const artistName = product.artistName || (product.artist && (product.artist.name || product.artist.nickname)) || '画师'
       const artistAvatar = product.artistAvatar || (product.artist && (product.artist.avatar || product.artist.avatarUrl)) || ''
+
+      // 🎯 新增：获取画师的独立编号（artistNumber）
+      let artistNumber = ''
+      if (artistUserId) {
+        const allApplications = wx.getStorageSync('artist_applications') || []
+        const artistApp = allApplications.find(app => 
+          app.userId === artistUserId && app.status === 'approved'
+        )
+        if (artistApp && artistApp.artistNumber) {
+          artistNumber = artistApp.artistNumber
+          console.log(`✅ 找到画师编号: ${artistNumber} (用户ID: ${artistUserId})`)
+        } else {
+          console.log(`⚠️ 未找到画师编号，用户ID: ${artistUserId}`)
+        }
+      }
 
       // 解析商品简介中的图片占位符
       const summaryContent = this.parseSummaryContent(product.summary || '', product.summaryImages || [])
@@ -130,12 +145,19 @@ Page({
         summaryContent: summaryContent,
         artist: { 
           name: artistName,
-          id: artistId,
+          id: artistNumber || artistUserId, // 🎯 优先使用画师编号，降级为用户ID
+          artistNumber: artistNumber || '', // 🎯 画师独立编号（空字符串代替undefined）
+          userId: artistUserId || '', // 🎯 用户ID（内部使用）
           avatar: artistAvatar
         },
         loading: false
       })
       
+      console.log('🎨 画师信息已设置:', {
+        name: artistName,
+        artistNumber: artistNumber || '未分配',
+        userId: artistUserId
+      })
       console.log('商品数据加载完成，显示价格:', displayPrice)
       await this.loadServiceQR()
       

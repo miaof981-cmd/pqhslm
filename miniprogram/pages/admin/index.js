@@ -6,6 +6,7 @@ const { computeVisualStatus } = require('../../utils/order-visual-status')
 const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
 const { buildGroupName } = require('../../utils/group-helper.js')
 const { runOrderFlowDiagnostics } = require('../../utils/system-check.js')
+const productSales = require('../../utils/product-sales.js')  // 🎯 新增：库存管理
 
 function resolveOrderAmount(order) {
   return parseFloat(order.price || order.totalAmount || order.totalPrice || 0) || 0
@@ -27,6 +28,7 @@ function isPlaceholderServiceName(name) {
 Page({
   data: {
     loading: true,
+    orderLoading: false,  // 🎯 新增：订单列表独立加载状态
     refunding: false,  // 🎯 退款处理中标志
     fromDashboard: false,  // 🎯 标记是否从仪表盘跳转而来
     currentTab: 'dashboard',
@@ -330,16 +332,18 @@ Page({
         }
       }
       
-      // 🎯 优化：获取画师名称（优先级：申请信息 > 用户信息 > 商品自带名称）
+      // 🎯 优化：获取画师名称和编号（优先级：申请信息 > 用户信息 > 商品自带名称）
       const artistId = product.artistId ? String(product.artistId) : ''
       let artistName = ''
+      let artistNumber = '' // 🎯 画师独立编号
       
-      // 1. 优先从画师申请中获取
+      // 1. 优先从画师申请中获取（同时获取编号）
       if (artistId && artistMap.has(artistId)) {
         const application = artistMap.get(artistId)
         artistName = application.name || application.realName || ''
+        artistNumber = application.artistNumber || '' // 🎯 获取画师编号
         if (artistName) {
-          console.log(`✅ 从申请记录获取画师名称: ${artistName}`)
+          console.log(`✅ 从申请记录获取: 名称=${artistName}, 编号=${artistNumber}`)
         }
       }
       
@@ -362,9 +366,13 @@ Page({
         }
       }
       
-      // 4. 如果还是没有，显示"画师ID"
+      // 4. 如果还是没有，显示"画师编号"或"用户ID"
       if (!artistName) {
-        artistName = artistId ? `画师${artistId}` : '未知画师'
+        if (artistNumber) {
+          artistName = `画师${artistNumber}` // 优先显示画师编号
+        } else {
+          artistName = artistId ? `用户${artistId}` : '未知画师'
+        }
       }
       
       // 生成规格信息摘要
@@ -409,8 +417,9 @@ Page({
         isRecommend: product.tags && product.tags.includes('recommend'),
         isSpecial: product.tags && product.tags.includes('special'),
         deliveryDays: product.deliveryDays || 7,
-        artistId: product.artistId,
-        artistName: artistName,
+        artistId: product.artistId, // 用户ID（内部使用）
+        artistNumber: artistNumber, // 🎯 画师独立编号
+        artistName: artistName, // 画师名字（显示用）
         specInfo: specInfo,
         sales: product.sales || 0,
         stock: product.stock || 0
@@ -431,6 +440,9 @@ Page({
     console.log('========================================')
     console.log('📦 [管理后台] 使用统一工具加载订单')
     console.log('========================================')
+    
+    // 🎯 开始加载，显示加载状态
+    this.setData({ orderLoading: true })
     
     // 🎯 使用统一工具函数获取并标准化订单（管理员看所有订单）
     let allOrders = orderHelper.prepareOrdersForPage({
@@ -515,41 +527,63 @@ Page({
     }
     
     console.log('加载订单列表:', formattedOrders.length, '个订单', orderStats)
+    console.log('订单状态分布:', {
+      全部: orderStats.all,
+      待支付: orderStats.unpaid,
+      制作中: orderStats.processing,
+      已完成: orderStats.completed,
+      已退款: orderStats.refunded
+    })
     
+    // 🎯 关键修复：使用 setData 的回调确保数据更新完成后再应用筛选
     this.setData({
       allOrders: formattedOrders,
-      orderStats: orderStats
+      orderStats: orderStats,
+      loading: false  // 🎯 关闭页面整体加载状态
+    }, () => {
+      // 🎯 数据更新完成后，应用当前筛选条件
+      console.log('✅ 订单数据已设置到 state，当前 allOrders 数量:', this.data.allOrders.length)
+      console.log('✅ 当前筛选器:', this.data.orderFilter)
+      this.applyCurrentOrderFilter()
+      this.collectAlerts()
+      // 🎯 筛选完成后关闭订单加载状态
+      this.setData({ orderLoading: false })
     })
-
-    // 🎯 应用当前筛选条件（确保刷新后保持筛选状态）
-    this.applyCurrentOrderFilter()
-
-    this.collectAlerts()
   },
 
   // 🎯 新增：应用当前订单筛选（状态+时间）
   applyCurrentOrderFilter() {
     const filter = this.data.orderFilter
-    let allOrders = this.data.allOrders
+    let allOrders = this.data.allOrders || []
+    
+    console.log(`🔍 应用筛选器: ${filter}, 总订单数: ${allOrders.length}`)
     
     // 🎯 修复：先应用时间筛选
     allOrders = this.filterOrdersByTime(allOrders)
+    console.log(`⏰ 时间筛选后: ${allOrders.length} 个订单`)
 
     // 再应用状态筛选
+    let filtered = []
     if (filter === 'all') {
-      this.setData({ orders: allOrders })
+      filtered = allOrders
     } else if (filter === 'processing') {
       const processingSet = new Set(['unpaid', 'paid', 'processing', 'inProgress', 'waitingConfirm', 'nearDeadline'])
-      const filtered = allOrders.filter(o => processingSet.has(o.status))
-      this.setData({ orders: filtered })
+      filtered = allOrders.filter(o => processingSet.has(o.status))
     } else if (filter === 'refunded') {
       // 🎯 已退款：包含 refunding 和 refunded 状态
-      const filtered = allOrders.filter(o => o.status === 'refunding' || o.status === 'refunded')
-      this.setData({ orders: filtered })
+      filtered = allOrders.filter(o => {
+        const isRefunded = o.status === 'refunding' || o.status === 'refunded' || o.refundStatus === 'refunded'
+        if (isRefunded) {
+          console.log(`✅ 找到已退款订单: ${o._id || o.id}, status=${o.status}, refundStatus=${o.refundStatus}`)
+        }
+        return isRefunded
+      })
     } else {
-      const filtered = allOrders.filter(o => o.status === filter)
-      this.setData({ orders: filtered })
+      filtered = allOrders.filter(o => o.status === filter)
     }
+    
+    console.log(`📊 筛选结果: ${filtered.length} 个订单`)
+    this.setData({ orders: filtered })
   },
 
   // 加载画师列表
@@ -709,14 +743,22 @@ Page({
   // 切换主标签
   switchMainTab(e) {
     const tab = e.currentTarget.dataset.tab
-    this.setData({ 
-      currentTab: tab,
-      fromDashboard: false  // 🎯 手动切换标签时清除来源标记
-    })
     
-    // 🎯 切换到订单标签时，确保应用筛选（修复首次进入时订单列表为空的问题）
+    // 🎯 切换到订单标签时，强制重新加载订单（确保数据最新）
     if (tab === 'order') {
-      this.applyCurrentOrderFilter()
+      console.log('📋 ========== 切换到订单标签，强制刷新 ==========')
+      // 🎯 切换标签，loadOrders会自动设置orderLoading
+      this.setData({ 
+        currentTab: tab,
+        fromDashboard: false  // 🎯 手动切换标签时清除来源标记
+      })
+      // 🎯 修复：强制重新加载订单，loadOrders内部会设置orderLoading并调用applyCurrentOrderFilter
+      this.loadOrders()
+    } else {
+      this.setData({ 
+        currentTab: tab,
+        fromDashboard: false
+      })
     }
   },
 
@@ -886,7 +928,13 @@ Page({
       orderFilter: 'all',
       fromDashboard: true  // 标记来自仪表盘
     })
-    this.applyCurrentOrderFilter()
+    // 🎯 修复：如果订单未加载，先加载再筛选
+    if (!this.data.allOrders || this.data.allOrders.length === 0) {
+      console.log('⚠️ 订单数据未加载，从仪表盘跳转时重新加载')
+      this.loadOrders()
+    } else {
+      this.applyCurrentOrderFilter()
+    }
   },
 
   // 🎯 从仪表盘跳转到已退款订单
@@ -896,7 +944,13 @@ Page({
       orderFilter: 'refunded',
       fromDashboard: true  // 标记来自仪表盘
     })
-    this.filterOrders({ currentTarget: { dataset: { filter: 'refunded' } } })
+    // 🎯 修复：如果订单未加载，先加载再筛选
+    if (!this.data.allOrders || this.data.allOrders.length === 0) {
+      console.log('⚠️ 订单数据未加载，从仪表盘跳转退款订单时重新加载')
+      this.loadOrders()
+    } else {
+      this.filterOrders({ currentTarget: { dataset: { filter: 'refunded' } } })
+    }
   },
   
   // 🎯 返回仪表盘
@@ -1319,10 +1373,22 @@ Page({
     
     wx.showLoading({ title: '退款处理中...', mask: true })
     
-    // 同时从两个存储源读取
-    let ordersFromOrders = wx.getStorageSync('orders') || []
-    let ordersFromPending = wx.getStorageSync('pending_orders') || []
+    // 🎯 读取所有可能的订单存储源
+    const orders = wx.getStorageSync('orders') || []
+    const pendingOrders = wx.getStorageSync('pending_orders') || []
+    const completedOrders = wx.getStorageSync('completed_orders') || []
+    const mockOrders = wx.getStorageSync('mock_orders') || []
     const timestamp = new Date().toISOString()
+    
+    console.log('🔄 [管理后台] 开始退款处理:', {
+      orderId,
+      订单数源: {
+        orders: orders.length,
+        pending: pendingOrders.length,
+        completed: completedOrders.length,
+        mock: mockOrders.length
+      }
+    })
     
     const refundData = {
       status: 'refunded',
@@ -1344,29 +1410,30 @@ Page({
       ]
     }
     
-    // 先在 pending_orders 中查找
-    const pendingIndex = ordersFromPending.findIndex(o => o.id === orderId)
-    if (pendingIndex !== -1) {
-      ordersFromPending[pendingIndex] = orderHelper.mergeOrderRecords(
-        ordersFromPending[pendingIndex],
-        refundData
-      )
-      wx.setStorageSync('pending_orders', ordersFromPending)
+    // 统一处理：更新所有数据源
+    let foundInAnySource = false
+    const updateStatus = (list, sourceName) => {
+      const updated = list.map(o => {
+        if (o.id === orderId) {
+          console.log(`✅ 在 ${sourceName} 中找到订单 ${orderId}，更新状态为 refunded`)
+          foundInAnySource = true
+          return orderHelper.mergeOrderRecords(o, refundData)
+        }
+        return o
+      })
+      return updated
     }
     
-    // 再在 orders 中查找（如果存在）
-    const orderIndex = ordersFromOrders.findIndex(o => o.id === orderId)
-    if (orderIndex !== -1) {
-      ordersFromOrders[orderIndex] = orderHelper.mergeOrderRecords(
-        ordersFromOrders[orderIndex],
-        refundData
-      )
-      wx.setStorageSync('orders', ordersFromOrders)
-    }
+    // 🎯 更新所有4个数据源
+    wx.setStorageSync('orders', updateStatus(orders, 'orders'))
+    wx.setStorageSync('pending_orders', updateStatus(pendingOrders, 'pending_orders'))
+    wx.setStorageSync('completed_orders', updateStatus(completedOrders, 'completed_orders'))
+    wx.setStorageSync('mock_orders', updateStatus(mockOrders, 'mock_orders'))
 
-    if (pendingIndex === -1 && orderIndex === -1) {
+    if (!foundInAnySource) {
       wx.hideLoading()
       this.setData({ refunding: false })
+      console.warn('⚠️ 订单在所有数据源中都未找到:', orderId)
       wx.showToast({
         title: '订单不存在',
         icon: 'none'
@@ -1378,19 +1445,38 @@ Page({
     console.log('  - 订单ID:', orderId)
     console.log('  - 退款金额:', refundAmount)
     console.log('  - 退款时间:', new Date().toLocaleString())
+    console.log('💾 已保存退款状态到所有数据源')
+    
+    // 🎯 新增：退款时回退库存
+    if (orderInfo && orderInfo.productId) {
+      const quantity = orderInfo.quantity || 1
+      const restored = productSales.increaseStock(orderInfo.productId, quantity)
+      if (restored) {
+        console.log('✅ 库存已回退:', { productId: orderInfo.productId, quantity })
+      } else {
+        console.warn('⚠️ 库存回退失败（可能是无限库存商品）')
+      }
+    } else {
+      console.warn('⚠️ 订单信息不完整，无法回退库存')
+    }
 
     // 🎯 延迟500ms后刷新
     setTimeout(() => {
       wx.hideLoading()
-      this.setData({ refunding: false })
       
       wx.showToast({
         title: '退款成功',
-        icon: 'success'
+        icon: 'success',
+        duration: 1500
       })
       
-      // 刷新订单列表
-      this.loadOrders()
+      // 🎯 修复：立即刷新订单列表，确保退款状态显示正确
+      setTimeout(() => {
+        this.setData({ refunding: false })
+        console.log('🔄 退款完成，强制重新加载订单列表...')
+        // 🎯 关键：退款后强制刷新，不依赖延迟
+        this.loadOrders()
+      }, 100)  // 减少延迟，加快刷新速度
     }, 500)
   },
 

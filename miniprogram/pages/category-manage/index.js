@@ -160,8 +160,8 @@ Page({
           if (index !== -1) {
             categories[index].status = status === 'active' ? 'disabled' : 'active'
             wx.setStorageSync('product_categories', categories)
-            wx.showToast({ title: `已${action}`, icon: 'success' })
-            this.loadCategories()
+          wx.showToast({ title: `已${action}`, icon: 'success' })
+          this.loadCategories()
           }
         }
       }

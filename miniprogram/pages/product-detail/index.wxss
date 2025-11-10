@@ -141,23 +141,30 @@
   align-items: center;
 }
 
-/* 🎯 增强画师行的可点击性（保持padding一致） */
-.info-row:hover {
-  background-color: #FAFAFA;
+/* 🎯 修改：画师信息行不可点击 */
+.artist-info-readonly {
+  cursor: default;
 }
 
-.info-row:active {
-  background-color: #F5F5F5;
+.artist-info-readonly:hover,
+.artist-info-readonly:active {
+  background-color: white;
 }
 
-.arrow {
-  font-size: 32rpx;
-  color: #A8E6CF;
-  font-weight: 600;
-  margin-left: 8rpx;
-  line-height: 1;
+.info-value-wrap {
+  flex: 1;
   display: flex;
   align-items: center;
+  gap: 16rpx;
+}
+
+.artist-id {
+  font-size: 24rpx;
+  color: #999;
+  background: linear-gradient(135deg, #F0F0F0 0%, #E8E8E8 100%);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
 }
 
 /* ===== 商品详情 ===== */
