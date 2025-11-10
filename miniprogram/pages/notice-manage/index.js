@@ -1,3 +1,10 @@
+const orderStatusUtil = require('../../utils/order-status.js')
+
+/**
+ * 🔧 iOS兼容的日期解析函数
+ */
+const parseDate = orderStatusUtil.parseDate
+
 Page({
   data: {
     loading: true,
@@ -48,7 +55,8 @@ Page({
     try {
       const notices = wx.getStorageSync('notices') || []
       // 按创建时间倒序
-      notices.sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
+      // 🔧 iOS兼容：使用parseDate函数
+      notices.sort((a, b) => parseDate(b.createTime) - parseDate(a.createTime))
       
       this.setData({ 
         notices,

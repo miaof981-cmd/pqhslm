@@ -4,6 +4,11 @@ const { computeVisualStatus } = require('../../utils/order-visual-status')
 const { buildGroupName } = require('../../utils/group-helper.js')
 const productSales = require('../../utils/product-sales.js')  // 🎯 新增：库存管理
 
+/**
+ * 🔧 iOS兼容的日期解析函数
+ */
+const parseDate = orderStatusUtil.parseDate
+
 Page({
   data: {
     loading: true,
@@ -141,7 +146,8 @@ Page({
     if (!order.deadline) return ''
     
     const now = Date.now()
-    const deadline = new Date(order.deadline).getTime()
+    // 🔧 iOS兼容：使用parseDate函数
+    const deadline = parseDate(order.deadline).getTime()
     const diffTime = deadline - now
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 

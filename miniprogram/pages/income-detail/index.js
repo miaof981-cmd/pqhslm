@@ -1,4 +1,10 @@
 const serviceIncome = require('../../utils/service-income.js')
+const orderStatusUtil = require('../../utils/order-status.js')
+
+/**
+ * 🔧 iOS兼容的日期解析函数
+ */
+const parseDate = orderStatusUtil.parseDate
 
 Page({
   data: {
@@ -113,7 +119,8 @@ Page({
           title: order.productName || `订单 ${order.id}`,
           amount: artistShare,
           isIncome: true,
-          timestamp: new Date(order.completedAt || order.createTime).getTime(),
+          // 🔧 iOS兼容：使用parseDate函数
+          timestamp: parseDate(order.completedAt || order.createTime).getTime(),
           time: this.formatTime(order.completedAt || order.createTime)
         })
       })
@@ -128,7 +135,8 @@ Page({
           title: entry.note || `订单分成`,
           amount: parseFloat(entry.amount),
           isIncome: true,
-          timestamp: new Date(entry.orderCompletedAt || entry.createdAt).getTime(),
+          // 🔧 iOS兼容：使用parseDate函数
+          timestamp: parseDate(entry.orderCompletedAt || entry.createdAt).getTime(),
           time: this.formatTime(entry.orderCompletedAt || entry.createdAt)
         })
       })
@@ -143,7 +151,8 @@ Page({
           title: entry.note || `订单分成`,
           amount: parseFloat(entry.amount),
           isIncome: true,
-          timestamp: new Date(entry.orderCompletedAt || entry.createdAt).getTime(),
+          // 🔧 iOS兼容：使用parseDate函数
+          timestamp: parseDate(entry.orderCompletedAt || entry.createdAt).getTime(),
           time: this.formatTime(entry.orderCompletedAt || entry.createdAt)
         })
       })

@@ -1,4 +1,10 @@
 const serviceIncome = require('../../utils/service-income.js')
+const orderStatusUtil = require('../../utils/order-status.js')
+
+/**
+ * 🔧 iOS兼容的日期解析函数
+ */
+const parseDate = orderStatusUtil.parseDate
 
 Page({
   data: {
@@ -83,7 +89,8 @@ Page({
 
   // 判断订单是否在时间范围内
   isOrderInRange(order, startDate, endDate) {
-    const orderTime = new Date(order.createTime || order.orderTime)
+    // 🔧 iOS兼容：使用parseDate函数
+    const orderTime = parseDate(order.createTime || order.orderTime)
     return orderTime >= startDate && orderTime <= endDate
   },
 
@@ -191,7 +198,8 @@ Page({
     
     // 统计打赏收入（期间内）
     rewardRecords.forEach(record => {
-      const rewardTime = new Date(record.createTime)
+      // 🔧 iOS兼容：使用parseDate函数
+      const rewardTime = parseDate(record.createTime)
       if (rewardTime < startDate || rewardTime > endDate) return
       
       const artistId = String(record.artistId)
@@ -257,7 +265,8 @@ Page({
     serviceLedger.forEach(entry => {
       if (entry.incomeType !== 'service') return
       
-      const entryTime = new Date(entry.createTime)
+      // 🔧 iOS兼容：使用parseDate函数
+      const entryTime = parseDate(entry.createTime)
       if (entryTime < startDate || entryTime > endDate) return
       
       const userId = String(entry.userId)
@@ -322,7 +331,8 @@ Page({
     serviceLedger.forEach(entry => {
       if (entry.incomeType !== 'admin_share') return
       
-      const entryTime = new Date(entry.createTime)
+      // 🔧 iOS兼容：使用parseDate函数
+      const entryTime = parseDate(entry.createTime)
       if (entryTime < startDate || entryTime > endDate) return
       
       const userId = String(entry.userId)

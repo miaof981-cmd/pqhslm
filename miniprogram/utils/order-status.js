@@ -280,6 +280,9 @@ module.exports = {
   // 头像兜底（新增）
   withServiceFallback,
   withServicesFallback,
-  DEFAULT_AVATAR
+  DEFAULT_AVATAR,
+  
+  // 🔧 iOS兼容日期解析（新增）
+  parseDate
 }
 

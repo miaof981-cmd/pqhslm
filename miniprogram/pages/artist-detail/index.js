@@ -1,6 +1,11 @@
 const orderHelper = require('../../utils/order-helper.js')
-
+const orderStatusUtil = require('../../utils/order-status.js')
 const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
+
+/**
+ * 🔧 iOS兼容的日期解析函数
+ */
+const parseDate = orderStatusUtil.parseDate
 
 Page({
   data: {
@@ -171,7 +176,8 @@ Page({
       const now = new Date()
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
       const monthOrders = artistOrders.filter(o => {
-        const orderDate = new Date(o.createTime)
+        // 🔧 iOS兼容：使用parseDate函数
+        const orderDate = parseDate(o.createTime)
         return orderDate >= thirtyDaysAgo
       })
       

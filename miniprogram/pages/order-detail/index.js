@@ -7,6 +7,11 @@ const staffFinance = require('../../utils/staff-finance.js')
 const serviceIncome = require('../../utils/service-income.js')  // 🎯 新增：客服收入管理
 const productSales = require('../../utils/product-sales.js')  // 🎯 新增：商品销量更新
 
+/**
+ * 🔧 iOS兼容的日期解析函数
+ */
+const parseDate = orderStatusUtil.parseDate
+
 function normalizeString(value) {
   if (typeof value !== 'string') return ''
   return value.trim()
@@ -525,7 +530,8 @@ Page({
                 updated = true
                 // 检查是否脱稿
                 const now = new Date()
-                const deadline = new Date(order.deadline)
+                // 🔧 iOS兼容：使用parseDate函数
+                const deadline = parseDate(order.deadline)
                 const wasOverdue = now > deadline
                 const overdueDays = wasOverdue ? Math.ceil((now - deadline) / (24 * 60 * 60 * 1000)) : 0
                 

@@ -1,5 +1,19 @@
 const orderHelper = require('../../utils/order-helper.js')
 
+/**
+ * 🔧 iOS兼容的日期解析函数
+ * 将 "yyyy-MM-dd HH:mm:ss" 转换为 "yyyy/MM/dd HH:mm:ss" 以兼容iOS
+ * @param {string} dateStr - 日期字符串
+ * @returns {Date} Date 对象
+ */
+function parseDate(dateStr) {
+  if (!dateStr) return new Date()
+  // iOS 不支持 "yyyy-MM-dd HH:mm:ss" 格式（中间有空格）
+  // 必须将 - 替换为 / 或使用 T 连接
+  const iosCompatibleDate = String(dateStr).replace(/-/g, '/')
+  return new Date(iosCompatibleDate)
+}
+
 Page({
   data: {
     loading: true,
@@ -73,11 +87,12 @@ Page({
         user.orderCount += 1
         user.orders.push(order)
         
-        const orderTime = new Date(order.createdAt || order.createTime || order.orderTime)
-        if (!user.lastOrderTime || orderTime > new Date(user.lastOrderTime)) {
+        // 🔧 iOS兼容：使用parseDate函数
+        const orderTime = parseDate(order.createdAt || order.createTime || order.orderTime)
+        if (!user.lastOrderTime || orderTime > parseDate(user.lastOrderTime)) {
           user.lastOrderTime = order.createdAt || order.createTime || order.orderTime
         }
-        if (!user.firstOrderTime || orderTime < new Date(user.firstOrderTime)) {
+        if (!user.firstOrderTime || orderTime < parseDate(user.firstOrderTime)) {
           user.firstOrderTime = order.createdAt || order.createTime || order.orderTime
         }
       })

@@ -8,6 +8,20 @@ const { buildGroupName } = require('../../utils/group-helper.js')
 const { runOrderFlowDiagnostics } = require('../../utils/system-check.js')
 const productSales = require('../../utils/product-sales.js')  // 🎯 新增：库存管理
 
+/**
+ * 🔧 iOS兼容的日期解析函数
+ * 将 "yyyy-MM-dd HH:mm:ss" 转换为 "yyyy/MM/dd HH:mm:ss" 以兼容iOS
+ * @param {string} dateStr - 日期字符串
+ * @returns {Date} Date 对象
+ */
+function parseDate(dateStr) {
+  if (!dateStr) return new Date()
+  // iOS 不支持 "yyyy-MM-dd HH:mm:ss" 格式（中间有空格）
+  // 必须将 - 替换为 / 或使用 T 连接
+  const iosCompatibleDate = String(dateStr).replace(/-/g, '/')
+  return new Date(iosCompatibleDate)
+}
+
 function resolveOrderAmount(order) {
   return parseFloat(order.price || order.totalAmount || order.totalPrice || 0) || 0
 }
@@ -201,7 +215,8 @@ Page({
     const overdueOrders = allOrders.filter(o => {
       if (o.status === 'completed' || o.status === 'refunded') return false
       if (!o.deadline) return false
-      const deadline = new Date(o.deadline)
+      // 🔧 iOS兼容：使用parseDate函数
+      const deadline = parseDate(o.deadline)
       return deadline < now
     }).length
     
@@ -247,7 +262,8 @@ Page({
     const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
     
     return orders.filter(order => {
-      const orderTime = new Date(order.createdAt || order.createTime || order.orderTime)
+      // 🔧 iOS兼容：使用parseDate函数解析订单时间
+      const orderTime = parseDate(order.createdAt || order.createTime || order.orderTime)
       if (isNaN(orderTime.getTime())) return false
 
       switch (timeFilter) {
@@ -1638,14 +1654,16 @@ Page({
       // 2. 同优先级，按时间排序
       // 已完成的按完成时间倒序（新完成的在前）
       if (a.status === 'completed' && b.status === 'completed') {
-        const timeA = new Date(a.completedAt || a.createTime).getTime()
-        const timeB = new Date(b.completedAt || b.createTime).getTime()
+        // 🔧 iOS兼容：使用parseDate函数
+        const timeA = parseDate(a.completedAt || a.createTime).getTime()
+        const timeB = parseDate(b.completedAt || b.createTime).getTime()
         return timeB - timeA
       }
       
       // 其他状态按创建时间倒序（新订单在前）
-      const timeA = new Date(a.createTime).getTime()
-      const timeB = new Date(b.createTime).getTime()
+      // 🔧 iOS兼容：使用parseDate函数
+      const timeA = parseDate(a.createTime).getTime()
+      const timeB = parseDate(b.createTime).getTime()
       return timeB - timeA
     })
   },

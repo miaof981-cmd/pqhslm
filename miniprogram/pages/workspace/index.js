@@ -3,6 +3,11 @@ const orderHelper = require('../../utils/order-helper.js')
 const orderStatusUtil = require('../../utils/order-status')
 const { computeVisualStatus } = require('../../utils/order-visual-status')
 
+/**
+ * 🔧 iOS兼容的日期解析函数
+ */
+const parseDate = orderStatusUtil.parseDate
+
 Page({
   data: {
     loading: true,
@@ -185,7 +190,8 @@ Page({
       const userApplications = applications.filter(app => app.userId === userId)
       
       if (userApplications.length > 0) {
-        userApplications.sort((a, b) => new Date(b.submitTime) - new Date(a.submitTime))
+        // 🔧 iOS兼容：使用parseDate函数
+        userApplications.sort((a, b) => parseDate(b.submitTime) - parseDate(a.submitTime))
         const latestApp = userApplications[0]
         
         console.log('📋 最新申请状态:', latestApp.status)
