@@ -102,7 +102,9 @@ Page({
       // 添加订单稿费收入
       myCompletedOrders.forEach(order => {
         const orderAmount = parseFloat(order.totalPrice) || parseFloat(order.price) || 0
-        const artistShare = Math.max(0, orderAmount - PLATFORM_DEDUCTION)
+        const quantity = parseInt(order.quantity) || 1
+        const totalDeduction = PLATFORM_DEDUCTION_PER_ITEM * quantity
+        const artistShare = Math.max(0, orderAmount - totalDeduction)
         transactions.push({
           id: `order_${order.id}`,
           type: 'income',

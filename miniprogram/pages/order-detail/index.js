@@ -5,6 +5,11 @@ const staffFinance = require('../../utils/staff-finance.js')
 const serviceIncome = require('../../utils/service-income.js')  // 🎯 新增：客服收入管理
 const productSales = require('../../utils/product-sales.js')  // 🎯 新增：商品销量更新
 
+function normalizeString(value) {
+  if (typeof value !== 'string') return ''
+  return value.trim()
+}
+
 Page({
   data: {
     loading: true,
@@ -110,7 +115,14 @@ Page({
   // 加载客服二维码
   loadServiceQRCode(order) {
     // 🎯 修复：先检查订单数据中的多个可能字段
-    const orderQr = order.serviceQRCode || order.serviceQrcodeUrl || order.serviceQrcode || order.qrCode
+    const orderQr = normalizeString(
+      order.serviceQRCode ||
+      order.serviceQrCode ||
+      order.serviceQrcode ||
+      order.serviceQrcodeUrl ||
+      order.serviceWechat ||
+      order.qrCode
+    )
     if (orderQr && orderQr.trim()) {
       console.log('✅ 从订单数据加载客服二维码')
       this.setData({
@@ -132,9 +144,18 @@ Page({
         String(s.userId) === String(order.serviceId)
       )
       
-      const qrImage = service
-        ? service.qrCode || service.qrcodeUrl || service.serviceQrcodeUrl || service.qrcode || service.qrcodeNumber
-        : ''
+      const qrImage = normalizeString(
+        service
+          ? service.qrCode ||
+            service.qrcode ||
+            service.qrcodeUrl ||
+            service.serviceQrcode ||
+            service.serviceQrcodeUrl ||
+            service.serviceQrCode ||
+            service.wechatQrcode ||
+            service.qrcodeNumber
+          : ''
+      )
       
       if (service && qrImage && qrImage.trim()) {
         console.log('✅ 成功从客服列表加载二维码:', service.name || service.nickName)
@@ -147,7 +168,12 @@ Page({
     
     // 🎯 兜底方案：从系统设置加载默认客服二维码
     const systemSettings = wx.getStorageSync('system_settings') || {}
-    const defaultQr = systemSettings.serviceQrcode
+    const defaultQr = normalizeString(
+      systemSettings.serviceQrcode ||
+      systemSettings.serviceQrCode ||
+      systemSettings.defaultServiceQr ||
+      systemSettings.customerServiceQr
+    )
     
     if (defaultQr && defaultQr.trim()) {
       console.log('✅ 使用系统默认客服二维码')
@@ -340,20 +366,26 @@ Page({
 
     // 获取截稿日期（格式：x月x日）- iOS 兼容
     let deadlineText = ''
-    if (order.deadline) {
-      // 将 "yyyy-MM-dd HH:mm:ss" 转换为 "yyyy/MM/dd HH:mm:ss"（iOS 兼容）
-      const iosCompatibleDate = order.deadline.replace(/-/g, '/')
-      const deadlineDate = new Date(iosCompatibleDate)
-      const month = deadlineDate.getMonth() + 1
-      const day = deadlineDate.getDate()
-      
-      // 检查日期是否有效
-      if (!isNaN(month) && !isNaN(day)) {
+    const rawDeadline = order.deadline || order.deliveryDeadline || order.deadlineText || order.deliveryTime
+    if (typeof rawDeadline === 'string' && rawDeadline.trim()) {
+      let sanitized = rawDeadline.trim()
+      sanitized = sanitized.replace(/T/g, ' ')
+      sanitized = sanitized.replace(/[年\.\/]/g, '-').replace(/月/g, '-').replace(/日/g, '')
+      sanitized = sanitized.replace(/--+/g, '-').replace(/\s+/g, ' ')
+      sanitized = sanitized.replace(/-$/g, '')
+      const candidate = sanitized.replace(/-/g, '/').replace(/\s+/g, ' ')
+      const deadlineDate = new Date(candidate)
+      if (!Number.isNaN(deadlineDate.getTime())) {
+        const month = deadlineDate.getMonth() + 1
+        const day = deadlineDate.getDate()
         deadlineText = `${month}月${day}日`
       } else {
-        console.error('❌ 日期解析失败:', order.deadline)
-        deadlineText = '日期'
+        console.warn('⚠️ 截稿日期格式无法解析，使用默认占位', rawDeadline)
       }
+    }
+
+    if (!deadlineText) {
+      deadlineText = '日期待定'
     }
 
     // 获取商品名
@@ -361,6 +393,13 @@ Page({
 
     // 生成群名：【联盟xxxx】x月x日出商品名
     const groupName = `【联盟${last4Digits}】${deadlineText}出${productName}`
+
+    if (deadlineText === '日期待定') {
+      wx.showToast({
+        title: '截稿日期异常，请手动确认',
+        icon: 'none'
+      })
+    }
 
     wx.setClipboardData({
       data: groupName,
@@ -375,22 +414,49 @@ Page({
 
   // 联系客服
   contactService() {
-    // 从本地存储读取客服二维码
-    const serviceQRCode = wx.getStorageSync('service_qrcode') || '/assets/default-service-qr.png'
-    
+    const { order } = this.data
+
+    // 优先使用订单中已经加载的二维码
+    const fallbackQr = '/assets/default-service-qr.png'
+    const storedQr = normalizeString(wx.getStorageSync('service_qrcode'))
+    const orderQr = order ? normalizeString(order.serviceQRCode) : ''
+    const serviceQRCode = orderQr || storedQr || fallbackQr
+
     this.setData({
-      serviceQRCode: serviceQRCode,
+      serviceQRCode,
       showServiceQR: true
     })
   },
 
   // 投诉
   showComplaint() {
-    // 从本地存储读取投诉二维码
-    const complaintQRCode = wx.getStorageSync('complaint_qrcode') || '/assets/default-complaint-qr.png'
-    
+    const { order } = this.data
+
+    const fallbackQr = '/assets/default-complaint-qr.png'
+    const storedQr = normalizeString(
+      wx.getStorageSync('complaint_qrcode') ||
+      wx.getStorageSync('complaintQRCode') ||
+      wx.getStorageSync('after_sale_qrcode')
+    )
+
+    const orderComplaintQr = order
+      ? normalizeString(
+          order.complaintQRCode ||
+          order.complaintQrCode ||
+          order.afterSaleQrcode ||
+          order.afterSaleQrCode ||
+          order.afterSaleQRCode ||
+          order.afterSalesQr ||
+          order.afterSalesQrcode ||
+          order.complaintQrcode ||
+          order.complaintWechat
+        )
+      : ''
+
+    const complaintQRCode = orderComplaintQr || storedQr || fallbackQr
+
     this.setData({
-      complaintQRCode: complaintQRCode,
+      complaintQRCode,
       showComplaintQR: true
     })
   },
