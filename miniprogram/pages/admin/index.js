@@ -4,6 +4,7 @@ const staffFinance = require('../../utils/staff-finance.js')  // 🎯 新增
 const orderStatusUtil = require('../../utils/order-status.js')
 const { computeVisualStatus } = require('../../utils/order-visual-status')
 const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
+const { buildGroupName } = require('../../utils/group-helper.js')
 const { runOrderFlowDiagnostics } = require('../../utils/system-check.js')
 
 function resolveOrderAmount(order) {
@@ -162,7 +163,7 @@ Page({
     
     // 计算订单统计
     const orderCount = filteredOrders.length
-    const processingStatuses = new Set(['processing', 'paid', 'inProgress', 'waitingConfirm', 'nearDeadline'])
+    const processingStatuses = new Set(['unpaid', 'paid', 'processing', 'inProgress', 'waitingConfirm', 'nearDeadline'])
     const processingOrders = filteredOrders.filter(o => processingStatuses.has(o.status))
     const completedOrders = filteredOrders.filter(o => o.status === 'completed')
     const refundingOrders = filteredOrders.filter(o => o.status === 'refunding' || o.status === 'refunded')
@@ -412,8 +413,8 @@ Page({
         artistName: artistName,
         specInfo: specInfo,
         sales: product.sales || 0,
-        stock: product.stock || 0,
-        views: product.views || 0
+        stock: product.stock || 0
+        // 🎯 移除：浏览数字（views）不再显示
       }
     })
     
@@ -502,7 +503,7 @@ Page({
     })
     
     // 计算订单统计
-    const processingSet = new Set(['processing', 'paid', 'inProgress', 'waitingConfirm', 'nearDeadline'])
+    const processingSet = new Set(['unpaid', 'paid', 'processing', 'inProgress', 'waitingConfirm', 'nearDeadline'])
     const refundingSet = new Set(['refunding', 'refunded'])
 
     const orderStats = {
@@ -538,7 +539,7 @@ Page({
     if (filter === 'all') {
       this.setData({ orders: allOrders })
     } else if (filter === 'processing') {
-      const processingSet = new Set(['processing', 'paid', 'inProgress', 'waitingConfirm', 'nearDeadline'])
+      const processingSet = new Set(['unpaid', 'paid', 'processing', 'inProgress', 'waitingConfirm', 'nearDeadline'])
       const filtered = allOrders.filter(o => processingSet.has(o.status))
       this.setData({ orders: filtered })
     } else if (filter === 'refunded') {
@@ -786,7 +787,7 @@ Page({
     if (filter === 'all') {
       this.setData({ orders: this.data.allOrders })
     } else if (filter === 'processing') {
-      const processingSet = new Set(['processing', 'paid', 'inProgress', 'waitingConfirm', 'nearDeadline'])
+      const processingSet = new Set(['unpaid', 'paid', 'processing', 'inProgress', 'waitingConfirm', 'nearDeadline'])
       const filtered = this.data.allOrders.filter(o => processingSet.has(o.status))
       this.setData({ orders: filtered })
     } else if (filter === 'refunded') {
@@ -991,13 +992,25 @@ Page({
     this.setData({ currentTab: 'artist' })
   },
 
+  // 🎯 修复：跳转到待处理订单（包含所有待处理状态）
   goToPendingOrders() {
-    this.setData({ currentTab: 'order', orderFilter: 'paid' })
-    this.filterOrders({ currentTarget: { dataset: { filter: 'paid' } } })
+    this.setData({ 
+      currentTab: 'order',
+      orderFilter: 'processing',  // 使用"制作中"筛选器，包含多种待处理状态
+      fromDashboard: true
+    })
+    // 应用筛选，显示所有制作中的订单
+    this.filterOrders({ currentTarget: { dataset: { filter: 'processing' } } })
   },
 
+  // 🎯 跳转到逾期订单
   goToOverdueOrders() {
-    this.setData({ currentTab: 'order' })
+    this.setData({ 
+      currentTab: 'order',
+      orderFilter: 'all',  // 先切换到全部
+      fromDashboard: true
+    })
+    // 筛选逾期订单
     const overdueOrders = this.data.allOrders.filter(o => o.isOverdue)
     this.setData({ orders: overdueOrders })
   },
@@ -1148,24 +1161,17 @@ Page({
     const order = e.currentTarget.dataset.order
     if (!order) return
 
-    // 获取订单号后四位
-    const orderId = order.fullOrderNo || order.orderNumber || order._id || ''
-    const last4Digits = orderId.toString().slice(-4)
+    const { groupName, usedFallback } = buildGroupName(order, {
+      fallbackDeadlineText: '日期待定'
+    })
 
-    // 获取截稿日期（格式：x月x日）
-    let deadlineText = ''
-    if (order.deadline) {
-      const deadlineDate = new Date(order.deadline)
-      const month = deadlineDate.getMonth() + 1
-      const day = deadlineDate.getDate()
-      deadlineText = `${month}月${day}日`
+    if (usedFallback) {
+      wx.showToast({
+        title: '截稿日期异常，请手动确认',
+        icon: 'none',
+        duration: 2000
+      })
     }
-
-    // 获取商品名
-    const productName = order.productName || '商品'
-
-    // 生成群名：【联盟xxxx】x月x日出商品名
-    const groupName = `【联盟${last4Digits}】${deadlineText}出${productName}`
 
     wx.setClipboardData({
       data: groupName,
