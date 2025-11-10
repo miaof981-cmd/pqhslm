@@ -641,7 +641,7 @@ Page({
           icon: 'success' 
         })
         
-        console.log('✅ 图片已压缩并转换为 base64')
+        console.log('✅ 图片已压缩', validImages.length, '张')
       } else {
         wx.showToast({ title: '图片处理失败', icon: 'none' })
       }
@@ -683,43 +683,37 @@ Page({
               destHeight: height,
               quality: 0.75, // 压缩质量 75%，平衡质量和大小
               success: (canvasRes) => {
-                // 转换为 base64
-                const fs = wx.getFileSystemManager()
-                fs.readFile({
-                  filePath: canvasRes.tempFilePath,
-                  encoding: 'base64',
-                  success: (fileRes) => {
-                    const sizeKB = (fileRes.data.length / 1024).toFixed(2)
-                    
-                    console.log(`📸 图片处理: ${width}x${height}, ${sizeKB}KB`)
-                    
-                    const base64 = 'data:image/jpeg;base64,' + fileRes.data
-                    console.log(`✅ 图片压缩成功: ${sizeKB}KB`)
-                    
-                    resolve({ 
-                      success: true, 
-                      image: base64,
-                      size: sizeKB
-                    })
-                  },
-                  fail: (err) => {
-                    console.error('❌ base64转换失败:', err)
-                    resolve({ success: false, image: null })
-                  }
+                // 🎯 直接使用临时文件路径，不转base64（避免mode渲染问题）
+                console.log(`✅ 图片压缩成功: ${width}x${height}`)
+                
+                resolve({ 
+                  success: true, 
+                  image: canvasRes.tempFilePath,  // 直接用临时路径
+                  size: 0
                 })
               },
               fail: (err) => {
                 console.error('❌ canvas导出失败:', err)
-                // 降级：直接转换原图
-                this.directConvertToBase64(tempPath, resolve)
+                // 降级：直接使用原始临时路径
+                console.log('⚠️ 使用原始临时路径')
+                resolve({ 
+                  success: true, 
+                  image: tempPath,
+                  size: 0
+                })
               }
             }, this)
           })
         },
         fail: (err) => {
           console.error('❌ 获取图片信息失败:', err)
-          // 降级：直接转换
-          this.directConvertToBase64(tempPath, resolve)
+          // 降级：直接使用原始临时路径
+          console.log('⚠️ 使用原始临时路径')
+          resolve({ 
+            success: true, 
+            image: tempPath,
+            size: 0
+          })
         }
       })
     })
@@ -727,10 +721,8 @@ Page({
   
   createPreviewImages(images = []) {
     if (!Array.isArray(images)) return []
-    return images.map(image => ensureRenderableImage(image, {
-      namespace: 'product-cover',
-      fallback: DEFAULT_PLACEHOLDER
-    }))
+    // 🎯 直接返回临时路径，不做转换（避免mode渲染问题）
+    return images.map(image => image || DEFAULT_PLACEHOLDER)
   },
 
   // 直接转换（降级方案）
@@ -991,12 +983,12 @@ Page({
 
       wx.showLoading({ title: '处理中...' })
       
-      // 压缩并转换为 base64
-      const base64 = await this.compressAndConvertImage(res.tempFilePaths[0])
+      // 压缩图片
+      const result = await this.compressAndConvertImage(res.tempFilePaths[0])
       
-      if (base64) {
+      if (result.success) {
         const spec1Values = [...this.data.spec1Values]
-        spec1Values[index].image = base64
+        spec1Values[index].image = result.image
         this.setData({ spec1Values })
 
         wx.hideLoading()
@@ -1110,12 +1102,12 @@ Page({
 
       wx.showLoading({ title: '处理中...' })
       
-      // 压缩并转换为 base64
-      const base64 = await this.compressAndConvertImage(res.tempFilePaths[0])
+      // 压缩图片
+      const result = await this.compressAndConvertImage(res.tempFilePaths[0])
       
-      if (base64) {
+      if (result.success) {
         const spec2Values = [...this.data.spec2Values]
-        spec2Values[index].image = base64
+        spec2Values[index].image = result.image
         this.setData({ spec2Values })
 
         wx.hideLoading()
@@ -1320,13 +1312,13 @@ Page({
       
       wx.showLoading({ title: '处理图片中...' })
       
-      // 压缩并转换所有图片
+      // 压缩所有图片
       const promises = res.tempFilePaths.map(tempPath => {
         return this.compressAndConvertImage(tempPath)
       })
       
-      const base64Images = await Promise.all(promises)
-      const validImages = base64Images.filter(img => img !== null)
+      const results = await Promise.all(promises)
+      const validImages = results.filter(result => result.success).map(result => result.image)
       
       if (validImages.length > 0) {
         const newImages = [...this.data.formData.summaryImages, ...validImages]
