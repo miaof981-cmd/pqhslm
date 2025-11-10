@@ -525,8 +525,8 @@ Page({
     const formattedOrders = allOrders.map(order => {
       // ✅ 状态已由工具函数处理，直接使用
       
-      // 格式化时间：只显示日期和时分
-      const formatTime = (timestamp) => {
+      // 🔧 格式化时间用于显示：只显示月-日 时:分
+      const formatTimeForDisplay = (timestamp) => {
         if (!timestamp) return ''
         const date = new Date(timestamp)
         const month = (date.getMonth() + 1).toString().padStart(2, '0')
@@ -558,8 +558,11 @@ Page({
         amount: resolveOrderAmount(order).toFixed(2),
         status: order.status,
         statusText: order.statusText,
-        createTime: formatTime(order.createdAt || order.createTime),
-        deadline: order.deadline ? formatTime(order.deadline) : '',
+        // 🔧 关键修复：保留原始时间用于逻辑判断，新增显示字段
+        createTime: order.createdAt || order.createTime,  // ✅ 保留完整时间字符串
+        createTimeDisplay: formatTimeForDisplay(order.createdAt || order.createTime),  // ✅ 显示用
+        deadline: order.deadline,  // ✅ 保留完整时间字符串
+        deadlineDisplay: order.deadline ? formatTimeForDisplay(order.deadline) : '',  // ✅ 显示用
         statusKey,
         statusColor,
         progressPercent: progressPercent,
@@ -621,11 +624,12 @@ Page({
     
     console.log(`🔍 应用筛选器: ${filter}, 总订单数: ${allOrders.length}`)
     
-    // 🎯 修复：先应用时间筛选
-    allOrders = this.filterOrdersByTime(allOrders)
-    console.log(`⏰ 时间筛选后: ${allOrders.length} 个订单`)
+    // 🔧 修复：订单列表不应用时间筛选（timeFilter仅用于仪表盘统计）
+    // 订单管理需要看到所有历史订单，不应该被时间筛选限制
+    // allOrders = this.filterOrdersByTime(allOrders)  // ✅ 注释掉时间筛选
+    console.log(`⏰ 订单列表显示全部时间范围的订单`)
 
-    // 再应用状态筛选
+    // 应用状态筛选
     let filtered = []
     if (filter === 'all') {
       filtered = allOrders

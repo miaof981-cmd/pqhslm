@@ -361,11 +361,11 @@
             <view class="progress-header">
               <view class="progress-label">
                 <text class="time-title">下单时间</text>
-                <text class="time-value">{{item.createTime}}</text>
+                <text class="time-value">{{item.createTimeDisplay}}</text>
               </view>
               <view class="progress-label deadline-label {{item.statusKey === 'overdue' ? 'overdue' : ''}}">
                 <text class="time-title">截稿时间</text>
-                <text class="time-value">{{item.deadline || '无'}}</text>
+                <text class="time-value">{{item.deadlineDisplay || '无'}}</text>
               </view>
             </view>
             <view wx:if="{{item.deadline}}" class="progress-bar-container">
