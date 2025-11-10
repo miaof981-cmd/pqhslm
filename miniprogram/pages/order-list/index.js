@@ -3,6 +3,7 @@ const orderHelper = require('../../utils/order-helper.js')
 const orderStatusUtil = require('../../utils/order-status.js')
 const { computeVisualStatus } = require('../../utils/order-visual-status')
 const { DEFAULT_AVATAR_DATA } = require('../../utils/constants.js')
+const { resolveServiceQRCode, resolveComplaintQRCode } = require('../../utils/qrcode-helper.js')
 const staffFinance = require('../../utils/staff-finance.js')
 const serviceIncome = require('../../utils/service-income.js')  // 🎯 新增：客服收入管理
 const productSales = require('../../utils/product-sales.js')  // 🎯 新增：商品销量更新
@@ -140,6 +141,9 @@ Page({
           productId: order.productId,
           productName: order.productName,
           productImage: productImage,  // 使用动态读取的图片
+          serviceId: order.serviceId || order.service_id || order.kfId,
+          serviceQRCode: order.serviceQRCode || order.serviceQrCode || order.serviceQrcode,
+          complaintQRCode: order.complaintQRCode || order.complaintQrCode || order.afterSaleQrcode,
           artistName: order.artistName,      // 直接使用，已由 order-helper 处理
           artistAvatar: order.artistAvatar,  // 直接使用，已由 order-helper 处理
           serviceName: order.serviceName,    // 直接使用，已由 order-helper 处理
@@ -162,7 +166,8 @@ Page({
           overdueDays: order.overdueDays || 0,
           reviewed: Boolean(order.reviewed),
           hasBuyerShow: Boolean(buyerShowId),
-          buyerShowId
+          buyerShowId,
+          rawOrder: order
         }
         
         // 🔍 调试：输出最新订单的转换结果
@@ -310,22 +315,46 @@ Page({
 
   // 联系客服
   contactService(e) {
-    // 从本地存储读取客服二维码
-    const serviceQRCode = wx.getStorageSync('service_qrcode') || '/assets/default-service-qr.png'
-    
+    const orderId = e.currentTarget.dataset.id
+    const currentOrder = this.data.allOrders.find(order => String(order._id) === String(orderId))
+    const sourceOrder = currentOrder ? { ...(currentOrder.rawOrder || {}), ...currentOrder } : null
+    const result = resolveServiceQRCode(sourceOrder || {})
+    const fallback = wx.getStorageSync('service_qrcode') || '/assets/default-service-qr.png'
+    const serviceQRCode = result.value || fallback
+
+    if (!result.value && !fallback) {
+      wx.showToast({
+        title: '客服二维码缺失，请联系管理员',
+        icon: 'none'
+      })
+      return
+    }
+
     this.setData({
-      serviceQRCode: serviceQRCode,
+      serviceQRCode,
       showServiceQR: true
     })
   },
 
   // 投诉
   showComplaint(e) {
-    // 从本地存储读取投诉二维码
-    const complaintQRCode = wx.getStorageSync('complaint_qrcode') || '/assets/default-complaint-qr.png'
+    const orderId = e.currentTarget.dataset.id
+    const currentOrder = this.data.allOrders.find(order => String(order._id) === String(orderId))
+    const sourceOrder = currentOrder ? { ...(currentOrder.rawOrder || {}), ...currentOrder } : null
+    const result = resolveComplaintQRCode(sourceOrder || {})
+    const fallback = wx.getStorageSync('complaint_qrcode') || '/assets/default-complaint-qr.png'
+    const complaintQRCode = result.value || fallback
+
+    if (!result.value && !fallback) {
+      wx.showToast({
+        title: '投诉二维码缺失，请联系客服',
+        icon: 'none'
+      })
+      return
+    }
 
     this.setData({
-      complaintQRCode: complaintQRCode,
+      complaintQRCode,
       showComplaintQR: true
     })
   },
@@ -374,6 +403,31 @@ Page({
   // 确认完成订单
   confirmComplete(e) {
     const orderId = e.currentTarget.dataset.id
+    
+    // 🎯 先检查订单状态
+    const allOrders = [
+      ...(wx.getStorageSync('orders') || []),
+      ...(wx.getStorageSync('pending_orders') || []),
+      ...(wx.getStorageSync('mock_orders') || [])
+    ]
+    const targetOrder = allOrders.find(o => o.id === orderId)
+    
+    if (targetOrder && (targetOrder.status === 'refunded' || targetOrder.refundStatus === 'refunded')) {
+      wx.showToast({
+        title: '订单已退款，无法确认完成',
+        icon: 'none',
+        duration: 2000
+      })
+      return
+    }
+    
+    if (targetOrder && targetOrder.status === 'completed') {
+      wx.showToast({
+        title: '订单已完成',
+        icon: 'none'
+      })
+      return
+    }
     
     wx.showModal({
       title: '确认完成',

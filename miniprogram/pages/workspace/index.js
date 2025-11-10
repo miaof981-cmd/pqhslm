@@ -676,6 +676,24 @@ Page({
       return
     }
     
+    // 🎯 检查订单状态：已退款或已完成的订单不能再操作
+    if (order.status === 'refunded' || order.refundStatus === 'refunded') {
+      wx.showToast({
+        title: '订单已退款，无法操作',
+        icon: 'none',
+        duration: 2000
+      })
+      return
+    }
+    
+    if (order.status === 'completed') {
+      wx.showToast({
+        title: '订单已完成',
+        icon: 'none'
+      })
+      return
+    }
+    
     wx.showModal({
       title: '标记已完成',
       content: `确认订单 ${order.id.slice(-6)} 已在群里交付完成？\n\n标记后将自动通知客户去群里查看作品并确认订单。`,

@@ -1,6 +1,7 @@
 const orderHelper = require('../../utils/order-helper.js')
 const orderStatusUtil = require('../../utils/order-status.js')
 const { computeVisualStatus } = require('../../utils/order-visual-status')
+const { buildGroupName } = require('../../utils/group-helper.js')
 
 Page({
   data: {
@@ -334,24 +335,16 @@ Page({
     const order = e.currentTarget.dataset.order
     if (!order) return
 
-    // 获取订单号后四位
-    const orderId = order.id || order.orderNumber || ''
-    const last4Digits = orderId.toString().slice(-4)
+    const { groupName, usedFallback } = buildGroupName(order, {
+      fallbackDeadlineText: '日期待定'
+    })
 
-    // 获取截稿日期（格式：x月x日）
-    let deadlineText = ''
-    if (order.deadline) {
-      const deadlineDate = new Date(order.deadline)
-      const month = deadlineDate.getMonth() + 1
-      const day = deadlineDate.getDate()
-      deadlineText = `${month}月${day}日`
+    if (usedFallback) {
+      wx.showToast({
+        title: '截稿日期异常，请手动确认',
+        icon: 'none'
+      })
     }
-
-    // 获取商品名
-    const productName = order.productName || '商品'
-
-    // 生成群名：【联盟xxxx】x月x日出商品名
-    const groupName = `【联盟${last4Digits}】${deadlineText}出${productName}`
 
     wx.setClipboardData({
       data: groupName,
@@ -451,9 +444,10 @@ Page({
     // 更新订单状态
     const orders = wx.getStorageSync('orders') || []
     const pendingOrders = wx.getStorageSync('pending_orders') || []
+    const mockOrders = wx.getStorageSync('mock_orders') || []
     const timestamp = new Date().toISOString()
     
-    // 更新两个数据源
+    // 更新所有数据源
     const updateStatus = (list) => {
       return list.map(o => {
         if (o.id === orderId) {
@@ -482,6 +476,7 @@ Page({
     
     wx.setStorageSync('orders', updateStatus(orders))
     wx.setStorageSync('pending_orders', updateStatus(pendingOrders))
+    wx.setStorageSync('mock_orders', updateStatus(mockOrders))
     
     // 🎯 延迟500ms后刷新（确保存储完成）
     setTimeout(() => {

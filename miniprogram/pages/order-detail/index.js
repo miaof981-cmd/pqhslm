@@ -1,6 +1,8 @@
 const orderStatusUtil = require('../../utils/order-status')
 const { computeVisualStatus } = require('../../utils/order-visual-status')
 const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
+const { buildGroupName } = require('../../utils/group-helper.js')
+const { resolveServiceQRCode, resolveComplaintQRCode } = require('../../utils/qrcode-helper.js')
 const staffFinance = require('../../utils/staff-finance.js')
 const serviceIncome = require('../../utils/service-income.js')  // 🎯 新增：客服收入管理
 const productSales = require('../../utils/product-sales.js')  // 🎯 新增：商品销量更新
@@ -78,8 +80,21 @@ Page({
       const refundStatus = order.refundStatus || order.status
       const canPublishBuyerShow = order.status === 'completed' && refundStatus !== 'refunded'
 
-      // 加载客服二维码
-      this.loadServiceQRCode(order)
+      // 🎯 统一预处理客服/投诉二维码（优先使用订单字段，其次客服列表与系统设置）
+      const serviceQrResult = resolveServiceQRCode(order)
+      const complaintQrResult = resolveComplaintQRCode(order)
+      if (serviceQrResult.value) {
+        order.serviceQRCode = serviceQrResult.value
+        order.serviceQrSource = serviceQrResult.source
+      } else {
+        order.serviceQRCode = ''
+      }
+      if (complaintQrResult.value) {
+        order.complaintQRCode = complaintQrResult.value
+        order.complaintQrSource = complaintQrResult.source
+      } else {
+        order.complaintQRCode = ''
+      }
 
       this.setData({
         order: {
@@ -105,89 +120,15 @@ Page({
         progressPercent,
         wasOverdue: order.wasOverdue,
         serviceName: order.serviceName,
-        serviceId: order.serviceId
+        serviceId: order.serviceId,
+        serviceQrSource: serviceQrResult.source,
+        complaintQrSource: complaintQrResult.source
       })
     } else {
       this.loadMockOrder(orderId)
     }
   },
   
-  // 加载客服二维码
-  loadServiceQRCode(order) {
-    // 🎯 修复：先检查订单数据中的多个可能字段
-    const orderQr = normalizeString(
-      order.serviceQRCode ||
-      order.serviceQrCode ||
-      order.serviceQrcode ||
-      order.serviceQrcodeUrl ||
-      order.serviceWechat ||
-      order.qrCode
-    )
-    if (orderQr && orderQr.trim()) {
-      console.log('✅ 从订单数据加载客服二维码')
-      this.setData({
-        'order.serviceQRCode': orderQr
-      })
-      return
-    }
-
-    // 如果订单中没有，尝试从客服列表加载
-    if (order.serviceId) {
-      // 从本地存储读取客服列表（尝试多个存储key）
-      let serviceList = wx.getStorageSync('customer_service_list') || []
-      if (!serviceList.length) {
-        serviceList = wx.getStorageSync('service_list') || []
-      }
-      
-      const service = serviceList.find(s => 
-        String(s.id) === String(order.serviceId) || 
-        String(s.userId) === String(order.serviceId)
-      )
-      
-      const qrImage = normalizeString(
-        service
-          ? service.qrCode ||
-            service.qrcode ||
-            service.qrcodeUrl ||
-            service.serviceQrcode ||
-            service.serviceQrcodeUrl ||
-            service.serviceQrCode ||
-            service.wechatQrcode ||
-            service.qrcodeNumber
-          : ''
-      )
-      
-      if (service && qrImage && qrImage.trim()) {
-        console.log('✅ 成功从客服列表加载二维码:', service.name || service.nickName)
-        this.setData({
-          'order.serviceQRCode': qrImage
-        })
-        return
-      }
-    }
-    
-    // 🎯 兜底方案：从系统设置加载默认客服二维码
-    const systemSettings = wx.getStorageSync('system_settings') || {}
-    const defaultQr = normalizeString(
-      systemSettings.serviceQrcode ||
-      systemSettings.serviceQrCode ||
-      systemSettings.defaultServiceQr ||
-      systemSettings.customerServiceQr
-    )
-    
-    if (defaultQr && defaultQr.trim()) {
-      console.log('✅ 使用系统默认客服二维码')
-      this.setData({
-        'order.serviceQRCode': defaultQr
-      })
-    } else {
-      console.warn('⚠️ 客服二维码未找到:', {
-        订单ID: order.id,
-        客服ID: order.serviceId,
-        客服姓名: order.serviceName
-      })
-    }
-  },
   
   // 加载模拟订单数据
   loadMockOrder(orderId) {
@@ -206,6 +147,10 @@ Page({
       buyerName: '用户_' + orderId.slice(-4),
       artistName: '画师小明'
     }
+    const mockServiceQr = resolveServiceQRCode(mockOrder)
+    const mockComplaintQr = resolveComplaintQRCode(mockOrder)
+    mockOrder.serviceQRCode = mockServiceQr.value || ''
+    mockOrder.complaintQRCode = mockComplaintQr.value || ''
 
     this.setData({
       order: mockOrder,
@@ -218,6 +163,24 @@ Page({
   // 画师标记已完成
   markComplete() {
     const { order } = this.data
+    
+    // 🎯 检查订单状态：已退款或已完成的订单不能再操作
+    if (order.status === 'refunded' || order.refundStatus === 'refunded') {
+      wx.showToast({
+        title: '订单已退款，无法操作',
+        icon: 'none',
+        duration: 2000
+      })
+      return
+    }
+    
+    if (order.status === 'completed') {
+      wx.showToast({
+        title: '订单已完成',
+        icon: 'none'
+      })
+      return
+    }
     
     wx.showModal({
       title: '标记已完成',
@@ -360,41 +323,11 @@ Page({
     const order = this.data.order
     if (!order) return
 
-    // 获取订单号后四位
-    const orderId = order.id || order.orderNumber || ''
-    const last4Digits = orderId.toString().slice(-4)
+    const { groupName, usedFallback } = buildGroupName(order, {
+      fallbackDeadlineText: '日期待定'
+    })
 
-    // 获取截稿日期（格式：x月x日）- iOS 兼容
-    let deadlineText = ''
-    const rawDeadline = order.deadline || order.deliveryDeadline || order.deadlineText || order.deliveryTime
-    if (typeof rawDeadline === 'string' && rawDeadline.trim()) {
-      let sanitized = rawDeadline.trim()
-      sanitized = sanitized.replace(/T/g, ' ')
-      sanitized = sanitized.replace(/[年\.\/]/g, '-').replace(/月/g, '-').replace(/日/g, '')
-      sanitized = sanitized.replace(/--+/g, '-').replace(/\s+/g, ' ')
-      sanitized = sanitized.replace(/-$/g, '')
-      const candidate = sanitized.replace(/-/g, '/').replace(/\s+/g, ' ')
-      const deadlineDate = new Date(candidate)
-      if (!Number.isNaN(deadlineDate.getTime())) {
-        const month = deadlineDate.getMonth() + 1
-        const day = deadlineDate.getDate()
-        deadlineText = `${month}月${day}日`
-      } else {
-        console.warn('⚠️ 截稿日期格式无法解析，使用默认占位', rawDeadline)
-      }
-    }
-
-    if (!deadlineText) {
-      deadlineText = '日期待定'
-    }
-
-    // 获取商品名
-    const productName = order.productName || '商品'
-
-    // 生成群名：【联盟xxxx】x月x日出商品名
-    const groupName = `【联盟${last4Digits}】${deadlineText}出${productName}`
-
-    if (deadlineText === '日期待定') {
+    if (usedFallback) {
       wx.showToast({
         title: '截稿日期异常，请手动确认',
         icon: 'none'
@@ -418,9 +351,8 @@ Page({
 
     // 优先使用订单中已经加载的二维码
     const fallbackQr = '/assets/default-service-qr.png'
-    const storedQr = normalizeString(wx.getStorageSync('service_qrcode'))
-    const orderQr = order ? normalizeString(order.serviceQRCode) : ''
-    const serviceQRCode = orderQr || storedQr || fallbackQr
+    const result = resolveServiceQRCode(order || {})
+    const serviceQRCode = result.value || fallbackQr
 
     this.setData({
       serviceQRCode,
@@ -433,27 +365,8 @@ Page({
     const { order } = this.data
 
     const fallbackQr = '/assets/default-complaint-qr.png'
-    const storedQr = normalizeString(
-      wx.getStorageSync('complaint_qrcode') ||
-      wx.getStorageSync('complaintQRCode') ||
-      wx.getStorageSync('after_sale_qrcode')
-    )
-
-    const orderComplaintQr = order
-      ? normalizeString(
-          order.complaintQRCode ||
-          order.complaintQrCode ||
-          order.afterSaleQrcode ||
-          order.afterSaleQrCode ||
-          order.afterSaleQRCode ||
-          order.afterSalesQr ||
-          order.afterSalesQrcode ||
-          order.complaintQrcode ||
-          order.complaintWechat
-        )
-      : ''
-
-    const complaintQRCode = orderComplaintQr || storedQr || fallbackQr
+    const result = resolveComplaintQRCode(order || {})
+    const complaintQRCode = result.value || fallbackQr
 
     this.setData({
       complaintQRCode,
