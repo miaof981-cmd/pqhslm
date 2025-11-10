@@ -2792,6 +2792,12 @@
   color: #999;
 }
 
+/* 🎯 用户ID降级显示样式（仅当画师未分配编号时） */
+.artist-id-fresh.user-id-fallback {
+  color: #BBB;
+  font-style: italic;
+}
+
 .ranking-data-fresh {
   text-align: right;
 }

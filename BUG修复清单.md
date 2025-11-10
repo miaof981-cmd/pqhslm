@@ -408,8 +408,8 @@
 
 ## 📊 修复进度统计
 
-- **总计**：43 个 BUG
-- **已修复**：43 ✓
+- **总计**：44 个 BUG
+- **已修复**：44 ✓
 - **待修复**：0 ⏳
 - **无法完成**：0 ✗
 
@@ -457,6 +457,7 @@
 39. ✅ BUG-041：管理后台订单列表初次加载显示"暂无订单"
 40. ✅ BUG-042：退款后订单状态仍显示"制作中"（三阶段工作法修复）
 41. ✅ BUG-043：画师ID未显示 & 无法通过画师ID搜索
+42. ✅ BUG-044：管理后台画师排行榜显示用户ID而非画师独立编号
 
 ---
 
@@ -981,6 +982,185 @@ console.log('🎨 画师信息已设置:', {
 ⚠️ 未找到画师编号，用户ID: 1001
 🎨 画师信息已设置: { name: "张三", artistNumber: "未分配", userId: "1001" }
 ```
+
+---
+
+### BUG-044: 管理后台画师排行榜显示用户ID而非画师独立编号 ✅
+**优先级**: P0  
+**状态**: ✅ 已修复（三阶段工作法）
+
+**用户需求复述：**
+
+画师ID系统是**独立双轨制**：
+1. **用户ID系统（全局）**：所有用户共用，从1001开始递增（如：1001、1002...）
+2. **画师ID系统（独立）**：仅画师身份拥有，从001开始递增（如：001、002、003...）
+3. **核心规则**：同一个人可以同时拥有用户ID（1001）和画师ID（001），**在所有画师相关显示中必须优先使用画师独立编号（artistNumber），而非用户ID（userId）**
+
+**问题描述**:  
+管理后台 → 商品管理 → 画师排行榜中，显示的是用户ID（如"ID 1001"），而不是画师独立编号（如"编号 001"）
+
+**三阶段工作法修复过程：**
+
+### 【阶段一：分析问题】
+
+**诊断结果：**
+1. **WXML显示错误**：`admin/index.wxml` 第193行使用 `{{item.userId}}`
+2. **数据缺失**：`artistRanking` 和 `rankingType` 变量未定义
+3. **函数缺失**：`switchRankingType()` 和 `generateArtistRanking()` 不存在
+
+**影响范围：**
+- 管理后台商品管理标签的画师排行榜
+- 无法正确识别画师的独立编号系统
+
+### 【阶段二：设计方案】
+
+**修复原则：**
+- **显示规则**：优先使用 `artistNumber`（画师独立编号）
+- **降级策略**：如果画师未分配编号，显示 `userId`（用户ID）并添加斜体样式标识
+- **数据完整性**：确保排行榜数据流包含 `artistNumber` 字段
+
+**技术方案：**
+1. 初始化 `artistRanking: []` 和 `rankingType: 'order'`
+2. 创建 `generateArtistRanking()` 函数动态生成排行榜
+3. 创建 `switchRankingType()` 函数切换排行类型
+4. WXML 使用 `wx:if/wx:else` 实现降级显示
+5. CSS 添加 `.user-id-fallback` 样式区分降级状态
+
+### 【阶段三：实施修复】
+
+**修改文件1：miniprogram/pages/admin/index.js**
+
+1. **数据初始化**：
+```javascript
+data: {
+  // ...
+  artistRanking: [],  // 🎯 新增：画师排行榜数据
+  rankingType: 'order',  // 🎯 新增：排行榜类型（order/revenue/rate）
+}
+```
+
+2. **生成排行榜函数**：
+```javascript
+generateArtistRanking() {
+  const rankingType = this.data.rankingType
+  let ranking = [...this.data.artists]
+  
+  // 根据排行类型排序
+  switch (rankingType) {
+    case 'order':
+      ranking.sort((a, b) => b.orderCount - a.orderCount)
+      break
+    case 'revenue':
+      ranking.sort((a, b) => parseFloat(b.totalRevenue) - parseFloat(a.totalRevenue))
+      break
+    case 'rate':
+      // 计算完成率并排序
+      ranking = ranking.map(artist => {
+        const allOrders = orderHelper.getAllOrders()
+        const artistOrders = allOrders.filter(o => o.artistId === artist.userId)
+        const completedOrders = artistOrders.filter(o => o.status === 'completed')
+        const completeRate = artistOrders.length > 0 
+          ? ((completedOrders.length / artistOrders.length) * 100).toFixed(1) 
+          : 0
+        return { ...artist, completeRate, revenue: artist.totalRevenue }
+      })
+      ranking.sort((a, b) => parseFloat(b.completeRate) - parseFloat(a.completeRate))
+      break
+  }
+  
+  // 🎯 关键：确保每个画师数据都包含 artistNumber
+  ranking = ranking.map(artist => ({
+    ...artist,
+    artistNumber: artist.artistNumber || '',  // 画师独立编号
+    userId: artist.userId  // 用户ID（仅内部使用）
+  }))
+  
+  this.setData({ artistRanking: ranking.slice(0, 10) })  // 只显示前10名
+}
+```
+
+3. **切换排行类型函数**：
+```javascript
+switchRankingType(e) {
+  const type = e.currentTarget.dataset.type
+  this.setData({ rankingType: type }, () => {
+    this.generateArtistRanking()
+  })
+}
+```
+
+4. **在loadArtists()中调用**：
+```javascript
+this.setData({
+  artists: artists,
+  artistPerformance: performance
+}, () => {
+  this.generateArtistRanking()  // 生成排行榜
+})
+```
+
+**修改文件2：miniprogram/pages/admin/index.wxml**
+
+```xml
+<!-- 修复前 -->
+<text class="artist-id-fresh">ID {{item.userId}}</text>
+
+<!-- 修复后：优先显示画师编号，降级显示用户ID -->
+<text wx:if="{{item.artistNumber}}" class="artist-id-fresh">编号 {{item.artistNumber}}</text>
+<text wx:else class="artist-id-fresh user-id-fallback">ID {{item.userId}}</text>
+```
+
+**修改文件3：miniprogram/pages/admin/index.wxss**
+
+```css
+.artist-id-fresh {
+  font-size: 20rpx;
+  color: #999;
+}
+
+/* 🎯 用户ID降级显示样式（仅当画师未分配编号时） */
+.artist-id-fresh.user-id-fallback {
+  color: #BBB;
+  font-style: italic;  /* 斜体标识降级状态 */
+}
+```
+
+**测试步骤：**
+
+**步骤1：已分配编号的画师**
+1. 管理后台 → 商品管理
+2. 查看画师排行榜
+3. ✅ 应显示："编号 001"（正常灰色）
+
+**步骤2：未分配编号的画师**
+1. 管理后台 → 商品管理
+2. 查看画师排行榜
+3. ✅ 应显示："ID 1001"（浅灰色 + 斜体）
+
+**步骤3：排行榜切换**
+1. 点击"订单量"、"收入"、"完成率"标签
+2. ✅ 排行榜动态更新，编号显示正确
+3. ✅ 控制台输出：`🏆 画师排行榜已生成 (order): [...]`
+
+**步骤4：数据完整性验证**
+打开控制台，验证：
+```javascript
+{
+  artistNumber: "001",  // 画师独立编号（优先显示）
+  userId: "1001",       // 用户ID（降级显示）
+  name: "张三",
+  orderCount: 10,
+  totalRevenue: "500.00",
+  completeRate: "95.0"
+}
+```
+
+**核心改进：**
+1. ✅ 画师排行榜正确显示画师独立编号
+2. ✅ 实现双轨制ID系统（artistNumber + userId）
+3. ✅ 降级策略清晰可见（斜体 + 浅色标识）
+4. ✅ 排行榜支持三种类型切换（订单量/收入/完成率）
+5. ✅ 数据流完整包含 `artistNumber` 字段
 
 ---
 

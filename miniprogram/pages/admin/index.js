@@ -92,6 +92,8 @@ Page({
     artists: [],
     applications: [],
     artistPerformance: [],
+    artistRanking: [],  // 🎯 新增：画师排行榜数据
+    rankingType: 'order',  // 🎯 新增：排行榜类型（order/revenue/rate）
     
     // 编辑画师弹窗
     showEditArtistModal: false,
@@ -699,11 +701,70 @@ Page({
       return parseFloat(b.totalRevenue) - parseFloat(a.totalRevenue)
     })
     
-    console.log('加载画师列表:', artists.length, '位画师')
-    
+    // 🎯 生成画师排行榜数据（根据rankingType动态排序）
     this.setData({
       artists: artists,
       artistPerformance: performance
+    }, () => {
+      // 在 setData 完成后生成排行榜
+      this.generateArtistRanking()
+    })
+    
+    console.log('加载画师列表:', artists.length, '位画师')
+  },
+  
+  // 🎯 新增：生成画师排行榜数据
+  generateArtistRanking() {
+    const rankingType = this.data.rankingType
+    let ranking = [...this.data.artists]
+    
+    // 根据排行类型排序
+    switch (rankingType) {
+      case 'order':
+        // 按订单量排序
+        ranking.sort((a, b) => b.orderCount - a.orderCount)
+        break
+      case 'revenue':
+        // 按收入排序
+        ranking.sort((a, b) => parseFloat(b.totalRevenue) - parseFloat(a.totalRevenue))
+        break
+      case 'rate':
+        // 按完成率排序（计算已完成订单 / 总订单）
+        ranking = ranking.map(artist => {
+          const allOrders = orderHelper.getAllOrders()
+          const artistOrders = allOrders.filter(o => o.artistId === artist.userId)
+          const completedOrders = artistOrders.filter(o => o.status === 'completed')
+          const completeRate = artistOrders.length > 0 
+            ? ((completedOrders.length / artistOrders.length) * 100).toFixed(1) 
+            : 0
+          return {
+            ...artist,
+            completeRate: completeRate,
+            revenue: artist.totalRevenue  // 用于显示
+          }
+        })
+        ranking.sort((a, b) => parseFloat(b.completeRate) - parseFloat(a.completeRate))
+        break
+    }
+    
+    // 🎯 关键：确保每个画师数据都包含 artistNumber
+    ranking = ranking.map(artist => ({
+      ...artist,
+      artistNumber: artist.artistNumber || '',  // 画师独立编号
+      userId: artist.userId  // 用户ID（仅内部使用）
+    }))
+    
+    console.log(`🏆 画师排行榜已生成 (${rankingType}):`, ranking.slice(0, 3))
+    
+    this.setData({ artistRanking: ranking.slice(0, 10) })  // 只显示前10名
+  },
+  
+  // 🎯 新增：切换排行榜类型
+  switchRankingType(e) {
+    const type = e.currentTarget.dataset.type
+    console.log('切换排行榜类型:', type)
+    this.setData({ rankingType: type }, () => {
+      this.generateArtistRanking()
     })
   },
 

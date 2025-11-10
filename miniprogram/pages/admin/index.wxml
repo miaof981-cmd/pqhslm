@@ -190,7 +190,9 @@
             <image class="artist-avatar-fresh" src="{{item.avatar}}" mode="aspectFill"/>
             <view class="artist-info-fresh">
               <text class="artist-name-fresh">{{item.name}}</text>
-              <text class="artist-id-fresh">ID {{item.userId}}</text>
+              <!-- 🎯 修复：优先显示画师独立编号（artistNumber），降级显示用户ID -->
+              <text wx:if="{{item.artistNumber}}" class="artist-id-fresh">编号 {{item.artistNumber}}</text>
+              <text wx:else class="artist-id-fresh user-id-fallback">ID {{item.userId}}</text>
             </view>
             <view class="ranking-data-fresh">
               <text class="data-value-fresh" wx:if="{{rankingType === 'order'}}">{{item.orderCount}}<text class="data-unit">单</text></text>
