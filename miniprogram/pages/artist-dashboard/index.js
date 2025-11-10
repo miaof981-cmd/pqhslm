@@ -1,3 +1,5 @@
+const orderHelper = require('../../utils/order-helper.js')
+
 Page({
   data: {
     currentTab: 'products',
@@ -91,31 +93,24 @@ Page({
 
   // 加载订单
   async loadOrders() {
-    // 暂时使用模拟数据
-    this.setData({
-      orders: [
-        {
-          _id: 'order-1',
-          status: 'created',
-          createTime: '2024-01-01',
-          deadline: '2024-01-04',
-          price: 100
-        }
-      ]
+    const userId = wx.getStorageSync('userId')
+    
+    console.log('========================================')
+    console.log('📦 [画师端] 使用统一工具加载订单')
+    console.log('========================================')
+    console.log('当前画师ID:', userId)
+    
+    // 🎯 使用统一工具函数获取并标准化订单
+    let myOrders = orderHelper.prepareOrdersForPage({
+      role: 'artist',
+      userId: userId
     })
     
-    // 云开发版本（需要先开通云开发）
-    // try {
-    //   const app = getApp()
-    //   const res = await wx.cloud.database().collection('orders')
-    //     .where({ artistId: app.globalData.openid })
-    //     .orderBy('createTime', 'desc')
-    //     .get()
-    //   
-    //   this.setData({ orders: res.data })
-    // } catch (error) {
-    //   console.error('加载订单失败', error)
-    // }
+    console.log('✅ 订单加载完成:', myOrders.length, '个')
+    
+    this.setData({
+      orders: myOrders
+    })
   },
 
   // 加载会员信息
