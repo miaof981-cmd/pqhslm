@@ -41,30 +41,51 @@ Page({
     
     try {
       const artistId = this.data.artistId
+      const currentUserId = wx.getStorageSync('userId')
       
-      // 🎯 修复：优先从用户列表获取信息
-      const allUsers = wx.getStorageSync('users') || []
-      const userInfo = allUsers.find(u => u.id == artistId || u.userId == artistId)
-      
-      // 从画师申请中获取额外信息
+      // 从画师申请中获取信息
       const allApplications = wx.getStorageSync('artist_applications') || []
       const artistApp = allApplications.find(app => app.userId == artistId && app.status === 'approved')
       
-      // 🎯 至少要有用户信息才能显示
-      if (!userInfo) {
-        wx.showToast({ title: '用户不存在', icon: 'none' })
+      // 🎯 修复：多源获取用户信息
+      const allUsers = wx.getStorageSync('users') || []
+      let userInfo = allUsers.find(u => u.id == artistId || u.userId == artistId)
+      
+      // 如果users中没有，尝试从画师申请中读取
+      if (!userInfo && artistApp) {
+        userInfo = {
+          id: artistApp.userId,
+          userId: artistApp.userId,
+          nickName: artistApp.nickName || artistApp.name,
+          avatarUrl: artistApp.avatarUrl
+        }
+      }
+      
+      // 如果是当前登录用户，从wxUserInfo读取
+      const wxUserInfo = wx.getStorageSync('wxUserInfo') || {}
+      if (!userInfo && artistId == currentUserId && wxUserInfo.nickName) {
+        userInfo = {
+          id: currentUserId,
+          userId: currentUserId,
+          nickName: wxUserInfo.nickName,
+          avatarUrl: wxUserInfo.avatarUrl
+        }
+      }
+      
+      // 🎯 至少要有用户信息或画师申请记录才能显示
+      if (!userInfo && !artistApp) {
+        wx.showToast({ title: '画师信息不存在', icon: 'none' })
         setTimeout(() => wx.navigateBack(), 1500)
         return
       }
       
       // 获取画师的头像和昵称
-      let avatar = userInfo.avatarUrl || ''
-      let name = userInfo.nickName || userInfo.name || (artistApp ? artistApp.name : '画师')
+      let avatar = userInfo ? (userInfo.avatarUrl || '') : (artistApp ? artistApp.avatarUrl : '')
+      let name = userInfo ? (userInfo.nickName || userInfo.name) : (artistApp ? (artistApp.nickName || artistApp.name) : '画师')
       let intro = artistApp ? artistApp.selfIntro : ''
       
-      // 兼容旧数据：如果当前登录用户就是画师，从wxUserInfo读取
-      const wxUserInfo = wx.getStorageSync('wxUserInfo') || {}
-      if (artistId == wx.getStorageSync('userId') && wxUserInfo.avatarUrl) {
+      // 兼容旧数据：如果当前登录用户就是画师，优先从wxUserInfo读取
+      if (artistId == currentUserId && wxUserInfo.avatarUrl) {
         avatar = wxUserInfo.avatarUrl
         name = wxUserInfo.nickName || name
       }
