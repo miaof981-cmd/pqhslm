@@ -285,17 +285,27 @@
 }
 
 .filter-item {
-  padding: 25rpx 15rpx;
+  padding: 30rpx 20rpx;
   border-radius: 15rpx;
   background-color: #f8f9fa;
   border: 2rpx solid transparent;
   text-align: center;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  min-height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-item-hover {
+  transform: scale(0.95);
+  opacity: 0.8;
 }
 
 .filter-item.active {
   background-color: #A8E6CF;
   border-color: #A8E6CF;
+  box-shadow: 0 4rpx 12rpx rgba(168, 230, 207, 0.4);
 }
 
 .filter-item-name {
@@ -306,6 +316,32 @@
 
 .filter-item.active .filter-item-name {
   color: white;
+  font-weight: 600;
+}
+
+/* 自定义价格输入 */
+.custom-price-input {
+  margin-top: 20rpx;
+  display: flex;
+  align-items: center;
+  gap: 15rpx;
+  padding: 0 10rpx;
+}
+
+.price-input {
+  flex: 1;
+  height: 80rpx;
+  padding: 0 20rpx;
+  background-color: #f8f9fa;
+  border-radius: 15rpx;
+  border: 2rpx solid #e0e0e0;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.price-separator {
+  font-size: 32rpx;
+  color: #999;
   font-weight: 600;
 }
 
@@ -522,6 +558,24 @@
   font-weight: 700;
   line-height: 1;
   flex-shrink: 0;
+}
+
+/* 🎯 新增：商品统计信息（销量和库存） */
+.product-stats {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+}
+
+.stat-item {
+  color: #999;
+}
+
+.stock-warning {
+  color: #FF6B6B;
+  font-weight: 500;
 }
 
 /* ==================== 🧪 临时测试按钮 ==================== */

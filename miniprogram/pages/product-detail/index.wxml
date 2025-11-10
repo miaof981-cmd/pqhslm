@@ -52,10 +52,19 @@
         <text class="info-label">出稿时间</text>
         <text class="info-value">{{product.deliveryDays}}天</text>
       </view>
-      <view wx:if="{{artist && artist.name}}" class="info-row" bindtap="viewArtist">
+      <!-- 🎯 新增：显示库存（仅当有库存限制时） -->
+      <view wx:if="{{product.stock > 0}}" class="info-row">
+        <text class="info-label">库存</text>
+        <text class="info-value">剩余{{product.stock}}件</text>
+      </view>
+      <!-- 🎯 修改：用户端只显示画师信息，不可点击 -->
+      <view wx:if="{{artist && artist.name}}" class="info-row artist-info-readonly">
         <text class="info-label">画师</text>
-        <text class="info-value">{{artist.name}}</text>
-        <text wx:if="{{artist.id}}" class="arrow">›</text>
+        <view class="info-value-wrap">
+          <text class="info-value">{{artist.name}}</text>
+          <!-- 🎯 显示画师编号（artistNumber），不是用户ID -->
+          <text wx:if="{{artist.artistNumber}}" class="artist-id">编号:{{artist.artistNumber}}</text>
+        </view>
       </view>
     </view>
 

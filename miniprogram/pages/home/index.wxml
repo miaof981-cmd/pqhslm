@@ -56,6 +56,11 @@
               <text wx:else>{{item.deliveryDays}}天出稿</text>
             </view>
           </view>
+          <!-- 🎯 新增：销量和库存 -->
+          <view class="product-stats">
+            <text class="stat-item">已售{{item.sales || 0}}</text>
+            <text wx:if="{{item.stock > 0}}" class="stat-item stock-warning">仅剩{{item.stock}}</text>
+          </view>
         </view>
       </view>
     </view>
@@ -89,16 +94,19 @@
           <view class="filter-group">
             <view class="filter-item {{tempDeliverySort === 'default' ? 'active' : ''}}" 
                   data-sort="default" 
+                  hover-class="filter-item-hover"
                   bindtap="changeDeliverySort">
               <text class="filter-item-name">默认排序</text>
             </view>
             <view class="filter-item {{tempDeliverySort === 'fastest' ? 'active' : ''}}" 
                   data-sort="fastest" 
+                  hover-class="filter-item-hover"
                   bindtap="changeDeliverySort">
               <text class="filter-item-name">最快优先</text>
             </view>
             <view class="filter-item {{tempDeliverySort === 'slowest' ? 'active' : ''}}" 
                   data-sort="slowest" 
+                  hover-class="filter-item-hover"
                   bindtap="changeDeliverySort">
               <text class="filter-item-name">最慢优先</text>
             </view>
@@ -109,26 +117,50 @@
         <view class="filter-section">
           <view class="section-title">价格区间</view>
           <view class="filter-group">
-            <view class="filter-item {{priceRange === 'all' ? 'active' : ''}}" 
+            <view class="filter-item {{tempPriceRange === 'all' ? 'active' : ''}}" 
                   data-range="all" 
+                  hover-class="filter-item-hover"
                   bindtap="changePriceRange">
               <text class="filter-item-name">不限</text>
             </view>
-            <view class="filter-item {{priceRange === 'low' ? 'active' : ''}}" 
+            <view class="filter-item {{tempPriceRange === 'low' ? 'active' : ''}}" 
                   data-range="low" 
+                  hover-class="filter-item-hover"
                   bindtap="changePriceRange">
               <text class="filter-item-name">0-50元</text>
             </view>
-            <view class="filter-item {{priceRange === 'mid' ? 'active' : ''}}" 
+            <view class="filter-item {{tempPriceRange === 'mid' ? 'active' : ''}}" 
                   data-range="mid" 
+                  hover-class="filter-item-hover"
                   bindtap="changePriceRange">
               <text class="filter-item-name">50-100元</text>
             </view>
-            <view class="filter-item {{priceRange === 'high' ? 'active' : ''}}" 
+            <view class="filter-item {{tempPriceRange === 'high' ? 'active' : ''}}" 
                   data-range="high" 
+                  hover-class="filter-item-hover"
                   bindtap="changePriceRange">
               <text class="filter-item-name">100元以上</text>
             </view>
+            <view class="filter-item {{tempPriceRange === 'custom' ? 'active' : ''}}" 
+                  data-range="custom" 
+                  hover-class="filter-item-hover"
+                  bindtap="changePriceRange">
+              <text class="filter-item-name">自定义</text>
+            </view>
+          </view>
+          <!-- 自定义价格输入 -->
+          <view wx:if="{{tempPriceRange === 'custom'}}" class="custom-price-input">
+            <input type="digit" 
+                   class="price-input" 
+                   placeholder="最低价" 
+                   value="{{customMinPrice}}"
+                   bindinput="onMinPriceInput" />
+            <text class="price-separator">-</text>
+            <input type="digit" 
+                   class="price-input" 
+                   placeholder="最高价" 
+                   value="{{customMaxPrice}}"
+                   bindinput="onMaxPriceInput" />
           </view>
         </view>
       </view>
@@ -176,6 +208,11 @@
               <text wx:if="{{item.deliveryDays === 1}}">极速出稿</text>
               <text wx:else>{{item.deliveryDays}}天出稿</text>
             </view>
+          </view>
+          <!-- 🎯 新增：销量和库存 -->
+          <view class="product-stats">
+            <text class="stat-item">已售{{item.sales || 0}}</text>
+            <text wx:if="{{item.stock > 0}}" class="stat-item stock-warning">仅剩{{item.stock}}</text>
           </view>
         </view>
       </view>
