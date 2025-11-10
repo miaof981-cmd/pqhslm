@@ -325,8 +325,9 @@
           <text class="loading-text">加载中...</text>
         </view>
         
-        <!-- 订单卡片列表 -->
-        <view wx:elif="{{orders.length > 0}}" wx:for="{{orders}}" wx:key="_id" class="order-card order-card-{{item.statusKey || 'normal'}}" bindtap="viewOrderDetail" data-id="{{item._id}}">
+        <!-- 🎯 订单卡片列表容器 -->
+        <block wx:elif="{{orders.length > 0}}">
+          <view wx:for="{{orders}}" wx:key="_id" class="order-card order-card-{{item.statusKey || 'normal'}}" bindtap="viewOrderDetail" data-id="{{item._id}}">
           <!-- 订单头部：订单号 + 状态 -->
           <view class="order-header">
             <view class="order-id-actions">
@@ -405,7 +406,8 @@
                     data-id="{{item._id}}" 
                     catchtap="initiateRefund">退款</button>
           </view>
-        </view>
+          </view>
+        </block>
 
         <!-- 🎯 空状态：只在非加载状态且订单为空时显示 -->
         <view wx:else class="empty-order-state">
