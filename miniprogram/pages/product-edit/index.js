@@ -662,29 +662,31 @@ Page({
       wx.getImageInfo({
         src: tempPath,
         success: (imgInfo) => {
-          // 计算压缩后的尺寸（最大宽度 1200px，提升质量）
-          let width = imgInfo.width
-          let height = imgInfo.height
-          const maxWidth = 1200
+          // 🎯 修复：统一裁剪为正方形，避免不同比例图片渲染错位
+          const targetSize = 1200  // 统一尺寸
+          const sourceSize = Math.min(imgInfo.width, imgInfo.height)  // 取短边
           
-          if (width > maxWidth) {
-            height = Math.floor(height * (maxWidth / width))
-            width = maxWidth
-          }
+          // 计算裁剪起点（居中裁剪）
+          const offsetX = (imgInfo.width - sourceSize) / 2
+          const offsetY = (imgInfo.height - sourceSize) / 2
+          
+          console.log(`📐 图片裁剪: 原始${imgInfo.width}x${imgInfo.height} → 裁剪${sourceSize}x${sourceSize} → 输出${targetSize}x${targetSize}`)
           
           // 创建 canvas 进行压缩
           const ctx = wx.createCanvasContext('compressCanvas', this)
-          ctx.drawImage(tempPath, 0, 0, width, height)
+          // 🎯 关键：使用9参数drawImage实现居中裁剪
+          // drawImage(src, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+          ctx.drawImage(tempPath, offsetX, offsetY, sourceSize, sourceSize, 0, 0, targetSize, targetSize)
           ctx.draw(false, () => {
-            // 导出为临时文件
+            // 导出为临时文件（正方形）
             wx.canvasToTempFilePath({
               canvasId: 'compressCanvas',
-              destWidth: width,
-              destHeight: height,
+              destWidth: targetSize,
+              destHeight: targetSize,  // 🎯 修复：强制正方形输出
               quality: 0.75, // 压缩质量 75%，平衡质量和大小
               success: (canvasRes) => {
                 // 🎯 直接使用临时文件路径，不转base64（避免mode渲染问题）
-                console.log(`✅ 图片压缩成功: ${width}x${height}`)
+                console.log(`✅ 图片压缩成功: ${targetSize}x${targetSize} (正方形)`)
                 
                 resolve({ 
                   success: true, 
