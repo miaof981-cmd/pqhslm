@@ -64,15 +64,31 @@ Page({
     const users = wx.getStorageSync('users') || []
     const artistApplications = wx.getStorageSync('artist_applications') || []
     
-    // 🔧 修复：只加载已上架的商品（明确上架状态）
+    // 🔧 修复：只加载已上架的商品（兼容多种状态值）
     const products = rawProducts
       .filter(p => {
-        // 严格检查上架状态：必须是true或undefined（未设置默认为上架）
+        // 检查上架状态（兼容多种值）
         const isOnSale = p.isOnSale
-        const shouldShow = isOnSale === true || isOnSale === undefined || isOnSale === null
+        const status = p.status
+        
+        // 兼容多种上架状态：
+        // 1. isOnSale: true/undefined/null/'上架'/'已上架'/'onSale'
+        // 2. status: 'active'/'online'/'上架'/'已上架'/'onSale'
+        const shouldShow = 
+          isOnSale === true || 
+          isOnSale === undefined || 
+          isOnSale === null ||
+          isOnSale === '上架' ||
+          isOnSale === '已上架' ||
+          isOnSale === 'onSale' ||
+          status === 'active' ||
+          status === 'online' ||
+          status === '上架' ||
+          status === '已上架' ||
+          status === 'onSale'
         
         if (!shouldShow) {
-          console.log('过滤掉商品:', p.name, '原因: isOnSale =', isOnSale)
+          console.log('[搜索过滤] 过滤掉商品（未上架）:', p.name, 'isOnSale:', isOnSale, 'status:', status)
         }
         
         return shouldShow
@@ -91,14 +107,18 @@ Page({
       let artistNumber = ''
       
       if (!artistName && product.artistId) {
-        const artist = users.find(u => u.id == product.artistId || u.userId == product.artistId)
+        // 🔧 修复：使用String()确保类型一致
+        const artist = users.find(u => 
+          String(u.id) === String(product.artistId) || String(u.userId) === String(product.artistId)
+        )
         artistName = artist ? (artist.nickName || artist.name || '') : ''
       }
       
       // 🎯 新增：获取画师编号用于搜索
       if (product.artistId) {
+        // 🔧 修复：使用String()确保类型一致
         const artistApp = artistApplications.find(app => 
-          app.userId == product.artistId && app.status === 'approved'
+          String(app.userId) === String(product.artistId) && app.status === 'approved'
         )
         if (artistApp && artistApp.artistNumber) {
           artistNumber = String(artistApp.artistNumber)
@@ -124,6 +144,9 @@ Page({
         })
       }
       
+      // 🔧 调试日志：记录商品基本信息
+      console.log(`[搜索加载] 商品: ${product.name}, price: ${price}, artistId: ${product.artistId}, artistNumber: ${artistNumber}`)
+      
       return {
         id: product.id || product._id,
         name: product.name || '未命名商品',
@@ -144,7 +167,14 @@ Page({
           ...(specTokens.map(token => token.toLowerCase())) // 🔧 修复：包含规格名和规格值
         ].filter(token => token && token.length > 0)
       }
-    }).filter(item => !!item.id)
+    }).filter(item => {
+      // 🔧 修复：严格检查id存在性（允许0、'0'等值）
+      const hasValidId = item.id !== undefined && item.id !== null && item.id !== ''
+      if (!hasValidId) {
+        console.log('[搜索过滤] 过滤掉商品（无效ID）:', item.name, 'id:', item.id)
+      }
+      return hasValidId
+    })
 
     this.setData({
       allProducts: products,
