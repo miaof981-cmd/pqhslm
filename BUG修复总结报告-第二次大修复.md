@@ -190,7 +190,88 @@ if (!includeCompleted) {
 
 ---
 
+## ✅ 已修复问题详情
+
+### 问题8：管理后台修改分类后显示未分类
+
+**问题原因**（10字内）：分类名未同步更新
+
+**修复位置**：`miniprogram/pages/category-manage/index.js` 第263-299行
+
+**修复内容**：
+在 `saveCategory()` 函数中增加商品分类同步更新逻辑
+
+```javascript
+// 🎯 同步更新所有使用该分类的商品
+if (oldName !== newName) {
+  const products = wx.getStorageSync('mock_products') || []
+  let updatedCount = 0
+  
+  products.forEach(product => {
+    // 通过分类ID或分类名称匹配
+    if (String(product.category) === String(this.data.currentId) || 
+        product.categoryName === oldName) {
+      product.category = this.data.currentId
+      product.categoryName = newName
+      updatedCount++
+    }
+  })
+  
+  if (updatedCount > 0) {
+    wx.setStorageSync('mock_products', products)
+    console.log(`✅ 已同步更新 ${updatedCount} 个商品的分类名称`)
+  }
+}
+```
+
+**预期效果**：
+- 修改分类名称后，所有商品的分类名称自动同步更新
+- 管理后台和首页都显示正确的分类名称
+- 不再出现"未分类"的情况
+
+**验证步骤**：
+1. 打开管理后台 - 分类管理
+2. 修改某个分类的名称
+3. 查看使用该分类的商品
+4. 确认商品的分类名称已更新
+
+**验证结果**：⬜ 待验证
+```
+验证人：__________
+验证时间：__________
+验证结果：□ 通过  □ 未通过
+备注：
+
+
+
+
+
+```
+
+---
+
 ## ⏳ 待修复问题
+
+### 问题12：搜索画师商品不显示
+
+**问题原因**（10字内）：需诊断商品状态
+
+**诊断方案**：
+已生成诊断脚本 `诊断脚本-搜索功能.js`，用于检查：
+1. 商品上架状态（isOnSale）
+2. 画师信息完整性（artistId, artistName, artistNumber）
+3. 搜索关键词匹配逻辑
+4. 按画师统计商品分布
+
+**可能原因**：
+1. 商品的 `isOnSale` 状态为 false
+2. 搜索关键词与商品名/画师名/画师编号不匹配
+3. 商品的 `artistName` 或 `artistNumber` 字段缺失
+4. 搜索逻辑未包含画师编号匹配
+
+**修复优先级**：🟡 中（需先运行诊断脚本）
+
+---
 
 ### 问题4/6/10：仪表盘数据统计不一致
 

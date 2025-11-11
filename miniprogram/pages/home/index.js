@@ -91,6 +91,7 @@ Page({
   async loadProducts() {
     // 从本地存储加载商品
     let allProducts = wx.getStorageSync('mock_products') || []
+    const users = wx.getStorageSync('users') || [] // 🔧 新增：加载用户列表（用于获取最新昵称）
 
     logger.info('从本地存储加载商品', allProducts.length, '个')
 
@@ -122,12 +123,23 @@ Page({
           )
           const categoryName = p.categoryName || categoryService.getCategoryNameById(p.category)
           
+          // 🔧 修复：总是优先从 users 列表读取最新昵称（解决画师改名后搜索不到的问题）
+          let artistName = p.artistName || p.artist?.name || '画师'
+          if (p.artistId) {
+            const artist = users.find(u => 
+              String(u.id) === String(p.artistId) || String(u.userId) === String(p.artistId)
+            )
+            if (artist) {
+              artistName = artist.nickName || artist.name || artistName
+            }
+          }
+          
           return {
             _id: p.id || p._id,
             id: p.id,
             name: p.name || '未命名商品',
             price: displayPrice,
-            artistName: p.artistName || p.artist?.name || '画师',
+            artistName: artistName,
             // ⚠️ 性能优化：只传第一张图片，不传整个数组
             coverImage,
             image: coverImage,

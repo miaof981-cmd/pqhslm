@@ -264,13 +264,37 @@ Page({
         // 🎯 编辑模式：更新现有分类
         const index = categories.findIndex(c => (c._id || c.id) === this.data.currentId)
         if (index !== -1) {
+          const oldName = categories[index].name
+          const newName = name.trim()
+          
           categories[index] = {
             ...categories[index],
-            name: name.trim(),
+            name: newName,
             sort: sort || categories[index].sort,
             parentId: parentId || '',
             icon: icon || categories[index].icon,
             status: status || 'active'
+          }
+          
+          // 🎯 同步更新所有使用该分类的商品
+          if (oldName !== newName) {
+            const products = wx.getStorageSync('mock_products') || []
+            let updatedCount = 0
+            
+            products.forEach(product => {
+              // 通过分类ID或分类名称匹配
+              if (String(product.category) === String(this.data.currentId) || 
+                  product.categoryName === oldName) {
+                product.category = this.data.currentId
+                product.categoryName = newName
+                updatedCount++
+              }
+            })
+            
+            if (updatedCount > 0) {
+              wx.setStorageSync('mock_products', products)
+              console.log(`✅ 已同步更新 ${updatedCount} 个商品的分类名称: ${oldName} → ${newName}`)
+            }
           }
         }
       } else {

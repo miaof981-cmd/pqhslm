@@ -109,16 +109,20 @@ Page({
       const categoryName = product.categoryName || categoryService.getCategoryNameById(product.category)
       const tags = Array.isArray(product.tags) ? product.tags : []
       
-      // 🎯 获取画师名字和编号
-      let artistName = product.artistName || ''
+      // 🎯 获取画师名字和编号（总是优先从users读取最新昵称）
+      let artistName = ''
       let artistNumber = ''
       
-      if (!artistName && product.artistId) {
-        // 🔧 修复：使用String()确保类型一致
+      if (product.artistId) {
+        // 🔧 修复：总是优先从 users 列表读取最新昵称（解决画师改名后搜索不到的问题）
         const artist = users.find(u => 
           String(u.id) === String(product.artistId) || String(u.userId) === String(product.artistId)
         )
-        artistName = artist ? (artist.nickName || artist.name || '') : ''
+        // 优先使用 users 中的最新昵称，降级使用 product.artistName
+        artistName = artist ? (artist.nickName || artist.name || '') : (product.artistName || '')
+      } else {
+        // 如果没有 artistId，才直接使用 product.artistName
+        artistName = product.artistName || ''
       }
       
       // 🎯 新增：获取画师编号用于搜索
