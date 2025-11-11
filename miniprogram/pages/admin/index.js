@@ -687,22 +687,47 @@ Page({
     // 转换为画师列表
     const artists = approvedApplications.map(app => {
       // 统计该画师的商品数量（通过userId匹配）
-      const artistProducts = allProducts.filter(p => p.artistId === app.userId)
+      const artistProducts = allProducts.filter(p => 
+        String(p.artistId) === String(app.userId)
+      )
       const productCount = artistProducts.length
       
-      // 统计该画师的订单数量和总收入
-      // 🔧 修复：使用String()确保类型匹配
-      const artistOrders = allOrders.filter(o => 
-        String(o.artistId) === String(app.userId) || o.artistName === app.name
-      )
+      // 🎯 改进：多重匹配策略统计订单
+      const artistOrders = allOrders.filter(o => {
+        // 策略1: 直接匹配 artistId
+        if (o.artistId && String(o.artistId) === String(app.userId)) {
+          return true
+        }
+        
+        // 策略2: 通过商品ID查找对应商品的artistId
+        if (o.productId) {
+          const orderProduct = allProducts.find(p => 
+            String(p.id) === String(o.productId)
+          )
+          if (orderProduct && String(orderProduct.artistId) === String(app.userId)) {
+            return true
+          }
+        }
+        
+        // 策略3: 通过画师姓名匹配（兜底）
+        if (o.artistName && o.artistName === app.name) {
+          return true
+        }
+        
+        return false
+      })
+      
       const orderCount = artistOrders.length
       const completedOrders = artistOrders.filter(o => o.status === 'completed')
+      
+      // 🎯 修复：从订单中正确计算收入（order.price 或 order.totalAmount）
       const totalRevenue = completedOrders.reduce((sum, order) => {
-        return sum + (parseFloat(order.totalPrice) || 0)
+        const orderAmount = parseFloat(order.price || order.totalAmount || order.totalPrice || 0)
+        return sum + orderAmount
       }, 0)
       
-      console.log(`📊 画师统计 [${app.name}]:`, {
-        userId: app.userId,
+      console.log(`📊 画师统计 [${app.name}] (userId: ${app.userId}):`, {
+        商品数: productCount,
         订单数: orderCount,
         已完成: completedOrders.length,
         总收入: totalRevenue.toFixed(2)
@@ -828,7 +853,19 @@ Page({
         // 按完成率排序（计算已完成订单 / 总订单）
         ranking = ranking.map(artist => {
           const allOrders = orderHelper.getAllOrders()
-          const artistOrders = allOrders.filter(o => o.artistId === artist.userId)
+          const allProducts = wx.getStorageSync('mock_products') || []
+          
+          // 🎯 使用同样的多重匹配策略
+          const artistOrders = allOrders.filter(o => {
+            if (o.artistId && String(o.artistId) === String(artist.userId)) return true
+            if (o.productId) {
+              const orderProduct = allProducts.find(p => String(p.id) === String(o.productId))
+              if (orderProduct && String(orderProduct.artistId) === String(artist.userId)) return true
+            }
+            if (o.artistName && o.artistName === artist.name) return true
+            return false
+          })
+          
           const completedOrders = artistOrders.filter(o => o.status === 'completed')
           const completeRate = artistOrders.length > 0 
             ? ((completedOrders.length / artistOrders.length) * 100).toFixed(1) 

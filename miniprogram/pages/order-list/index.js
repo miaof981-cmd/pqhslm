@@ -232,7 +232,13 @@ Page({
         orders = allOrders.filter(order => order.status === currentTab)
       }
       const tabItem = this.data.tabs.find(t => t.value === currentTab)
-      emptyText = `暂无${tabItem ? tabItem.label : ''}订单`
+      
+      // 🎯 为已完成订单设置特殊的空状态文案
+      if (currentTab === 'completed') {
+        emptyText = '暂无已完成可晒稿订单'
+      } else {
+        emptyText = `暂无${tabItem ? tabItem.label : ''}订单`
+      }
     }
 
     // 🎯 所有Tab都按时间倒序排序（新订单在前）

@@ -64,9 +64,19 @@ Page({
     const users = wx.getStorageSync('users') || []
     const artistApplications = wx.getStorageSync('artist_applications') || []
     
-    // 🔧 修复：只加载已上架的商品
+    // 🔧 修复：只加载已上架的商品（明确上架状态）
     const products = rawProducts
-      .filter(p => p.isOnSale !== false)
+      .filter(p => {
+        // 严格检查上架状态：必须是true或undefined（未设置默认为上架）
+        const isOnSale = p.isOnSale
+        const shouldShow = isOnSale === true || isOnSale === undefined || isOnSale === null
+        
+        if (!shouldShow) {
+          console.log('过滤掉商品:', p.name, '原因: isOnSale =', isOnSale)
+        }
+        
+        return shouldShow
+      })
       .map(product => {
       const price = parseFloat(product.price) || parseFloat(product.basePrice) || 0
       const coverImage = ensureRenderableImage(
