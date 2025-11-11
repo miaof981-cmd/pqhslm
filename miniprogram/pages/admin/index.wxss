@@ -645,7 +645,7 @@
 .product-meta {
   display: flex;
   align-items: center;
-  gap: 20rpx;
+  gap: 8rpx;
 }
 
 .product-artist {
@@ -653,9 +653,17 @@
   color: #666;
 }
 
+.product-separator {
+  font-size: 24rpx;
+  color: #DDD;
+}
+
 .product-category {
   font-size: 24rpx;
   color: #999;
+  background: #F5F5F5;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
 }
 
 .product-details {

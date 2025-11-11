@@ -243,6 +243,7 @@
             
             <view class="product-meta">
               <text class="product-artist">画师：{{item.artistName}}</text>
+              <text class="product-separator"> | </text>
               <text class="product-category">{{item.category}}</text>
             </view>
             

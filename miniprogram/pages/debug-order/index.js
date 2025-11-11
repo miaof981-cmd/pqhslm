@@ -14,7 +14,8 @@ Page({
       artistMismatch: 0,
       noService: 0,
       missingFields: 0,
-      wrongArtistName: 0  // 🎯 新增：画师名字错误
+      wrongArtistName: 0,  // 🎯 新增：画师名字错误
+      wrongCategory: 0     // 🎯 新增：分类错误
     }
   },
 
@@ -41,27 +42,35 @@ Page({
         artistMismatch: 0,
         noService: 0,
         missingFields: 0,
-        wrongArtistName: 0
+        wrongArtistName: 0,
+        wrongCategory: 0
       }
       
-      // 🎯 新增：扫描商品画师名字
+      // 🎯 扫描商品画师名字 + 分类异常
       const users = wx.getStorageSync('users') || []
       const applications = wx.getStorageSync('artist_applications') || []
+      const categories = wx.getStorageSync('categories') || []
       const problemProducts = []
+      
+      // 🎯 检测异常英文的辅助函数
+      const isInvalidEnglish = (text) => {
+        if (!text) return false
+        const str = String(text).trim()
+        return str.includes('cat_') || 
+               str === 'emoticon' || 
+               str === 'portrait' ||
+               /^[a-zA-Z0-9_]+$/.test(str)  // 纯英文+数字+下划线
+      }
       
       products.forEach(product => {
         const artistName = product.artistName || ''
         const artistId = product.artistId
+        const category = product.category || ''
         
-        // 检测是否是错误的英文名（cat_xxx、emoticon、portrait等）
-        const isWrongName = !artistName || 
-                           artistName.includes('cat_') || 
-                           artistName === 'emoticon' || 
-                           artistName === 'portrait' ||
-                           /^[a-zA-Z0-9_]+$/.test(artistName)  // 纯英文+数字+下划线
+        let issues = []
         
-        if (isWrongName && artistId) {
-          // 获取正确的画师名字
+        // 🎯 检查1：画师名字是否是错误的英文
+        if (isInvalidEnglish(artistName) && artistId) {
           let correctName = null
           const app = applications.find(a => 
             String(a.userId) === String(artistId) && a.status === 'approved'
@@ -78,15 +87,43 @@ Page({
           }
           
           if (correctName) {
-            problemProducts.push({
-              productId: product.id,
-              productName: product.name,
-              wrongName: artistName,
-              correctName: correctName,
-              artistId: artistId
+            issues.push({
+              type: 'artistName',
+              wrongValue: artistName,
+              correctValue: correctName
             })
             stats.wrongArtistName++
           }
+        }
+        
+        // 🎯 检查2：分类是否是异常英文（不存在于分类列表）
+        if (isInvalidEnglish(category)) {
+          issues.push({
+            type: 'category',
+            wrongValue: category,
+            correctValue: '请在商品编辑中重新选择分类'
+          })
+          stats.wrongCategory++
+        } else if (category) {
+          // 检查分类是否存在于系统分类中
+          const validCategory = categories.find(c => String(c.id) === String(category))
+          if (!validCategory) {
+            issues.push({
+              type: 'category',
+              wrongValue: category,
+              correctValue: '分类已失效，请重新选择'
+            })
+            stats.wrongCategory++
+          }
+        }
+        
+        if (issues.length > 0) {
+          problemProducts.push({
+            productId: product.id,
+            productName: product.name,
+            artistId: artistId,
+            issues: issues
+          })
         }
       })
 
