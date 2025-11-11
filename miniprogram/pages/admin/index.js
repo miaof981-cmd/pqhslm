@@ -1154,9 +1154,11 @@ Page({
       const statusText = String(order.serviceStatus || '').toLowerCase()
       const needsService = order.needsService === true
 
+      // 🔧 修复：检查3个字段（serviceId OR serviceName OR serviceQRCode）
       const serviceId = normalizeString(order.serviceId)
       const serviceName = normalizeString(order.serviceName)
-      const serviceMissing = !serviceId && ( !serviceName || isPlaceholderServiceName(serviceName) )
+      const serviceQRCode = normalizeString(order.serviceQRCode)
+      const serviceMissing = !serviceId && !serviceQRCode && ( !serviceName || isPlaceholderServiceName(serviceName) )
 
       return statusText === 'pending' || needsService || serviceMissing
     })
