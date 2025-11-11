@@ -10,7 +10,9 @@ Page({
     results: [],
     allProducts: [],
     loading: true,
-    empty: false
+    empty: false,
+    // 🔍 诊断数据（用于排查搜索问题）
+    diagnosticReport: null
   },
 
   onLoad() {
@@ -64,12 +66,33 @@ Page({
     const users = wx.getStorageSync('users') || []
     const artistApplications = wx.getStorageSync('artist_applications') || []
     
+    // 🔍 诊断记录器
+    const diagnostic = {
+      totalProducts: rawProducts.length,
+      afterOnSaleFilter: 0,
+      afterIdFilter: 0,
+      targetProduct: null, // "蓝色"商品的详细信息
+      allProducts: [] // 所有商品的简要信息
+    }
+    
     // 🔧 修复：与首页保持完全一致的过滤逻辑
     const products = rawProducts
       .filter(p => {
         // ✅ 关键修复：只要 isOnSale 不是明确的 false，就显示
         // 这样可以兼容：true、1、'1'、'true'、undefined、null 等所有"真值"
         const shouldShow = p.isOnSale !== false
+        
+        // 🔍 诊断：记录"蓝色"商品的过滤结果
+        if (p.name === '蓝色' || (p.name && p.name.includes('蓝色'))) {
+          if (!shouldShow) {
+            diagnostic.targetProduct = {
+              name: p.name,
+              step: '第一步：isOnSale过滤',
+              reason: `isOnSale=${p.isOnSale}，被判定为下架商品`,
+              pass: false
+            }
+          }
+        }
         
         if (!shouldShow) {
           console.log('[搜索过滤] 过滤掉商品（isOnSale=false）:', p.name, 'isOnSale:', p.isOnSale)
@@ -131,7 +154,7 @@ Page({
       // 🔧 调试日志：记录商品基本信息
       console.log(`[搜索加载] 商品: ${product.name}, price: ${price}, artistId: ${product.artistId}, artistNumber: ${artistNumber}`)
       
-      return {
+      const processedItem = {
         id: product.id || product._id,
         name: product.name || '未命名商品',
         price: price.toFixed(2),
@@ -151,14 +174,66 @@ Page({
           ...(specTokens.map(token => token.toLowerCase())) // 🔧 修复：包含规格名和规格值
         ].filter(token => token && token.length > 0)
       }
+      
+      // 🔍 诊断：记录"蓝色"商品的详细信息
+      if (product.name === '蓝色' || (product.name && product.name.includes('蓝色'))) {
+        diagnostic.targetProduct = {
+          name: product.name,
+          step: '第二步：数据提取',
+          rawArtistId: product.artistId,
+          artistIdType: typeof product.artistId,
+          artistName: artistName,
+          artistNumber: artistNumber,
+          searchTokens: processedItem.searchTokens,
+          hasNumber1: processedItem.searchTokens.includes('1'),
+          pass: true
+        }
+      }
+      
+      // 🔍 记录所有商品的简要信息（用于对比）
+      diagnostic.allProducts.push({
+        name: product.name,
+        artistId: product.artistId,
+        artistNumber: artistNumber,
+        hasNumber1: processedItem.searchTokens.includes('1')
+      })
+      
+      return processedItem
     }).filter(item => {
       // 🔧 修复：严格检查id存在性（允许0、'0'等值）
       const hasValidId = item.id !== undefined && item.id !== null && item.id !== ''
+      
+      // 🔍 诊断："蓝色"商品是否通过ID过滤
+      if (item.name === '蓝色' || (item.name && item.name.includes('蓝色'))) {
+        if (!hasValidId) {
+          diagnostic.targetProduct = {
+            ...diagnostic.targetProduct,
+            step: '第三步：ID过滤',
+            reason: `id=${item.id}，被判定为无效ID`,
+            pass: false
+          }
+        } else {
+          diagnostic.targetProduct = {
+            ...diagnostic.targetProduct,
+            step: '第三步：ID过滤',
+            pass: true,
+            finalId: item.id
+          }
+        }
+      }
+      
       if (!hasValidId) {
         console.log('[搜索过滤] 过滤掉商品（无效ID）:', item.name, 'id:', item.id)
       }
       return hasValidId
     })
+
+    // 🔍 统计最终结果
+    diagnostic.afterOnSaleFilter = products.length
+    diagnostic.afterIdFilter = products.length
+    
+    // 🔍 保存诊断报告到data
+    this.diagnosticReport = diagnostic
 
     this.setData({
       allProducts: products,
@@ -195,6 +270,13 @@ Page({
 
   performSearch(keyword) {
     const normalized = (keyword || '').trim().toLowerCase()
+    
+    // 🔍 特殊关键词：触发诊断报告
+    if (normalized === '诊断' || normalized === 'debug' || normalized === '排查') {
+      this.showDiagnosticReport()
+      return
+    }
+    
     let results = this.data.allProducts
 
     if (normalized) {
@@ -207,6 +289,80 @@ Page({
     this.setData({
       results,
       empty: (normalized ? results.length === 0 : this.data.allProducts.length === 0)
+    })
+  },
+  
+  // 🔍 显示诊断报告（手机端可见）
+  showDiagnosticReport() {
+    const report = this.diagnosticReport
+    if (!report) {
+      wx.showModal({
+        title: '诊断报告',
+        content: '诊断数据未初始化，请重新进入搜索页面',
+        showCancel: false
+      })
+      return
+    }
+    
+    let content = `【商品数据统计】\n`
+    content += `总商品数: ${report.totalProducts}\n`
+    content += `通过上架过滤: ${report.afterOnSaleFilter}\n`
+    content += `通过ID过滤: ${report.afterIdFilter}\n\n`
+    
+    if (report.targetProduct) {
+      const target = report.targetProduct
+      content += `【"蓝色"商品详情】\n`
+      content += `当前步骤: ${target.step}\n`
+      content += `是否通过: ${target.pass ? '✅ 是' : '❌ 否'}\n`
+      
+      if (target.rawArtistId !== undefined) {
+        content += `画师ID: ${target.rawArtistId} (${target.artistIdType})\n`
+        content += `画师编号: ${target.artistNumber || '无'}\n`
+        content += `搜索索引包含"1": ${target.hasNumber1 ? '✅ 是' : '❌ 否'}\n`
+      }
+      
+      if (target.searchTokens) {
+        content += `搜索关键词: [${target.searchTokens.slice(0, 3).join(', ')}...]\n`
+      }
+      
+      if (target.reason) {
+        content += `\n❌ 失败原因:\n${target.reason}`
+      }
+    } else {
+      content += `【"蓝色"商品】\n未找到名为"蓝色"的商品`
+    }
+    
+    // 🔍 对比其他画师1的商品
+    const artist1Products = report.allProducts.filter(p => 
+      String(p.artistId) === '1' || String(p.artistId) === '001' || p.artistNumber === '1'
+    )
+    
+    if (artist1Products.length > 0) {
+      content += `\n\n【画师1的其他商品】\n`
+      artist1Products.slice(0, 3).forEach(p => {
+        content += `${p.name}: 编号=${p.artistNumber || '无'}, 包含"1"=${p.hasNumber1 ? '✅' : '❌'}\n`
+      })
+      if (artist1Products.length > 3) {
+        content += `... 还有${artist1Products.length - 3}个商品`
+      }
+    }
+    
+    wx.showModal({
+      title: '🔍 搜索诊断报告',
+      content: content,
+      showCancel: true,
+      cancelText: '关闭',
+      confirmText: '复制',
+      success: (res) => {
+        if (res.confirm) {
+          wx.setClipboardData({
+            data: content,
+            success: () => {
+              wx.showToast({ title: '已复制到剪贴板', icon: 'success' })
+            }
+          })
+        }
+      }
     })
   },
 
