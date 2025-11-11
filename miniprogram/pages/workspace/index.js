@@ -348,9 +348,11 @@ Page({
     console.log('当前角色:', userRole)
     
     // 🎯 使用统一工具函数获取并标准化订单
+    // 🔧 修复：显示所有订单（包括已完成、已退款、已取消）
     let myOrders = orderHelper.prepareOrdersForPage({
       role: userRole,
-      userId: currentUserId
+      userId: currentUserId,
+      includeCompleted: true  // ✅ 显示历史订单
     })
     
     console.log('✅ 订单加载完成:', myOrders.length, '个')

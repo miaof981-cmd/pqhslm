@@ -703,6 +703,30 @@ Page({
       const missingFields = requiredFields.filter(f => !f.value)
       if (missingFields.length > 0) {
         console.error('❌ 订单缺少必填字段:', missingFields.map(f => f.name).join(', '))
+        
+        // 🔧 修复：特别处理 artistId 缺失的情况
+        if (missingFields.some(f => f.name === 'artistId')) {
+          console.error('🚨 [严重] artistId 为空，画师端将无法看到此订单！')
+          console.error('商品信息:', {
+            productId: orderInfo.productId,
+            productName: orderInfo.productName,
+            orderNo: orderInfo.orderNo
+          })
+          
+          wx.showModal({
+            title: '警告',
+            content: '商品画师信息缺失，订单可能无法正常分配给画师。\n\n建议：联系管理员检查商品信息。\n\n是否继续提交订单？',
+            confirmColor: '#E74C3C',
+            success: (modalRes) => {
+              if (!modalRes.confirm) {
+                console.log('用户取消下单')
+                return
+              }
+              console.log('用户确认继续下单（artistId 为空）')
+            }
+          })
+        }
+        
         wx.showToast({ title: '订单信息不完整', icon: 'none' })
         return
       }
