@@ -844,7 +844,7 @@
 .spec-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  /* 🎯 移除 object-fit，小程序使用 mode="aspectFill" 控制 */
 }
 
 .spec-image-placeholder {
@@ -1145,7 +1145,7 @@
 .upload-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  /* 🎯 移除 object-fit，小程序使用 mode="aspectFill" 控制 */
 }
 
 /* 🎯 图片删除按钮 */

@@ -629,19 +629,19 @@ Page({
         
         status: 'inProgress',
         
-        // ✅ 保存下单者信息
-        buyerId: userId,
+        // ✅ 保存下单者信息（ID统一为string类型）
+        buyerId: String(userId),
         buyerName: userInfo.nickName || '客户',
         buyerAvatar: userInfo.avatarUrl || '',
         buyerOpenId: userInfo.openid || '',
         
-        // ✅ 保存画师完整信息
-        artistId: orderInfo.artistId || '',
+        // ✅ 保存画师完整信息（ID统一为string类型）
+        artistId: String(orderInfo.artistId || ''),
         artistName: orderInfo.artistName,
         artistAvatar: orderInfo.artistAvatar || '',
         
-        // ✅ 保存客服信息（已分配）
-        serviceId: serviceInfo.serviceId,
+        // ✅ 保存客服信息（已分配，ID统一为string类型）
+        serviceId: String(serviceInfo.serviceId || ''),
         serviceName: serviceInfo.serviceName,
         serviceAvatar: serviceInfo.serviceAvatar,
         serviceQrcodeUrl: serviceInfo.serviceQrcodeUrl,
@@ -732,18 +732,9 @@ Page({
         isNewOrder = true
       }
       
-      // 保存到本地存储
+      // ✅ 只保存到pending_orders（避免重复写入）
+      // 订单完成后会自动移入completed_orders，不需要同时写入orders
       wx.setStorageSync('pending_orders', pendingOrders)
-      
-      // 同步到正式订单池
-      let confirmedOrders = wx.getStorageSync('orders') || []
-      const confirmedIndex = confirmedOrders.findIndex(o => o.id === newOrder.id)
-      if (confirmedIndex !== -1) {
-        confirmedOrders[confirmedIndex] = orderHelper.mergeOrderRecords(confirmedOrders[confirmedIndex], newOrder)
-      } else {
-        confirmedOrders.push(newOrder)
-      }
-      wx.setStorageSync('orders', confirmedOrders)
      
      // 验证保存
       const savedPending = wx.getStorageSync('pending_orders') || []

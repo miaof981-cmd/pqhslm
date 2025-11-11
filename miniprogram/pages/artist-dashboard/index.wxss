@@ -95,8 +95,7 @@
   height: 120rpx;
   border-radius: 15rpx;
   margin-right: 20rpx;
-  object-fit: cover;
-  object-position: center;
+  /* 🎯 移除 object-fit 和 object-position，小程序使用 mode="aspectFill" 控制 */
 }
 
 .product-info {

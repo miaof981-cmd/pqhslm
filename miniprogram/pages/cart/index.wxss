@@ -79,8 +79,7 @@
   background-color: #F5F5F5;
   flex-shrink: 0;
   display: block;
-  object-fit: cover;
-  object-position: center;
+  /* 🎯 移除 object-fit 和 object-position，小程序使用 mode="aspectFill" 控制 */
 }
 
 .product-info {

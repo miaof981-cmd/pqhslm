@@ -1,0 +1,87 @@
+<view class="debug-container">
+  <view class="header">
+    <text class="title">🔍 全局订单诊断</text>
+    <text class="subtitle">自动扫描所有订单问题 · 截图发管理员</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">正在扫描 {{scanProgress}} 个订单...</view>
+
+  <view wx:else class="result-list">
+    <!-- 问题汇总 -->
+    <view class="section summary-section {{problemOrders.length > 0 ? 'has-error' : 'all-good'}}">
+      <view class="summary-icon">{{problemOrders.length > 0 ? '⚠️' : '✅'}}</view>
+      <view class="summary-content">
+        <text class="summary-title">{{problemOrders.length > 0 ? '发现异常订单' : '所有订单正常'}}</text>
+        <text class="summary-count">{{problemOrders.length}} / {{totalOrders}} 个订单存在问题</text>
+      </view>
+    </view>
+
+    <!-- 问题分类统计 -->
+    <view wx:if="{{problemOrders.length > 0}}" class="section">
+      <view class="section-title">📊 问题分类</view>
+      <view class="item">
+        <text class="label">❌ 商品不存在：</text>
+        <text class="value error">{{issueStats.productNotFound}}个</text>
+      </view>
+      <view class="item">
+        <text class="label">⚠️ 画师ID不匹配：</text>
+        <text class="value warning">{{issueStats.artistMismatch}}个</text>
+      </view>
+      <view class="item">
+        <text class="label">⚠️ 客服未分配：</text>
+        <text class="value warning">{{issueStats.noService}}个</text>
+      </view>
+      <view class="item">
+        <text class="label">⚠️ 订单字段缺失：</text>
+        <text class="value warning">{{issueStats.missingFields}}个</text>
+      </view>
+    </view>
+
+    <!-- 问题订单列表 -->
+    <view wx:if="{{problemOrders.length > 0}}" class="section">
+      <view class="section-title">🚨 问题订单明细（前10条）</view>
+      <view wx:for="{{problemOrders}}" wx:key="orderId" class="problem-order-card">
+        <view class="order-header">
+          <text class="order-id">{{item.orderId}}</text>
+          <text class="order-product">{{item.productName}}</text>
+        </view>
+        <view class="order-issues">
+          <text wx:for="{{item.issues}}" wx:key="*this" wx:for-item="issue" class="issue-tag issue-{{issue.level}}">
+            {{issue.text}}
+          </text>
+        </view>
+        <view class="order-detail">
+          <text class="detail-line">买家ID: {{item.buyerId || '缺失'}}</text>
+          <text class="detail-line">画师ID: {{item.artistId || '缺失'}}</text>
+          <text class="detail-line">商品ID: {{item.productId || '缺失'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 数据源统计 -->
+    <view class="section">
+      <view class="section-title">💾 数据源</view>
+      <view class="item">
+        <text class="label">总订单（去重）：</text>
+        <text class="value success">{{totalOrders}}个</text>
+      </view>
+      <view class="item">
+        <text class="label">商品总数：</text>
+        <text class="value">{{totalProducts}}个</text>
+      </view>
+      <view class="item">
+        <text class="label">客服总数：</text>
+        <text class="value {{totalServices > 0 ? 'success' : 'error'}}">{{totalServices}}个</text>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="actions">
+      <button class="btn" bindtap="copyResult">📋 复制诊断报告</button>
+      <button class="btn secondary" bindtap="runDiagnosis">🔄 重新扫描</button>
+      <button wx:if="{{problemOrders.length > 0}}" class="btn fix-btn" bindtap="fixAllIssues">🔧 一键修复问题订单</button>
+      <button class="btn secondary" bindtap="goBack">返回</button>
+    </view>
+  </view>
+</view>
+

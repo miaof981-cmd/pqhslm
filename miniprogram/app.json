@@ -11,6 +11,7 @@
     "pages/buyer-show/index/index",
     "pages/buyer-show/detail/index",
     "pages/buyer-show/publish/index",
+    "pages/debug-order/index",
     "pages/product-detail/index",
     "pages/artist-dashboard/index",
     "pages/admin/index",

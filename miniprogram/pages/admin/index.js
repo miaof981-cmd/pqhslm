@@ -1945,6 +1945,12 @@ Page({
     })
   },
 
+  goToDebugOrder() {
+    wx.navigateTo({
+      url: '/pages/debug-order/index'
+    })
+  },
+
   // ❌ 已废弃：使用 computeVisualStatus 替代
   // calculateProgressPercent(order) {
   //   // 此函数已被 utils/order-visual-status.js 中的 computeVisualStatus 替代

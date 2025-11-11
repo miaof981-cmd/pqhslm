@@ -27,7 +27,7 @@
 .swiper-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;  /* 🎯 修复：配合 aspectFill 防止留白 */
+  /* 🎯 移除 object-fit，小程序使用 mode="aspectFill" 控制 */
   background: #f8f8f8;
 }
 

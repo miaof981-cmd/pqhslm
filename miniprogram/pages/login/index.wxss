@@ -142,8 +142,7 @@
   border: 6rpx solid rgba(255, 255, 255, 0.8);
   box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
   display: block;
-  object-fit: cover;
-  object-position: center;
+  /* 🎯 移除 object-fit 和 object-position，小程序使用 mode="aspectFill" 控制 */
 }
 
 .avatar-tip {

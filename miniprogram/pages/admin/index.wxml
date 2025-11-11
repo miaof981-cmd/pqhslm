@@ -496,6 +496,10 @@
           <view class="more-icon icon-notice"></view>
           <text class="more-label">公告管理</text>
         </view>
+        <view class="more-item" bindtap="goToDebugOrder">
+          <view class="more-icon icon-debug"></view>
+          <text class="more-label">🔍 诊断工具</text>
+        </view>
       </view>
     </view>
   </view>
