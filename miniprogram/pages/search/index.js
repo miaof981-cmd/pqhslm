@@ -64,31 +64,15 @@ Page({
     const users = wx.getStorageSync('users') || []
     const artistApplications = wx.getStorageSync('artist_applications') || []
     
-    // 🔧 修复：只加载已上架的商品（兼容多种状态值）
+    // 🔧 修复：与首页保持完全一致的过滤逻辑
     const products = rawProducts
       .filter(p => {
-        // 检查上架状态（兼容多种值）
-        const isOnSale = p.isOnSale
-        const status = p.status
-        
-        // 兼容多种上架状态：
-        // 1. isOnSale: true/undefined/null/'上架'/'已上架'/'onSale'
-        // 2. status: 'active'/'online'/'上架'/'已上架'/'onSale'
-        const shouldShow = 
-          isOnSale === true || 
-          isOnSale === undefined || 
-          isOnSale === null ||
-          isOnSale === '上架' ||
-          isOnSale === '已上架' ||
-          isOnSale === 'onSale' ||
-          status === 'active' ||
-          status === 'online' ||
-          status === '上架' ||
-          status === '已上架' ||
-          status === 'onSale'
+        // ✅ 关键修复：只要 isOnSale 不是明确的 false，就显示
+        // 这样可以兼容：true、1、'1'、'true'、undefined、null 等所有"真值"
+        const shouldShow = p.isOnSale !== false
         
         if (!shouldShow) {
-          console.log('[搜索过滤] 过滤掉商品（未上架）:', p.name, 'isOnSale:', isOnSale, 'status:', status)
+          console.log('[搜索过滤] 过滤掉商品（isOnSale=false）:', p.name, 'isOnSale:', p.isOnSale)
         }
         
         return shouldShow
