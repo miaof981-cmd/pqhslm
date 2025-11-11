@@ -385,13 +385,19 @@ Page({
     // 统计订单状态（基于筛选后的订单）
     const stats = orderStatusUtil.countOrderStatus(myOrders)
     
-    console.log('订单统计:', stats)
+    // 🔧 修复："待处理"应包括所有未完成订单（inProgress + waitingConfirm + nearDeadline + overdue）
+    const pendingCount = (stats.inProgress || 0) + (stats.waitingConfirm || 0) + (stats.nearDeadline || 0) + (stats.overdue || 0)
+    
+    console.log('订单统计:', {
+      ...stats,
+      '待处理（合计）': pendingCount
+    })
     
     this.setData({ 
       pendingStats: {
         nearDeadline: stats.nearDeadline,
         overdue: stats.overdue,
-        inProgress: stats.inProgress
+        inProgress: pendingCount  // 🔧 显示所有待处理订单总数
       },
       pendingOrders: myOrders, // ✅ 只显示当前用户的订单
       allOrders: myOrders       // ✅ 用于筛选
@@ -828,6 +834,11 @@ Page({
       filtered = filtered.filter(order => 
         order.status === 'overdue' || order.status === 'nearDeadline'
       )
+    } else if (currentFilter === 'inProgress') {
+      // 🔧 修复："进行中"应包括所有未完成订单（除了completed/refunded/cancelled）
+      filtered = filtered.filter(order => 
+        order.status !== 'completed' && order.status !== 'refunded' && order.status !== 'cancelled'
+      )
     } else if (currentFilter !== 'all') {
       filtered = filtered.filter(order => order.status === currentFilter)
     }
@@ -858,34 +869,42 @@ Page({
   // 🎯 按优先级和时间排序订单
   sortOrdersByPriority(orders) {
     return orders.sort((a, b) => {
-      // 定义优先级权重（数字越大，优先级越高）
+      // 🔧 修复：提高inProgress优先级，使其在"全部"中靠前显示
       const priorityMap = {
-        'overdue': 4,        // 最高：已拖稿
-        'waitingConfirm': 3, // 第二：待确认
-        'nearDeadline': 2,   // 第三：临近截稿
-        'inProgress': 1,     // 第四：进行中
-        'completed': 0       // 最低：已完成
+        'overdue': 5,        // 最高：已拖稿
+        'nearDeadline': 4,   // 第二：临近截稿
+        'waitingConfirm': 3, // 第三：待确认
+        'inProgress': 3,     // 第三：进行中（与待确认同级）
+        'completed': 0,      // 最低：已完成
+        'refunded': -1,      // 更低：已退款
+        'cancelled': -1      // 更低：已取消
       }
       
-      const priorityA = priorityMap[a.status] || 0
-      const priorityB = priorityMap[b.status] || 0
+      const priorityA = priorityMap[a.status] !== undefined ? priorityMap[a.status] : 2
+      const priorityB = priorityMap[b.status] !== undefined ? priorityMap[b.status] : 2
       
       // 1. 先按优先级排序
       if (priorityA !== priorityB) {
         return priorityB - priorityA // 降序：优先级高的在前
       }
       
-      // 2. 同优先级，按时间排序
-      // 已完成的按完成时间倒序（新完成的在前）
+      // 2. 同优先级，按deadline排序（临近的在前）
+      if (a.status !== 'completed' && b.status !== 'completed' && a.deadline && b.deadline) {
+        const deadlineA = parseDate(a.deadline).getTime()
+        const deadlineB = parseDate(b.deadline).getTime()
+        return deadlineA - deadlineB // 升序：deadline早的在前
+      }
+      
+      // 3. 已完成的按完成时间倒序（新完成的在前）
       if (a.status === 'completed' && b.status === 'completed') {
-        const timeA = new Date(a.completedAt || a.createTime).getTime()
-        const timeB = new Date(b.completedAt || b.createTime).getTime()
+        const timeA = parseDate(a.completedAt || a.createTime).getTime()
+        const timeB = parseDate(b.completedAt || b.createTime).getTime()
         return timeB - timeA
       }
       
-      // 其他状态按创建时间倒序（新订单在前）
-      const timeA = new Date(a.createTime).getTime()
-      const timeB = new Date(b.createTime).getTime()
+      // 4. 其他情况按创建时间倒序（新订单在前）
+      const timeA = parseDate(a.createTime).getTime()
+      const timeB = parseDate(b.createTime).getTime()
       return timeB - timeA
     })
   },

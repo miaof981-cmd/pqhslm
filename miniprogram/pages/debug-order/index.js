@@ -96,25 +96,37 @@ Page({
           }
         }
         
-        // 🎯 检查2：分类是否是异常英文（不存在于分类列表）
-        if (isInvalidEnglish(category)) {
-          issues.push({
-            type: 'category',
-            wrongValue: category,
-            correctValue: '请在商品编辑中重新选择分类'
-          })
-          stats.wrongCategory++
-        } else if (category) {
-          // 检查分类是否存在于系统分类中
+        // 🎯 检查2：分类显示是否正确
+        const categoryName = product.categoryName || ''
+        if (category) {
+          // 先查找该分类是否存在
           const validCategory = categories.find(c => String(c.id) === String(category))
+          
           if (!validCategory) {
+            // 分类ID不存在于系统中
             issues.push({
               type: 'category',
-              wrongValue: category,
-              correctValue: '分类已失效，请重新选择'
+              wrongValue: `${category}（分类已失效）`,
+              correctValue: '请在商品编辑中重新选择分类'
+            })
+            stats.wrongCategory++
+          } else if (!categoryName || categoryName !== validCategory.name) {
+            // 分类ID存在，但categoryName不匹配
+            issues.push({
+              type: 'category',
+              wrongValue: categoryName || '未设置',
+              correctValue: validCategory.name
             })
             stats.wrongCategory++
           }
+        } else if (!category && !categoryName) {
+          // 完全没有设置分类
+          issues.push({
+            type: 'category',
+            wrongValue: '未分类',
+            correctValue: '请设置商品分类'
+          })
+          stats.wrongCategory++
         }
         
         if (issues.length > 0) {
@@ -149,8 +161,9 @@ Page({
           }
         }
 
-        // 🎯 检查3：客服是否分配
-        if (!order.serviceId) {
+        // 🎯 检查3：客服是否分配（检查3个字段：serviceId OR serviceName OR serviceQRCode）
+        const hasService = order.serviceId || order.serviceName || order.serviceQRCode
+        if (!hasService) {
           issues.push({ level: 'warning', text: '⚠️客服未分配' })
           stats.noService++
           hasIssue = true

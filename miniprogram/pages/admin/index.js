@@ -691,12 +691,22 @@ Page({
       const productCount = artistProducts.length
       
       // 统计该画师的订单数量和总收入
-      const artistOrders = allOrders.filter(o => o.artistId === app.userId || o.artistName === app.name)
+      // 🔧 修复：使用String()确保类型匹配
+      const artistOrders = allOrders.filter(o => 
+        String(o.artistId) === String(app.userId) || o.artistName === app.name
+      )
       const orderCount = artistOrders.length
       const completedOrders = artistOrders.filter(o => o.status === 'completed')
       const totalRevenue = completedOrders.reduce((sum, order) => {
         return sum + (parseFloat(order.totalPrice) || 0)
       }, 0)
+      
+      console.log(`📊 画师统计 [${app.name}]:`, {
+        userId: app.userId,
+        订单数: orderCount,
+        已完成: completedOrders.length,
+        总收入: totalRevenue.toFixed(2)
+      })
       
       // 获取用户头像和昵称
       const currentUserId = wx.getStorageSync('userId')
