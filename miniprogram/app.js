@@ -79,8 +79,10 @@ App({
 
     let existing = wx.getStorageSync(STORAGE_KEY)
     if (existing) {
-      this.globalData.userId = existing
-      return existing
+      // 🎯 统一转换为string类型
+      const userId = String(existing)
+      this.globalData.userId = userId
+      return userId
     }
 
     let counter = Number(wx.getStorageSync(COUNTER_KEY))
@@ -90,12 +92,14 @@ App({
 
     counter += 1
     wx.setStorageSync(COUNTER_KEY, counter)
-    wx.setStorageSync(STORAGE_KEY, counter)
+    // 🎯 统一存储为string类型
+    const userId = String(counter)
+    wx.setStorageSync(STORAGE_KEY, userId)
 
-    this.globalData.userId = counter
-    console.log('🆕 生成新用户ID', counter)
+    this.globalData.userId = userId
+    console.log('🆕 生成新用户ID', userId)
 
-    return counter
+    return userId
   },
 
   // 重置用户ID（开发调试用）
