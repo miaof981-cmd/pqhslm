@@ -414,7 +414,7 @@ function getAllOrders() {
  * @returns {Array} 标准化后的订单数组
  */
 function prepareOrdersForPage(options = {}) {
-  const { role, userId } = options
+  const { role, userId, includeCompleted = false } = options
   
   // 1. 获取所有订单
   let allOrders = getAllOrders()
@@ -466,7 +466,19 @@ function prepareOrdersForPage(options = {}) {
   }
   // admin 不筛选，看所有订单
   
-  // 3. 标准化处理
+  // 🎯 3. 过滤终态订单（除非明确要求包含）
+  if (!includeCompleted) {
+    const TERMINAL_STATES = ['completed', 'refunded', 'cancelled']
+    const beforeFilter = allOrders.length
+    allOrders = allOrders.filter(order => !TERMINAL_STATES.includes(order.status))
+    const afterFilter = allOrders.length
+    
+    if (beforeFilter !== afterFilter) {
+      console.log(`🎯 [订单筛选] 过滤终态订单: ${beforeFilter} → ${afterFilter}（过滤了 ${beforeFilter - afterFilter} 个）`)
+    }
+  }
+  
+  // 4. 标准化处理
   const serviceList = wx.getStorageSync('customer_service_list') || []
   return normalizeOrders(allOrders, { serviceList })
 }

@@ -1192,10 +1192,17 @@ Page({
       const needsService = order.needsService === true
 
       // 🔧 修复：检查3个字段（serviceId OR serviceName OR serviceQRCode）
+      // 🎯 修复：主要检查 serviceId 和 serviceAvatar 是否有效，而不是依赖 serviceName 文本
       const serviceId = normalizeString(order.serviceId)
-      const serviceName = normalizeString(order.serviceName)
-      const serviceQRCode = normalizeString(order.serviceQRCode)
-      const serviceMissing = !serviceId && !serviceQRCode && ( !serviceName || isPlaceholderServiceName(serviceName) )
+      const serviceAvatar = normalizeString(order.serviceAvatar)
+      
+      // 判断客服是否真正缺失：
+      // 1. 没有 serviceId，或
+      // 2. 有 serviceId 但头像无效（临时路径或本地路径）
+      const serviceMissing = !serviceId || 
+        !serviceAvatar || 
+        serviceAvatar.startsWith('http://tmp/') || 
+        serviceAvatar.startsWith('/assets/')
 
       return statusText === 'pending' || needsService || serviceMissing
     })
