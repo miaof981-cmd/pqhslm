@@ -18,6 +18,11 @@ Page({
     this.loadProducts()
   },
 
+  // 🎯 每次显示页面时重新加载商品（确保画师改名等数据更新能实时同步）
+  onShow() {
+    this.loadProducts()
+  },
+
   loadHistory() {
     try {
       const stored = wx.getStorageSync(HISTORY_STORAGE_KEY) || []
