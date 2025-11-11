@@ -107,6 +107,20 @@ function diagnoseOrderCounts() {
 function quickDiagnose() {
   const report = diagnoseOrderCounts()
   
+  console.log('')
+  console.log('🚨 请检查以下差异订单:')
+  if (report.extraInAdmin.length > 0) {
+    report.extraInAdmin.forEach(o => {
+      console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+      console.log(`订单ID: ${o.id}`)
+      console.log(`状态: ${o.status}`)
+      console.log(`商品: ${o.productName}`)
+      console.log(`买家: ${o.buyerName || o.buyerId}`)
+      console.log(`画师ID: ${o.artistId}`)
+      console.log(`创建时间: ${o.createTime}`)
+    })
+  }
+  
   // 返回简要信息
   return {
     summary: `管理后台${report.adminPending}个 vs 用户端${report.userProcessing}个 (差异${report.difference}个)`,
@@ -114,13 +128,71 @@ function quickDiagnose() {
       id: o.id,
       status: o.status,
       product: o.productName,
-      buyer: o.buyerName || o.buyerId
+      buyer: o.buyerName || o.buyerId,
+      artistId: o.artistId
     }))
   }
 }
 
+/**
+ * 检查订单是否重复（在多个数据源中）
+ */
+function checkDuplicates() {
+  const orders = wx.getStorageSync('orders') || []
+  const pendingOrders = wx.getStorageSync('pending_orders') || []
+  const mockOrders = wx.getStorageSync('mock_orders') || []
+  
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+  console.log('🔍 检查订单数据源重复')
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+  console.log('orders:', orders.length, '个')
+  console.log('pending_orders:', pendingOrders.length, '个')
+  console.log('mock_orders:', mockOrders.length, '个')
+  console.log('')
+  
+  // 检查重复订单
+  const allIds = new Map()
+  
+  const checkSource = (list, sourceName) => {
+    list.forEach(order => {
+      if (!order.id) return
+      if (allIds.has(order.id)) {
+        allIds.get(order.id).push(sourceName)
+      } else {
+        allIds.set(order.id, [sourceName])
+      }
+    })
+  }
+  
+  checkSource(orders, 'orders')
+  checkSource(pendingOrders, 'pending_orders')
+  checkSource(mockOrders, 'mock_orders')
+  
+  // 找出重复的订单
+  const duplicates = []
+  allIds.forEach((sources, orderId) => {
+    if (sources.length > 1) {
+      duplicates.push({ orderId, sources })
+    }
+  })
+  
+  if (duplicates.length > 0) {
+    console.log('⚠️ 发现重复订单:')
+    duplicates.forEach(dup => {
+      console.log(`  订单 ${dup.orderId} 出现在: ${dup.sources.join(', ')}`)
+    })
+  } else {
+    console.log('✅ 没有重复订单')
+  }
+  
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+  
+  return duplicates
+}
+
 module.exports = {
   diagnoseOrderCounts,
-  quickDiagnose
+  quickDiagnose,
+  checkDuplicates
 }
 
