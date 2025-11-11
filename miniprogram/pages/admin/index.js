@@ -206,8 +206,9 @@ Page({
     const buyerCount = uniqueBuyers.size
     
     // 计算待处理数量（使用全部订单，不受时间筛选影响）
-    const pendingStatuses = new Set(['unpaid', 'paid', 'processing', 'inProgress', 'waitingConfirm', 'nearDeadline'])
-    const pendingOrders = allOrders.filter(o => pendingStatuses.has(o.status)).length
+    // 🎯 修复：排除已完成、已退款、已取消的订单
+    const completedStatuses = new Set(['completed', 'refunded', 'cancelled'])
+    const pendingOrders = allOrders.filter(o => !completedStatuses.has(o.status)).length
     const pendingApplicationsCount = allApplications.filter(app => app.status === 'pending').length
     
     // 计算逾期订单（使用全部订单）
@@ -719,6 +720,7 @@ Page({
         return false
       })
       
+      // 🎯 修复：统计所有订单（不只是已完成的）
       const orderCount = artistOrders.length
       const completedOrders = artistOrders.filter(o => o.status === 'completed')
       
@@ -727,6 +729,17 @@ Page({
         const orderAmount = parseFloat(order.price || order.totalAmount || order.totalPrice || 0)
         return sum + orderAmount
       }, 0)
+      
+      // 🔍 诊断日志：如果订单数为0，打印详细信息
+      if (orderCount === 0 && productCount > 0) {
+        console.warn(`⚠️ 画师 [${app.name}] 有商品但无订单:`, {
+          userId: app.userId,
+          商品数: productCount,
+          商品列表: artistProducts.map(p => ({ id: p.id, name: p.name, artistId: p.artistId }))
+        })
+        // 打印所有订单的artistId，帮助排查匹配问题
+        console.log('所有订单的artistId:', allOrders.slice(0, 5).map(o => ({ id: o.id, artistId: o.artistId, productId: o.productId })))
+      }
       
       console.log(`📊 画师统计 [${app.name}] (userId: ${app.userId}):`, {
         商品数: productCount,
