@@ -136,7 +136,9 @@ Page({
             categoryName: categoryName || '',
             deliveryDays: p.deliveryDays || 7,
             tags: p.tags || [],
-            isOnSale: p.isOnSale !== false
+            isOnSale: p.isOnSale !== false,
+            sales: p.sales || 0,  // 🎯 新增：销量
+            stock: p.stock || 0   // 🎯 新增：库存
           }
         })
       

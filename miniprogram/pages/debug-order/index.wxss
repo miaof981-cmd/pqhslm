@@ -151,6 +151,16 @@
   line-height: 1.6;
 }
 
+.detail-line.wrong-line {
+  color: #FF4D4F;
+  text-decoration: line-through;
+}
+
+.detail-line.correct-line {
+  color: #52C41A;
+  font-weight: bold;
+}
+
 /* 通用部分 */
 .section {
   background: white;

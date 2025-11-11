@@ -8,16 +8,16 @@
 
   <view wx:else class="result-list">
     <!-- 问题汇总 -->
-    <view class="section summary-section {{problemOrders.length > 0 ? 'has-error' : 'all-good'}}">
-      <view class="summary-icon">{{problemOrders.length > 0 ? '⚠️' : '✅'}}</view>
+    <view class="section summary-section {{(problemOrders.length > 0 || problemProducts.length > 0) ? 'has-error' : 'all-good'}}">
+      <view class="summary-icon">{{(problemOrders.length > 0 || problemProducts.length > 0) ? '⚠️' : '✅'}}</view>
       <view class="summary-content">
-        <text class="summary-title">{{problemOrders.length > 0 ? '发现异常订单' : '所有订单正常'}}</text>
-        <text class="summary-count">{{problemOrders.length}} / {{totalOrders}} 个订单存在问题</text>
+        <text class="summary-title">{{(problemOrders.length > 0 || problemProducts.length > 0) ? '发现数据异常' : '所有数据正常'}}</text>
+        <text class="summary-count">订单问题: {{problemOrders.length}}个 / 商品问题: {{problemProducts.length}}个</text>
       </view>
     </view>
 
     <!-- 问题分类统计 -->
-    <view wx:if="{{problemOrders.length > 0}}" class="section">
+    <view wx:if="{{problemOrders.length > 0 || problemProducts.length > 0}}" class="section">
       <view class="section-title">📊 问题分类</view>
       <view class="item">
         <text class="label">❌ 商品不存在：</text>
@@ -28,12 +28,30 @@
         <text class="value warning">{{issueStats.artistMismatch}}个</text>
       </view>
       <view class="item">
+        <text class="label">⚠️ 画师名字错误：</text>
+        <text class="value warning">{{issueStats.wrongArtistName}}个</text>
+      </view>
+      <view class="item">
         <text class="label">⚠️ 客服未分配：</text>
         <text class="value warning">{{issueStats.noService}}个</text>
       </view>
       <view class="item">
         <text class="label">⚠️ 订单字段缺失：</text>
         <text class="value warning">{{issueStats.missingFields}}个</text>
+      </view>
+    </view>
+
+    <!-- 问题商品列表 -->
+    <view wx:if="{{problemProducts.length > 0}}" class="section">
+      <view class="section-title">🛒 问题商品明细（画师名字错误）</view>
+      <view wx:for="{{problemProducts}}" wx:key="productId" class="problem-order-card">
+        <view class="order-header">
+          <text class="order-product">{{item.productName}}</text>
+        </view>
+        <view class="order-detail">
+          <text class="detail-line wrong-line">❌ 错误名字: {{item.wrongName}}</text>
+          <text class="detail-line correct-line">✅ 正确名字: {{item.correctName}}</text>
+        </view>
       </view>
     </view>
 
@@ -79,7 +97,7 @@
     <view class="actions">
       <button class="btn" bindtap="copyResult">📋 复制诊断报告</button>
       <button class="btn secondary" bindtap="runDiagnosis">🔄 重新扫描</button>
-      <button wx:if="{{problemOrders.length > 0}}" class="btn fix-btn" bindtap="fixAllIssues">🔧 一键修复问题订单</button>
+      <button wx:if="{{problemOrders.length > 0 || problemProducts.length > 0}}" class="btn fix-btn" bindtap="fixAllIssues">🔧 一键修复所有问题</button>
       <button class="btn secondary" bindtap="goBack">返回</button>
     </view>
   </view>

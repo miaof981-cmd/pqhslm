@@ -500,6 +500,10 @@
           <view class="more-icon icon-debug"></view>
           <text class="more-label">🔍 诊断工具</text>
         </view>
+        <view class="more-item" bindtap="clearTestData">
+          <view class="more-icon icon-clear"></view>
+          <text class="more-label">🗑️ 清空数据</text>
+        </view>
       </view>
     </view>
   </view>

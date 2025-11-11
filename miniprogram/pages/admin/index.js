@@ -1971,6 +1971,78 @@ Page({
     })
   },
 
+  // 清空测试数据
+  clearTestData() {
+    wx.showModal({
+      title: '⚠️ 危险操作',
+      content: '此操作将清空以下数据：\n• 所有订单\n• 商品数据\n\n保留数据：\n• 用户信息\n• 系统设置\n• 画师申请\n\n确认清空？',
+      confirmText: '确认清空',
+      confirmColor: '#FF5722',
+      success: (res) => {
+        if (res.confirm) {
+          // 二次确认
+          wx.showModal({
+            title: '最终确认',
+            content: '数据清空后无法恢复！\n\n请再次确认是否清空？',
+            confirmText: '确定清空',
+            confirmColor: '#FF0000',
+            success: (res2) => {
+              if (res2.confirm) {
+                this.doClearTestData()
+              }
+            }
+          })
+        }
+      }
+    })
+  },
+
+  // 执行清空操作
+  doClearTestData() {
+    wx.showLoading({ title: '清空中...', mask: true })
+    
+    try {
+      // 清空订单数据（4个数据源）
+      wx.setStorageSync('orders', [])
+      wx.setStorageSync('pending_orders', [])
+      wx.setStorageSync('completed_orders', [])
+      wx.setStorageSync('mock_orders', [])
+      
+      // 清空商品数据
+      wx.setStorageSync('mock_products', [])
+      
+      // 清空购物车
+      wx.setStorageSync('cart', [])
+      
+      // 保留但重置数据版本号（用于数据迁移）
+      wx.setStorageSync('data_version', 2)
+      
+      console.log('✅ 测试数据已清空')
+      console.log('保留数据：用户信息、系统设置、画师申请')
+      
+      wx.hideLoading()
+      
+      wx.showToast({
+        title: '数据已清空',
+        icon: 'success',
+        duration: 2000
+      })
+      
+      // 刷新页面数据
+      setTimeout(() => {
+        this.loadData()
+      }, 500)
+      
+    } catch (err) {
+      console.error('❌ 清空数据失败:', err)
+      wx.hideLoading()
+      wx.showToast({
+        title: '清空失败',
+        icon: 'none'
+      })
+    }
+  },
+
   // ❌ 已废弃：使用 computeVisualStatus 替代
   // calculateProgressPercent(order) {
   //   // 此函数已被 utils/order-visual-status.js 中的 computeVisualStatus 替代
