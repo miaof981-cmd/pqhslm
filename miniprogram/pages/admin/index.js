@@ -240,6 +240,13 @@ Page({
       pendingApplications: pendingApplicationsCount
     })
     
+    // 🎯 详细统计待处理订单的状态分布
+    const unpaidOrders = allOrders.filter(o => o.status === 'unpaid').length
+    const paidOrders = allOrders.filter(o => o.status === 'paid').length
+    const processingOrders = allOrders.filter(o => o.status === 'processing' || o.status === 'inProgress').length
+    const waitingOrders = allOrders.filter(o => o.status === 'waitingConfirm').length
+    const nearDeadlineOrders = allOrders.filter(o => o.status === 'nearDeadline').length
+    
     console.log('仪表盘数据:', {
       时间筛选: this.data.timeFilter,
       订单总数: orderCount,
@@ -250,6 +257,19 @@ Page({
       逾期订单: overdueOrders,
       待审核申请: pendingApplicationsCount
     })
+    
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    console.log('📊 待处理订单详细分布:')
+    console.log(`  待支付: ${unpaidOrders}个`)
+    console.log(`  已支付: ${paidOrders}个`)
+    console.log(`  制作中: ${processingOrders}个`)
+    console.log(`  待确认: ${waitingOrders}个`)
+    console.log(`  临近截稿: ${nearDeadlineOrders}个`)
+    console.log(`  总计: ${pendingOrders}个`)
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    console.log('💡 说明: 待处理订单 = 待支付 + 制作中')
+    console.log('   用户端"制作中"不包含待支付订单')
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   },
 
   // 🎯 新增：根据时间筛选过滤订单

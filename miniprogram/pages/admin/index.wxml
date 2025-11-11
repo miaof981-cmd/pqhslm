@@ -145,7 +145,7 @@
             <view class="pending-icon-fresh icon-pending"></view>
             <view class="pending-info-fresh">
               <text class="pending-label">待处理订单</text>
-              <text class="pending-desc-fresh">需要确认的订单</text>
+              <text class="pending-desc-fresh">含待支付+制作中</text>
             </view>
             <view class="pending-badge">{{pendingOrders}}</view>
           </view>
