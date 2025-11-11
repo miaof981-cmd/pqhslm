@@ -214,6 +214,7 @@ Page({
       result += `❌ 商品不存在: ${this.data.issueStats.productNotFound}个\n`
       result += `⚠️ 画师ID不匹配: ${this.data.issueStats.artistMismatch}个\n`
       result += `⚠️ 画师名字错误: ${this.data.issueStats.wrongArtistName}个\n`
+      result += `⚠️ 分类异常: ${this.data.issueStats.wrongCategory}个\n`
       result += `⚠️ 客服未分配: ${this.data.issueStats.noService}个\n`
       result += `⚠️ 字段缺失: ${this.data.issueStats.missingFields}个\n\n`
 
@@ -221,8 +222,13 @@ Page({
         result += `🛒 问题商品明细\n`
         this.data.problemProducts.forEach((prod, index) => {
           result += `\n${index + 1}. ${prod.productName}\n`
-          result += `   错误名字: ${prod.wrongName}\n`
-          result += `   正确名字: ${prod.correctName}\n`
+          prod.issues.forEach(issue => {
+            if (issue.type === 'artistName') {
+              result += `   画师名字: ${issue.wrongValue} → ${issue.correctValue}\n`
+            } else if (issue.type === 'category') {
+              result += `   分类: ${issue.wrongValue} → ${issue.correctValue}\n`
+            }
+          })
         })
         result += `\n`
       }
@@ -272,25 +278,36 @@ Page({
       let products = wx.getStorageSync('mock_products') || []
       let fixedCount = 0
 
-      // 🎯 1️⃣ 修复商品画师名字
+      // 🎯 1️⃣ 修复商品数据（画师名字 + 分类）
       if (this.data.problemProducts.length > 0) {
-        console.log('=== 开始修复商品画师名字 ===')
+        console.log('=== 开始修复商品数据 ===')
         products = products.map(product => {
           const problem = this.data.problemProducts.find(p => 
             String(p.productId) === String(product.id)
           )
           if (problem) {
-            console.log(`✅ 修复商品 "${product.name}": "${problem.wrongName}" → "${problem.correctName}"`)
-            fixedCount++
-            return {
-              ...product,
-              artistName: problem.correctName
+            let updates = {}
+            
+            problem.issues.forEach(issue => {
+              if (issue.type === 'artistName') {
+                console.log(`✅ 修复画师名字 "${product.name}": "${issue.wrongValue}" → "${issue.correctValue}"`)
+                updates.artistName = issue.correctValue
+              } else if (issue.type === 'category') {
+                console.log(`✅ 清空异常分类 "${product.name}": "${issue.wrongValue}" → ""`)
+                updates.category = ''  // 清空异常分类，用户需手动重新选择
+                updates.categoryName = ''
+              }
+            })
+            
+            if (Object.keys(updates).length > 0) {
+              fixedCount++
+              return { ...product, ...updates }
             }
           }
           return product
         })
         wx.setStorageSync('mock_products', products)
-        console.log(`✅ 已修复 ${this.data.problemProducts.length} 个商品`)
+        console.log(`✅ 已修复 ${fixedCount} 个商品`)
       }
 
       // 🎯 2️⃣ 修复订单画师ID

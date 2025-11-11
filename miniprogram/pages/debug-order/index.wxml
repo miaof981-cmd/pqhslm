@@ -32,6 +32,10 @@
         <text class="value warning">{{issueStats.wrongArtistName}}个</text>
       </view>
       <view class="item">
+        <text class="label">⚠️ 分类异常：</text>
+        <text class="value warning">{{issueStats.wrongCategory}}个</text>
+      </view>
+      <view class="item">
         <text class="label">⚠️ 客服未分配：</text>
         <text class="value warning">{{issueStats.noService}}个</text>
       </view>
@@ -43,14 +47,18 @@
 
     <!-- 问题商品列表 -->
     <view wx:if="{{problemProducts.length > 0}}" class="section">
-      <view class="section-title">🛒 问题商品明细（画师名字错误）</view>
+      <view class="section-title">🛒 问题商品明细</view>
       <view wx:for="{{problemProducts}}" wx:key="productId" class="problem-order-card">
         <view class="order-header">
           <text class="order-product">{{item.productName}}</text>
         </view>
         <view class="order-detail">
-          <text class="detail-line wrong-line">❌ 错误名字: {{item.wrongName}}</text>
-          <text class="detail-line correct-line">✅ 正确名字: {{item.correctName}}</text>
+          <view wx:for="{{item.issues}}" wx:key="*this" wx:for-item="issue">
+            <text wx:if="{{issue.type === 'artistName'}}" class="detail-line wrong-line">❌ 画师名字: {{issue.wrongValue}}</text>
+            <text wx:if="{{issue.type === 'artistName'}}" class="detail-line correct-line">✅ 正确名字: {{issue.correctValue}}</text>
+            <text wx:if="{{issue.type === 'category'}}" class="detail-line wrong-line">❌ 分类: {{issue.wrongValue}}</text>
+            <text wx:if="{{issue.type === 'category'}}" class="detail-line correct-line">✅ {{issue.correctValue}}</text>
+          </view>
         </view>
       </view>
     </view>

@@ -1,12 +1,12 @@
 // 引入统一工具函数
-const orderHelper = require('../../utils/order-helper.js')
-const staffFinance = require('../../utils/staff-finance.js')  // 🎯 新增
-const orderStatusUtil = require('../../utils/order-status.js')
+const orderHelper = require('../../utils/order-helper')
+const orderStatusUtil = require('../../utils/order-status')
 const { computeVisualStatus } = require('../../utils/order-visual-status')
-const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
-const { buildGroupName } = require('../../utils/group-helper.js')
-const { runOrderFlowDiagnostics } = require('../../utils/system-check.js')
-const productSales = require('../../utils/product-sales.js')  // 🎯 新增：库存管理
+const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper')
+const { buildGroupName } = require('../../utils/group-helper')
+const { runOrderFlowDiagnostics } = require('../../utils/system-check')
+const staffFinance = require('../../utils/staff-finance')
+const productSales = require('../../utils/product-sales')
 
 /**
  * 🔧 iOS兼容的日期解析函数
