@@ -26,8 +26,12 @@ App({
       console.log('[app] ⚠️ 用户信息同步失败:', err)
     })
     
-    // ✅ 启动时修复订单中的头像数据
-    this.migrateOrderAvatars()
+    // ✅ 启动时修复订单中的头像数据（仅首次执行）
+    const migrated = wx.getStorageSync('avatar_migrated_v2')
+    if (!migrated) {
+      this.migrateOrderAvatars()
+      wx.setStorageSync('avatar_migrated_v2', true)
+    }
     
     // ✅ 新增：检查画师申请状态，自动赋予权限
     this.checkArtistApplication()
@@ -191,7 +195,6 @@ App({
 
   migrateOrderAvatars() {
     try {
-      const { DEFAULT_AVATAR_DATA } = require('./utils/constants.js')
       const toKey = (value) => {
         if (value === undefined || value === null) return ''
         return String(value).trim()
@@ -237,28 +240,38 @@ App({
           const product = productMap.get(toKey(order.productId))
           const service = serviceMap.get(toKey(order.serviceId))
 
+          // 🎯 只清理无效路径，不写默认头像（让 WXML 兜底）
           const currentArtistAvatar = normalizeAvatar(order.artistAvatar)
-          if (!currentArtistAvatar) {
+          if (!currentArtistAvatar && order.artistAvatar) {
+            // 有值但无效，从商品表补充
             const candidate = product ? normalizeAvatar(product.artistAvatar) : ''
-            const finalAvatar = candidate || DEFAULT_AVATAR_DATA
-            if (finalAvatar !== order.artistAvatar) {
-              nextOrder = { ...nextOrder, artistAvatar: finalAvatar }
+            if (candidate && candidate !== order.artistAvatar) {
+              nextOrder = { ...nextOrder, artistAvatar: candidate }
+              modified = true
+            } else if (!candidate) {
+              // 商品表也没有，清空让 WXML 兜底
+              nextOrder = { ...nextOrder, artistAvatar: '' }
               modified = true
             }
-          } else if (currentArtistAvatar !== order.artistAvatar) {
+          } else if (currentArtistAvatar && currentArtistAvatar !== order.artistAvatar) {
             nextOrder = { ...nextOrder, artistAvatar: currentArtistAvatar }
             modified = true
           }
 
+          // 🎯 只清理无效路径，不写默认头像（让 WXML 兜底）
           const currentServiceAvatar = normalizeAvatar(order.serviceAvatar)
-          if (!currentServiceAvatar) {
+          if (!currentServiceAvatar && order.serviceAvatar) {
+            // 有值但无效，从客服表补充
             const serviceCandidate = service ? normalizeAvatar(service.avatar || service.avatarUrl) : ''
-            const finalServiceAvatar = serviceCandidate || DEFAULT_AVATAR_DATA
-            if (finalServiceAvatar !== order.serviceAvatar) {
-              nextOrder = { ...nextOrder, serviceAvatar: finalServiceAvatar }
+            if (serviceCandidate && serviceCandidate !== order.serviceAvatar) {
+              nextOrder = { ...nextOrder, serviceAvatar: serviceCandidate }
+              modified = true
+            } else if (!serviceCandidate) {
+              // 客服表也没有，清空让 WXML 兜底
+              nextOrder = { ...nextOrder, serviceAvatar: '' }
               modified = true
             }
-          } else if (currentServiceAvatar !== order.serviceAvatar) {
+          } else if (currentServiceAvatar && currentServiceAvatar !== order.serviceAvatar) {
             nextOrder = { ...nextOrder, serviceAvatar: currentServiceAvatar }
             modified = true
           }
