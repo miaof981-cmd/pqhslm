@@ -371,27 +371,29 @@ Page({
         }
       }
       
-      // 🎯 优化：获取画师名称和编号（优先级：申请信息 > 用户信息 > 商品自带名称）
+      // 🎯 优化：获取画师名称和编号（优先级：用户最新信息 > 申请信息 > 商品自带名称）
       const artistId = product.artistId ? String(product.artistId) : ''
       let artistName = ''
       let artistNumber = '' // 🎯 画师独立编号
       
-      // 1. 优先从画师申请中获取（同时获取编号）
-      if (artistId && artistMap.has(artistId)) {
-        const application = artistMap.get(artistId)
-        artistName = application.name || application.realName || ''
-        artistNumber = application.artistNumber || '' // 🎯 获取画师编号
-        if (artistName) {
-          console.log(`✅ 从申请记录获取: 名称=${artistName}, 编号=${artistNumber}`)
-        }
-      }
-      
-      // 2. 其次从用户信息中获取
-      if (!artistName && artistId && userMap.has(artistId)) {
+      // 1. 🔧 修复：优先从用户信息中获取最新昵称（解决画师改名后搜索不到的问题）
+      if (artistId && userMap.has(artistId)) {
         const user = userMap.get(artistId)
         artistName = user.nickname || user.nickName || user.name || ''
         if (artistName) {
-          console.log(`✅ 从用户信息获取画师名称: ${artistName}`)
+          console.log(`✅ 从用户信息获取画师最新名称: ${artistName}`)
+        }
+      }
+      
+      // 2. 从画师申请中获取编号（如果第1步没有获取到名称，也从这里获取）
+      if (artistId && artistMap.has(artistId)) {
+        const application = artistMap.get(artistId)
+        if (!artistName) {
+          artistName = application.name || application.realName || ''
+        }
+        artistNumber = application.artistNumber || '' // 🎯 获取画师编号
+        if (artistName && artistNumber) {
+          console.log(`✅ 从申请记录获取: 名称=${artistName}, 编号=${artistNumber}`)
         }
       }
       
