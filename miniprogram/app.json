@@ -43,8 +43,7 @@
     "pages/identity-verify/index",
     "pages/data-stats/index",
     "pages/service-workspace/index",
-    "pages/my-buyer-show/index",
-    "pages/order-diagnosis/index"
+    "pages/my-buyer-show/index"
   ],
   "lazyCodeLoading": "requiredComponents",
   "window": {

@@ -69,45 +69,6 @@ Page({
     finalPrice: 0, // 最终显示价格（用于第三步确认）
   },
 
-  // 🎯 第2层防御：获取正确的画师名字（多源读取）
-  getCorrectArtistName() {
-    const userId = wx.getStorageSync('userId')
-    const userInfo = wx.getStorageSync('userInfo') || {}
-    const users = wx.getStorageSync('users') || []
-    const applications = wx.getStorageSync('artist_applications') || []
-    
-    const app = getApp()
-    
-    // 1️⃣ 优先从画师申请记录获取（最可靠）
-    const artistApp = applications.find(a => 
-      String(a.userId) === String(userId) && a.status === 'approved'
-    )
-    if (artistApp && artistApp.name && !app.isInvalidNickName(artistApp.name)) {
-      console.log('✅ 使用画师申请名字:', artistApp.name)
-      return artistApp.name
-    }
-    
-    // 2️⃣ 从用户列表获取
-    const user = users.find(u => 
-      String(u.id) === String(userId) || String(u.userId) === String(userId)
-    )
-    if (user && user.nickName && !app.isInvalidNickName(user.nickName)) {
-      console.log('✅ 使用用户列表名字:', user.nickName)
-      return user.nickName
-    }
-    
-    // 3️⃣ 从 userInfo 获取（兜底，但需验证）
-    if (userInfo.nickName && !app.isInvalidNickName(userInfo.nickName)) {
-      console.log('✅ 使用 userInfo 名字:', userInfo.nickName)
-      return userInfo.nickName
-    }
-    
-    // 4️⃣ 都不可用，使用默认值
-    const fallback = `画师${userId}`
-    console.warn('⚠️ 无法获取合法画师名字，使用默认:', fallback)
-    return fallback
-  },
-
   onLoad(options) {
     this.initCategoryOptions()
 
@@ -1596,7 +1557,7 @@ Page({
           const newProduct = {
             id: this.data.productId, // 保持原ID（如 '1', '2'）
             ...productData,
-            artistName: this.getCorrectArtistName(),
+            artistName: userInfo.nickName || '画师',
             artistId: wx.getStorageSync('userId') || '',
             artistAvatar: userInfo.avatarUrl || '/assets/default-avatar.png',
             createTime: Date.now(),
@@ -1611,7 +1572,7 @@ Page({
         const newProduct = {
           id: `product_${Date.now()}`,
           ...productData,
-          artistName: this.getCorrectArtistName(),
+          artistName: userInfo.nickName || '画师',
           artistId: wx.getStorageSync('userId') || '',
           artistAvatar: userInfo.avatarUrl || '/assets/default-avatar.png',
           createTime: Date.now(),

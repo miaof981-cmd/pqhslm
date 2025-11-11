@@ -1236,13 +1236,6 @@ Page({
     })
   },
 
-  // 🎯 跳转到订单诊断页面
-  goToDiagnosis() {
-    wx.navigateTo({
-      url: '/pages/order-diagnosis/index'
-    })
-  },
-
   // 商品操作
   addProduct() {
     // 获取所有画师列表

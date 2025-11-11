@@ -371,17 +371,19 @@ Page({
       return { ...order, statusKey, statusColor, progressPercent }
     })
     
-    // 🎯 核心修复：过滤掉终态订单（已完成/已退款），确保"待处理订单"语义正确
-    const TERMINAL_STATES = ['completed', 'refunded', 'refunding', 'cancelled']
-    const pendingOnly = myOrders.filter(order => !TERMINAL_STATES.includes(order.status))
+    // ✅ 订单状态已由工具函数处理，无需再次保存
     
-    console.log('📋 订单过滤结果:')
-    console.log('  - 全部订单:', myOrders.length)
-    console.log('  - 待处理订单:', pendingOnly.length)
-    console.log('  - 已过滤终态订单:', myOrders.length - pendingOnly.length)
+    console.log('更新后我的订单:', myOrders.map(o => ({
+      id: o.id,
+      name: o.productName,
+      artistId: o.artistId,
+      serviceId: o.serviceId,
+      deadline: o.deadline,
+      status: o.status
+    })))
     
-    // 统计订单状态（只统计待处理订单）
-    const stats = orderStatusUtil.countOrderStatus(pendingOnly)
+    // 统计订单状态（基于筛选后的订单）
+    const stats = orderStatusUtil.countOrderStatus(myOrders)
     
     console.log('订单统计:', stats)
     
@@ -391,8 +393,8 @@ Page({
         overdue: stats.overdue,
         inProgress: stats.inProgress
       },
-      pendingOrders: pendingOnly, // ✅ 只显示待处理订单（不含终态）
-      allOrders: pendingOnly       // ✅ 用于筛选
+      pendingOrders: myOrders, // ✅ 只显示当前用户的订单
+      allOrders: myOrders       // ✅ 用于筛选
     })
     
     // 应用当前筛选
@@ -820,20 +822,14 @@ Page({
     const { pendingOrders, currentFilter, searchKeyword } = this.data
     let filtered = [...pendingOrders]
     
-    console.log(`🔍 [applyFilter] 开始筛选 - 当前筛选器: ${currentFilter}, 订单总数: ${filtered.length}`)
-    
     // 1. 按状态筛选
     if (currentFilter === 'urgent') {
       // 紧急：包含已拖稿和临近截稿，优先显示已拖稿
       filtered = filtered.filter(order => 
         order.status === 'overdue' || order.status === 'nearDeadline'
       )
-      console.log(`   → 紧急订单: ${filtered.length}`)
     } else if (currentFilter !== 'all') {
       filtered = filtered.filter(order => order.status === currentFilter)
-      console.log(`   → ${currentFilter}订单: ${filtered.length}`)
-    } else {
-      console.log(`   → 全部待处理: ${filtered.length}`)
     }
     
     // 2. 按关键词搜索
@@ -843,7 +839,6 @@ Page({
         return order.id.toLowerCase().includes(keyword) ||
                order.productName.toLowerCase().includes(keyword)
       })
-      console.log(`   → 搜索"${searchKeyword}": ${filtered.length}`)
     }
     
     // 3. 🎯 智能排序（优先级 + 时间）
@@ -854,8 +849,6 @@ Page({
       const { statusKey, statusColor, progressPercent } = computeVisualStatus(order)
       return { ...order, statusKey, statusColor, progressPercent }
     })
-    
-    console.log(`✅ [applyFilter] 筛选完成 - 最终显示: ${filtered.length}个订单`)
     
     this.setData({
       filteredOrders: filtered

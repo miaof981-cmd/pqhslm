@@ -139,7 +139,6 @@
         <view class="section-title-fresh">
           <view class="title-icon-fresh"></view>
           <text>待办事项</text>
-          <text class="diagnosis-btn" bindtap="goToDiagnosis">诊断</text>
         </view>
         <view class="pending-cards">
           <view class="pending-card-fresh card-pending" bindtap="goToPendingOrders">

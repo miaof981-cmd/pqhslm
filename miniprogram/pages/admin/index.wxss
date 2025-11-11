@@ -2572,18 +2572,6 @@
   margin-bottom: 16rpx;
 }
 
-/* 🎯 诊断按钮 */
-.diagnosis-btn {
-  margin-left: auto;
-  padding: 6rpx 20rpx;
-  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-  color: white;
-  font-size: 22rpx;
-  font-weight: 500;
-  border-radius: 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(102, 126, 234, 0.3);
-}
-
 .title-icon-fresh {
   width: 6rpx;
   height: 24rpx;

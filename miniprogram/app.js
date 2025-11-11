@@ -32,9 +32,6 @@ App({
     // ✅ 新增：检查画师申请状态，自动赋予权限
     this.checkArtistApplication()
     
-    // 🎯 第3层防御：启动时自动清洗脏数据
-    this.cleanInvalidArtistNames()
-    
     // 检查登录状态
     this.checkLoginStatus()
   },
@@ -147,86 +144,23 @@ App({
     }
   },
 
-  // 🎯 验证昵称是否为非法英文占位符
-  isInvalidNickName(nickName) {
-    if (!nickName) return true
-    const name = String(nickName).trim()
-    
-    // 检测微信返回的英文占位符
-    const invalidPatterns = [
-      'emoticon',
-      'portrait',
-      'wechat',
-      /^cat_\d+$/,           // cat_数字
-      /^[a-zA-Z0-9_]+$/      // 纯英文+数字+下划线
-    ]
-    
-    return invalidPatterns.some(pattern => {
-      if (typeof pattern === 'string') {
-        return name.toLowerCase() === pattern.toLowerCase()
-      } else {
-        return pattern.test(name)
-      }
-    })
-  },
-
   // 获取微信用户信息（需要用户授权）
   async getWxUserInfo() {
     return new Promise((resolve, reject) => {
       wx.getUserProfile({
         desc: '用于完善用户资料',
         success: (res) => {
-          let userInfo = res.userInfo
-          
-          // 🎯 第1层防御：验证并修复 nickName
-          if (this.isInvalidNickName(userInfo.nickName)) {
-            console.warn('⚠️ 检测到非法昵称:', userInfo.nickName)
-            
-            // 尝试从已有数据恢复
-            const userId = wx.getStorageSync('userId')
-            const users = wx.getStorageSync('users') || []
-            const applications = wx.getStorageSync('artist_applications') || []
-            
-            let correctName = null
-            
-            // 从画师申请记录获取
-            const app = applications.find(a => 
-              String(a.userId) === String(userId) && a.status === 'approved'
-            )
-            if (app && app.name && !this.isInvalidNickName(app.name)) {
-              correctName = app.name
-            }
-            
-            // 从用户列表获取
-            if (!correctName) {
-              const user = users.find(u => 
-                String(u.id) === String(userId) || String(u.userId) === String(userId)
-              )
-              if (user && user.nickName && !this.isInvalidNickName(user.nickName)) {
-                correctName = user.nickName
-              }
-            }
-            
-            // 使用修复后的昵称
-            if (correctName) {
-              console.log('✅ 已修复昵称:', userInfo.nickName, '→', correctName)
-              userInfo.nickName = correctName
-            } else {
-              // 无法修复，使用默认昵称
-              userInfo.nickName = `用户${userId}`
-              console.log('⚠️ 无法恢复昵称，使用默认:', userInfo.nickName)
-            }
-          }
+          const userInfo = res.userInfo
           
           // 保存用户信息到本地
           wx.setStorageSync('userInfo', userInfo)
           this.globalData.userInfo = userInfo
           
-          console.log('✅ 获取微信用户信息成功:', userInfo)
+          console.log('获取微信用户信息成功:', userInfo)
           resolve(userInfo)
         },
         fail: (err) => {
-          console.error('❌ 获取微信用户信息失败:', err)
+          console.error('获取微信用户信息失败:', err)
           reject(err)
         }
       })
@@ -410,78 +344,6 @@ App({
       }
     } else {
       console.log('  - 无申请记录')
-    }
-  },
-
-  // 🎯 第3层防御：启动时自动清洗商品中的非法画师名字
-  cleanInvalidArtistNames() {
-    try {
-      console.log('🧹 [启动自检] 开始清洗非法画师名字...')
-      
-      const products = wx.getStorageSync('mock_products') || []
-      const users = wx.getStorageSync('users') || []
-      const applications = wx.getStorageSync('artist_applications') || []
-      
-      let fixedCount = 0
-      
-      const cleanedProducts = products.map(product => {
-        const artistName = product.artistName || ''
-        const artistId = product.artistId
-        
-        // 检测是否需要修复
-        if (!this.isInvalidNickName(artistName)) {
-          return product  // 昵称正常，无需修复
-        }
-        
-        if (!artistId) {
-          console.warn(`⚠️ 商品 ${product.name} 缺少 artistId，跳过修复`)
-          return product
-        }
-        
-        // 获取正确的画师名字
-        let correctName = null
-        
-        // 优先从画师申请记录获取
-        const app = applications.find(a => 
-          String(a.userId) === String(artistId) && a.status === 'approved'
-        )
-        if (app && app.name && !this.isInvalidNickName(app.name)) {
-          correctName = app.name
-        }
-        
-        // 从用户列表获取（兜底）
-        if (!correctName) {
-          const user = users.find(u => 
-            String(u.id) === String(artistId) || String(u.userId) === String(artistId)
-          )
-          if (user && user.nickName && !this.isInvalidNickName(user.nickName)) {
-            correctName = user.nickName
-          }
-        }
-        
-        // 修复
-        if (correctName) {
-          console.log(`✅ 修复商品 "${product.name}": "${artistName}" → "${correctName}"`)
-          fixedCount++
-          return {
-            ...product,
-            artistName: correctName
-          }
-        } else {
-          console.warn(`⚠️ 无法获取商品 ${product.name} 的正确画师名字`)
-          return product
-        }
-      })
-      
-      // 保存修复后的数据
-      if (fixedCount > 0) {
-        wx.setStorageSync('mock_products', cleanedProducts)
-        console.log(`🧹 [启动自检] 已修复 ${fixedCount} 个商品的画师名字`)
-      } else {
-        console.log('🧹 [启动自检] 所有商品数据正常')
-      }
-    } catch (error) {
-      console.error('❌ 清洗画师名字失败:', error)
     }
   }
 })
