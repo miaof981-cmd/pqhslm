@@ -1600,25 +1600,52 @@ Page({
         if (index > -1) {
           // 找到了，更新
           const userInfo = wx.getStorageSync('userInfo') || {}
+          const userId = wx.getStorageSync('userId')
+          
           products[index] = {
             ...products[index],
             ...productData,
             id: this.data.productId, // 保持原ID
             artistName: userInfo.nickName || products[index].artistName || '画师',
-            artistId: wx.getStorageSync('userId') || products[index].artistId || '',
+            artistId: userId || products[index].artistId,  // ✅ 优先使用当前userId，降级使用原artistId
             artistAvatar: userInfo.avatarUrl || products[index].artistAvatar || '/assets/default-avatar.png',
             updateTime: Date.now()
           }
+          
+          // 🔧 警告：如果 artistId 仍然为空
+          if (!products[index].artistId) {
+            console.warn('⚠️ 商品更新后 artistId 仍为空:', products[index].id)
+          }
+          
           console.log('✓ 更新现有商品成功', products[index])
         } else {
           // 没找到，说明是旧数据首次保存，作为新增处理
           console.log('⚠️ 未找到商品，作为新增处理（旧数据迁移）')
           const userInfo = wx.getStorageSync('userInfo') || {}
+          const userId = wx.getStorageSync('userId')
+          
+          // 🔧 修复：确保 userId 存在
+          if (!userId) {
+            console.error('❌ userId 为空，无法保存商品！')
+            wx.hideLoading()
+            wx.showModal({
+              title: '错误',
+              content: '用户信息丢失，请退出登录后重新登录',
+              confirmText: '去登录',
+              success: (res) => {
+                if (res.confirm) {
+                  wx.reLaunch({ url: '/pages/login/index' })
+                }
+              }
+            })
+            return
+          }
+          
           const newProduct = {
             id: this.data.productId, // 保持原ID（如 '1', '2'）
             ...productData,
             artistName: userInfo.nickName || '画师',
-            artistId: wx.getStorageSync('userId') || '',
+            artistId: userId,  // ✅ 确保 artistId 不为空
             artistAvatar: userInfo.avatarUrl || '/assets/default-avatar.png',
             createTime: Date.now(),
             updateTime: Date.now()
@@ -1629,11 +1656,30 @@ Page({
       } else {
         // 新增模式：添加新商品
         const userInfo = wx.getStorageSync('userInfo') || {}
+        const userId = wx.getStorageSync('userId')
+        
+        // 🔧 修复：确保 userId 存在，防止 artistId 为空
+        if (!userId) {
+          console.error('❌ userId 为空，无法创建商品！')
+          wx.hideLoading()
+          wx.showModal({
+            title: '错误',
+            content: '用户信息丢失，请退出登录后重新登录',
+            confirmText: '去登录',
+            success: (res) => {
+              if (res.confirm) {
+                wx.reLaunch({ url: '/pages/login/index' })
+              }
+            }
+          })
+          return
+        }
+        
         const newProduct = {
           id: `product_${Date.now()}`,
           ...productData,
           artistName: userInfo.nickName || '画师',
-          artistId: wx.getStorageSync('userId') || '',
+          artistId: userId,  // ✅ 确保 artistId 不为空
           artistAvatar: userInfo.avatarUrl || '/assets/default-avatar.png',
           createTime: Date.now(),
           updateTime: Date.now()
