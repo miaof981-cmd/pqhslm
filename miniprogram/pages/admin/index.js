@@ -241,11 +241,11 @@ Page({
     })
     
     // 🎯 详细统计待处理订单的状态分布
-    const unpaidOrders = allOrders.filter(o => o.status === 'unpaid').length
-    const paidOrders = allOrders.filter(o => o.status === 'paid').length
-    const processingOrders = allOrders.filter(o => o.status === 'processing' || o.status === 'inProgress').length
-    const waitingOrders = allOrders.filter(o => o.status === 'waitingConfirm').length
-    const nearDeadlineOrders = allOrders.filter(o => o.status === 'nearDeadline').length
+    const unpaidOrdersCount = allOrders.filter(o => o.status === 'unpaid').length
+    const paidOrdersCount = allOrders.filter(o => o.status === 'paid').length
+    const processingOrdersCount = allOrders.filter(o => o.status === 'processing' || o.status === 'inProgress').length
+    const waitingOrdersCount = allOrders.filter(o => o.status === 'waitingConfirm').length
+    const nearDeadlineOrdersCount = allOrders.filter(o => o.status === 'nearDeadline').length
     
     console.log('仪表盘数据:', {
       时间筛选: this.data.timeFilter,

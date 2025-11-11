@@ -205,6 +205,15 @@ Page({
       
       // 恢复表单数据
       const restoredImages = Array.isArray(product.images) ? product.images : []
+      
+      // 🎯 第2层防御：加载时验证category
+      const loadedCategory = product.category || ''
+      const cleanedCategory = this.validateAndCleanCategory(loadedCategory)
+      
+      if (loadedCategory && !cleanedCategory) {
+        console.warn('⚠️ 商品数据中的分类异常，已自动清空:', loadedCategory)
+        wx.showToast({ title: '检测到分类异常，请重新选择', icon: 'none', duration: 2000 })
+      }
 
       this.setData({
         formData: {
@@ -213,7 +222,7 @@ Page({
           summaryImages: product.summaryImages || [],
           basePrice: product.basePrice || '',
           stock: product.stock || 0,
-          category: product.category || '',
+          category: cleanedCategory,  // 🎯 使用清洗后的分类
           images: restoredImages,
           tags: product.tags || [],
           isOnSale: product.isOnSale !== false,
@@ -550,10 +559,24 @@ Page({
             success: (res) => {
               if (res.confirm) {
                 console.log('✅ 恢复草稿', draft)
+                
+                // 🎯 第3层防御：恢复草稿时验证category
+                const draftFormData = draft.formData || this.data.formData
+                if (draftFormData.category) {
+                  const cleanedCategory = this.validateAndCleanCategory(draftFormData.category)
+                  if (!cleanedCategory) {
+                    console.warn('⚠️ 草稿中的分类异常，已自动清空:', draftFormData.category)
+                    draftFormData.category = ''
+                    wx.showToast({ title: '草稿中分类异常，请重新选择', icon: 'none', duration: 2000 })
+                  } else {
+                    draftFormData.category = cleanedCategory
+                  }
+                }
+                
                 this.setData({
                   currentStep: draft.currentStep || 1,
                   progress: draft.progress || 33,
-                  formData: draft.formData || this.data.formData,
+                  formData: draftFormData,
                   categoryIndex: draft.categoryIndex >= 0 ? draft.categoryIndex : -1,
                   categoryName: draft.categoryName || '请选择分类',
                   deliveryDays: draft.deliveryDays || 7,
@@ -569,7 +592,7 @@ Page({
                 })
                 
                 this.ensureCategoryInList(
-                  draft.formData?.category,
+                  draftFormData.category,
                   draft.categoryName
                 )
                 
@@ -1452,6 +1475,33 @@ Page({
     return minPrice
   },
 
+  // 🎯 验证并清洗category字段
+  validateAndCleanCategory(category) {
+    if (!category) return ''
+    
+    const categoryStr = String(category).trim()
+    
+    // 检测异常英文（和微信API返回的脏数据模式一致）
+    const isInvalid = categoryStr.includes('cat_') || 
+                      categoryStr === 'emoticon' || 
+                      categoryStr === 'portrait' ||
+                      /^[a-zA-Z0-9_]+$/.test(categoryStr)  // 纯英文+数字+下划线
+    
+    if (isInvalid) {
+      console.warn('⚠️ 检测到非法分类，已清空:', categoryStr)
+      return ''
+    }
+    
+    // 验证分类是否存在于系统分类列表
+    const validCategory = this.data.categories.find(c => String(c.id) === String(categoryStr))
+    if (!validCategory) {
+      console.warn('⚠️ 分类不存在于系统列表，已清空:', categoryStr)
+      return ''
+    }
+    
+    return categoryStr
+  },
+
   // 提交表单
   async submitForm() {
     // 最终验证
@@ -1465,9 +1515,19 @@ Page({
       // 计算最终显示价格
       const finalPrice = this.calculateFinalPrice()
       
+      // 🎯 第1层防御：验证并清洗category字段
+      const cleanedCategory = this.validateAndCleanCategory(this.data.formData.category)
+      
+      if (!cleanedCategory && this.data.categoryIndex < 0) {
+        wx.hideLoading()
+        wx.showToast({ title: '请选择商品分类', icon: 'none' })
+        return
+      }
+      
       // 组装完整数据
       const productData = {
         ...this.data.formData,
+        category: cleanedCategory,  // 🎯 使用清洗后的分类
         price: finalPrice, // 最终显示价格（最低价）
         basePrice: this.data.formData.basePrice, // 保留基础价格
         deliveryDays: this.data.deliveryDays,
