@@ -78,27 +78,9 @@ Page({
     // 🔧 修复：与首页保持完全一致的过滤逻辑
     const products = rawProducts
       .filter(p => {
-        // ✅ 关键修复：只要 isOnSale 不是明确的 false，就显示
-        // 这样可以兼容：true、1、'1'、'true'、undefined、null 等所有"真值"
-        const shouldShow = p.isOnSale !== false
-        
-        // 🔍 诊断：记录"蓝色"商品的过滤结果
-        if (p.name === '蓝色' || (p.name && p.name.includes('蓝色'))) {
-          if (!shouldShow) {
-            diagnostic.targetProduct = {
-              name: p.name,
-              step: '第一步：isOnSale过滤',
-              reason: `isOnSale=${p.isOnSale}，被判定为下架商品`,
-              pass: false
-            }
-          }
-        }
-        
-        if (!shouldShow) {
-          console.log('[搜索过滤] 过滤掉商品（isOnSale=false）:', p.name, 'isOnSale:', p.isOnSale)
-        }
-        
-        return shouldShow
+        // ✅ 搜索页面不过滤上下架状态，显示所有商品
+        // 原因：用户可能需要搜索已下架的商品进行管理
+        return true
       })
       .map(product => {
       const price = parseFloat(product.price) || parseFloat(product.basePrice) || 0
