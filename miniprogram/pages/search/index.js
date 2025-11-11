@@ -95,10 +95,24 @@ Page({
         }
       }
 
-      // 🔧 修复：添加更多搜索维度（包括商品ID、规格等）
-      const specNames = Array.isArray(product.specs) 
-        ? product.specs.map(s => String(s.name || '')).filter(Boolean) 
-        : []
+      // 🔧 修复：提取所有规格维度（规格名 + 规格值）
+      const specTokens = []
+      if (Array.isArray(product.specs)) {
+        product.specs.forEach(spec => {
+          // 1. 提取规格名（如"颜色"、"尺寸"）
+          if (spec.name) {
+            specTokens.push(String(spec.name))
+          }
+          // 2. 🎯 关键：提取规格值（如"蓝色"、"红色"、"大号"）
+          if (Array.isArray(spec.values)) {
+            spec.values.forEach(value => {
+              if (value.name) {
+                specTokens.push(String(value.name))
+              }
+            })
+          }
+        })
+      }
       
       return {
         id: product.id || product._id,
@@ -112,12 +126,12 @@ Page({
         artistNumber, // 🎯 保存画师编号供显示
         searchTokens: [
           (product.name || '').toLowerCase(),
-          (product.id || '').toLowerCase(), // 🔧 新增：商品ID
+          (product.id || '').toLowerCase(),
           (categoryName || '').toLowerCase(),
           (artistName || '').toLowerCase(),
           artistNumber ? String(artistNumber).toLowerCase() : '',
           ...(tags.map(tag => String(tag).toLowerCase())),
-          ...(specNames.map(name => name.toLowerCase())) // 🔧 新增：规格名称
+          ...(specTokens.map(token => token.toLowerCase())) // 🔧 修复：包含规格名和规格值
         ].filter(token => token && token.length > 0)
       }
     }).filter(item => !!item.id)

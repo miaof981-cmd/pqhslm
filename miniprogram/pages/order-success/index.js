@@ -2,6 +2,7 @@ const orderHelper = require('../../utils/order-helper.js')
 const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
 const categoryService = require('../../utils/category-service.js')
 const productSales = require('../../utils/product-sales.js')
+const { resolveServiceQRCode } = require('../../utils/qrcode-helper.js')  // 🎯 新增
 
 Page({
   data: {
@@ -252,16 +253,31 @@ Page({
       isPlaceholder: isPlaceholderService
     }
     
-    // 获取客服二维码（如果有）
-    const serviceQR = !isPlaceholderService && serviceInfo.serviceQrcodeUrl 
-      ? { imageUrl: serviceInfo.serviceQrcodeUrl, number: serviceInfo.serviceQrcodeNumber }
-      : null
+    // 🎯 动态读取客服二维码（不依赖订单中保存的空值）
+    let serviceQR = null
+    if (!isPlaceholderService && serviceId) {
+      const qrResult = resolveServiceQRCode({
+        serviceId: serviceId,
+        serviceName: serviceName,
+        serviceQRCode: serviceInfo.serviceQrcodeUrl || ''
+      })
+      
+      if (qrResult.value) {
+        serviceQR = { 
+          imageUrl: qrResult.value, 
+          number: serviceInfo.serviceQrcodeNumber 
+        }
+        console.log('✅ 客服二维码已动态读取，来源:', qrResult.source)
+      } else {
+        console.warn('⚠️ 客服二维码未找到，来源:', qrResult.source)
+      }
+    }
 
     console.log('📋 订单成功页面数据:')
     console.log('- 客服ID:', serviceInfo.serviceId)
     console.log('- 客服名:', serviceInfo.serviceName)
     console.log('- 客服头像:', serviceInfo.serviceAvatar ? '有' : '无')
-    console.log('- 二维码URL:', serviceInfo.serviceQrcodeUrl ? '有' : '无')
+    console.log('- 客服二维码:', serviceQR ? '有 (' + (serviceQR.imageUrl ? '图片' : '空') + ')' : '无')
     
     this.setData({
       orderInfo: orderInfo,

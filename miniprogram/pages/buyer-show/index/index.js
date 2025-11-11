@@ -78,5 +78,12 @@ Page({
     wx.navigateTo({
       url: '/pages/order-list/index'
     })
+  },
+
+  // 🎯 新增：跳转到已完成订单列表
+  goPublish() {
+    wx.navigateTo({
+      url: '/pages/order-list/index?status=completed'
+    })
   }
 })

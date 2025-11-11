@@ -155,3 +155,32 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* 🎯 悬浮发布按钮 */
+.floating-publish-btn {
+  position: fixed;
+  right: 40rpx;
+  bottom: 120rpx;
+  width: 120rpx;
+  height: 120rpx;
+  background: linear-gradient(135deg, #A8E6CF 0%, #8DD9B8 100%);
+  border-radius: 50%;
+  box-shadow: 0 8rpx 24rpx rgba(168, 230, 207, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.floating-publish-btn:active {
+  transform: scale(0.9);
+  box-shadow: 0 4rpx 16rpx rgba(168, 230, 207, 0.6);
+}
+
+.plus-icon {
+  font-size: 72rpx;
+  line-height: 1;
+  color: #FFFFFF;
+  font-weight: 300;
+}

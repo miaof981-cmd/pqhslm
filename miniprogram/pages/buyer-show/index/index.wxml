@@ -7,8 +7,7 @@
   <view wx:if="{{posts.length === 0}}" class="empty-section">
     <view class="empty-illustration"></view>
     <view class="empty-text">暂时还没有买家晒稿</view>
-    <view class="empty-sub">确认完成订单后可在订单卡片中发布</view>
-    <button class="empty-button" bindtap="goOrderList">去我的订单看看</button>
+    <view class="empty-sub">完成订单后即可发布晒稿</view>
   </view>
 
   <view wx:else class="waterfall-container">
@@ -53,5 +52,10 @@
         </view>
       </block>
     </view>
+  </view>
+
+  <!-- 🎯 悬浮发布按钮 - 始终显示 -->
+  <view class="floating-publish-btn" bindtap="goPublish">
+    <text class="plus-icon">+</text>
   </view>
 </view>
