@@ -77,7 +77,11 @@ function getCategoryOptions() {
 function getCategoryNameById(categoryId) {
   if (!categoryId) return ''
   const categories = getRawCategoryList()
-  const matched = categories.find(category => category.id === categoryId || category._id === categoryId)
+  // 🔧 修复：使用String()确保类型匹配
+  const idStr = String(categoryId)
+  const matched = categories.find(category => 
+    String(category.id) === idStr || String(category._id) === idStr
+  )
   return matched ? matched.name : ''
 }
 

@@ -64,7 +64,10 @@ Page({
     const users = wx.getStorageSync('users') || []
     const artistApplications = wx.getStorageSync('artist_applications') || []
     
-    const products = rawProducts.map(product => {
+    // 🔧 修复：只加载已上架的商品
+    const products = rawProducts
+      .filter(p => p.isOnSale !== false)
+      .map(product => {
       const price = parseFloat(product.price) || parseFloat(product.basePrice) || 0
       const coverImage = ensureRenderableImage(
         Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : product.productImage,
@@ -92,6 +95,11 @@ Page({
         }
       }
 
+      // 🔧 修复：添加更多搜索维度（包括商品ID、规格等）
+      const specNames = Array.isArray(product.specs) 
+        ? product.specs.map(s => String(s.name || '')).filter(Boolean) 
+        : []
+      
       return {
         id: product.id || product._id,
         name: product.name || '未命名商品',
@@ -104,11 +112,13 @@ Page({
         artistNumber, // 🎯 保存画师编号供显示
         searchTokens: [
           (product.name || '').toLowerCase(),
+          (product.id || '').toLowerCase(), // 🔧 新增：商品ID
           (categoryName || '').toLowerCase(),
-          (artistName || '').toLowerCase(), // 🎯 画师名字
-          artistNumber ? String(artistNumber).toLowerCase() : '', // 🎯 画师编号（确保不为undefined）
-          ...(tags.map(tag => String(tag).toLowerCase()))
-        ].filter(token => token && token.length > 0) // 🎯 过滤空字符串
+          (artistName || '').toLowerCase(),
+          artistNumber ? String(artistNumber).toLowerCase() : '',
+          ...(tags.map(tag => String(tag).toLowerCase())),
+          ...(specNames.map(name => name.toLowerCase())) // 🔧 新增：规格名称
+        ].filter(token => token && token.length > 0)
       }
     }).filter(item => !!item.id)
 
