@@ -49,63 +49,34 @@ Page({
     this.setData({ loading: true })
     
     try {
+      const cloudAPI = require('../../utils/cloud-api.js')
       const userId = wx.getStorageSync('userId')
       
       console.log('========================================')
-      console.log('📦 [用户端] 使用统一工具加载订单')
+      console.log('📦 [用户端] 从云数据库加载订单')
       console.log('========================================')
       console.log('当前用户ID:', userId)
       
-      // 🎯 使用统一工具函数获取并标准化订单
-      // 🔧 修复：显示所有订单（包括已完成、已退款、已取消）
-      let allOrders = orderHelper.prepareOrdersForPage({
-        role: 'customer',
-        userId: userId,
-        includeCompleted: true  // ✅ 显示历史订单
+      // 从云数据库获取用户的订单
+      const res = await cloudAPI.getOrderList({ 
+        buyerId: userId,
+        pageSize: 100
       })
       
-      console.log('✅ 订单加载完成:', allOrders.length, '个')
-      if (allOrders.length > 0) {
-        const latest = allOrders[allOrders.length - 1]
-        console.log('🔍 最新订单（order-helper处理后）:', {
-          id: latest.id,
-          productId: latest.productId,
-          productName: latest.productName,
-          artistName: latest.artistName || '❌ 无',
-          artistAvatar: latest.artistAvatar || '❌ 无',
-          serviceName: latest.serviceName || '❌ 无',
-          serviceAvatar: latest.serviceAvatar || '❌ 无'
-        })
+      let allOrders = []
+      if (res.success && res.data && res.data.list) {
+        allOrders = res.data.list
+      } else {
+        console.error('加载订单失败:', res.message)
       }
       
-      // 转换为订单列表需要的格式（保留原有的格式化逻辑）
-      // ✅ 画师信息、客服信息已在 order-helper.js 中统一处理
-      // ⚠️ 禁止在此二次兜底，直接信任归一化结果
-      
-      // 🎯 获取商品表（用于动态读取 base64 图片）
-      const products = wx.getStorageSync('mock_products') || []
-      const productMap = new Map()
-      products.forEach(p => {
-        if (p.id) productMap.set(String(p.id).trim(), p)
-      })
-      
-      const buyerShowPosts = wx.getStorageSync('buyer_show_posts') || []
-      const buyerShowMap = {}
-      buyerShowPosts.forEach(post => {
-        if (post && post.orderId) {
-          buyerShowMap[String(post.orderId)] = post.id
-        }
-      })
+      console.log('✅ 订单加载完成:', allOrders.length, '个')
 
       const mockOrders = allOrders.map(order => {
-        // 🎯 动态读取图片（如果订单没有图片但有 productId）
-        let productImage = order.productImage || ''
-        if (!productImage && order.productId) {
-          const product = productMap.get(String(order.productId).trim())
-          if (product && product.images && product.images[0]) {
-            productImage = product.images[0]
-          }
-        }
+        // 商品图片
+        const productImage = Array.isArray(order.productImages) && order.productImages.length > 0
+          ? order.productImages[0]
+          : order.productImage || DEFAULT_PLACEHOLDER
         
         // 截稿时间格式化显示
         let deadlineDisplay = order.deadline
@@ -138,25 +109,25 @@ Page({
         const buyerShowId = buyerShowMap[String(order.id)] || ''
 
         const result = {
-          _id: order.id,
-          orderNo: order.id,
+          _id: order._id,
+          orderNo: order.orderNo,
           productId: order.productId,
           productName: order.productName,
-          productImage: productImage,  // 使用动态读取的图片
-          serviceId: order.serviceId || order.service_id || order.kfId,
-          serviceQRCode: order.serviceQRCode || order.serviceQrCode || order.serviceQrcode,
-          complaintQRCode: order.complaintQRCode || order.complaintQrCode || order.afterSaleQrcode,
-          artistName: order.artistName,      // 直接使用，已由 order-helper 处理
-          artistAvatar: order.artistAvatar,  // 直接使用，已由 order-helper 处理
-          serviceName: order.serviceName,    // 直接使用，已由 order-helper 处理
-          serviceAvatar: order.serviceAvatar, // 直接使用，已由 order-helper 处理
+          productImage: productImage,
+          serviceId: order.serviceId,
+          serviceQRCode: order.serviceQRCode,
+          complaintQRCode: order.complaintQRCode,
+          artistName: order.artistName || '画师',
+          artistAvatar: order.artistAvatar || DEFAULT_AVATAR_DATA,
+          serviceName: order.serviceName || '客服',
+          serviceAvatar: order.serviceAvatar || DEFAULT_AVATAR_DATA,
           buyerName: buyerName,
           buyerAvatar: buyerAvatar,
           deliveryDays: order.deliveryDays || 7,
-          quantity: order.quantity || 1,  // 🎯 添加：数量字段
-          amount: order.price,
+          quantity: order.quantity || 1,
+          amount: order.totalAmount || order.price,
           status: order.status,
-          statusText: order.statusText,
+          statusText: orderStatusUtil.getStatusText(order.status),
           statusKey,
           statusColor,
           progress: order.status === 'completed' ? 100 : 60,
