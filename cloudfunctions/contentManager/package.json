@@ -1,0 +1,10 @@
+{
+  "name": "contentManager",
+  "version": "1.0.0",
+  "description": "内容管理云函数（轮播图、公告、客服二维码、买家秀）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
+
