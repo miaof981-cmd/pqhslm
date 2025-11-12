@@ -200,11 +200,17 @@ Page({
   // 🎯 加载公告（从后台公告管理读取）
   async loadNotices() {
     try {
-      // 从本地存储读取公告列表
-      const allNotices = wx.getStorageSync('notices') || []
+      const cloudAPI = require('../../utils/cloud-api.js')
+      
+      // 从云数据库读取公告列表
+      const res = await cloudAPI.getNoticeList()
+      let allNotices = []
+      if (res.success && res.data) {
+        allNotices = res.data
+      }
       
       // 只显示启用状态的公告
-      const activeNotices = allNotices.filter(notice => notice.status === 'active')
+      const activeNotices = allNotices.filter(notice => notice.status === 'enabled' || notice.status === 'active')
       
       // 按创建时间倒序排序（最新的在前）
       activeNotices.sort((a, b) => {
