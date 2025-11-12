@@ -10,8 +10,7 @@ const db = cloud.database()
 /**
  * 画师申请管理云函数
  * 支持操作：apply, getStatus, approve, reject, getList, 
- *          createProfile, getProfile, updateProfile, 
- *          uploadQRCode, getQRCode, deleteQRCode
+ *          createProfile, getProfile, updateProfile
  */
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
@@ -39,14 +38,6 @@ exports.main = async (event, context) => {
         return await getProfile(openid, event)
       case 'updateProfile':
         return await updateProfile(openid, event)
-      
-      // 工作二维码相关
-      case 'uploadQRCode':
-        return await uploadQRCode(openid, event)
-      case 'getQRCode':
-        return await getQRCode(openid, event)
-      case 'deleteQRCode':
-        return await deleteQRCode(openid, event)
       
       default:
         return { success: false, message: '未知操作' }
@@ -402,120 +393,4 @@ async function updateProfile(openid, event) {
   }
 }
 
-// ==================== 画师工作二维码管理 ====================
-
-/**
- * 上传工作二维码
- */
-async function uploadQRCode(openid, event) {
-  const { qrcodeImage, description } = event
-
-  // 获取用户信息
-  const userRes = await db.collection('users')
-    .where({ _openid: openid })
-    .get()
-
-  if (userRes.data.length === 0) {
-    return { success: false, message: '用户不存在' }
-  }
-
-  const user = userRes.data[0]
-
-  // 检查是否已有二维码
-  const existingRes = await db.collection('artist_qrcodes')
-    .where({ userId: user.userId })
-    .get()
-
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
-
-  const qrcodeData = {
-    userId: user.userId,
-    userName: user.nickName,
-    qrcodeImage,
-    description: description || '',
-    updatedAt: now
-  }
-
-  if (existingRes.data.length > 0) {
-    // 更新现有二维码
-    await db.collection('artist_qrcodes')
-      .where({ userId: user.userId })
-      .update({
-        data: qrcodeData
-      })
-  } else {
-    // 创建新二维码
-    qrcodeData.createdAt = now
-    await db.collection('artist_qrcodes').add({
-      data: qrcodeData
-    })
-  }
-
-  return {
-    success: true,
-    message: '二维码上传成功'
-  }
-}
-
-/**
- * 获取工作二维码
- */
-async function getQRCode(openid, event) {
-  const { userId } = event
-
-  // 获取当前用户
-  const userRes = await db.collection('users')
-    .where({ _openid: openid })
-    .get()
-
-  if (userRes.data.length === 0) {
-    return { success: false, message: '用户不存在' }
-  }
-
-  const currentUserId = userRes.data[0].userId
-  const targetUserId = userId || currentUserId
-
-  // 查询二维码
-  const qrcodeRes = await db.collection('artist_qrcodes')
-    .where({ userId: targetUserId })
-    .get()
-
-  if (qrcodeRes.data.length === 0) {
-    return { success: false, message: '二维码不存在' }
-  }
-
-  return {
-    success: true,
-    data: qrcodeRes.data[0]
-  }
-}
-
-/**
- * 删除工作二维码
- */
-async function deleteQRCode(openid, event) {
-  // 获取用户信息
-  const userRes = await db.collection('users')
-    .where({ _openid: openid })
-    .get()
-
-  if (userRes.data.length === 0) {
-    return { success: false, message: '用户不存在' }
-  }
-
-  const userId = userRes.data[0].userId
-
-  const res = await db.collection('artist_qrcodes')
-    .where({ userId })
-    .remove()
-
-  if (res.stats.removed === 0) {
-    return { success: false, message: '删除失败，二维码可能不存在' }
-  }
-
-  return {
-    success: true,
-    message: '二维码已删除'
-  }
-}
 

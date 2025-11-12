@@ -300,35 +300,6 @@ class CloudAPI {
     })
   }
 
-  /**
-   * 上传画师工作二维码
-   */
-  async uploadArtistQRCode(qrcodeImage, description) {
-    return await this.callFunction('artistManager', {
-      action: 'uploadQRCode',
-      qrcodeImage,
-      description
-    })
-  }
-
-  /**
-   * 获取画师工作二维码
-   */
-  async getArtistQRCode(userId = null) {
-    return await this.callFunction('artistManager', {
-      action: 'getQRCode',
-      userId
-    })
-  }
-
-  /**
-   * 删除画师工作二维码
-   */
-  async deleteArtistQRCode() {
-    return await this.callFunction('artistManager', {
-      action: 'deleteQRCode'
-    })
-  }
 
   // ==================== 财务模块 ====================
 
