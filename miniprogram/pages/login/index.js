@@ -84,10 +84,24 @@ Page({
         }
       }
       
+      console.log('📱 准备登录，昵称:', nickName.trim())
+      
+      // ✅ 调用云函数登录
+      const cloudAPI = require('../../utils/cloud-api.js')
+      const loginRes = await cloudAPI.login(nickName.trim(), finalAvatarUrl)
+      
+      if (!loginRes.success) {
+        throw new Error(loginRes.message || '登录失败')
+      }
+      
+      console.log('✅ 云函数登录成功:', loginRes.data)
+      
+      const userData = loginRes.data
+      
       // 构建用户信息
       const userInfo = {
-        nickName: nickName.trim(),
-        avatarUrl: finalAvatarUrl,
+        nickName: userData.nickName,
+        avatarUrl: userData.avatarUrl,
         gender: 0,
         country: '',
         province: '',
@@ -95,45 +109,33 @@ Page({
         language: ''
       }
       
-      console.log('📱 用户填写的信息:', userInfo)
-      console.log('  - 昵称:', userInfo.nickName)
-      console.log('  - 头像类型:', finalAvatarUrl.startsWith('data:image') ? 'base64' : finalAvatarUrl.startsWith('http') ? '网络图片' : '其他')
-      
-      // ✅ 生成或获取用户ID
-      const userId = app.ensureUserId()
-      console.log('✅ 当前用户ID:', userId)
-      
-      // ✅ 初始化用户角色（如果不存在）
-      let userRoles = wx.getStorageSync('userRoles')
-      if (!userRoles || userRoles.length === 0) {
-        userRoles = ['customer'] // 默认为普通用户
-        wx.setStorageSync('userRoles', userRoles)
-        console.log('✅ 初始化用户角色:', userRoles)
-      } else {
-        console.log('✅ 已有用户角色:', userRoles)
-      }
-      
       // 保存用户信息到本地存储
       wx.setStorageSync('userInfo', userInfo)
+      wx.setStorageSync('userId', userData.userId)
+      wx.setStorageSync('openid', userData.openid)
       wx.setStorageSync('hasLoggedIn', true)
+      
+      // 初始化用户角色
+      const userRoles = [userData.role || 'customer']
+      wx.setStorageSync('userRoles', userRoles)
       
       // 保存到全局数据
       app.globalData.userInfo = userInfo
-      app.globalData.userId = userId
+      app.globalData.userId = userData.userId
+      app.globalData.openid = userData.openid
       app.globalData.roles = userRoles
       
-      // 验证保存结果
-      const savedInfo = wx.getStorageSync('userInfo')
-      console.log('✅ 保存验证 - 本地存储:', savedInfo)
-      console.log('✅ 保存验证 - 全局数据:', app.globalData.userInfo)
-      console.log('✅ 保存验证 - 用户ID:', userId)
-      console.log('✅ 保存验证 - 用户角色:', userRoles)
+      console.log('✅ 登录信息已保存')
+      console.log('  - userId:', userData.userId)
+      console.log('  - openid:', userData.openid)
+      console.log('  - role:', userData.role)
+      console.log('  - isNewUser:', userData.isNewUser)
       
       wx.hideLoading()
       
       // 显示欢迎提示
       wx.showToast({
-        title: `欢迎，${userInfo.nickName}`,
+        title: userData.isNewUser ? `欢迎注册，${userInfo.nickName}` : `欢迎回来，${userInfo.nickName}`,
         icon: 'success',
         duration: 1500
       })
