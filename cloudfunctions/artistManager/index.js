@@ -9,7 +9,9 @@ const db = cloud.database()
 
 /**
  * 画师申请管理云函数
- * 支持操作：apply, getStatus, approve, reject, getList
+ * 支持操作：apply, getStatus, approve, reject, getList, 
+ *          createProfile, getProfile, updateProfile, 
+ *          uploadQRCode, getQRCode, deleteQRCode
  */
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
@@ -18,6 +20,7 @@ exports.main = async (event, context) => {
 
   try {
     switch (action) {
+      // 申请相关
       case 'apply':
         return await applyArtist(openid, event)
       case 'getStatus':
@@ -28,6 +31,23 @@ exports.main = async (event, context) => {
         return await rejectApplication(openid, event)
       case 'getList':
         return await getApplicationList(openid, event)
+      
+      // 档案相关
+      case 'createProfile':
+        return await createProfile(openid, event)
+      case 'getProfile':
+        return await getProfile(openid, event)
+      case 'updateProfile':
+        return await updateProfile(openid, event)
+      
+      // 工作二维码相关
+      case 'uploadQRCode':
+        return await uploadQRCode(openid, event)
+      case 'getQRCode':
+        return await getQRCode(openid, event)
+      case 'deleteQRCode':
+        return await deleteQRCode(openid, event)
+      
       default:
         return { success: false, message: '未知操作' }
     }
@@ -244,6 +264,258 @@ async function getApplicationList(openid, event) {
       page,
       pageSize
     }
+  }
+}
+
+// ==================== 画师档案管理 ====================
+
+/**
+ * 创建画师档案
+ */
+async function createProfile(openid, event) {
+  const { name, age, wechat, contact, idealPrice, minPrice, introduction, portfolio } = event
+
+  // 获取用户信息
+  const userRes = await db.collection('users')
+    .where({ _openid: openid })
+    .get()
+
+  if (userRes.data.length === 0) {
+    return { success: false, message: '用户不存在' }
+  }
+
+  const user = userRes.data[0]
+
+  // 检查是否已有档案
+  const existingRes = await db.collection('artist_profiles')
+    .where({ userId: user.userId })
+    .get()
+
+  if (existingRes.data.length > 0) {
+    return { success: false, message: '档案已存在，请使用更新功能' }
+  }
+
+  const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
+
+  const profile = {
+    userId: user.userId,
+    userName: user.nickName,
+    userAvatar: user.avatarUrl,
+    name: name || '',
+    age: age || '',
+    wechat: wechat || '',
+    contact: contact || '',
+    idealPrice: idealPrice || '',
+    minPrice: minPrice || '',
+    introduction: introduction || '',
+    portfolio: portfolio || [],
+    createdAt: now,
+    updatedAt: now
+  }
+
+  await db.collection('artist_profiles').add({
+    data: profile
+  })
+
+  return {
+    success: true,
+    message: '档案创建成功'
+  }
+}
+
+/**
+ * 获取画师档案
+ */
+async function getProfile(openid, event) {
+  const { userId } = event
+
+  // 获取当前用户
+  const userRes = await db.collection('users')
+    .where({ _openid: openid })
+    .get()
+
+  if (userRes.data.length === 0) {
+    return { success: false, message: '用户不存在' }
+  }
+
+  const currentUserId = userRes.data[0].userId
+  const targetUserId = userId || currentUserId
+
+  // 查询档案
+  const profileRes = await db.collection('artist_profiles')
+    .where({ userId: targetUserId })
+    .get()
+
+  if (profileRes.data.length === 0) {
+    return { success: false, message: '档案不存在' }
+  }
+
+  return {
+    success: true,
+    data: profileRes.data[0]
+  }
+}
+
+/**
+ * 更新画师档案
+ */
+async function updateProfile(openid, event) {
+  const { userId, ...updateData } = event
+
+  // 获取当前用户
+  const userRes = await db.collection('users')
+    .where({ _openid: openid })
+    .get()
+
+  if (userRes.data.length === 0) {
+    return { success: false, message: '用户不存在' }
+  }
+
+  const currentUserId = userRes.data[0].userId
+
+  // 检查权限：只能更新自己的档案或管理员
+  const adminRes = await db.collection('system_admin')
+    .where({ _openid: openid, isAdmin: true })
+    .get()
+  const isAdmin = adminRes.data.length > 0
+
+  if (!isAdmin && userId && userId !== currentUserId) {
+    return { success: false, message: '无权限更新他人档案' }
+  }
+
+  const targetUserId = userId || currentUserId
+  updateData.updatedAt = new Date().toISOString().replace('T', ' ').substring(0, 19)
+
+  const res = await db.collection('artist_profiles')
+    .where({ userId: targetUserId })
+    .update({
+      data: updateData
+    })
+
+  if (res.stats.updated === 0) {
+    return { success: false, message: '更新失败，档案可能不存在' }
+  }
+
+  return {
+    success: true,
+    message: '档案更新成功'
+  }
+}
+
+// ==================== 画师工作二维码管理 ====================
+
+/**
+ * 上传工作二维码
+ */
+async function uploadQRCode(openid, event) {
+  const { qrcodeImage, description } = event
+
+  // 获取用户信息
+  const userRes = await db.collection('users')
+    .where({ _openid: openid })
+    .get()
+
+  if (userRes.data.length === 0) {
+    return { success: false, message: '用户不存在' }
+  }
+
+  const user = userRes.data[0]
+
+  // 检查是否已有二维码
+  const existingRes = await db.collection('artist_qrcodes')
+    .where({ userId: user.userId })
+    .get()
+
+  const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
+
+  const qrcodeData = {
+    userId: user.userId,
+    userName: user.nickName,
+    qrcodeImage,
+    description: description || '',
+    updatedAt: now
+  }
+
+  if (existingRes.data.length > 0) {
+    // 更新现有二维码
+    await db.collection('artist_qrcodes')
+      .where({ userId: user.userId })
+      .update({
+        data: qrcodeData
+      })
+  } else {
+    // 创建新二维码
+    qrcodeData.createdAt = now
+    await db.collection('artist_qrcodes').add({
+      data: qrcodeData
+    })
+  }
+
+  return {
+    success: true,
+    message: '二维码上传成功'
+  }
+}
+
+/**
+ * 获取工作二维码
+ */
+async function getQRCode(openid, event) {
+  const { userId } = event
+
+  // 获取当前用户
+  const userRes = await db.collection('users')
+    .where({ _openid: openid })
+    .get()
+
+  if (userRes.data.length === 0) {
+    return { success: false, message: '用户不存在' }
+  }
+
+  const currentUserId = userRes.data[0].userId
+  const targetUserId = userId || currentUserId
+
+  // 查询二维码
+  const qrcodeRes = await db.collection('artist_qrcodes')
+    .where({ userId: targetUserId })
+    .get()
+
+  if (qrcodeRes.data.length === 0) {
+    return { success: false, message: '二维码不存在' }
+  }
+
+  return {
+    success: true,
+    data: qrcodeRes.data[0]
+  }
+}
+
+/**
+ * 删除工作二维码
+ */
+async function deleteQRCode(openid, event) {
+  // 获取用户信息
+  const userRes = await db.collection('users')
+    .where({ _openid: openid })
+    .get()
+
+  if (userRes.data.length === 0) {
+    return { success: false, message: '用户不存在' }
+  }
+
+  const userId = userRes.data[0].userId
+
+  const res = await db.collection('artist_qrcodes')
+    .where({ userId })
+    .remove()
+
+  if (res.stats.removed === 0) {
+    return { success: false, message: '删除失败，二维码可能不存在' }
+  }
+
+  return {
+    success: true,
+    message: '二维码已删除'
   }
 }
 

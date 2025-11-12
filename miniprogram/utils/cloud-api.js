@@ -269,6 +269,67 @@ class CloudAPI {
     })
   }
 
+  /**
+   * 创建画师档案
+   */
+  async createArtistProfile(profileData) {
+    return await this.callFunction('artistManager', {
+      action: 'createProfile',
+      ...profileData
+    })
+  }
+
+  /**
+   * 获取画师档案
+   */
+  async getArtistProfile(userId = null) {
+    return await this.callFunction('artistManager', {
+      action: 'getProfile',
+      userId
+    })
+  }
+
+  /**
+   * 更新画师档案
+   */
+  async updateArtistProfile(userId, updateData) {
+    return await this.callFunction('artistManager', {
+      action: 'updateProfile',
+      userId,
+      ...updateData
+    })
+  }
+
+  /**
+   * 上传画师工作二维码
+   */
+  async uploadArtistQRCode(qrcodeImage, description) {
+    return await this.callFunction('artistManager', {
+      action: 'uploadQRCode',
+      qrcodeImage,
+      description
+    })
+  }
+
+  /**
+   * 获取画师工作二维码
+   */
+  async getArtistQRCode(userId = null) {
+    return await this.callFunction('artistManager', {
+      action: 'getQRCode',
+      userId
+    })
+  }
+
+  /**
+   * 删除画师工作二维码
+   */
+  async deleteArtistQRCode() {
+    return await this.callFunction('artistManager', {
+      action: 'deleteQRCode'
+    })
+  }
+
   // ==================== 财务模块 ====================
 
   /**
