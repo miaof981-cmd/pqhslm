@@ -106,12 +106,14 @@ Page({
     } else {
       console.error('加载商品失败:', res.message)
       logger.error('加载商品失败:', res.message)
+      this.setData({ allProducts: [], products: [] })
+      return
     }
 
     const verboseLogEnabled = isVerboseLoggingEnabled()
     
     if (allProducts.length > 0) {
-      // 转换本地存储的商品格式为首页显示格式
+      // 转换云数据库商品格式为首页显示格式
       allProducts = allProducts
         .filter(p => p.isOnSale !== false) // 只显示上架的商品
         .map(p => {
@@ -131,26 +133,18 @@ Page({
           }
           
           const coverImage = ensureRenderableImage(
-            Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : p.productImage,
+            Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : p.image || p.productImage,
             { namespace: 'product-cover', fallback: DEFAULT_PLACEHOLDER }
           )
           const categoryName = p.categoryName || categoryService.getCategoryNameById(p.category)
           
-          // 🔧 修复：总是优先从 users 列表读取最新昵称（解决画师改名后搜索不到的问题）
-          let artistName = p.artistName || p.artist?.name || '画师'
-          if (p.artistId) {
-            const artist = users.find(u => 
-              String(u.id) === String(p.artistId) || String(u.userId) === String(p.artistId)
-            )
-            if (artist) {
-              artistName = artist.nickName || artist.name || artistName
-            }
-          }
+          // 使用云数据库返回的画师名称
+          let artistName = p.artistName || '画师'
           
           return {
-            _id: p.id || p._id,
-            id: p.id,
-            name: p.name || '未命名商品',
+            _id: p._id || p.id,
+            id: p.productId || p.id,
+            name: p.productName || p.name || '未命名商品',
             price: displayPrice,
             artistName: artistName,
             // ⚠️ 性能优化：只传第一张图片，不传整个数组

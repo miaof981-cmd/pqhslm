@@ -32,47 +32,53 @@ Page({
     this.loadProducts()
   },
 
-  loadProducts() {
+  async loadProducts() {
     console.log('=== 商品管理页加载数据 ===')
     console.log('当前画师ID:', this.data.artistId)
     
-    // 从本地存储加载商品
-    let allProducts = wx.getStorageSync('mock_products') || []
-    console.log('从本地存储加载全部商品数量:', allProducts.length)
+    const cloudAPI = require('../../utils/cloud-api.js')
     
-    // 筛选当前画师的商品
-    let products = allProducts.filter(p => p.artistId == this.data.artistId)
-    console.log('筛选后该画师的商品数量:', products.length)
+    // 从云数据库加载当前画师的商品
+    const res = await cloudAPI.getProductList({ 
+      artistId: this.data.artistId,
+      pageSize: 100
+    })
+    
+    let products = []
+    if (res.success && res.data && res.data.list) {
+      products = res.data.list
+      console.log('从云数据库加载商品数量:', products.length)
+    } else {
+      console.error('加载商品失败:', res.message)
+    }
     
     if (products.length > 0) {
-      // 转换本地存储的商品格式为页面显示格式
+      // 转换云数据库商品格式为页面显示格式
       products = products.map(p => {
-        console.log(`商品: ${p.name}, artistId: ${p.artistId}, isOnSale: ${p.isOnSale}`)
         const coverImage = ensureRenderableImage(
-          Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : p.productImage,
+          Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : p.image,
           { namespace: 'product-cover', fallback: DEFAULT_PLACEHOLDER }
         )
 
         return {
-          _id: p.id || p._id,
-          id: p.id || p._id,
-          name: p.name || '未命名商品',
+          _id: p._id,
+          id: p.productId || p.id,
+          name: p.productName || p.name || '未命名商品',
           coverImage,
           image: coverImage,
           images: p.images || [],
-          price: p.price || p.basePrice || '0.00',
-          basePrice: p.basePrice || '0.00',
-          status: p.isOnSale !== false ? 'online' : 'offline',
-          isOnSale: p.isOnSale !== false,
-          categoryName: p.categoryName || '未分类',
-          views: p.views || 0,
-          orders: p.orders || 0,
+          price: p.price || '0.00',
+          basePrice: p.price || '0.00',
+          status: p.status === 'active' ? 'online' : 'offline',
+          isOnSale: p.status === 'active',
+          categoryName: p.categoryName || p.category || '未分类',
+          views: p.viewCount || 0,
+          orders: p.orderCount || 0,
           sales: p.sales || 0,
           stock: p.stock || 0
         }
       })
-      console.log('转换后的商品数据:', products.length, '个')
-      products.forEach(p => console.log(`  - ${p.name}: status=${p.status}, isOnSale=${p.isOnSale}`))
+      console.log('商品数据:', products.length, '个')
     } else {
       console.log('该画师暂无商品')
     }
