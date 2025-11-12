@@ -8,6 +8,15 @@ App({
   },
 
   onLaunch() {
+    // ✅ 初始化云开发
+    if (wx.cloud) {
+      wx.cloud.init({
+        env: 'cloud1-2gca1h9d11f4d9d2',
+        traceUser: true
+      })
+      console.log('☁️ 云开发已初始化')
+    }
+    
     // 初始化用户信息（包含自增ID、openid、缓存用户信息）
     this.initUserInfo()
 
