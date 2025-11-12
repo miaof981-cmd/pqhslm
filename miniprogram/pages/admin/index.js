@@ -525,10 +525,17 @@ Page({
       this.setData({ orderLoading: true })
     }
     
-    // 🎯 使用统一工具函数获取并标准化订单（管理员看所有订单）
-    let allOrders = orderHelper.prepareOrdersForPage({
-      role: 'admin'
-    })
+    const cloudAPI = require('../../utils/cloud-api.js')
+    
+    // 从云数据库获取所有订单（管理员看所有订单）
+    const res = await cloudAPI.getOrderList({ pageSize: 200 })
+    
+    let allOrders = []
+    if (res.success && res.data && res.data.list) {
+      allOrders = res.data.list
+    } else {
+      console.error('加载订单失败:', res.message)
+    }
     
     console.log('✅ 订单加载完成:', allOrders.length, '个')
     if (allOrders.length > 0) {

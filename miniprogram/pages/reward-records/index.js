@@ -160,7 +160,9 @@ Page({
         if (app.userId) artistMap.set(String(app.userId), app)
       })
 
-      const rewardRecords = wx.getStorageSync('reward_records') || []
+      const cloudAPI = require('../../utils/cloud-api.js')
+      const rewardsRes = await cloudAPI.getRewardList({ pageSize: 200 })
+      const rewardRecords = rewardsRes.success && rewardsRes.data ? rewardsRes.data.list : []
       const rewardMap = buildRewardMap(rewardRecords)
 
       const now = Date.now()
@@ -375,8 +377,8 @@ Page({
     }, 800)
   },
 
-  persistReward(order, amount) {
-    const rewards = wx.getStorageSync('reward_records') || []
+  async persistReward(order, amount) {
+    const cloudAPI = require('../../utils/cloud-api.js')
     const now = Date.now()
     
     // 🎯 从订单中获取 artistId

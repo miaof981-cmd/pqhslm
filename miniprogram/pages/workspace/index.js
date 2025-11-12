@@ -337,23 +337,31 @@ Page({
   },
 
   // 加载待处理订单统计
-  loadPendingStats() {
+  async loadPendingStats() {
     const { userRole } = this.data
     const currentUserId = wx.getStorageSync('userId')
     
     console.log('========================================')
-    console.log('📦 [画师/客服端] 使用统一工具加载订单')
+    console.log('📦 [画师/客服端] 从云数据库加载订单')
     console.log('========================================')
     console.log('当前用户ID:', currentUserId)
     console.log('当前角色:', userRole)
     
-    // 🎯 使用统一工具函数获取并标准化订单
-    // 🔧 修复：显示所有订单（包括已完成、已退款、已取消）
-    let myOrders = orderHelper.prepareOrdersForPage({
-      role: userRole,
-      userId: currentUserId,
-      includeCompleted: true  // ✅ 显示历史订单
-    })
+    const cloudAPI = require('../../utils/cloud-api.js')
+    
+    // 从云数据库获取订单
+    const params = userRole === 'artist' 
+      ? { artistId: currentUserId, pageSize: 100 }
+      : { serviceId: currentUserId, pageSize: 100 }
+    
+    const res = await cloudAPI.getOrderList(params)
+    
+    let myOrders = []
+    if (res.success && res.data && res.data.list) {
+      myOrders = res.data.list
+    } else {
+      console.error('加载订单失败:', res.message)
+    }
     
     console.log('✅ 订单加载完成:', myOrders.length, '个')
     if (myOrders.length > 0) {

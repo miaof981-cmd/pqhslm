@@ -28,15 +28,17 @@ Page({
   },
 
   // ✅ 加载申请历史记录
-  loadApplicationHistory() {
+  async loadApplicationHistory() {
     const app = getApp()
     const userId = app.globalData.userId || wx.getStorageSync('userId')
     
-    // 从本地存储读取申请记录
-    const applications = wx.getStorageSync('artist_applications') || []
+    const cloudAPI = require('../../utils/cloud-api.js')
+    
+    // 从云数据库读取申请记录
+    const res = await cloudAPI.getApplicationStatus({ userId })
     
     // 查找当前用户的所有申请
-    const userApplications = applications.filter(app => app.userId === userId)
+    const userApplications = res.success && res.data ? [res.data] : []
     
     if (userApplications.length > 0) {
       // 按时间排序（最新的在前）

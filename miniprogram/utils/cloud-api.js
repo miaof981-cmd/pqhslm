@@ -372,6 +372,59 @@ class CloudAPI {
     })
   }
 
+  /**
+   * 创建打赏记录
+   */
+  async createReward(data) {
+    return await this.callFunction('financeManager', {
+      action: 'createReward',
+      ...data
+    })
+  }
+
+  // ==================== 画师申请模块 ====================
+
+  /**
+   * 提交画师申请
+   */
+  async submitArtistApplication(data) {
+    return await this.callFunction('artistManager', {
+      action: 'apply',
+      ...data
+    })
+  }
+
+  /**
+   * 获取申请状态
+   */
+  async getApplicationStatus(data) {
+    return await this.callFunction('artistManager', {
+      action: 'getStatus',
+      ...data
+    })
+  }
+
+  /**
+   * 审批画师申请
+   */
+  async approveApplication(applicationId) {
+    return await this.callFunction('artistManager', {
+      action: 'approve',
+      applicationId
+    })
+  }
+
+  /**
+   * 拒绝画师申请
+   */
+  async rejectApplication(applicationId, reason) {
+    return await this.callFunction('artistManager', {
+      action: 'reject',
+      applicationId,
+      reason
+    })
+  }
+
   // ==================== 内容管理模块 ====================
 
   /**
