@@ -11,12 +11,18 @@ Page({
   async loadData() {
     this.setData({ loading: true });
     try {
-      // 从存储读取轮播图
-      const banners = wx.getStorageSync('home_banners') || []
+      const cloudAPI = require('../../utils/cloud-api.js')
+      const res = await cloudAPI.getBannerList()
       
-      this.setData({ items: banners });
-      console.log('轮播图数量:', banners.length)
+      if (res.success && res.data) {
+        this.setData({ items: res.data });
+        console.log('轮播图数量:', res.data.length)
+      } else {
+        console.error('加载轮播图失败:', res.message)
+        this.setData({ items: [] });
+      }
     } catch (error) {
+      console.error('加载轮播图异常:', error)
       wx.showToast({ title: '加载失败', icon: 'none' });
     } finally {
       this.setData({ loading: false });
@@ -35,26 +41,25 @@ Page({
         wx.getFileSystemManager().readFile({
           filePath: tempPath,
           encoding: 'base64',
-          success: (fileRes) => {
+          success: async (fileRes) => {
             const base64 = 'data:image/jpeg;base64,' + fileRes.data
+            const cloudAPI = require('../../utils/cloud-api.js')
             
-            // 获取现有轮播图
-            let banners = wx.getStorageSync('home_banners') || []
-            
-            // 添加新轮播图
-            const newBanner = {
-              id: Date.now(),
+            // 创建轮播图
+            const result = await cloudAPI.createBanner({
               image: base64,
-              title: '轮播图' + (banners.length + 1),
+              title: '轮播图',
               link: '',
-              createTime: new Date().toLocaleString('zh-CN')
+              sort: 0
+            })
+            
+            if (result.success) {
+              wx.showToast({ title: '添加成功', icon: 'success' })
+              this.loadData()
+            } else {
+              console.error('创建轮播图失败:', result.message)
+              wx.showToast({ title: '添加失败', icon: 'none' })
             }
-            
-            banners.push(newBanner)
-            wx.setStorageSync('home_banners', banners)
-            
-            wx.showToast({ title: '添加成功', icon: 'success' })
-            this.loadData()
           },
           fail: (err) => {
             console.error('读取失败:', err)
@@ -75,14 +80,18 @@ Page({
     wx.showModal({
       title: '确认删除',
       content: '确定要删除这个轮播图吗？',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          let banners = wx.getStorageSync('home_banners') || []
-          banners = banners.filter(b => b.id != id)
-          wx.setStorageSync('home_banners', banners)
+          const cloudAPI = require('../../utils/cloud-api.js')
+          const result = await cloudAPI.deleteBanner(id)
           
-          wx.showToast({ title: '已删除', icon: 'success' });
-          this.loadData();
+          if (result.success) {
+            wx.showToast({ title: '已删除', icon: 'success' });
+            this.loadData();
+          } else {
+            console.error('删除轮播图失败:', result.message)
+            wx.showToast({ title: '删除失败', icon: 'none' });
+          }
         }
       }
     });

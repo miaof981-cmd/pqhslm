@@ -65,14 +65,19 @@ Page({
 
   // 加载轮播图
   async loadBanners() {
-    const storedBanners = wx.getStorageSync('home_banners') || []
-    const bannerImages = storedBanners.map(b => b.image).filter(img => img)
+    const cloudAPI = require('../../utils/cloud-api.js')
     
-    this.setData({
-      banners: bannerImages.length > 0 ? bannerImages : []
-    })
-    
-    console.log('首页轮播图数量:', bannerImages.length)
+    const res = await cloudAPI.getBannerList()
+    if (res.success && res.data) {
+      const bannerImages = res.data.map(b => b.image).filter(img => img)
+      this.setData({
+        banners: bannerImages
+      })
+      console.log('首页轮播图数量:', bannerImages.length)
+    } else {
+      console.error('加载轮播图失败:', res.message)
+      this.setData({ banners: [] })
+    }
   },
 
   // 加载商品分类
@@ -89,11 +94,19 @@ Page({
 
   // 加载商品列表
   async loadProducts() {
-    // 从本地存储加载商品
-    let allProducts = wx.getStorageSync('mock_products') || []
-    const users = wx.getStorageSync('users') || [] // 🔧 新增：加载用户列表（用于获取最新昵称）
-
-    logger.info('从本地存储加载商品', allProducts.length, '个')
+    const cloudAPI = require('../../utils/cloud-api.js')
+    
+    // 从云数据库加载商品
+    const res = await cloudAPI.getProductList({ pageSize: 200 })
+    let allProducts = []
+    
+    if (res.success && res.data && res.data.list) {
+      allProducts = res.data.list
+      logger.info('从云数据库加载商品', allProducts.length, '个')
+    } else {
+      console.error('加载商品失败:', res.message)
+      logger.error('加载商品失败:', res.message)
+    }
 
     const verboseLogEnabled = isVerboseLoggingEnabled()
     
