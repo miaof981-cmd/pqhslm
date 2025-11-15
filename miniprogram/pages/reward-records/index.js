@@ -88,7 +88,7 @@ Page({
     this.loadRewardOrders()
   },
 
-  loadRewardOrders() {
+  async loadRewardOrders() {
     this.setData({ loading: true })
 
     try {
