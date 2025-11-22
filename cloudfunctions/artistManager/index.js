@@ -92,22 +92,79 @@ async function applyArtist(openid, event) {
     finalUserId = userRes.data[0].userId
   }
 
-  // 检查是否已有申请
+  // 🎯 检查是否已有待审核或已通过的申请
   const existingRes = await db.collection('artist_applications')
-    .where({ userId: finalUserId })
+    .where({ 
+      userId: finalUserId,
+      status: db.command.in(['pending', 'approved'])
+    })
     .get()
 
   if (existingRes.data.length > 0) {
     const app = existingRes.data[0]
     if (app.status === 'pending') {
-      return { success: false, message: '已有申请正在审核中' }
+      return { success: false, message: '您有申请正在审核中，请耐心等待' }
     }
     if (app.status === 'approved') {
       return { success: false, message: '您已是认证画师' }
     }
   }
 
+  // 🎯 如果有被驳回的申请，更新它而不是创建新的
+  const rejectedRes = await db.collection('artist_applications')
+    .where({ 
+      userId: finalUserId,
+      status: 'rejected'
+    })
+    .orderBy('createdAt', 'desc')
+    .limit(1)
+    .get()
+
   const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
+
+  // 如果有被驳回的申请，更新它
+  if (rejectedRes.data.length > 0) {
+    const oldApp = rejectedRes.data[0]
+    
+    await db.collection('artist_applications')
+      .doc(oldApp._id)
+      .update({
+        data: {
+          // 更新为新的申请数据
+          avatarUrl: avatarUrl || '',
+          nickName: nickName || '未知用户',
+          name: name || '',
+          age: age || '',
+          wechat: wechat || '',
+          idealPrice: idealPrice || '',
+          minPrice: minPrice || '',
+          finishedWorks: finishedWorks || [],
+          processImages: processImages || [],
+          // 重置状态为pending
+          status: 'pending',
+          // 清除驳回信息
+          rejectReason: '',
+          rejectTime: '',
+          rejectedAt: '',
+          // 更新时间
+          submitTime: now,
+          updatedAt: now
+        }
+      })
+
+    console.log('📝 更新已驳回的申请为新申请:', oldApp._id)
+
+    return {
+      success: true,
+      message: '申请已重新提交，等待审核',
+      data: {
+        applicationId: oldApp.id || oldApp._id
+      }
+    }
+  }
+
+  // 🎯 首次申请：创建新记录
+  console.log('📝 创建新的画师申请')
 
   // 创建申请记录（完整字段）
   const application = {
