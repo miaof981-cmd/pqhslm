@@ -98,10 +98,17 @@ Page({
       
       const userData = loginRes.data
       
+      // ✅ 如果云函数返回的头像无效，使用当前输入的 base64 头像
+      let finalDisplayAvatar = userData.avatarUrl
+      if (!finalDisplayAvatar || finalDisplayAvatar.startsWith('wxfile://') || finalDisplayAvatar.startsWith('http://tmp/')) {
+        console.log('⚠️ 云函数返回头像无效，使用当前输入:', finalDisplayAvatar)
+        finalDisplayAvatar = finalAvatarUrl // 使用转换后的 base64
+      }
+      
       // 构建用户信息
       const userInfo = {
         nickName: userData.nickName,
-        avatarUrl: userData.avatarUrl,
+        avatarUrl: finalDisplayAvatar,
         gender: 0,
         country: '',
         province: '',

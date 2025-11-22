@@ -55,14 +55,36 @@ async function login(openid, event) {
   if (userRes.data.length > 0) {
     const user = userRes.data[0]
     
-    // 更新最后登录时间
+    // ✅ 检查是否需要更新头像（如果新传入的头像有效）
+    let finalAvatarUrl = user.avatarUrl
+    const needUpdateAvatar = avatarUrl && 
+                             avatarUrl.startsWith('data:image/') && 
+                             (!user.avatarUrl || 
+                              user.avatarUrl.startsWith('wxfile://') || 
+                              user.avatarUrl.startsWith('http://tmp/'))
+    
+    if (needUpdateAvatar) {
+      finalAvatarUrl = avatarUrl
+      console.log('🔄 更新用户头像（临时路径 → base64）')
+    }
+    
+    // ✅ 清理无效头像路径
+    if (finalAvatarUrl && (finalAvatarUrl.startsWith('wxfile://') || finalAvatarUrl.startsWith('http://tmp/'))) {
+      console.warn('⚠️ 检测到临时头像路径，已清空:', finalAvatarUrl)
+      finalAvatarUrl = ''
+    }
+    
+    // 更新最后登录时间和头像
+    const updateData = {
+      lastLoginTime: new Date().toISOString().replace('T', ' ').substring(0, 19)
+    }
+    if (needUpdateAvatar) {
+      updateData.avatarUrl = finalAvatarUrl
+    }
+    
     await db.collection('users')
       .doc(user._id)
-      .update({
-        data: {
-          lastLoginTime: new Date().toISOString().replace('T', ' ').substring(0, 19)
-        }
-      })
+      .update({ data: updateData })
 
     return {
       success: true,
@@ -70,7 +92,7 @@ async function login(openid, event) {
         userId: user.userId,
         openid: user._openid,
         nickName: user.nickName,
-        avatarUrl: user.avatarUrl,
+        avatarUrl: finalAvatarUrl,
         phone: user.phone || '',
         memberLevel: user.memberLevel || '普通会员',
         memberExpireTime: user.memberExpireTime || '',
