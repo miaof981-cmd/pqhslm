@@ -25,19 +25,43 @@ class CloudAPI {
    * 调用云函数的统一方法
    */
   async callFunction(name, data) {
+    // ✅ 请求日志
+    console.log('[API CALL]', name, data)
+    const startTime = Date.now()
+    
     try {
       const res = await wx.cloud.callFunction({
         name,
         data
       })
       
+      const duration = Date.now() - startTime
+      
       if (res.result) {
+        // ✅ 成功日志
+        console.log('[API RESULT]', name, {
+          duration: `${duration}ms`,
+          success: res.result.success,
+          dataSize: JSON.stringify(res.result).length,
+          preview: res.result
+        })
         return res.result
       }
       
+      // ✅ 异常结果日志
+      console.warn('[API WARNING]', name, '云函数返回结果异常', res)
       return { success: false, message: '云函数返回结果异常' }
     } catch (error) {
-      console.error(`云函数 ${name} 调用失败:`, error)
+      const duration = Date.now() - startTime
+      
+      // ✅ 错误日志
+      console.error('[API ERROR]', name, {
+        duration: `${duration}ms`,
+        error: error.errMsg || error.message,
+        code: error.errCode,
+        details: error
+      })
+      
       return this.handleError(error, ` - ${name}`)
     }
   }

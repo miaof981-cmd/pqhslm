@@ -16,24 +16,57 @@ exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
   const { action } = event
+  
+  // ✅ 云函数入口日志
+  console.log('[CLOUD FUNCTION]', 'orderManager', {
+    action,
+    openid,
+    params: event
+  })
+  const startTime = Date.now()
 
   try {
+    let result
     switch (action) {
       case 'create':
-        return await createOrder(openid, event)
+        result = await createOrder(openid, event)
+        break
       case 'getList':
-        return await getOrderList(openid, event)
+        result = await getOrderList(openid, event)
+        break
       case 'getDetail':
-        return await getOrderDetail(openid, event)
+        result = await getOrderDetail(openid, event)
+        break
       case 'updateStatus':
-        return await updateOrderStatus(openid, event)
+        result = await updateOrderStatus(openid, event)
+        break
       case 'updateInfo':
-        return await updateOrderInfo(openid, event)
+        result = await updateOrderInfo(openid, event)
+        break
       default:
-        return { success: false, message: '未知操作' }
+        result = { success: false, message: '未知操作' }
     }
+    
+    // ✅ 成功日志
+    const duration = Date.now() - startTime
+    console.log('[CLOUD RESULT]', 'orderManager', {
+      action,
+      duration: `${duration}ms`,
+      success: result.success,
+      message: result.message
+    })
+    
+    return result
   } catch (error) {
-    console.error('订单管理错误:', error)
+    // ✅ 错误日志
+    const duration = Date.now() - startTime
+    console.error('[CLOUD ERROR]', 'orderManager', {
+      action,
+      duration: `${duration}ms`,
+      error: error.message,
+      stack: error.stack
+    })
+    
     return {
       success: false,
       message: error.message || '操作失败'
@@ -45,6 +78,8 @@ exports.main = async (event, context) => {
  * 创建订单
  */
 async function createOrder(openid, event) {
+  console.log('[createOrder] 开始创建订单', { openid, event })
+  
   const {
     productId,
     productName,
@@ -64,6 +99,7 @@ async function createOrder(openid, event) {
   } = event
 
   // 获取当前用户信息
+  console.log('[createOrder] 查询用户信息', { openid })
   const userRes = await db.collection('users')
     .where({ _openid: openid })
     .get()

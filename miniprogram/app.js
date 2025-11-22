@@ -1,13 +1,21 @@
+// ✅ 引入全局错误处理模块
+const { globalErrorHandler } = require('./utils/global-error-handler.js')
+
 App({
   globalData: {
     userInfo: null,
     userId: 0,        // 自增用户ID
     openid: '',       // 微信openid（内部使用）
     role: 'customer', // customer, artist, admin
-    userProfile: null
+    userProfile: null,
+    errorHandler: globalErrorHandler // 暴露错误处理器
   },
 
   onLaunch() {
+    // ✅ 初始化全局错误捕获
+    globalErrorHandler.init()
+    console.log('🛡️ 全局错误捕获已启动')
+    
     // ✅ 初始化云开发
     if (wx.cloud) {
       wx.cloud.init({
