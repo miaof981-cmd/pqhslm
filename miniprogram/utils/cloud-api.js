@@ -962,6 +962,71 @@ class CloudAPI {
       userId
     })
   }
+
+  // ==================== 云存储模块 ====================
+
+  /**
+   * 上传文件到云存储
+   * @param {string} filePath - 本地文件路径
+   * @param {string} cloudPath - 云存储路径（可选）
+   * @returns {Promise<{success: boolean, fileID?: string, message?: string}>}
+   */
+  async uploadFile(filePath, cloudPath) {
+    try {
+      // 如果没有指定云路径，自动生成
+      if (!cloudPath) {
+        const timestamp = Date.now()
+        const random = Math.random().toString(36).substring(2, 8)
+        const ext = filePath.split('.').pop() || 'jpg'
+        cloudPath = `uploads/${timestamp}_${random}.${ext}`
+      }
+
+      const result = await wx.cloud.uploadFile({
+        cloudPath: cloudPath,
+        filePath: filePath
+      })
+
+      console.log('✅ 文件上传成功:', result.fileID)
+      
+      return {
+        success: true,
+        fileID: result.fileID,
+        cloudPath: cloudPath
+      }
+    } catch (error) {
+      console.error('❌ 文件上传失败:', error)
+      return {
+        success: false,
+        message: error.errMsg || '上传失败'
+      }
+    }
+  }
+
+  /**
+   * 删除云存储文件
+   * @param {string[]} fileIDs - 文件ID数组
+   * @returns {Promise<{success: boolean, message?: string}>}
+   */
+  async deleteFiles(fileIDs) {
+    try {
+      const result = await wx.cloud.deleteFile({
+        fileList: fileIDs
+      })
+
+      console.log('✅ 文件删除成功:', result)
+      
+      return {
+        success: true,
+        data: result.fileList
+      }
+    } catch (error) {
+      console.error('❌ 文件删除失败:', error)
+      return {
+        success: false,
+        message: error.errMsg || '删除失败'
+      }
+    }
+  }
 }
 
 // 创建单例

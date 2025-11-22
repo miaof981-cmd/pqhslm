@@ -142,16 +142,44 @@ Page({
 
       wx.showLoading({ title: '上传中...' })
       
-      // 暂时使用本地图片路径
-      this.setData({
-        [`formData.${type}`]: [...currentImages, ...res.tempFilePaths]
-      })
-
-      wx.hideLoading()
-      wx.showToast({
-        title: '上传成功',
-        icon: 'success'
-      })
+      // ✅ 上传到云存储
+      const cloudAPI = require('../../utils/cloud-api.js')
+      const uploadedUrls = []
+      
+      for (let i = 0; i < res.tempFilePaths.length; i++) {
+        const filePath = res.tempFilePaths[i]
+        const cloudPath = `artist-applications/${type}/${Date.now()}_${i}.${filePath.split('.').pop()}`
+        
+        try {
+          const uploadRes = await cloudAPI.uploadFile(filePath, cloudPath)
+          if (uploadRes.success && uploadRes.fileID) {
+            uploadedUrls.push(uploadRes.fileID)
+            console.log(`✅ 图片上传成功 (${i + 1}/${res.tempFilePaths.length}):`, uploadRes.fileID)
+          } else {
+            console.error('❌ 图片上传失败:', uploadRes)
+          }
+        } catch (uploadError) {
+          console.error('❌ 图片上传异常:', uploadError)
+        }
+      }
+      
+      if (uploadedUrls.length > 0) {
+        this.setData({
+          [`formData.${type}`]: [...currentImages, ...uploadedUrls]
+        })
+        
+        wx.hideLoading()
+        wx.showToast({
+          title: `上传成功 ${uploadedUrls.length}/${res.tempFilePaths.length}`,
+          icon: 'success'
+        })
+      } else {
+        wx.hideLoading()
+        wx.showToast({
+          title: '上传失败，请重试',
+          icon: 'none'
+        })
+      }
 
     } catch (error) {
       wx.hideLoading()
