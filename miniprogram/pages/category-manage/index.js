@@ -47,26 +47,44 @@ Page({
     this.setData({ loading: true })
     
     try {
-      // 🎯 从本地存储读取分类
-      let categories = wx.getStorageSync('product_categories') || []
+      // ✅ 从云端读取分类
+      const cloudAPI = require('../../utils/cloud-api.js')
+      const res = await cloudAPI.getCategoryList()
       
-      // 🎯 如果没有分类，初始化默认分类
-      if (categories.length === 0) {
-        categories = [
-          { id: 'chibi_portrait', _id: 'chibi_portrait', name: 'Q版头像', icon: '😊', status: 'active', sort: 1 },
-          { id: 'half_body', _id: 'half_body', name: '半身像', icon: '👤', status: 'active', sort: 2 },
-          { id: 'full_body', _id: 'full_body', name: '全身像', icon: '🧍', status: 'active', sort: 3 },
-          { id: 'scene', _id: 'scene', name: '场景插画', icon: '🖼️', status: 'active', sort: 4 },
-          { id: 'emoticon', _id: 'emoticon', name: '表情包', icon: '😄', status: 'active', sort: 5 },
-          { id: 'logo', _id: 'logo', name: 'LOGO设计', icon: '🏷️', status: 'active', sort: 6 },
-          { id: 'ui', _id: 'ui', name: 'UI设计', icon: '📱', status: 'active', sort: 7 },
-          { id: 'animation', _id: 'animation', name: '动画设计', icon: '🎬', status: 'active', sort: 8 }
-        ]
-        wx.setStorageSync('product_categories', categories)
+      let categories = []
+      
+      if (res && res.success && res.data) {
+        categories = res.data
+      } else {
+        // 降级：从本地读取
+        console.warn('云端获取分类失败，从本地读取:', res?.message)
+        categories = wx.getStorageSync('product_categories') || []
       }
       
-      // 🎯 统计每个分类的商品数量
-      const products = wx.getStorageSync('mock_products') || []
+      // 如果云端和本地都没有，初始化默认分类并上传到云端
+      if (categories.length === 0) {
+        const defaultCategories = [
+          { id: 'chibi_portrait', name: 'Q版头像', icon: '😊', status: 'active', sort: 1 },
+          { id: 'half_body', name: '半身像', icon: '👤', status: 'active', sort: 2 },
+          { id: 'full_body', name: '全身像', icon: '🧍', status: 'active', sort: 3 },
+          { id: 'scene', name: '场景插画', icon: '🖼️', status: 'active', sort: 4 },
+          { id: 'emoticon', name: '表情包', icon: '😄', status: 'active', sort: 5 },
+          { id: 'logo', name: 'LOGO设计', icon: '🏷️', status: 'active', sort: 6 },
+          { id: 'ui', name: 'UI设计', icon: '📱', status: 'active', sort: 7 },
+          { id: 'animation', name: '动画设计', icon: '🎬', status: 'active', sort: 8 }
+        ]
+        
+        // 上传到云端
+        for (const cat of defaultCategories) {
+          await cloudAPI.createCategory(cat)
+        }
+        categories = defaultCategories
+      }
+      
+      // 统计每个分类的商品数量（从云端商品数据）
+      const productsRes = await cloudAPI.getProductList({ pageSize: 1000 })
+      const products = productsRes?.data?.list || []
+      
       categories = categories.map(cat => ({
         ...cat,
         _id: cat._id || cat.id,
@@ -145,23 +163,25 @@ Page({
   },
 
   // 切换状态
-  toggleStatus(e) {
+  async toggleStatus(e) {
     const { id, status } = e.currentTarget.dataset
     const action = status === 'active' ? '禁用' : '启用'
     
     wx.showModal({
       title: `${action}分类`,
       content: `确认${action}此分类？${action === '禁用' ? '禁用后该分类下的商品将不显示' : ''}`,
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          // 🎯 更新分类状态
-          const categories = wx.getStorageSync('product_categories') || []
-          const index = categories.findIndex(c => (c._id || c.id) === id)
-          if (index !== -1) {
-            categories[index].status = status === 'active' ? 'disabled' : 'active'
-            wx.setStorageSync('product_categories', categories)
-          wx.showToast({ title: `已${action}`, icon: 'success' })
-          this.loadCategories()
+          // ✅ 更新云端分类状态
+          const cloudAPI = require('../../utils/cloud-api.js')
+          const newStatus = status === 'active' ? 'disabled' : 'active'
+          const result = await cloudAPI.updateCategory(id, { status: newStatus })
+          
+          if (result && result.success) {
+            wx.showToast({ title: `已${action}`, icon: 'success' })
+            this.loadCategories()
+          } else {
+            wx.showToast({ title: '操作失败', icon: 'none' })
           }
         }
       }
@@ -169,7 +189,7 @@ Page({
   },
 
   // 删除分类
-  deleteCategory(e) {
+  async deleteCategory(e) {
     const id = e.currentTarget.dataset.id
     const category = this.data.categories.find(c => c._id === id)
     
@@ -186,14 +206,18 @@ Page({
       title: '删除分类',
       content: '确认删除此分类？删除后无法恢复',
       confirmColor: '#FF6B6B',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          // 🎯 实际删除分类
-          let categories = wx.getStorageSync('product_categories') || []
-          categories = categories.filter(c => (c._id || c.id) !== id)
-          wx.setStorageSync('product_categories', categories)
-          wx.showToast({ title: '已删除', icon: 'success' })
-          this.loadCategories()
+          // ✅ 删除云端分类
+          const cloudAPI = require('../../utils/cloud-api.js')
+          const result = await cloudAPI.deleteCategory(id)
+          
+          if (result && result.success) {
+            wx.showToast({ title: '已删除', icon: 'success' })
+            this.loadCategories()
+          } else {
+            wx.showToast({ title: '删除失败', icon: 'none' })
+          }
         }
       }
     })
@@ -246,7 +270,7 @@ Page({
   },
 
   // 保存分类
-  saveCategory() {
+  async saveCategory() {
     const { name, sort, parentId, icon, status } = this.data.formData
     
     // 验证
@@ -258,38 +282,18 @@ Page({
     wx.showLoading({ title: '保存中...' })
     
     try {
-      let categories = wx.getStorageSync('product_categories') || []
+      const cloudAPI = require('../../utils/cloud-api.js')
+      let result
       
       if (this.data.isEdit) {
-        // 🎯 编辑模式：更新现有分类
-        const index = categories.findIndex(c => (c._id || c.id) === this.data.currentId)
-        if (index !== -1) {
-          const oldName = categories[index].name
-          const newName = name.trim()
-          
-          categories[index] = {
-            ...categories[index],
-            name: newName,
-            sort: sort || categories[index].sort,
-            parentId: parentId || '',
-            icon: icon || categories[index].icon,
-            status: status || 'active'
-          }
-          
-          // 🎯 同步更新所有使用该分类的商品
-          if (oldName !== newName) {
-            const products = wx.getStorageSync('mock_products') || []
-            let updatedCount = 0
-            
-            products.forEach(product => {
-              // 通过分类ID或分类名称匹配
-              if (String(product.category) === String(this.data.currentId) || 
-                  product.categoryName === oldName) {
-                product.category = this.data.currentId
-                product.categoryName = newName
-                updatedCount++
-              }
-            })
+        // ✅ 编辑模式：更新云端分类
+        result = await cloudAPI.updateCategory(this.data.currentId, {
+          name: name.trim(),
+          sort: sort || 0,
+          parentId: parentId || '',
+          icon: icon || '',
+          status: status || 'active'
+        })
             
             if (updatedCount > 0) {
               wx.setStorageSync('mock_products', products)
