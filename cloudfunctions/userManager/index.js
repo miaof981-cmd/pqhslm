@@ -81,16 +81,48 @@ async function login(openid, event) {
   }
 
   // 用户不存在，创建新用户
-  // 获取当前最大userId，生成新的userId
-  const allUsers = await db.collection('users')
-    .orderBy('userId', 'desc')
-    .limit(1)
-    .get()
-
+  // ✅ 使用序列表生成唯一userId（避免并发冲突）
+  const sequenceCollection = db.collection('sequences')
+  
   let newUserId = '1001'
-  if (allUsers.data.length > 0) {
-    const maxUserId = parseInt(allUsers.data[0].userId)
-    newUserId = String(maxUserId + 1)
+  try {
+    // 原子性操作：查找并更新序列值
+    const seqRes = await sequenceCollection
+      .where({ _id: 'userId' })
+      .get()
+    
+    if (seqRes.data.length > 0) {
+      // 序列存在，原子性递增
+      const currentValue = seqRes.data[0].value
+      await sequenceCollection.doc('userId').update({
+        data: {
+          value: _.inc(1)  // 原子性递增
+        }
+      })
+      newUserId = String(currentValue + 1)
+    } else {
+      // 序列不存在，初始化
+      await sequenceCollection.add({
+        data: {
+          _id: 'userId',
+          value: 1001,
+          description: 'User ID sequence'
+        }
+      })
+      newUserId = '1001'
+    }
+  } catch (seqError) {
+    console.error('序列表操作失败，降级为查询最大值:', seqError)
+    // 降级方案：查询最大userId
+    const allUsers = await db.collection('users')
+      .orderBy('userId', 'desc')
+      .limit(1)
+      .get()
+    
+    if (allUsers.data.length > 0) {
+      const maxUserId = parseInt(allUsers.data[0].userId)
+      newUserId = String(maxUserId + 1)
+    }
   }
 
   const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
