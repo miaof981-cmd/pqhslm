@@ -13,7 +13,11 @@
     'userId_counter', // userId计数器（已废弃，但避免误报）
     'product_draft',  // 商品编辑草稿（用户体验必需）
     'reject_templates', // 审核驳回模板（用户体验必需）
-    'cart_items'      // 购物车（待云端化，临时允许）
+    'cart_items',     // 购物车（待云端化 P2，临时允许）
+    'search_history_keywords', // 搜索历史（UI辅助）
+    'workspace_role', // 工作台角色选择（UI状态）
+    'needRefresh',    // 刷新标志（UI状态）
+    'buyer_show_posts' // 买家秀帖子（待云端化 P2，临时允许）
   ]
 
   const FORBIDDEN_PATTERNS = [
@@ -118,8 +122,8 @@
   }
 
   console.log('🔒 严格云端模式已启用')
-  console.log('✅ 允许的本地缓存键:', ALLOWED_KEYS.join(', '))
-  console.log('❌ 禁止的缓存模式:', FORBIDDEN_PATTERNS.map(p => p.source).join(', '))
+  console.log(`✅ 允许的本地缓存键 (${ALLOWED_KEYS.length}个):`, ALLOWED_KEYS.join(', '))
+  console.log(`❌ 禁止的缓存模式 (${FORBIDDEN_PATTERNS.length}个):`, FORBIDDEN_PATTERNS.map(p => p.source).join(', '))
 })()
 // ==================== 严格云端模式结束 ====================
 
