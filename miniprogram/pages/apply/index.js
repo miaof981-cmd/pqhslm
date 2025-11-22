@@ -305,74 +305,78 @@ Page({
   },
 
   // 执行提交申请
-  doSubmitApplication(userInfo) {
+  async doSubmitApplication(userInfo) {
     wx.showLoading({ title: '提交中...' })
 
     const app = getApp()
     const userId = wx.getStorageSync('userId') || app.globalData.userId || 1001
     const openid = wx.getStorageSync('openid') || app.globalData.openid || 'mock_openid_' + userId
 
-    // 创建申请记录
-    const application = {
-      id: 'app_' + Date.now(),
-      userId: userId,
-      openid: openid,
-      // 微信信息
-      avatarUrl: userInfo.avatarUrl,
-      nickName: userInfo.nickName,
-      // 申请表单信息
-      name: this.data.formData.name,
-      age: this.data.formData.age,
-      wechat: this.data.formData.wechat,
-      idealPrice: this.data.formData.idealPrice,
-      minPrice: this.data.formData.minPrice,
-      finishedWorks: this.data.formData.finishedWorks,
-      processImages: this.data.formData.processImages,
-      status: 'pending', // pending, approved, rejected
-      submitTime: new Date().toLocaleString('zh-CN', { 
-        year: 'numeric', 
-        month: '2-digit', 
-        day: '2-digit', 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      }).replace(/\//g, '-')
-    }
-
-    // 保存到本地存储
-    // ✅ 已废弃：申请数据应通过云函数artistManager.apply存储
-    let applications = []
-    applications.unshift(application) // 新申请放在最前面
-    // ✅ 不再保存到本地
-
-    console.log('申请已保存:', application)
-
-    setTimeout(() => {
-      wx.hideLoading()
-      
-      wx.showModal({
-        title: '申请提交成功',
-        content: '您的申请已提交，我们会在1-3个工作日内审核并通过微信通知您审核结果。\n\n审核通过后，您需要缴纳会员费才能开始接单。',
-        showCancel: false,
-        confirmText: '我知道了',
-        success: () => {
-          // 清空表单
-          this.setData({
-            formData: {
-              name: '',
-              age: '',
-              wechat: '',
-              idealPrice: '',
-              minPrice: '',
-              finishedWorks: [],
-              processImages: []
-            },
-            agreedToTerms: false
-          })
-
-          // 返回上一页
-          wx.navigateBack()
-        }
+    // ✅ 云端化：调用云函数提交申请
+    const cloudAPI = require('../../utils/cloud-api.js')
+    
+    try {
+      const res = await cloudAPI.submitArtistApplication({
+        userId: userId,
+        openid: openid,
+        // 微信信息
+        avatarUrl: userInfo.avatarUrl,
+        nickName: userInfo.nickName,
+        // 申请表单信息
+        name: this.data.formData.name,
+        age: this.data.formData.age,
+        wechat: this.data.formData.wechat,
+        idealPrice: this.data.formData.idealPrice,
+        minPrice: this.data.formData.minPrice,
+        finishedWorks: this.data.formData.finishedWorks,
+        processImages: this.data.formData.processImages
       })
-    }, 1000)
+
+      wx.hideLoading()
+
+      if (res && res.success) {
+        console.log('✅ 申请提交成功:', res)
+        
+        wx.showModal({
+          title: '申请提交成功',
+          content: '您的申请已提交，我们会在1-3个工作日内审核并通过微信通知您审核结果。\n\n审核通过后，您需要缴纳会员费才能开始接单。',
+          showCancel: false,
+          confirmText: '我知道了',
+          success: () => {
+            // 清空表单
+            this.setData({
+              formData: {
+                name: '',
+                age: '',
+                wechat: '',
+                idealPrice: '',
+                minPrice: '',
+                finishedWorks: [],
+                processImages: []
+              },
+              agreedToTerms: false
+            })
+
+            // 返回上一页
+            wx.navigateBack()
+          }
+        })
+      } else {
+        console.error('❌ 申请提交失败:', res)
+        wx.showToast({
+          title: res?.message || '提交失败，请重试',
+          icon: 'none',
+          duration: 2000
+        })
+      }
+    } catch (error) {
+      wx.hideLoading()
+      console.error('❌ 申请提交异常:', error)
+      wx.showToast({
+        title: '网络异常，请重试',
+        icon: 'none',
+        duration: 2000
+      })
+    }
   }
 })

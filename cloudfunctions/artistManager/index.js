@@ -63,22 +63,36 @@ exports.main = async (event, context) => {
  * 提交画师申请
  */
 async function applyArtist(openid, event) {
-  const { artistName, portfolio, introduction } = event
+  const { 
+    userId, 
+    avatarUrl, 
+    nickName, 
+    name, 
+    age, 
+    wechat, 
+    idealPrice, 
+    minPrice, 
+    finishedWorks, 
+    processImages 
+  } = event
 
-  // 获取用户信息
-  const userRes = await db.collection('users')
-    .where({ _openid: openid })
-    .get()
+  // 获取用户信息（如果前端没传userId，从数据库获取）
+  let finalUserId = userId
+  if (!finalUserId) {
+    const userRes = await db.collection('users')
+      .where({ _openid: openid })
+      .get()
 
-  if (userRes.data.length === 0) {
-    return { success: false, message: '用户不存在，请先登录' }
+    if (userRes.data.length === 0) {
+      return { success: false, message: '用户不存在，请先登录' }
+    }
+
+    finalUserId = userRes.data[0].userId
   }
-
-  const user = userRes.data[0]
 
   // 检查是否已有申请
   const existingRes = await db.collection('artist_applications')
-    .where({ userId: user.userId })
+    .where({ userId: finalUserId })
     .get()
 
   if (existingRes.data.length > 0) {
@@ -93,18 +107,30 @@ async function applyArtist(openid, event) {
 
   const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
 
-  // 创建申请
+  // 创建申请记录（完整字段）
   const application = {
-    userId: user.userId,
-    userName: user.nickName,
-    userAvatar: user.avatarUrl,
-    artistName,
-    portfolio: portfolio || '',
-    introduction: introduction || '',
+    id: 'app_' + Date.now(),
+    userId: finalUserId,
+    openid: openid,
+    // 微信信息
+    avatarUrl: avatarUrl || '',
+    nickName: nickName || '未知用户',
+    // 申请表单信息
+    name: name || '',
+    age: age || '',
+    wechat: wechat || '',
+    idealPrice: idealPrice || '',
+    minPrice: minPrice || '',
+    finishedWorks: finishedWorks || [],
+    processImages: processImages || [],
+    // 状态信息
     status: 'pending',
+    submitTime: now,
     createdAt: now,
     updatedAt: now
   }
+
+  console.log('📝 创建画师申请:', application)
 
   await db.collection('artist_applications').add({
     data: application
@@ -112,7 +138,10 @@ async function applyArtist(openid, event) {
 
   return {
     success: true,
-    message: '申请已提交，等待审核'
+    message: '申请已提交，等待审核',
+    data: {
+      applicationId: application.id
+    }
   }
 }
 
