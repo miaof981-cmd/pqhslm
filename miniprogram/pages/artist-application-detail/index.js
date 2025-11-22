@@ -46,6 +46,10 @@ Page({
         return
       }
 
+      // 🎯 关键修复：转换云存储路径为临时URL（真机必需）
+      application.finishedWorks = await this.convertCloudImagesToTempUrls(application.finishedWorks || [])
+      application.processImages = await this.convertCloudImagesToTempUrls(application.processImages || [])
+
       // 状态文本映射
       const statusTextMap = {
         'pending': '待审核',
@@ -59,6 +63,7 @@ Page({
       })
 
       console.log('✅ 申请详情（云端版）:', application)
+      console.log('📸 图片路径已转换为临时URL')
     } catch (err) {
       console.error('❌ 加载申请详情失败:', err)
       wx.showToast({
@@ -67,6 +72,50 @@ Page({
       })
     } finally {
       wx.hideLoading()
+    }
+  },
+
+  // 🎯 将 cloud:// 路径转换为临时 HTTPS URL
+  async convertCloudImagesToTempUrls(fileIDs) {
+    if (!Array.isArray(fileIDs) || fileIDs.length === 0) {
+      return []
+    }
+
+    // 过滤出云存储路径
+    const cloudFileIDs = fileIDs.filter(id => id && id.startsWith('cloud://'))
+    
+    if (cloudFileIDs.length === 0) {
+      console.log('⚠️ 没有云存储路径，跳过转换')
+      return fileIDs
+    }
+
+    try {
+      const result = await wx.cloud.getTempFileURL({
+        fileList: cloudFileIDs
+      })
+
+      console.log('✅ 云存储路径转换成功:', result.fileList.length, '个文件')
+      
+      // 创建映射表
+      const urlMap = new Map()
+      result.fileList.forEach(item => {
+        if (item.status === 0) {
+          urlMap.set(item.fileID, item.tempFileURL)
+        } else {
+          console.error('❌ 获取临时URL失败:', item.fileID, item.errMsg)
+        }
+      })
+
+      // 替换原数组中的路径
+      return fileIDs.map(id => {
+        if (urlMap.has(id)) {
+          return urlMap.get(id)
+        }
+        return id // 保留非云存储路径
+      })
+    } catch (error) {
+      console.error('❌ 转换云存储路径失败:', error)
+      return fileIDs // 失败时返回原路径
     }
   },
 
