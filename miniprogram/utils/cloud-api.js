@@ -658,6 +658,60 @@ class CloudAPI {
     })
   }
 
+  // ==================== 客服模块 ====================
+
+  /**
+   * 添加客服
+   */
+  async addService(serviceData) {
+    return await this.callFunction('serviceManager', {
+      action: 'addService',
+      ...serviceData
+    })
+  }
+
+  /**
+   * 获取客服列表
+   */
+  async getServiceList(isActiveOnly = false) {
+    return await this.callFunction('serviceManager', {
+      action: 'getServiceList',
+      isActiveOnly
+    })
+  }
+
+  /**
+   * 更新客服信息
+   */
+  async updateService(userId, updateData) {
+    return await this.callFunction('serviceManager', {
+      action: 'updateService',
+      userId,
+      ...updateData
+    })
+  }
+
+  /**
+   * 切换客服在线状态
+   */
+  async toggleServiceStatus(userId, isActive) {
+    return await this.callFunction('serviceManager', {
+      action: 'toggleServiceStatus',
+      userId,
+      isActive
+    })
+  }
+
+  /**
+   * 删除客服
+   */
+  async deleteService(userId) {
+    return await this.callFunction('serviceManager', {
+      action: 'deleteService',
+      userId
+    })
+  }
+
   // ==================== 统计模块 ====================
 
   /**
