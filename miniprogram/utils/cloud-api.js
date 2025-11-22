@@ -294,6 +294,18 @@ class CloudAPI {
   }
 
   /**
+   * 更新画师申请状态（通过/驳回）
+   */
+  async updateArtistApplicationStatus(applicationId, status, rejectReason = '') {
+    return await this.callFunction('artistManager', {
+      action: 'updateStatus',
+      applicationId,
+      status,
+      rejectReason
+    })
+  }
+
+  /**
    * 创建画师档案
    */
   async createArtistProfile(profileData) {
@@ -777,6 +789,67 @@ class CloudAPI {
   async getUserStats() {
     return await this.callFunction('statsManager', {
       action: 'userStats'
+    })
+  }
+
+  // ==================== 实名认证模块 ====================
+  
+  /**
+   * 提交实名认证
+   */
+  async submitIdentityVerify(data) {
+    return await this.callFunction('userManager', {
+      action: 'submitIdentityVerify',
+      userId: data.userId,
+      realName: data.realName,
+      idCard: data.idCard,
+      phoneNumber: data.phoneNumber,
+      bankName: data.bankName,
+      bankCard: data.bankCard,
+      bankBranch: data.bankBranch
+    })
+  }
+
+  /**
+   * 获取实名认证记录
+   */
+  async getIdentityVerifyRecords(userId = null) {
+    return await this.callFunction('userManager', {
+      action: 'getIdentityVerifyRecords',
+      userId
+    })
+  }
+
+  /**
+   * 更新实名认证状态
+   */
+  async updateIdentityVerifyStatus(verifyId, status, reason = '') {
+    return await this.callFunction('userManager', {
+      action: 'updateIdentityVerifyStatus',
+      verifyId,
+      status,
+      reason
+    })
+  }
+
+  // ==================== 系统设置模块 ====================
+  
+  /**
+   * 获取系统设置
+   */
+  async getSystemSettings() {
+    return await this.callFunction('systemManager', {
+      action: 'getSystemSettings'
+    })
+  }
+
+  /**
+   * 更新系统设置
+   */
+  async updateSystemSettings(settings) {
+    return await this.callFunction('systemManager', {
+      action: 'updateSystemSettings',
+      settings
     })
   }
 }

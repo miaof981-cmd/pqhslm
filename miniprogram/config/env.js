@@ -1,25 +1,25 @@
 // 环境配置
 const ENV = {
-  // 开发环境
+  // 开发环境（仅开发调试使用）
   dev: {
     cloudEnvId: 'cloud1-2gca1h9d11f4d9d2',
-    useMockData: true,           // ✅ 开关：是否使用mock数据
+    useMockData: false,          // ❌ 已禁用Mock数据，统一使用云端
     enableCache: false,
     logLevel: 'debug',
-    emergencyFallback: false     // 紧急降级开关
+    emergencyFallback: false
   },
   
-  // 生产环境
+  // 生产环境（正式运行）
   prod: {
     cloudEnvId: 'cloud1-2gca1h9d11f4d9d2',
-    useMockData: false,          // 生产环境使用云数据库
+    useMockData: false,          // ✅ 生产环境使用云数据库
     enableCache: true,
     logLevel: 'error',
     emergencyFallback: false
   }
 }
 
-// 当前环境（手动切换）
+// ✅ 当前环境：生产模式（已切换到云端数据库）
 const currentEnv = 'prod'  // 'dev' | 'prod'
 
 module.exports = {

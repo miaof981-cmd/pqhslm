@@ -1,3 +1,5 @@
+const app = getApp()
+const cloudAPI = require('../../utils/cloud-api.js')
 const serviceIncome = require('../../utils/service-income.js')
 const orderStatusUtil = require('../../utils/order-status.js')
 
@@ -9,12 +11,12 @@ const parseDate = orderStatusUtil.parseDate
 Page({
   data: {
     loading: true,
-    availableBalance: '0.00',      // 🎯 可提现余额
-    totalIncome: '0.00',           // 🎯 历史总收入
-    totalWithdrawn: '0.00',        // 🎯 已提现金额
-    records: [],                   // 🎯 账单流水（收入+提现）
-    showWithdrawRecordsModal: false, // 🎯 提现记录弹窗
-    withdrawRecords: []            // 🎯 提现记录列表
+    availableBalance: '0.00',
+    totalIncome: '0.00',
+    totalWithdrawn: '0.00',
+    records: [],
+    showWithdrawRecordsModal: false,
+    withdrawRecords: []
   },
 
   onLoad() {
@@ -26,45 +28,42 @@ Page({
   },
 
   // 🎯 加载账单流水数据
-  loadIncomeData() {
+  async loadIncomeData() {
     this.setData({ loading: true })
 
     try {
-      const userId = wx.getStorageSync('userId')
+      const userId = app.globalData.userId
       const userKey = userId != null ? String(userId) : ''
 
-      // 🎯 1. 获取所有订单并去重
-      const orders = wx.getStorageSync('orders') || []
-      const pendingOrders = wx.getStorageSync('pending_orders') || []
-      const completedOrders = wx.getStorageSync('completed_orders') || []
-      
-      const orderMap = new Map()
-      ;[...orders, ...pendingOrders, ...completedOrders].forEach(order => {
-        if (order && order.id) {
-          orderMap.set(order.id, order)
-        }
-      })
-      const allOrders = Array.from(orderMap.values())
+      // ✅ 从云端获取数据
+      const [ordersRes, rewardsRes, withdrawsRes] = await Promise.all([
+        cloudAPI.getOrderList({ userId }),
+        cloudAPI.getRewardList({ userId }),
+        cloudAPI.getWithdrawList({ userId })
+      ])
+
+      const allOrders = ordersRes.success ? (ordersRes.data || []) : []
+      const rewardRecords = rewardsRes.success ? (rewardsRes.data || []) : []
+      const withdrawRecords = withdrawsRes.success ? (withdrawsRes.data || []) : []
 
       // 🎯 2. 计算画师打赏收入
-      const rewardRecords = wx.getStorageSync('reward_records') || []
       const myRewards = rewardRecords.filter(record => {
-        if (record.artistId) {
-          return String(record.artistId) === userKey
+        if (record.artistId || record.artist_id) {
+          return String(record.artistId || record.artist_id) === userKey
         }
-        const order = allOrders.find(o => String(o.id) === String(record.orderId))
+        const order = allOrders.find(o => String(o._id || o.id) === String(record.orderId || record.order_id))
         if (!order) return false
-        return String(order.artistId) === userKey
+        return String(order.artistId || order.artist_id) === userKey
       })
       const rewardIncomeAmount = myRewards.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
 
       // 🎯 3. 计算画师订单稿费（订单金额 - 平台扣除，按数量计算）
       const PLATFORM_DEDUCTION_PER_ITEM = 5.00
       const myCompletedOrders = allOrders.filter(order => {
-        return String(order.artistId) === userKey && order.status === 'completed'
+        return String(order.artistId || order.artist_id) === userKey && order.status === 'completed'
       })
       const orderIncomeAmount = myCompletedOrders.reduce((sum, o) => {
-        const orderAmount = parseFloat(o.totalPrice) || parseFloat(o.price) || 0
+        const orderAmount = parseFloat(o.totalPrice || o.total_price || o.price) || 0
         const quantity = parseInt(o.quantity) || 1
         const totalDeduction = PLATFORM_DEDUCTION_PER_ITEM * quantity
         const artistShare = Math.max(0, orderAmount - totalDeduction)
@@ -83,8 +82,7 @@ Page({
       const totalIncomeAmount = rewardIncomeAmount + orderIncomeAmount + csIncomeAmount + staffIncomeAmount
 
       // 🎯 7. 获取提现记录
-      const withdrawRecords = wx.getStorageSync('withdraw_records') || []
-      const myWithdraws = withdrawRecords.filter(r => String(r.userId) === userKey && r.status === 'success')
+      const myWithdraws = withdrawRecords.filter(r => String(r.userId || r.user_id) === userKey && (r.status === 'success' || r.status === 'completed'))
       const totalWithdrawnAmount = myWithdraws.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
 
       // 🎯 8. 构建账单流水（收入+提现）
@@ -93,14 +91,13 @@ Page({
       // 添加打赏收入
       myRewards.forEach(reward => {
         transactions.push({
-          id: `reward_${reward.id}`,
+          id: `reward_${reward._id || reward.id}`,
           type: 'income',
           subType: 'reward',
           typeText: '打赏收入',
-          title: reward.productName || `订单 ${reward.orderId}`,
+          title: reward.productName || reward.product_name || `订单 ${reward.orderId || reward.order_id}`,
           amount: parseFloat(reward.amount),
           isIncome: true,
-          // 🔧 iOS兼容：使用parseDate
           timestamp: reward.time ? parseDate(reward.time).getTime() : Date.now(),
           time: this.formatTime(reward.time)
         })
@@ -108,21 +105,20 @@ Page({
 
       // 添加订单稿费收入
       myCompletedOrders.forEach(order => {
-        const orderAmount = parseFloat(order.totalPrice) || parseFloat(order.price) || 0
+        const orderAmount = parseFloat(order.totalPrice || order.total_price || order.price) || 0
         const quantity = parseInt(order.quantity) || 1
         const totalDeduction = PLATFORM_DEDUCTION_PER_ITEM * quantity
         const artistShare = Math.max(0, orderAmount - totalDeduction)
         transactions.push({
-          id: `order_${order.id}`,
+          id: `order_${order._id || order.id}`,
           type: 'income',
           subType: 'order',
           typeText: '订单稿费',
-          title: order.productName || `订单 ${order.id}`,
+          title: order.productName || order.product_name || `订单 ${order._id || order.id}`,
           amount: artistShare,
           isIncome: true,
-          // 🔧 iOS兼容：使用parseDate函数
-          timestamp: parseDate(order.completedAt || order.createTime).getTime(),
-          time: this.formatTime(order.completedAt || order.createTime)
+          timestamp: parseDate(order.completedAt || order.completed_at || order.createTime || order.create_time).getTime(),
+          time: this.formatTime(order.completedAt || order.completed_at || order.createTime || order.create_time)
         })
       })
 
@@ -136,7 +132,6 @@ Page({
           title: entry.note || `订单分成`,
           amount: parseFloat(entry.amount),
           isIncome: true,
-          // 🔧 iOS兼容：使用parseDate函数
           timestamp: parseDate(entry.orderCompletedAt || entry.createdAt).getTime(),
           time: this.formatTime(entry.orderCompletedAt || entry.createdAt)
         })
@@ -152,7 +147,6 @@ Page({
           title: entry.note || `订单分成`,
           amount: parseFloat(entry.amount),
           isIncome: true,
-          // 🔧 iOS兼容：使用parseDate函数
           timestamp: parseDate(entry.orderCompletedAt || entry.createdAt).getTime(),
           time: this.formatTime(entry.orderCompletedAt || entry.createdAt)
         })
@@ -160,17 +154,19 @@ Page({
 
       // 添加提现支出
       myWithdraws.forEach(withdraw => {
+        const bankName = withdraw.bankName || withdraw.bank_name || ''
+        const bankCard = withdraw.bankCard || withdraw.bank_card || ''
+        const displayCard = bankCard ? `****${bankCard.slice(-4)}` : ''
         transactions.push({
-          id: `withdraw_${withdraw.id}`,
+          id: `withdraw_${withdraw._id || withdraw.id}`,
           type: 'withdraw',
           subType: 'withdraw',
           typeText: '提现',
-          title: withdraw.bankName ? `${withdraw.bankName}(****${withdraw.bankCard})` : '提现到账',
+          title: bankName ? `${bankName}(${displayCard})` : '提现到账',
           amount: parseFloat(withdraw.amount),
           isIncome: false,
-          // 🔧 iOS兼容：使用parseDate
-          timestamp: parseDate(withdraw.completedTime || withdraw.time).getTime(),
-          time: this.formatTime(withdraw.completedTime || withdraw.time)
+          timestamp: parseDate(withdraw.completedTime || withdraw.completed_time || withdraw.time).getTime(),
+          time: this.formatTime(withdraw.completedTime || withdraw.completed_time || withdraw.time)
         })
       })
 
@@ -204,7 +200,7 @@ Page({
       })
 
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      console.log('📊 账单流水 (income-detail)')
+      console.log('📊 账单流水 (income-detail - 云端版)')
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
       console.log('👤 用户ID:', userKey)
       console.log('')
@@ -233,7 +229,6 @@ Page({
   formatTime(timestamp) {
     if (!timestamp) return '时间未知'
     
-    // 🔧 iOS兼容：使用parseDate
     const date = parseDate(timestamp)
     if (isNaN(date.getTime())) return '时间未知'
     
@@ -247,24 +242,33 @@ Page({
   },
 
   // 🎯 显示提现记录弹窗
-  showWithdrawRecordsModal() {
-    const userId = wx.getStorageSync('userId')
+  async showWithdrawRecordsModal() {
+    const userId = app.globalData.userId
     const userKey = String(userId)
-    const allRecords = wx.getStorageSync('withdraw_records') || []
-    const myRecords = allRecords.filter(r => String(r.userId) === userKey)
-    
-    // 按时间倒序
-    myRecords.sort((a, b) => {
-      // 🔧 iOS兼容：使用parseDate
-      const timeA = parseDate(b.completedTime || b.time).getTime()
-      const timeB = parseDate(a.completedTime || a.time).getTime()
-      return timeA - timeB
-    })
-    
-    this.setData({
-      withdrawRecords: myRecords,
-      showWithdrawRecordsModal: true
-    })
+
+    try {
+      // ✅ 从云端获取提现记录
+      const res = await cloudAPI.getWithdrawList({ userId: userKey })
+      const myRecords = res.success ? (res.data || []).filter(r => String(r.userId || r.user_id) === userKey) : []
+      
+      // 按时间倒序
+      myRecords.sort((a, b) => {
+        const timeA = parseDate(b.completedTime || b.completed_time || b.time).getTime()
+        const timeB = parseDate(a.completedTime || a.completed_time || a.time).getTime()
+        return timeA - timeB
+      })
+      
+      this.setData({
+        withdrawRecords: myRecords,
+        showWithdrawRecordsModal: true
+      })
+    } catch (err) {
+      console.error('❌ 加载提现记录失败:', err)
+      wx.showToast({
+        title: '加载失败',
+        icon: 'none'
+      })
+    }
   },
 
   // 关闭提现记录弹窗

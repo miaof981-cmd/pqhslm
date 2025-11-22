@@ -1,3 +1,4 @@
+const cloudAPI = require('../../utils/cloud-api.js')
 const serviceIncome = require('../../utils/service-income.js')
 const orderStatusUtil = require('../../utils/order-status.js')
 
@@ -94,8 +95,8 @@ Page({
     return orderTime >= startDate && orderTime <= endDate
   },
 
-  // 加载所有角色收入数据
-  loadAllRoles() {
+  // ✅ 从云端加载所有角色收入数据
+  async loadAllRoles() {
     this.setData({ loading: true })
     
     try {
@@ -107,23 +108,17 @@ Page({
       
       const { startDate, endDate } = dateRange
       
-      // 获取所有订单并去重
-      const orders = wx.getStorageSync('orders') || []
-      const pendingOrders = wx.getStorageSync('pending_orders') || []
-      const completedOrders = wx.getStorageSync('completed_orders') || []
+      // ✅ 从云端获取所有订单
+      const ordersRes = await cloudAPI.getOrderList({ pageSize: 999 })
+      const allOrders = ordersRes.success ? (ordersRes.data || []) : []
       
-      const orderMap = new Map()
-      ;[...orders, ...pendingOrders, ...completedOrders].forEach(order => {
-        if (order && order.id) {
-          orderMap.set(order.id, order)
-        }
-      })
-      const allOrders = Array.from(orderMap.values())
+      // ✅ 从云端获取提现记录
+      const withdrawRes = await cloudAPI.getWithdrawList({ pageSize: 999 })
+      const withdrawRecords = withdrawRes.success ? (withdrawRes.data || []) : []
       
-      // 提现记录
-      const withdrawRecords = wx.getStorageSync('withdraw_records') || []
-      // 打赏记录
-      const rewardRecords = wx.getStorageSync('reward_records') || []
+      // ✅ 从云端获取打赏记录
+      const rewardRes = await cloudAPI.getRewardList({ pageSize: 999 })
+      const rewardRecords = rewardRes.success ? (rewardRes.data || []) : []
       
       // 加载画师数据
       const artistList = this.loadArtistIncome(allOrders, rewardRecords, withdrawRecords, startDate, endDate)
@@ -244,7 +239,8 @@ Page({
     const serviceMap = new Map()
     
     // 获取客服列表
-    const customerServiceList = wx.getStorageSync('customer_service_list') || []
+    // ✅ 已废弃：客服列表应从云端users表读取
+    const customerServiceList = []
     customerServiceList.forEach(cs => {
       const userId = String(cs.userId)
       serviceMap.set(userId, {

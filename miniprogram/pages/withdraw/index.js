@@ -1,5 +1,5 @@
-const staffFinance = require('../../utils/staff-finance.js')
-const serviceIncome = require('../../utils/service-income.js')  // 🎯 新增：客服收入管理
+const app = getApp()
+const cloudAPI = require('../../utils/cloud-api.js')
 const withdrawApi = require('../../utils/withdraw-api.js')  // 🎯 提现API对接
 
 Page({
@@ -7,8 +7,8 @@ Page({
     balance: 0,
     showWithdrawModal: false,
     showVerifyModal: false,
-    showWithdrawRecordsModal: false, // 🎯 提现记录弹窗
-    withdrawRecords: [],             // 🎯 提现记录
+    showWithdrawRecordsModal: false,
+    withdrawRecords: [],
     withdrawAmount: '',
     isVerified: false,
     realName: '',
@@ -21,10 +21,10 @@ Page({
     countdown: 0,
     codeSending: false,
     incomeSummary: {
-      artist: '0.00',     // 画师打赏收入
-      service: '0.00',    // 客服分成收入
-      staff: '0.00',      // 管理员分成收入
-      total: '0.00'       // 总收入
+      artist: '0.00',
+      service: '0.00',
+      staff: '0.00',
+      total: '0.00'
     }
   },
 
@@ -38,160 +38,187 @@ Page({
   },
 
   // 加载余额
-  loadBalance() {
-    const userId = wx.getStorageSync('userId')
+  async loadBalance() {
+    const userId = app.globalData.userId
     const userKey = userId != null ? String(userId) : ''
     
-    const withdrawRecords = wx.getStorageSync('withdraw_records') || []
-    
-    // 🎯 1. 获取所有订单并去重
-    const orders = wx.getStorageSync('orders') || []
-    const pendingOrders = wx.getStorageSync('pending_orders') || []
-    const completedOrders = wx.getStorageSync('completed_orders') || []
-    
-    // 使用Map去重
-    const orderMap = new Map()
-    ;[...orders, ...pendingOrders, ...completedOrders].forEach(order => {
-      if (order && order.id) {
-        orderMap.set(order.id, order)
-      }
-    })
-    const allOrders = Array.from(orderMap.values())
-    
-    // 🎯 2. 计算画师订单稿费（已完成订单的：订单金额 - 平台扣除，按数量计算）
-    const PLATFORM_DEDUCTION_PER_ITEM = 5.00
-    const myCompletedOrders = allOrders.filter(o => 
-      o.status === 'completed' && String(o.artistId) === userKey
-    )
-    const orderIncome = myCompletedOrders.reduce((sum, order) => {
-      const orderAmount = parseFloat(order.totalPrice) || parseFloat(order.price) || 0
-      const quantity = parseInt(order.quantity) || 1
-      const totalDeduction = PLATFORM_DEDUCTION_PER_ITEM * quantity
-      const artistShare = Math.max(0, orderAmount - totalDeduction)
-      return sum + artistShare
-    }, 0)
-    
-    // 🎯 3. 计算画师打赏收入
-    const rewardRecords = wx.getStorageSync('reward_records') || []
-    const myRewards = rewardRecords.filter(record => {
-      if (record.artistId) {
-        return String(record.artistId) === userKey
-      }
-      const order = allOrders.find(o => String(o.id) === String(record.orderId))
-      if (!order) return false
-      return String(order.artistId) === userKey
-    })
-    const rewardIncome = myRewards.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
-    
-    // 🎯 4. 画师总收入 = 订单稿费 + 打赏
-    const artistIncome = orderIncome + rewardIncome
-    
-    // 🎯 5. 客服收入
-    const serviceIncomeAmount = serviceIncome.computeIncomeByUserId(userKey, 'service')
-    
-    // 🎯 6. 管理员分成
-    const staffIncomeAmount = serviceIncome.computeIncomeByUserId(userKey, 'admin_share')
-    
-    // 🎯 7. 总收入
-    const totalIncome = artistIncome + serviceIncomeAmount + staffIncomeAmount
-    
-    // 🎯 只计算当前画师的提现记录
-    const myWithdraws = withdrawRecords.filter(r => {
-      if (r.userId != null) {
-        return String(r.userId) === userKey && r.status === 'success'
-      }
-      // 兼容旧数据：没有 userId 的记录视为归属当前用户
-      return r.status === 'success'
-    })
-    const totalWithdrawn = myWithdraws.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
-    
-    const balance = totalIncome - totalWithdrawn
-    
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    console.log('💰 余额计算 (withdraw)')
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    console.log('👤 用户ID:', userKey)
-    console.log('📦 订单去重:', orders.length + pendingOrders.length + completedOrders.length, '→', allOrders.length)
-    console.log('')
-    console.log('🎨 画师角色:')
-    console.log('  - 订单稿费:', orderIncome.toFixed(2), '元 (', myCompletedOrders.length, '单)')
-    console.log('  - 打赏收入:', rewardIncome.toFixed(2), '元 (', myRewards.length, '次)')
-    console.log('  - 小计:', artistIncome.toFixed(2), '元')
-    console.log('')
-    console.log('👔 客服角色:', serviceIncomeAmount.toFixed(2), '元')
-    console.log('💼 管理员角色:', staffIncomeAmount.toFixed(2), '元')
-    console.log('')
-    console.log('💵 总收入:', totalIncome.toFixed(2), '元')
-    console.log('💸 已提现:', totalWithdrawn.toFixed(2), '元')
-    console.log('✅ 可提现:', balance.toFixed(2), '元')
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    
-    this.setData({
-      balance: Math.max(0, balance).toFixed(2),
-      incomeSummary: {
-        order: orderIncome.toFixed(2),      // 订单稿费
-        reward: rewardIncome.toFixed(2),    // 打赏收入
-        artist: artistIncome.toFixed(2),    // 画师总收入
-        service: serviceIncomeAmount.toFixed(2),  // 客服收入
-        staff: staffIncomeAmount.toFixed(2),      // 管理员分成
-        total: totalIncome.toFixed(2)
-      }
-    })
+    try {
+      // ✅ 从云端获取数据
+      const [ordersRes, rewardsRes, withdrawsRes] = await Promise.all([
+        cloudAPI.getOrderList({ userId }),
+        cloudAPI.getRewardList({ userId }),
+        cloudAPI.getWithdrawList({ userId })
+      ])
+
+      const allOrders = ordersRes.success ? (ordersRes.data || []) : []
+      const rewardRecords = rewardsRes.success ? (rewardsRes.data || []) : []
+      const withdrawRecords = withdrawsRes.success ? (withdrawsRes.data || []) : []
+
+      // 🎯 计算画师订单稿费（已完成订单的：订单金额 - 平台扣除，按数量计算）
+      const PLATFORM_DEDUCTION_PER_ITEM = 5.00
+      const myCompletedOrders = allOrders.filter(o => 
+        o.status === 'completed' && String(o.artistId || o.artist_id) === userKey
+      )
+      const orderIncome = myCompletedOrders.reduce((sum, order) => {
+        const orderAmount = parseFloat(order.totalPrice || order.total_price || order.price) || 0
+        const quantity = parseInt(order.quantity) || 1
+        const totalDeduction = PLATFORM_DEDUCTION_PER_ITEM * quantity
+        const artistShare = Math.max(0, orderAmount - totalDeduction)
+        return sum + artistShare
+      }, 0)
+
+      // 🎯 计算画师打赏收入
+      const myRewards = rewardRecords.filter(record => {
+        if (record.artistId || record.artist_id) {
+          return String(record.artistId || record.artist_id) === userKey
+        }
+        const order = allOrders.find(o => String(o._id || o.id) === String(record.orderId || record.order_id))
+        if (!order) return false
+        return String(order.artistId || order.artist_id) === userKey
+      })
+      const rewardIncome = myRewards.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
+
+      // 🎯 画师总收入 = 订单稿费 + 打赏
+      const artistIncome = orderIncome + rewardIncome
+
+      // 🎯 客服收入（TODO: 需要云端计算）
+      const serviceIncomeAmount = 0
+
+      // 🎯 管理员分成（TODO: 需要云端计算）
+      const staffIncomeAmount = 0
+
+      // 🎯 总收入
+      const totalIncome = artistIncome + serviceIncomeAmount + staffIncomeAmount
+
+      // ✅ 只计算当前用户的提现记录
+      const myWithdraws = withdrawRecords.filter(r => 
+        String(r.userId || r.user_id) === userKey && (r.status === 'success' || r.status === 'completed')
+      )
+      const totalWithdrawn = myWithdraws.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
+
+      const balance = totalIncome - totalWithdrawn
+
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      console.log('💰 余额计算 (withdraw - 云端版)')
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      console.log('👤 用户ID:', userKey)
+      console.log('📦 订单总数:', allOrders.length)
+      console.log('')
+      console.log('🎨 画师角色:')
+      console.log('  - 订单稿费:', orderIncome.toFixed(2), '元 (', myCompletedOrders.length, '单)')
+      console.log('  - 打赏收入:', rewardIncome.toFixed(2), '元 (', myRewards.length, '次)')
+      console.log('  - 小计:', artistIncome.toFixed(2), '元')
+      console.log('')
+      console.log('👔 客服角色:', serviceIncomeAmount.toFixed(2), '元')
+      console.log('💼 管理员角色:', staffIncomeAmount.toFixed(2), '元')
+      console.log('')
+      console.log('💵 总收入:', totalIncome.toFixed(2), '元')
+      console.log('💸 已提现:', totalWithdrawn.toFixed(2), '元')
+      console.log('✅ 可提现:', balance.toFixed(2), '元')
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+
+      this.setData({
+        balance: Math.max(0, balance).toFixed(2),
+        incomeSummary: {
+          order: orderIncome.toFixed(2),
+          reward: rewardIncome.toFixed(2),
+          artist: artistIncome.toFixed(2),
+          service: serviceIncomeAmount.toFixed(2),
+          staff: staffIncomeAmount.toFixed(2),
+          total: totalIncome.toFixed(2)
+        }
+      })
+    } catch (err) {
+      console.error('❌ 加载余额失败:', err)
+      wx.showToast({
+        title: '加载失败',
+        icon: 'none'
+      })
+    }
   },
 
   // 加载用户信息
-  loadUserInfo() {
-    const userInfo = wx.getStorageSync('user_verify_info') || {}
-    this.setData({
-      isVerified: !!userInfo.isVerified,
-      realName: userInfo.realName || '',
-      idCard: userInfo.idCard || '',
-      phoneNumber: userInfo.phoneNumber || '',
-      bankName: userInfo.bankName || '',
-      bankCard: userInfo.bankCard || '',
-      bankBranch: userInfo.bankBranch || ''
-    })
+  async loadUserInfo() {
+    const userId = app.globalData.userId
+    const userKey = String(userId)
+
+    try {
+      // ✅ 从云端获取实名认证记录
+      const res = await cloudAPI.getIdentityVerifyRecords(userKey)
+      
+      if (res.success && res.data && res.data.length > 0) {
+        // 找到已认证的记录
+        const verifiedRecord = res.data.find(v => v.status === 'verified')
+        if (verifiedRecord) {
+          this.setData({
+            isVerified: true,
+            realName: verifiedRecord.realName || verifiedRecord.real_name || '',
+            idCard: verifiedRecord.idCard || verifiedRecord.id_card || '',
+            phoneNumber: verifiedRecord.phoneNumber || verifiedRecord.phone_number || '',
+            bankName: verifiedRecord.bankName || verifiedRecord.bank_name || '',
+            bankCard: verifiedRecord.bankCard || verifiedRecord.bank_card || '',
+            bankBranch: verifiedRecord.bankBranch || verifiedRecord.bank_branch || ''
+          })
+        } else {
+          this.setData({ isVerified: false })
+        }
+      } else {
+        this.setData({ isVerified: false })
+      }
+    } catch (err) {
+      console.error('❌ 加载用户信息失败:', err)
+      this.setData({ isVerified: false })
+    }
   },
 
   // 开始提现
-  startWithdraw() {
-    // 🎯 检查实名认证状态（使用新的identity_verify_records）
-    const userId = wx.getStorageSync('userId')
+  async startWithdraw() {
+    const userId = app.globalData.userId
     const userKey = String(userId)
-    const allVerifies = wx.getStorageSync('identity_verify_records') || []
-    const myVerify = allVerifies.find(v => String(v.userId) === userKey)
-    
-    if (!myVerify || myVerify.status !== 'verified') {
-      // 未认证，跳转认证页面
-      wx.showModal({
-        title: '需要实名认证',
-        content: '提现前需要完成实名认证，现在去认证？',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({
-              url: '/pages/identity-verify/index'
-            })
+
+    try {
+      // ✅ 检查实名认证状态（从云端）
+      const res = await cloudAPI.getIdentityVerifyRecords(userKey)
+      const myVerify = res.success && res.data ? res.data.find(v => String(v.userId || v.user_id) === userKey) : null
+
+      if (!myVerify || myVerify.status !== 'verified') {
+        // 未认证，跳转认证页面
+        wx.showModal({
+          title: '需要实名认证',
+          content: '提现前需要完成实名认证，现在去认证？',
+          success: (res) => {
+            if (res.confirm) {
+              wx.navigateTo({
+                url: '/pages/identity-verify/index'
+              })
+            }
           }
-        }
+        })
+        return
+      }
+
+      const { balance } = this.data
+
+      // 已认证，检查余额
+      if (parseFloat(balance) <= 0) {
+        wx.showToast({
+          title: '暂无可提现余额',
+          icon: 'none'
+        })
+        return
+      }
+
+      // 已认证且有余额，弹出提现弹窗
+      this.setData({
+        showWithdrawModal: true
       })
-      return
-    }
-
-    const { balance } = this.data
-
-    // 已认证，检查余额
-    if (parseFloat(balance) <= 0) {
+    } catch (err) {
+      console.error('❌ 检查认证状态失败:', err)
       wx.showToast({
-        title: '暂无可提现余额',
+        title: '检查认证失败',
         icon: 'none'
       })
-      return
     }
-
-    // 已认证且有余额，弹出提现弹窗
-    this.setData({
-      showWithdrawModal: true
-    })
   },
 
   // 关闭提现弹窗
@@ -302,8 +329,8 @@ Page({
   },
 
   // 提交认证
-  submitVerify() {
-    const { realName, idCard, phoneNumber, verifyCode, bankName, bankCard } = this.data
+  async submitVerify() {
+    const { realName, idCard, phoneNumber, verifyCode, bankName, bankCard, bankBranch } = this.data
     
     // 验证真实姓名
     if (!realName || realName.trim() === '') {
@@ -391,30 +418,47 @@ Page({
       return
     }
 
-    // 保存认证信息
-    wx.setStorageSync('user_verify_info', {
-      isVerified: true,
-      realName: this.data.realName,
-      idCard: this.data.idCard,
-      phoneNumber: this.data.phoneNumber,
-      bankName: this.data.bankName,
-      bankCard: this.data.bankCard,
-      bankBranch: this.data.bankBranch
-    })
+    const userId = app.globalData.userId
 
-    wx.showToast({
-      title: '认证成功',
-      icon: 'success'
-    })
+    try {
+      // ✅ 提交到云端
+      const res = await cloudAPI.submitIdentityVerify({
+        userId: String(userId),
+        realName: this.data.realName,
+        idCard: this.data.idCard,
+        phoneNumber: this.data.phoneNumber,
+        bankName: this.data.bankName,
+        bankCard: this.data.bankCard,
+        bankBranch: this.data.bankBranch || ''
+      })
 
-    // 关闭认证弹窗，打开提现弹窗
-    this.setData({
-      isVerified: true,
-      showVerifyModal: false,
-      showWithdrawModal: true,
-      verifyCode: '', // 清空验证码
-      countdown: 0 // 重置倒计时
-    })
+      if (res.success) {
+        wx.showToast({
+          title: '认证成功',
+          icon: 'success'
+        })
+
+        // 关闭认证弹窗，打开提现弹窗
+        this.setData({
+          isVerified: true,
+          showVerifyModal: false,
+          showWithdrawModal: true,
+          verifyCode: '',
+          countdown: 0
+        })
+      } else {
+        wx.showToast({
+          title: res.error || '认证失败',
+          icon: 'none'
+        })
+      }
+    } catch (err) {
+      console.error('❌ 提交认证失败:', err)
+      wx.showToast({
+        title: '认证失败',
+        icon: 'none'
+      })
+    }
   },
 
   // 提交提现
@@ -469,114 +513,80 @@ Page({
   },
 
   // 处理提现
-  processWithdraw(amount) {
-    const userId = wx.getStorageSync('userId')
-    const userKey = userId != null ? String(userId) : ''
-    const roles = wx.getStorageSync('userRoles') || []
+  async processWithdraw(amount) {
+    const userId = app.globalData.userId
+    const userKey = String(userId)
+    const roles = app.getUserRoles ? app.getUserRoles() : ['customer']
     const incomeSummary = this.data.incomeSummary || { artist: '0.00', staff: '0.00' }
 
-    // 获取实名认证信息
-    const allVerifies = wx.getStorageSync('identity_verify_records') || []
-    const myVerify = allVerifies.find(v => String(v.userId) === userKey)
-    
-    if (!myVerify || myVerify.status !== 'verified') {
-      wx.showToast({ title: '请先完成实名认证', icon: 'none' })
-      return
-    }
+    try {
+      // ✅ 从云端获取实名认证信息
+      const verifyRes = await cloudAPI.getIdentityVerifyRecords(userKey)
+      const myVerify = verifyRes.success && verifyRes.data ? verifyRes.data.find(v => String(v.userId || v.user_id) === userKey) : null
+      
+      if (!myVerify || myVerify.status !== 'verified') {
+        wx.showToast({ title: '请先完成实名认证', icon: 'none' })
+        return
+      }
 
-    let source = 'artist'
-    const artistAmount = parseFloat(incomeSummary.artist) || 0
-    const staffAmount = parseFloat(incomeSummary.staff) || 0
-    const serviceAmount = parseFloat(incomeSummary.service) || 0
-    if ((staffAmount + serviceAmount) > 0 && artistAmount > 0) {
-      source = 'mixed'
-    } else if ((staffAmount + serviceAmount) > 0) {
-      source = 'staff'
-    }
+      let source = 'artist'
+      const artistAmount = parseFloat(incomeSummary.artist) || 0
+      const staffAmount = parseFloat(incomeSummary.staff) || 0
+      const serviceAmount = parseFloat(incomeSummary.service) || 0
+      if ((staffAmount + serviceAmount) > 0 && artistAmount > 0) {
+        source = 'mixed'
+      } else if ((staffAmount + serviceAmount) > 0) {
+        source = 'staff'
+      }
 
-    wx.showLoading({ title: '提交中...' })
+      wx.showLoading({ title: '提交中...' })
 
-    // 🎯 调用提现API
-    withdrawApi.submitWithdrawRequest({
-      userId: userKey,
-      amount: amount,
-      verifyId: myVerify.id,
-      realName: myVerify.realName,
-      bankCard: myVerify.bankCard
-    }).then(apiRes => {
-      wx.hideLoading()
-
-      // 🎯 添加提现记录（增加银行卡等字段）
-      const newRecord = {
-        id: Date.now(),
-        amount: amount,
-        status: 'pending',
-        statusText: '处理中',
-        time: new Date().toLocaleString('zh-CN', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        }).replace(/\//g, '-'),
+      // ✅ 调用云端提现API
+      const withdrawRes = await cloudAPI.createWithdraw(amount, {
         userId: userKey,
-        roles: Array.isArray(roles) ? roles : [roles || 'customer'],
+        realName: myVerify.realName || myVerify.real_name,
+        bankCard: myVerify.bankCard || myVerify.bank_card,
+        bankName: myVerify.bankName || myVerify.bank_name,
         source,
+        roles: Array.isArray(roles) ? roles : [roles || 'customer'],
         incomeBreakdown: {
           artist: artistAmount,
           service: serviceAmount,
           staff: staffAmount
-        },
-        // 🎯 新增字段
-        realName: myVerify.realName,
-        bankCard: myVerify.bankCard.substring(myVerify.bankCard.length - 4), // 只保存尾号
-        bankName: myVerify.bankName,
-        apiOrderId: apiRes.orderId,
-        apiStatus: 'pending',
-        apiMessage: apiRes.message || '',
-        completedTime: ''
-      }
-
-      const records = wx.getStorageSync('withdraw_records') || []
-      records.unshift(newRecord)
-      wx.setStorageSync('withdraw_records', records)
-
-      wx.showToast({
-        title: '提现申请已提交',
-        icon: 'success'
+        }
       })
 
-      console.log('✅ 提现申请成功:', newRecord)
-      console.log('🎯 API订单号:', apiRes.orderId)
+      wx.hideLoading()
 
-      // 🎯 模拟自动提现成功（3秒后）
-      if (withdrawApi.IS_DEV) {
-        withdrawApi.mockAutoWithdrawSuccess(newRecord.id, (updatedRecord) => {
-          console.log('🎉 提现自动成功:', updatedRecord)
-          wx.showToast({
-            title: '提现成功',
-            icon: 'success'
-          })
-          // 刷新余额
-          this.loadBalance()
+      if (withdrawRes.success) {
+        wx.showToast({
+          title: '提现申请已提交',
+          icon: 'success'
+        })
+
+        console.log('✅ 提现申请成功:', withdrawRes)
+
+        // 关闭弹窗并刷新
+        this.setData({
+          showWithdrawModal: false,
+          withdrawAmount: ''
+        })
+        
+        this.loadBalance()
+      } else {
+        wx.showToast({
+          title: withdrawRes.error || '提现申请失败',
+          icon: 'none'
         })
       }
-
-      // 关闭弹窗并刷新
-      this.setData({
-        showWithdrawModal: false,
-        withdrawAmount: ''
-      })
-      
-      this.loadBalance()
-    }).catch(err => {
+    } catch (err) {
       wx.hideLoading()
       console.error('❌ 提现申请失败:', err)
       wx.showToast({
         title: err.message || '提现申请失败',
         icon: 'none'
       })
-    })
+    }
   },
 
   // 查看资金明细
@@ -587,31 +597,41 @@ Page({
   },
 
   // 🎯 显示提现记录弹窗
-  showWithdrawRecordsModal() {
-    const userId = wx.getStorageSync('userId')
+  async showWithdrawRecordsModal() {
+    const userId = app.globalData.userId
     const userKey = String(userId)
-    const allRecords = wx.getStorageSync('withdraw_records') || []
-    const myRecords = allRecords.filter(r => String(r.userId) === userKey)
 
-    const parseRecordTime = (record) => {
-      const raw = record.completedTime || record.time || record.updatedAt || record.createdAt || ''
-      if (!raw) return 0
-      const normalized = String(raw)
-        .replace(/年|\.|\/|月/g, '-')
-        .replace(/日|号/g, '')
-        .replace(/T/g, ' ')
-        .replace(/--+/g, '-')
-      const ms = new Date(normalized).getTime()
-      return Number.isNaN(ms) ? 0 : ms
+    try {
+      // ✅ 从云端获取提现记录
+      const res = await cloudAPI.getWithdrawList({ userId: userKey })
+      const myRecords = res.success ? (res.data || []) : []
+
+      const parseRecordTime = (record) => {
+        const raw = record.completedTime || record.completed_time || record.time || record.updatedAt || record.updated_at || record.createdAt || record.created_at || ''
+        if (!raw) return 0
+        const normalized = String(raw)
+          .replace(/年|\.|\/|月/g, '-')
+          .replace(/日|号/g, '')
+          .replace(/T/g, ' ')
+          .replace(/--+/g, '-')
+        const ms = new Date(normalized).getTime()
+        return Number.isNaN(ms) ? 0 : ms
+      }
+      
+      // 按时间倒序
+      myRecords.sort((a, b) => parseRecordTime(b) - parseRecordTime(a))
+      
+      this.setData({
+        withdrawRecords: myRecords,
+        showWithdrawRecordsModal: true
+      })
+    } catch (err) {
+      console.error('❌ 加载提现记录失败:', err)
+      wx.showToast({
+        title: '加载失败',
+        icon: 'none'
+      })
     }
-    
-    // 按时间倒序
-    myRecords.sort((a, b) => parseRecordTime(b) - parseRecordTime(a))
-    
-    this.setData({
-      withdrawRecords: myRecords,
-      showWithdrawRecordsModal: true
-    })
   },
 
   // 关闭提现记录弹窗

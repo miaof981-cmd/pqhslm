@@ -1,3 +1,6 @@
+const app = getApp()
+const cloudAPI = require('../../utils/cloud-api.js')
+
 Page({
   data: {
     applicationId: '',
@@ -21,35 +24,49 @@ Page({
     }
   },
 
-  // 加载申请详情
-  loadApplication() {
-    const allApplications = wx.getStorageSync('artist_applications') || []
-    const application = allApplications.find(app => app.id === this.data.applicationId)
-    
-    if (!application) {
+  // ✅ 从云端加载申请详情
+  async loadApplication() {
+    try {
+      wx.showLoading({ title: '加载中...' })
+      
+      // ✅ 从云端获取申请列表
+      const res = await cloudAPI.getArtistApplicationList({})
+      const allApplications = res.success ? (res.data || []) : []
+      const application = allApplications.find(app => (app.id || app._id) === this.data.applicationId)
+      
+      if (!application) {
+        wx.showToast({
+          title: '申请不存在',
+          icon: 'none'
+        })
+        setTimeout(() => {
+          wx.navigateBack()
+        }, 1500)
+        return
+      }
+
+      // 状态文本映射
+      const statusTextMap = {
+        'pending': '待审核',
+        'approved': '已通过',
+        'rejected': '已驳回'
+      }
+
+      this.setData({
+        application: application,
+        statusText: statusTextMap[application.status] || '未知状态'
+      })
+
+      console.log('✅ 申请详情（云端版）:', application)
+    } catch (err) {
+      console.error('❌ 加载申请详情失败:', err)
       wx.showToast({
-        title: '申请不存在',
+        title: '加载失败',
         icon: 'none'
       })
-      setTimeout(() => {
-        wx.navigateBack()
-      }, 1500)
-      return
+    } finally {
+      wx.hideLoading()
     }
-
-    // 状态文本映射
-    const statusTextMap = {
-      'pending': '待审核',
-      'approved': '已通过',
-      'rejected': '已驳回'
-    }
-
-    this.setData({
-      application: application,
-      statusText: statusTextMap[application.status] || '未知状态'
-    })
-
-    console.log('申请详情:', application)
   },
 
   // 预览图片
@@ -61,35 +78,33 @@ Page({
     })
   },
 
-  // 通过申请
-  approveApplication() {
+  // ✅ 通过申请（云端版）
+  async approveApplication() {
     const { application } = this.data
     
     wx.showModal({
       title: '通过申请',
       content: `确认通过 ${application.name} 的画师申请？`,
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          // 更新申请状态
-          let allApplications = wx.getStorageSync('artist_applications') || []
-          const index = allApplications.findIndex(app => app.id === application.id)
-          
-          if (index !== -1) {
-            allApplications[index].status = 'approved'
-            allApplications[index].approveTime = new Date().toLocaleString('zh-CN')
-            wx.setStorageSync('artist_applications', allApplications)
+          try {
+            wx.showLoading({ title: '处理中...' })
             
-            // 给用户添加画师权限
-            const userId = allApplications[index].userId
-            const currentUserId = wx.getStorageSync('userId')
+            // ✅ 云端更新申请状态为approved
+            const appId = application.id || application._id
+            const result = await cloudAPI.updateArtistApplicationStatus(appId, 'approved')
             
-            if (userId === currentUserId) {
-              let userRoles = wx.getStorageSync('userRoles') || ['customer']
+            if (!result.success) {
+              throw new Error(result.error || '审核失败')
+            }
+            
+            // ✅ 如果是当前登录用户，更新全局角色
+            const currentUserId = app.globalData.userId
+            if (application.userId === currentUserId) {
+              const rolesRes = await app.getUserRoles()
+              let userRoles = rolesRes || ['customer']
               if (!userRoles.includes('artist')) {
                 userRoles.push('artist')
-                wx.setStorageSync('userRoles', userRoles)
-                
-                const app = getApp()
                 app.globalData.userRoles = userRoles
               }
             }
@@ -103,29 +118,42 @@ Page({
             setTimeout(() => {
               wx.navigateBack()
             }, 1500)
+          } catch (err) {
+            console.error('❌ 审核通过失败:', err)
+            wx.showToast({
+              title: err.message || '审核失败',
+              icon: 'none'
+            })
+          } finally {
+            wx.hideLoading()
           }
         }
       }
     })
   },
 
-  // 驳回申请
-  rejectApplication() {
+  // ✅ 驳回申请（云端版）
+  async rejectApplication() {
     const { application } = this.data
     
     wx.showModal({
       title: '驳回申请',
+      editable: true,
+      placeholderText: '请输入驳回原因（可选）',
       content: `确认驳回 ${application.name} 的画师申请？`,
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          // 更新申请状态
-          let allApplications = wx.getStorageSync('artist_applications') || []
-          const index = allApplications.findIndex(app => app.id === application.id)
-          
-          if (index !== -1) {
-            allApplications[index].status = 'rejected'
-            allApplications[index].rejectTime = new Date().toLocaleString('zh-CN')
-            wx.setStorageSync('artist_applications', allApplications)
+          try {
+            wx.showLoading({ title: '处理中...' })
+            
+            // ✅ 云端更新申请状态为rejected
+            const appId = application.id || application._id
+            const rejectReason = res.content ? res.content.trim() : '未通过审核'
+            const result = await cloudAPI.updateArtistApplicationStatus(appId, 'rejected', rejectReason)
+            
+            if (!result.success) {
+              throw new Error(result.error || '驳回失败')
+            }
             
             wx.showToast({
               title: '已驳回',
@@ -136,10 +164,17 @@ Page({
             setTimeout(() => {
               wx.navigateBack()
             }, 1500)
+          } catch (err) {
+            console.error('❌ 驳回失败:', err)
+            wx.showToast({
+              title: err.message || '驳回失败',
+              icon: 'none'
+            })
+          } finally {
+            wx.hideLoading()
           }
         }
       }
     })
   }
 })
-

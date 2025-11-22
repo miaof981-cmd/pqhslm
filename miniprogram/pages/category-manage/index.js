@@ -1,3 +1,6 @@
+const app = getApp()
+const cloudAPI = require('../../utils/cloud-api.js')
+
 Page({
   data: {
     loading: true,
@@ -22,10 +25,9 @@ Page({
     this.loadCategories()
   },
 
-  // 检查管理员权限
-  checkPermission() {
-    // ✅ 修复：使用 userRoles 数组而不是 userRole
-    const roles = wx.getStorageSync('userRoles') || ['customer']
+  // ✅ 检查管理员权限（云端版）
+  async checkPermission() {
+    const roles = await app.getUserRoles()
     const hasAdminRole = Array.isArray(roles) && roles.indexOf('admin') !== -1
     
     if (!hasAdminRole) {
@@ -42,13 +44,12 @@ Page({
     return true
   },
 
-  // 加载分类列表
+  // ✅ 从云端加载分类列表
   async loadCategories() {
     this.setData({ loading: true })
     
     try {
       // ✅ 从云端读取分类
-      const cloudAPI = require('../../utils/cloud-api.js')
       const res = await cloudAPI.getCategoryList()
       
       let categories = []
@@ -56,9 +57,8 @@ Page({
       if (res && res.success && res.data) {
         categories = res.data
       } else {
-        // 降级：从本地读取
-        console.warn('云端获取分类失败，从本地读取:', res?.message)
-        categories = wx.getStorageSync('product_categories') || []
+        console.warn('云端获取分类失败:', res?.message)
+        categories = []
       }
       
       // 如果云端和本地都没有，初始化默认分类并上传到云端
@@ -173,7 +173,6 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           // ✅ 更新云端分类状态
-          const cloudAPI = require('../../utils/cloud-api.js')
           const newStatus = status === 'active' ? 'disabled' : 'active'
           const result = await cloudAPI.updateCategory(id, { status: newStatus })
           
@@ -209,7 +208,6 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           // ✅ 删除云端分类
-          const cloudAPI = require('../../utils/cloud-api.js')
           const result = await cloudAPI.deleteCategory(id)
           
           if (result && result.success) {
@@ -282,7 +280,6 @@ Page({
     wx.showLoading({ title: '保存中...' })
     
     try {
-      const cloudAPI = require('../../utils/cloud-api.js')
       let result
       
       if (this.data.isEdit) {

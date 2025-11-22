@@ -1,6 +1,7 @@
 /**
  * 订单诊断工具
  * 用于排查订单统计不一致问题
+ * ✅ 已云端化：基于云端订单数据
  */
 
 const orderHelper = require('./order-helper.js')
@@ -11,10 +12,10 @@ const orderHelper = require('./order-helper.js')
  */
 function diagnoseOrderCounts() {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-  console.log('🔍 订单统计诊断')
+  console.log('🔍 订单统计诊断（云端版）')
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   
-  // 获取所有订单
+  // 获取所有订单（从云端或本地helper）
   const allOrders = orderHelper.getAllOrders()
   console.log('📦 订单总数:', allOrders.length)
   console.log('')
@@ -34,7 +35,10 @@ function diagnoseOrderCounts() {
     const orders = statusGroups[status]
     console.log(`  ${status}: ${orders.length}个`)
     orders.forEach(order => {
-      console.log(`    - ID: ${order.id}, 商品: ${order.productName || '未知'}, 买家: ${order.buyerName || order.buyerId}`)
+      const orderId = order._id || order.id
+      const productName = order.productName || order.product_name || '未知'
+      const buyerInfo = order.buyerName || order.buyer_name || order.buyerId || order.buyer_id
+      console.log(`    - ID: ${orderId}, 商品: ${productName}, 买家: ${buyerInfo}`)
     })
   })
   console.log('')
@@ -54,21 +58,33 @@ function diagnoseOrderCounts() {
   console.log('')
   
   // 找出差异订单
-  const adminPendingIds = new Set(adminPendingOrders.map(o => o.id))
-  const userProcessingIds = new Set(userProcessingOrders.map(o => o.id))
+  const adminPendingIds = new Set(adminPendingOrders.map(o => o._id || o.id))
+  const userProcessingIds = new Set(userProcessingOrders.map(o => o._id || o.id))
   
-  const extraInAdmin = allOrders.filter(o => adminPendingIds.has(o.id) && !userProcessingIds.has(o.id))
-  const extraInUser = allOrders.filter(o => !adminPendingIds.has(o.id) && userProcessingIds.has(o.id))
+  const extraInAdmin = allOrders.filter(o => {
+    const orderId = o._id || o.id
+    return adminPendingIds.has(orderId) && !userProcessingIds.has(orderId)
+  })
+  const extraInUser = allOrders.filter(o => {
+    const orderId = o._id || o.id
+    return !adminPendingIds.has(orderId) && userProcessingIds.has(orderId)
+  })
   
   if (extraInAdmin.length > 0) {
     console.log('⚠️ 仅在管理后台统计的订单（通常是待支付订单）:')
     extraInAdmin.forEach(order => {
-      console.log(`  - ID: ${order.id}`)
-      console.log(`    状态: ${order.status} (${order.statusText || ''})`)
-      console.log(`    商品: ${order.productName || '未知'}`)
-      console.log(`    买家: ${order.buyerName || order.buyerId}`)
-      console.log(`    金额: ¥${order.totalPrice || order.price || 0}`)
-      console.log(`    创建时间: ${order.createTime || '未知'}`)
+      const orderId = order._id || order.id
+      const productName = order.productName || order.product_name || '未知'
+      const buyerInfo = order.buyerName || order.buyer_name || order.buyerId || order.buyer_id
+      const price = order.totalPrice || order.total_price || order.price || 0
+      const createTime = order.createTime || order.create_time || '未知'
+      
+      console.log(`  - ID: ${orderId}`)
+      console.log(`    状态: ${order.status} (${order.statusText || order.status_text || ''})`)
+      console.log(`    商品: ${productName}`)
+      console.log(`    买家: ${buyerInfo}`)
+      console.log(`    金额: ¥${price}`)
+      console.log(`    创建时间: ${createTime}`)
     })
     console.log('')
   }
@@ -76,9 +92,12 @@ function diagnoseOrderCounts() {
   if (extraInUser.length > 0) {
     console.log('⚠️ 仅在用户端统计的订单（通常是脱稿订单）:')
     extraInUser.forEach(order => {
-      console.log(`  - ID: ${order.id}`)
-      console.log(`    状态: ${order.status} (${order.statusText || ''})`)
-      console.log(`    商品: ${order.productName || '未知'}`)
+      const orderId = order._id || order.id
+      const productName = order.productName || order.product_name || '未知'
+      
+      console.log(`  - ID: ${orderId}`)
+      console.log(`    状态: ${order.status} (${order.statusText || order.status_text || ''})`)
+      console.log(`    商品: ${productName}`)
     })
     console.log('')
   }
@@ -111,13 +130,19 @@ function quickDiagnose() {
   console.log('🚨 请检查以下差异订单:')
   if (report.extraInAdmin.length > 0) {
     report.extraInAdmin.forEach(o => {
+      const orderId = o._id || o.id
+      const productName = o.productName || o.product_name
+      const buyerInfo = o.buyerName || o.buyer_name || o.buyerId || o.buyer_id
+      const artistId = o.artistId || o.artist_id
+      const createTime = o.createTime || o.create_time
+      
       console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
-      console.log(`订单ID: ${o.id}`)
+      console.log(`订单ID: ${orderId}`)
       console.log(`状态: ${o.status}`)
-      console.log(`商品: ${o.productName}`)
-      console.log(`买家: ${o.buyerName || o.buyerId}`)
-      console.log(`画师ID: ${o.artistId}`)
-      console.log(`创建时间: ${o.createTime}`)
+      console.log(`商品: ${productName}`)
+      console.log(`买家: ${buyerInfo}`)
+      console.log(`画师ID: ${artistId}`)
+      console.log(`创建时间: ${createTime}`)
     })
   }
   
@@ -125,69 +150,29 @@ function quickDiagnose() {
   return {
     summary: `管理后台${report.adminPending}个 vs 用户端${report.userProcessing}个 (差异${report.difference}个)`,
     extraOrders: report.extraInAdmin.map(o => ({
-      id: o.id,
+      id: o._id || o.id,
       status: o.status,
-      product: o.productName,
-      buyer: o.buyerName || o.buyerId,
-      artistId: o.artistId
+      product: o.productName || o.product_name,
+      buyer: o.buyerName || o.buyer_name || o.buyerId || o.buyer_id,
+      artistId: o.artistId || o.artist_id
     }))
   }
 }
 
 /**
  * 检查订单是否重复（在多个数据源中）
+ * ❌ 已废弃：云端化后不再有多个本地数据源
  */
 function checkDuplicates() {
-  const orders = wx.getStorageSync('orders') || []
-  const pendingOrders = wx.getStorageSync('pending_orders') || []
-  const mockOrders = wx.getStorageSync('mock_orders') || []
-  
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-  console.log('🔍 检查订单数据源重复')
+  console.log('🔍 检查订单数据源重复（云端版）')
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-  console.log('orders:', orders.length, '个')
-  console.log('pending_orders:', pendingOrders.length, '个')
-  console.log('mock_orders:', mockOrders.length, '个')
-  console.log('')
-  
-  // 检查重复订单
-  const allIds = new Map()
-  
-  const checkSource = (list, sourceName) => {
-    list.forEach(order => {
-      if (!order.id) return
-      if (allIds.has(order.id)) {
-        allIds.get(order.id).push(sourceName)
-      } else {
-        allIds.set(order.id, [sourceName])
-      }
-    })
-  }
-  
-  checkSource(orders, 'orders')
-  checkSource(pendingOrders, 'pending_orders')
-  checkSource(mockOrders, 'mock_orders')
-  
-  // 找出重复的订单
-  const duplicates = []
-  allIds.forEach((sources, orderId) => {
-    if (sources.length > 1) {
-      duplicates.push({ orderId, sources })
-    }
-  })
-  
-  if (duplicates.length > 0) {
-    console.log('⚠️ 发现重复订单:')
-    duplicates.forEach(dup => {
-      console.log(`  订单 ${dup.orderId} 出现在: ${dup.sources.join(', ')}`)
-    })
-  } else {
-    console.log('✅ 没有重复订单')
-  }
-  
+  console.log('ℹ️ 云端化后，所有订单统一存储在云端数据库')
+  console.log('ℹ️ 不再存在 orders/pending_orders/mock_orders 分离问题')
+  console.log('✅ 无需检查重复')
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   
-  return duplicates
+  return []  // 返回空数组
 }
 
 module.exports = {
@@ -195,4 +180,3 @@ module.exports = {
   quickDiagnose,
   checkDuplicates
 }
-

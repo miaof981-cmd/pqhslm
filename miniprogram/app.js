@@ -240,7 +240,8 @@ App({
         }
       })
 
-      const services = wx.getStorageSync('customer_service_list') || []
+      // ✅ 已废弃：客服列表应从云端service_qrcodes表读取
+      const services = []
       const serviceMap = new Map()
       services.forEach(service => {
         if (!service) return

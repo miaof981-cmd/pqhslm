@@ -1,3 +1,5 @@
+const app = getApp()
+const cloudAPI = require('../../utils/cloud-api.js')
 const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
 const categoryService = require('../../utils/category-service.js')
 
@@ -85,34 +87,41 @@ Page({
     }
   },
 
-  initCategoryOptions() {
-    const serviceOptions = categoryService.getCategoryOptions()
-    const legacyCandidates =
-      wx.getStorageSync('product_category_options') ||
-      wx.getStorageSync('product_categories') ||
-      wx.getStorageSync('categories') ||
-      []
+  async initCategoryOptions() {
+    try {
+      // ✅ 从云端获取分类数据
+      const res = await cloudAPI.getCategoryList()
+      const cloudCategories = res.success ? (res.data || []) : []
+      
+      const serviceOptions = categoryService.getCategoryOptions()
+      
+      const merged = []
+      const pushUnique = item => {
+        if (!item) return
+        const id = item.id || item._id || item.code || item.value
+        if (!id) return
+        if (merged.some(existing => String(existing.id || existing._id) === String(id))) return
+        merged.push(item)
+      }
 
-    const merged = []
-    const pushUnique = item => {
-      if (!item) return
-      const id = item.id || item._id || item.code || item.value
-      if (!id) return
-      if (merged.some(existing => String(existing.id || existing._id) === String(id))) return
-      merged.push(item)
-    }
+      // 优先使用云端分类
+      if (Array.isArray(cloudCategories)) {
+        cloudCategories.forEach(pushUnique)
+      }
+      if (Array.isArray(serviceOptions)) {
+        serviceOptions.forEach(pushUnique)
+      }
 
-    if (Array.isArray(serviceOptions)) {
-      serviceOptions.forEach(pushUnique)
-    }
-    if (Array.isArray(legacyCandidates)) {
-      legacyCandidates.forEach(pushUnique)
-    }
-
-    const normalized = this.normalizeCategoryOptions(merged.length > 0 ? merged : DEFAULT_CATEGORY_OPTIONS)
-    if (normalized.length > 0) {
+      const normalized = this.normalizeCategoryOptions(merged.length > 0 ? merged : DEFAULT_CATEGORY_OPTIONS)
+      if (normalized.length > 0) {
+        this.setData({ categories: normalized })
+        this.syncCategorySelection(normalized)
+      }
+    } catch (err) {
+      console.error('❌ 加载分类失败:', err)
+      // 失败时使用默认分类
+      const normalized = this.normalizeCategoryOptions(DEFAULT_CATEGORY_OPTIONS)
       this.setData({ categories: normalized })
-      this.syncCategorySelection(normalized)
     }
   },
 
@@ -179,11 +188,10 @@ Page({
     this.setData({ loading: true })
     
     try {
-      // 从本地存储加载商品数据
-      const products = wx.getStorageSync('mock_products') || []
-      const product = products.find(p => p.id === this.data.productId)
+      // ✅ 从云端加载商品数据
+      const res = await cloudAPI.getProductDetail(this.data.productId)
       
-      if (!product) {
+      if (!res.success || !res.data) {
         wx.showToast({ 
           title: '商品不存在或已删除', 
           icon: 'none',
@@ -194,7 +202,8 @@ Page({
         return
       }
       
-      console.log('加载商品数据', product)
+      const product = res.data
+      console.log('加载商品数据（云端）', product)
       
       // 找到分类索引
       const categoryIndex = this.data.categories.findIndex(c => c.id === product.category)
@@ -1580,143 +1589,70 @@ Page({
       console.log('提交商品数据', productData)
       console.log('最终显示价格', finalPrice)
 
-      // 模拟提交 - 保存到本地存储
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // 获取现有商品列表
-      let products = wx.getStorageSync('mock_products') || []
-      
+      // ✅ 调用云端API保存商品
       console.log('=== 保存商品调试信息 ===')
       console.log('当前模式:', this.data.isEdit ? '编辑' : '新增')
       console.log('商品ID:', this.data.productId)
-      console.log('现有商品数量:', products.length)
-      console.log('现有商品ID列表:', products.map(p => p.id))
       
-      if (this.data.isEdit) {
-        // 编辑模式：更新现有商品
-        const index = products.findIndex(p => p.id === this.data.productId)
-        console.log('查找结果 index:', index)
-        
-        if (index > -1) {
-          // 找到了，更新
-          const userInfo = wx.getStorageSync('userInfo') || {}
-          const userId = wx.getStorageSync('userId')
-          
-          products[index] = {
-            ...products[index],
-            ...productData,
-            id: this.data.productId, // 保持原ID
-            artistName: userInfo.nickName || products[index].artistName || '画师',
-            artistId: userId || products[index].artistId,  // ✅ 优先使用当前userId，降级使用原artistId
-            artistAvatar: userInfo.avatarUrl || products[index].artistAvatar || '/assets/default-avatar.png',
-            updateTime: Date.now()
-          }
-          
-          // 🔧 警告：如果 artistId 仍然为空
-          if (!products[index].artistId) {
-            console.warn('⚠️ 商品更新后 artistId 仍为空:', products[index].id)
-          }
-          
-          console.log('✓ 更新现有商品成功', products[index])
-        } else {
-          // 没找到，说明是旧数据首次保存，作为新增处理
-          console.log('⚠️ 未找到商品，作为新增处理（旧数据迁移）')
-          const userInfo = wx.getStorageSync('userInfo') || {}
-          const userId = wx.getStorageSync('userId')
-          
-          // 🔧 修复：确保 userId 存在
-          if (!userId) {
-            console.error('❌ userId 为空，无法保存商品！')
-            wx.hideLoading()
-            wx.showModal({
-              title: '错误',
-              content: '用户信息丢失，请退出登录后重新登录',
-              confirmText: '去登录',
-              success: (res) => {
-                if (res.confirm) {
-                  wx.reLaunch({ url: '/pages/login/index' })
-                }
-              }
-            })
-            return
-          }
-          
-          const newProduct = {
-            id: this.data.productId, // 保持原ID（如 '1', '2'）
-            ...productData,
-            artistName: userInfo.nickName || '画师',
-            artistId: userId,  // ✅ 确保 artistId 不为空
-            artistAvatar: userInfo.avatarUrl || '/assets/default-avatar.png',
-            createTime: Date.now(),
-            updateTime: Date.now()
-          }
-          products.unshift(newProduct)
-          console.log('✓ 新增商品成功（迁移旧数据）', newProduct)
-        }
-      } else {
-        // 新增模式：添加新商品
-        const userInfo = wx.getStorageSync('userInfo') || {}
-        const userId = wx.getStorageSync('userId')
-        
-        // 🔧 修复：确保 userId 存在，防止 artistId 为空
-        if (!userId) {
-          console.error('❌ userId 为空，无法创建商品！')
-          wx.hideLoading()
-          wx.showModal({
-            title: '错误',
-            content: '用户信息丢失，请退出登录后重新登录',
-            confirmText: '去登录',
-            success: (res) => {
-              if (res.confirm) {
-                wx.reLaunch({ url: '/pages/login/index' })
-              }
+      const userId = app.globalData.userId
+      const userInfo = app.globalData.userInfo || {}
+
+      // 🔧 检查 userId
+      if (!userId) {
+        console.error('❌ userId 为空，无法保存商品！')
+        wx.hideLoading()
+        wx.showModal({
+          title: '错误',
+          content: '用户信息丢失，请退出登录后重新登录',
+          confirmText: '去登录',
+          success: (res) => {
+            if (res.confirm) {
+              wx.reLaunch({ url: '/pages/login/index' })
             }
-          })
-          return
-        }
-        
-        const newProduct = {
-          id: `product_${Date.now()}`,
-          ...productData,
-          artistName: userInfo.nickName || '画师',
-          artistId: userId,  // ✅ 确保 artistId 不为空
-          artistAvatar: userInfo.avatarUrl || '/assets/default-avatar.png',
-          createTime: Date.now(),
-          updateTime: Date.now()
-        }
-        products.unshift(newProduct) // 添加到列表开头
-        console.log('✓ 新增商品成功', newProduct)
+          }
+        })
+        return
       }
-      
-      // 保存到本地存储
+
+      // ✅ 调用云端API
+      let result
+      if (this.data.isEdit) {
+        // 编辑模式：更新商品
+        console.log('调用 cloudAPI.updateProduct()', this.data.productId)
+        result = await cloudAPI.updateProduct(this.data.productId, {
+          ...productData,
+          artistId: userId,
+          artistName: userInfo.nickName || '画师',
+          artistAvatar: userInfo.avatarUrl || '/assets/default-avatar.png'
+        })
+        console.log('更新结果:', result)
+      } else {
+        // 新增模式：创建商品
+        console.log('调用 cloudAPI.createProduct()')
+        result = await cloudAPI.createProduct({
+          ...productData,
+          artistId: userId,
+          artistName: userInfo.nickName || '画师',
+          artistAvatar: userInfo.avatarUrl || '/assets/default-avatar.png'
+        })
+        console.log('创建结果:', result)
+      }
+
+      if (!result.success) {
+        wx.hideLoading()
+        wx.showToast({
+          title: result.error || '保存失败',
+          icon: 'none'
+        })
+        return
+      }
+
+      // 保存成功，清除草稿
       try {
-        wx.setStorageSync('mock_products', products)
-        console.log('✅ 商品列表已保存', products)
-        
-        // 只有保存成功后才清除草稿
         wx.removeStorageSync('product_draft')
         console.log('✅ 草稿已清除')
-        
-      } catch (storageError) {
-        // 存储失败（微信小程序localStorage有10MB总限制）
-        wx.hideLoading()
-        console.error('❌ 存储失败:', storageError)
-        
-        // 尝试清理旧草稿释放空间
-        try {
-          wx.removeStorageSync('product_draft')
-          console.log('✅ 已清理旧草稿')
-        } catch (e) {
-          console.error('清理草稿失败', e)
-        }
-        
-        // 提示用户
-        wx.showModal({
-          title: '存储空间不足',
-          content: '微信小程序存储空间已满（10MB限制）。\n\n建议：\n1. 减少商品图片数量\n2. 降低图片质量\n3. 删除部分旧商品\n\n提示：接入后端后将不受此限制。',
-          showCancel: false
-        })
-        return // 提前返回，不执行后续操作
+      } catch (e) {
+        console.error('清理草稿失败', e)
       }
 
       wx.hideLoading()

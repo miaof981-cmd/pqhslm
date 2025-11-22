@@ -48,27 +48,31 @@ Page({
     this.setData({ userRole: source })
   },
 
-  // 加载订单详情
-  loadOrderDetail(orderId) {
-    // 模拟从本地存储加载
-    const allOrders = wx.getStorageSync('pending_orders') || []
-    const completedOrders = wx.getStorageSync('completed_orders') || []
-    const orders = [...allOrders, ...completedOrders]
-    
-    // 如果本地没有，使用工作台的模拟数据
-    if (orders.length === 0) {
-      this.loadMockOrder(orderId)
-      return
-    }
-    
-    let order = orders.find(o => o.id === orderId)
-    
-    // 🎯 修复画师头像：从多个来源获取有效头像
-    if (order) {
-      order = this.fixOrderAvatars(order)
-    }
-    
-    if (order) {
+  // 加载订单详情（纯云端）
+  async loadOrderDetail(orderId) {
+    try {
+      const cloudAPI = require('../../utils/cloud-api.js')
+      
+      console.log('📦 从云端加载订单详情:', orderId)
+      
+      // ✅ 从云端获取订单详情
+      const res = await cloudAPI.getOrderDetail(orderId)
+      
+      if (!res || !res.success || !res.data) {
+        console.error('❌ 订单加载失败:', res?.message)
+        wx.showToast({
+          title: '订单不存在',
+          icon: 'none'
+        })
+        setTimeout(() => {
+          wx.navigateBack()
+        }, 1500)
+        return
+      }
+      
+      let order = res.data
+      console.log('✅ 订单加载成功:', order.id)
+      
       // 自动计算订单状态
       order = orderStatusUtil.calculateOrderStatus(order)
 
@@ -78,9 +82,8 @@ Page({
       // 添加状态 CSS 类名
       order.statusClass = orderStatusUtil.classOf(order.status)
 
-      const buyerShowPosts = wx.getStorageSync('buyer_show_posts') || []
-      const buyerShowPost = buyerShowPosts.find(post => String(post.orderId) === String(order.id))
-      order.hasBuyerShow = Boolean(buyerShowPost)
+      // ✅ 买家秀状态（暂时简化，后续可从云端查询）
+      order.hasBuyerShow = false
 
       const refundStatus = order.refundStatus || order.status
       const canPublishBuyerShow = order.status === 'completed' && refundStatus !== 'refunded'
@@ -297,16 +300,10 @@ Page({
     }, 1000)
   },
 
-  // 更新订单到本地存储
+  // ⚠️ 已废弃：订单已统一存储到云端
   updateOrderInStorage(order) {
-    const pendingOrders = wx.getStorageSync('pending_orders') || []
-    const index = pendingOrders.findIndex(o => o.id === order.id)
-    
-    if (index !== -1) {
-      pendingOrders[index] = order
-      wx.setStorageSync('pending_orders', pendingOrders)
-      console.log('✅ 订单已更新到本地存储')
-    }
+    console.warn('[DEPRECATED] updateOrderInStorage 已废弃，订单统一存储到云端')
+    // ✅ 不再执行任何本地存储操作
   },
 
   // 复制订单号
@@ -407,47 +404,42 @@ Page({
     
     // 保存到本地存储
     const orderHelper = require('../../utils/order-helper.js')
-    const allOrders = orderHelper.getAllOrders()
-    const orderIndex = allOrders.findIndex(o => o.id === order.id)
-    
-    if (orderIndex !== -1) {
-      allOrders[orderIndex] = { ...allOrders[orderIndex], ...order }
+    // ✅ 调用云函数更新订单
+    try {
+      const cloudAPI = require('../../utils/cloud-api.js')
       
-      // 根据订单状态保存到对应的存储
-      if (order.status === 'completed') {
-        const completedOrders = wx.getStorageSync('completed_orders') || []
-        const cIndex = completedOrders.findIndex(o => o.id === order.id)
-        if (cIndex !== -1) {
-          completedOrders[cIndex] = order
-          wx.setStorageSync('completed_orders', completedOrders)
-        }
+      const updateRes = await cloudAPI.updateOrderStatus(order.id, null, {
+        refundStatus: 'pending',
+        refundAppliedAt: new Date().toISOString().replace('T', ' ').substring(0, 19)
+      })
+      
+      if (updateRes && updateRes.success) {
+        console.log('✅ 退款申请已提交:', order.id)
+        
+        setTimeout(() => {
+          wx.hideLoading()
+          wx.showToast({
+            title: '退款申请已提交',
+            icon: 'success',
+            duration: 2000
+          })
+          
+          // 刷新页面
+          this.loadOrderDetail(order.id)
+        }, 500)
       } else {
-        const pendingOrders = wx.getStorageSync('pending_orders') || []
-        const pIndex = pendingOrders.findIndex(o => o.id === order.id)
-        if (pIndex !== -1) {
-          pendingOrders[pIndex] = order
-          wx.setStorageSync('pending_orders', pendingOrders)
-        }
-      }
-      
-      console.log('✅ 退款申请已提交:', order.id)
-      
-      setTimeout(() => {
         wx.hideLoading()
         wx.showToast({
-          title: '退款申请已提交',
-          icon: 'success',
-          duration: 2000
+          title: updateRes?.message || '操作失败',
+          icon: 'none'
         })
-        
-        // 刷新页面
-        this.loadOrderDetail(order.id)
-      }, 500)
-    } else {
+      }
+    } catch (error) {
+      console.error('❌ 退款申请失败:', error)
       wx.hideLoading()
       wx.showToast({
-        title: '订单不存在',
-        icon: 'error'
+        title: '操作失败，请重试',
+        icon: 'none'
       })
     }
   },
@@ -514,87 +506,56 @@ Page({
       title: '确认完成',
       content: '确认订单已完成？完成后将无法撤销',
       confirmColor: '#A8E6CF',
-      success: (res) => {
-        if (res.confirm) {
-          // 从本地存储读取订单
-          const orders = wx.getStorageSync('orders') || []
-          const pendingOrders = wx.getStorageSync('pending_orders') || []
-          
-          // 在两个存储中都查找并更新
-          let updated = false
-          let recordedOrder = null
-          
-          const updateOrderStatus = (orderList) => {
-            return orderList.map(order => {
-              if (order.id === orderId) {
-                updated = true
-                // 检查是否脱稿
-                const now = new Date()
-                // 🔧 iOS兼容：使用parseDate函数
-                const deadline = parseDate(order.deadline)
-                const wasOverdue = now > deadline
-                const overdueDays = wasOverdue ? Math.ceil((now - deadline) / (24 * 60 * 60 * 1000)) : 0
-                
-                const nextOrder = {
-                  ...order,
-                  status: 'completed',
-                  completedAt: new Date().toLocaleString('zh-CN', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                  }).replace(/\//g, '-'),
-                  wasOverdue,
-                  overdueDays
-                }
-
-                if (order.status !== 'completed' && !recordedOrder) {
-                  recordedOrder = nextOrder
-                }
-
-                return nextOrder
-              }
-              return order
+      success: async (modalRes) => {
+        if (modalRes.confirm) {
+          try {
+            const cloudAPI = require('../../utils/cloud-api.js')
+            const order = this.data.order
+            
+            // 检查是否脱稿
+            const now = new Date()
+            const deadline = parseDate(order.deadline)
+            const wasOverdue = now > deadline
+            const overdueDays = wasOverdue ? Math.ceil((now - deadline) / (24 * 60 * 60 * 1000)) : 0
+            
+            console.log('🔍 确认完成 - 脱稿检测:', {
+              订单ID: orderId,
+              当前时间: now.toLocaleString(),
+              截稿时间: deadline.toLocaleString(),
+              是否脱稿: wasOverdue,
+              脱稿天数: overdueDays
             })
-          }
-          
-          const updatedOrders = updateOrderStatus(orders)
-          const updatedPendingOrders = updateOrderStatus(pendingOrders)
-          
-          if (updated) {
-            // 保存更新后的订单
-            wx.setStorageSync('orders', updatedOrders)
-            wx.setStorageSync('pending_orders', updatedPendingOrders)
-
-            if (recordedOrder) {
-              try {
-                // 🎯 新的收入分配逻辑：固定¥5分配给客服和管理员
-                serviceIncome.recordOrderIncome(recordedOrder)
-                console.log('✅ 订单收入分配完成')
-                
-                // 🎯 更新商品销量
-                productSales.updateProductSales(recordedOrder)
-              } catch (err) {
-                console.error('⚠️ 记录订单收入失败:', err)
-              }
+            
+            // ✅ 调用云函数更新订单状态
+            const updateRes = await cloudAPI.updateOrderStatus(orderId, 'completed', {
+              wasOverdue,
+              overdueDays,
+              completedAt: new Date().toISOString().replace('T', ' ').substring(0, 19)
+            })
+            
+            if (updateRes && updateRes.success) {
+              console.log('✅ 订单完成成功')
+              
+              wx.showToast({
+                title: '订单已完成',
+                icon: 'success'
+              })
+              
+              // 延迟刷新页面
+              setTimeout(() => {
+                this.loadOrderDetail(orderId)
+              }, 500)
+            } else {
+              wx.showToast({
+                title: updateRes?.message || '操作失败',
+                icon: 'none'
+              })
             }
-            
+          } catch (error) {
+            console.error('❌ 确认完成失败:', error)
             wx.showToast({
-              title: '订单已完成',
-              icon: 'success'
-            })
-            
-            // 延迟刷新页面
-            setTimeout(() => {
-              this.loadOrderDetail(orderId)
-            }, 500)
-          } else {
-            wx.showToast({
-              title: '订单未找到',
-              icon: 'error'
+              title: '操作失败，请重试',
+              icon: 'none'
             })
           }
         }
@@ -608,28 +569,12 @@ Page({
   //   // 请勿再调用此函数
   // }
 
-  // 🎯 修复订单中的头像（画师、客服、买家）
+  // ⚠️ 已废弃：头像信息应直接从订单数据中获取
   fixOrderAvatars(order) {
-    const DEFAULT_AVATAR_DATA = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0E4RTZDRiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7nlKg8L3RleHQ+PC9zdmc+'
+    console.warn('[DEPRECATED] fixOrderAvatars 已废弃，头像信息应从云端订单数据中获取')
     
-    // 准备数据源
-    const products = wx.getStorageSync('mock_products') || []
-    const productMap = new Map()
-    products.forEach(p => {
-      if (p.id) productMap.set(String(p.id), p)
-    })
-
-    const serviceList = wx.getStorageSync('service_list') || []
-    const userInfoMap = new Map()
-    serviceList.forEach(s => {
-      if (s.userId) userInfoMap.set(String(s.userId), s)
-    })
-
-    const artistApps = wx.getStorageSync('artist_applications') || []
-    const artistMap = new Map()
-    artistApps.forEach(app => {
-      if (app.userId) artistMap.set(String(app.userId), app)
-    })
+    // ✅ 云端订单已包含完整的头像信息，无需再从本地补全
+    // 直接返回订单，不做任何处理
 
     // 修复画师头像
     let artistAvatar = order.artistAvatar || ''

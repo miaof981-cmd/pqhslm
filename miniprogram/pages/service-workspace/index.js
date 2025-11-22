@@ -48,7 +48,8 @@ Page({
 
   // 检查权限
   checkPermission() {
-    const roles = wx.getStorageSync('userRoles') || []
+    const app = getApp()
+    const roles = app.getUserRoles()
     const hasServiceRole = roles.includes('service')
     
     if (hasServiceRole) {
@@ -72,24 +73,22 @@ Page({
 
   // 加载客服信息
   loadServiceInfo() {
-    const userId = wx.getStorageSync('userId')
-    const serviceList = wx.getStorageSync('service_list') || []
-    const myService = serviceList.find(s => s.userId == userId)
-
-    if (myService) {
-      this.setData({
-        serviceInfo: {
-          serviceNumber: myService.serviceNumber,
-          name: myService.name,
-          avatar: myService.avatar || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzRGQzNGNyIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7lrqI8L3RleHQ+PC9zdmc+'
-        }
-      })
-    }
+    const app = getApp()
+    const userId = app.globalData.userId
+    // ✅ 客服信息应从云端users表读取（暂时使用默认值）
+    this.setData({
+      serviceInfo: {
+        serviceNumber: userId,
+        name: '客服',
+        avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzRGQzNGNyIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7lrqI8L3RleHQ+PC9zdmc+'
+      }
+    })
   },
 
   // 加载订单
   loadOrders() {
-    const userId = wx.getStorageSync('userId')
+    const app = getApp()
+    const userId = app.globalData.userId
     
     console.log('========================================')
     console.log('📦 [客服端] 使用统一工具加载订单')
@@ -445,103 +444,44 @@ Page({
   },
 
   // 执行退款
-  doRefund(orderId, refundAmount) {
+  async doRefund(orderId, refundAmount) {
     // 🎯 设置退款中标志，防止重复点击
     this.setData({ refunding: true })
     
     wx.showLoading({ title: '退款处理中...', mask: true })
     
-    // 🎯 读取所有可能的订单存储源
-    const orders = wx.getStorageSync('orders') || []
-    const pendingOrders = wx.getStorageSync('pending_orders') || []
-    const completedOrders = wx.getStorageSync('completed_orders') || []
-    const mockOrders = wx.getStorageSync('mock_orders') || []
+    // ✅ 已废弃：不再从本地读取订单
+    // 退款应通过云函数处理
+    const app = getApp()
+    const cloudAPI = require('../../utils/cloud-api.js')
     const timestamp = new Date().toISOString()
     
-    console.log('🔄 开始退款处理:', {
+    console.log('🔄 开始退款处理:', { orderId })
+    
+    // ✅ 使用云函数更新订单状态
+    const res = await cloudAPI.updateOrderStatus({
       orderId,
-      订单数源: {
-        orders: orders.length,
-        pending: pendingOrders.length,
-        completed: completedOrders.length,
-        mock: mockOrders.length
-      }
+      status: 'refunded',
+      refundAmount: refundAmount || 0,
+      refundNote: '客服已完成退款'
     })
     
-    // 🎯 先找到订单信息（用于库存回退）
-    let targetOrder = null
-    const findOrder = (list) => {
-      const found = list.find(o => o.id === orderId)
-      if (found && !targetOrder) {
-        targetOrder = found
-      }
-    }
-    findOrder(orders)
-    findOrder(pendingOrders)
-    findOrder(completedOrders)
-    findOrder(mockOrders)
+    wx.hideLoading()
+    this.setData({ refunding: false })
     
-    // 更新所有数据源
-    const updateStatus = (list) => {
-      return list.map(o => {
-        if (o.id === orderId) {
-          console.log(`✅ 找到订单 ${orderId}，正在更新状态为 refunded`)
-          return orderHelper.mergeOrderRecords(o, {
-            status: 'refunded',
-            statusText: '已退款',
-            refundStatus: 'refunded',
-            refundAmount: refundAmount || o.price || o.totalAmount || 0,
-            refundCompletedAt: timestamp,
-            refundHistory: [
-              ...(o.refundHistory || []),
-              {
-                status: 'refunded',
-                operator: 'service',
-                operatorId: wx.getStorageSync('userId'),
-                time: timestamp,
-                amount: refundAmount || o.price || o.totalAmount || 0,
-                note: '客服已完成退款'
-              }
-            ]
-          })
-        }
-        return o
-      })
+    if (!res.success) {
+      wx.showToast({ title: '退款失败', icon: 'none' })
+      return
     }
     
-    // 🎯 更新所有4个数据源（包括 completed_orders）
-    wx.setStorageSync('orders', updateStatus(orders))
-    wx.setStorageSync('pending_orders', updateStatus(pendingOrders))
-    wx.setStorageSync('completed_orders', updateStatus(completedOrders))
-    wx.setStorageSync('mock_orders', updateStatus(mockOrders))
+    console.log('💾 已更新退款状态到云端')
     
-    console.log('💾 已保存退款状态到所有数据源')
+    wx.showToast({
+      title: '退款成功',
+      icon: 'success'
+    })
     
-    // 🎯 新增：退款时回退库存
-    if (targetOrder && targetOrder.productId) {
-      const quantity = targetOrder.quantity || 1
-      const restored = productSales.increaseStock(targetOrder.productId, quantity)
-      if (restored) {
-        console.log('✅ 库存已回退:', { productId: targetOrder.productId, quantity })
-      } else {
-        console.warn('⚠️ 库存回退失败（可能是无限库存商品）')
-      }
-    } else {
-      console.warn('⚠️ 订单信息不完整，无法回退库存')
-    }
-    
-    // 🎯 延迟500ms后刷新（确保存储完成）
-    setTimeout(() => {
-      wx.hideLoading()
-      this.setData({ refunding: false })
-      
-      wx.showToast({
-        title: '退款成功',
-        icon: 'success'
-      })
-      
-      // 刷新订单列表
-      this.loadOrders()
-    }, 500)
+    // 刷新订单列表
+    this.loadOrders()
   }
 })

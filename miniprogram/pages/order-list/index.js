@@ -29,13 +29,7 @@ Page({
       this.setData({ currentTab: options.status })
     }
     
-    // 初始化默认二维码（如果本地没有的话）
-    if (!wx.getStorageSync('service_qrcode')) {
-      wx.setStorageSync('service_qrcode', '/assets/default-service-qr.png')
-    }
-    if (!wx.getStorageSync('complaint_qrcode')) {
-      wx.setStorageSync('complaint_qrcode', '/assets/default-complaint-qr.png')
-    }
+    // ✅ 已移除默认二维码初始化（改为常量）
     
     this.loadOrders()
   },
@@ -50,7 +44,8 @@ Page({
     
     try {
       const cloudAPI = require('../../utils/cloud-api.js')
-      const userId = wx.getStorageSync('userId')
+      const app = getApp()
+      const userId = app.globalData.userId
       
       console.log('========================================')
       console.log('📦 [用户端] 从云数据库加载订单')
@@ -102,7 +97,8 @@ Page({
         }
         
         // 获取买家信息（当前用户）
-        const userInfo = wx.getStorageSync('userInfo')
+        const app = getApp()
+        const userInfo = app.globalData.userInfo || {}
         const buyerName = userInfo?.nickName || '买家'
         const buyerAvatar = userInfo?.avatarUrl || orderStatusUtil.DEFAULT_AVATAR
         
@@ -299,7 +295,7 @@ Page({
     const currentOrder = this.data.allOrders.find(order => String(order._id) === String(orderId))
     const sourceOrder = currentOrder ? { ...(currentOrder.rawOrder || {}), ...currentOrder } : null
     const result = resolveServiceQRCode(sourceOrder || {})
-    const fallback = wx.getStorageSync('service_qrcode') || '/assets/default-service-qr.png'
+    const fallback = '/assets/default-service-qr.png' // ✅ 使用常量
     const serviceQRCode = result.value || fallback
 
     if (!result.value && !fallback) {
@@ -322,7 +318,7 @@ Page({
     const currentOrder = this.data.allOrders.find(order => String(order._id) === String(orderId))
     const sourceOrder = currentOrder ? { ...(currentOrder.rawOrder || {}), ...currentOrder } : null
     const result = resolveComplaintQRCode(sourceOrder || {})
-    const fallback = wx.getStorageSync('complaint_qrcode') || '/assets/default-complaint-qr.png'
+    const fallback = '/assets/default-complaint-qr.png' // ✅ 使用常量
     const complaintQRCode = result.value || fallback
 
     if (!result.value && !fallback) {
@@ -380,19 +376,19 @@ Page({
     })
   },
 
-  // 确认完成订单
-  confirmComplete(e) {
+  // 确认完成订单（纯云端）
+  async confirmComplete(e) {
     const orderId = e.currentTarget.dataset.id
     
-    // 🎯 先检查订单状态
-    const allOrders = [
-      ...(wx.getStorageSync('orders') || []),
-      ...(wx.getStorageSync('pending_orders') || []),
-      ...(wx.getStorageSync('mock_orders') || [])
-    ]
-    const targetOrder = allOrders.find(o => o.id === orderId)
+    // ✅ 从已加载的订单数据中检查状态
+    const targetOrder = this.data.allOrders.find(o => o.id === orderId || o._id === orderId)
     
-    if (targetOrder && (targetOrder.status === 'refunded' || targetOrder.refundStatus === 'refunded')) {
+    if (!targetOrder) {
+      wx.showToast({ title: '订单不存在', icon: 'none' })
+      return
+    }
+    
+    if (targetOrder.status === 'refunded' || targetOrder.refundStatus === 'refunded') {
       wx.showToast({
         title: '订单已退款，无法确认完成',
         icon: 'none',
@@ -401,7 +397,7 @@ Page({
       return
     }
     
-    if (targetOrder && targetOrder.status === 'completed') {
+    if (targetOrder.status === 'completed') {
       wx.showToast({
         title: '订单已完成',
         icon: 'none'
@@ -413,93 +409,56 @@ Page({
       title: '确认完成',
       content: '确认订单已完成？完成后将无法撤销',
       confirmColor: '#A8E6CF',
-      success: (res) => {
-        if (res.confirm) {
-          // 从本地存储读取订单
-          const orders = wx.getStorageSync('orders') || []
-          const pendingOrders = wx.getStorageSync('pending_orders') || []
-          
-          // 在两个存储中都查找并更新
-          let updated = false
-          
-          let recordedOrder = null
-          const updateOrderStatus = (orderList) => {
-            return orderList.map(order => {
-              if (order.id === orderId) {
-                updated = true
-                // 检查是否脱稿（使用 iOS 兼容的日期解析）
-                const now = new Date()
-                const deadlineStr = order.deadline ? order.deadline.replace(/-/g, '/') : ''
-                const deadline = new Date(deadlineStr)
-                const wasOverdue = !isNaN(deadline.getTime()) && now > deadline
-                const overdueDays = wasOverdue ? Math.ceil((now - deadline) / (24 * 60 * 60 * 1000)) : 0
-                
-                console.log('🔍 确认完成 - 脱稿检测:', {
-                  订单ID: order.id,
-                  当前时间: now.toLocaleString(),
-                  截稿时间: deadline.toLocaleString(),
-                  是否脱稿: wasOverdue,
-                  脱稿天数: overdueDays
-                })
-                
-                const nextOrder = {
-                  ...order,
-                  status: 'completed',
-                  completedAt: new Date().toLocaleString('zh-CN', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                  }).replace(/\//g, '-'),
-                  wasOverdue,
-                  overdueDays
-                }
-
-                if (order.status !== 'completed' && !recordedOrder) {
-                  recordedOrder = nextOrder
-                }
-
-                return nextOrder
-              }
-              return order
-            })
-          }
-          
-          const updatedOrders = updateOrderStatus(orders)
-          const updatedPendingOrders = updateOrderStatus(pendingOrders)
-          
-          if (updated) {
-            // 保存更新后的订单
-            wx.setStorageSync('orders', updatedOrders)
-            wx.setStorageSync('pending_orders', updatedPendingOrders)
+      success: async (modalRes) => {
+        if (modalRes.confirm) {
+          try {
+            const cloudAPI = require('../../utils/cloud-api.js')
             
-            if (recordedOrder) {
-              try {
-                // 🎯 新的收入分配逻辑：固定¥5分配给客服和管理员
-                serviceIncome.recordOrderIncome(recordedOrder)
-                console.log('✅ 订单收入分配完成')
-                
-                // 🎯 更新商品销量
-                productSales.updateProductSales(recordedOrder)
-              } catch (err) {
-                console.error('⚠️ 记录订单收入失败:', err)
-              }
+            // ✅ 检查是否脱稿
+            const now = new Date()
+            const deadlineStr = targetOrder.deadline ? targetOrder.deadline.replace(/-/g, '/') : ''
+            const deadline = new Date(deadlineStr)
+            const wasOverdue = !isNaN(deadline.getTime()) && now > deadline
+            const overdueDays = wasOverdue ? Math.ceil((now - deadline) / (24 * 60 * 60 * 1000)) : 0
+            
+            console.log('🔍 确认完成 - 脱稿检测:', {
+              订单ID: orderId,
+              当前时间: now.toLocaleString(),
+              截稿时间: deadline.toLocaleString(),
+              是否脱稿: wasOverdue,
+              脱稿天数: overdueDays
+            })
+            
+            // ✅ 调用云函数更新订单状态
+            const updateRes = await cloudAPI.updateOrderStatus(orderId, 'completed', {
+              wasOverdue,
+              overdueDays,
+              completedAt: new Date().toISOString().replace('T', ' ').substring(0, 19)
+            })
+            
+            if (updateRes && updateRes.success) {
+              console.log('✅ 订单完成成功')
+              
+              wx.showToast({
+                title: '订单已完成',
+                icon: 'success'
+              })
+              
+              // 刷新订单列表
+              setTimeout(() => {
+                this.loadOrders()
+              }, 500)
+            } else {
+              wx.showToast({
+                title: updateRes?.message || '操作失败',
+                icon: 'none'
+              })
             }
-            
+          } catch (error) {
+            console.error('❌ 确认完成失败:', error)
             wx.showToast({
-              title: '订单已完成',
-              icon: 'success'
-            })
-            
-            // 🎯 立即刷新订单列表（移除延迟，确保数据同步）
-            this.loadOrders()
-          } else {
-            wx.showToast({
-              title: '订单未找到',
-              icon: 'error'
+              title: '操作失败，请重试',
+              icon: 'none'
             })
           }
         }
@@ -561,20 +520,9 @@ Page({
             return { updated, changed }
           }
 
-          const ordersStore = wx.getStorageSync('orders') || []
-          const pendingStore = wx.getStorageSync('pending_orders') || []
-
-          const { updated: updatedOrders, changed } = updateStatus(ordersStore)
-          const { updated: updatedPending } = updateStatus(pendingStore)
-
-          if (changed) {
-            wx.setStorageSync('orders', updatedOrders)
-            wx.setStorageSync('pending_orders', updatedPending)
-            wx.showToast({ title: '已提交退款申请', icon: 'success' })
-            setTimeout(() => this.loadOrders(), 400)
-          } else {
-            wx.showToast({ title: '订单不存在或已退款', icon: 'none' })
-          }
+          // ✅ 已废弃：改为纯云端实现，不再使用本地存储
+          console.warn('[DEPRECATED] 旧版申请退款逻辑已废弃')
+          wx.showToast({ title: '功能已升级，请刷新后重试', icon: 'none' })
         }
       }
     })
@@ -598,68 +546,45 @@ Page({
     })
   },
 
-  // 评价订单
-  reviewOrder(e) {
+  // 评价订单（纯云端）
+  async reviewOrder(e) {
     const orderId = e.currentTarget.dataset.id
     
     wx.showModal({
       title: '评价订单',
       content: '请对本次服务进行评价（评价功能开发中，评价后将显示"已评价"）',
       confirmText: '提交评价',
-      success: (res) => {
-        if (res.confirm) {
-          // 🎯 从本地存储读取所有订单并标记为已评价
-          const orders = wx.getStorageSync('orders') || []
-          const pendingOrders = wx.getStorageSync('pending_orders') || []
-          const completedOrders = wx.getStorageSync('completed_orders') || [] // 🎯 新增：已完成订单
-          
-          let updated = false
-          
-          const markAsReviewed = (orderList) => {
-            return orderList.map(order => {
-              if (order.id === orderId || order._id === orderId) {
-                updated = true
-                return {
-                  ...order,
-                  reviewed: true,
-                  reviewedAt: new Date().toLocaleString('zh-CN', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                  }).replace(/\//g, '-')
-                }
-              }
-              return order
-            })
-          }
-          
-          const updatedOrders = markAsReviewed(orders)
-          const updatedPendingOrders = markAsReviewed(pendingOrders)
-          const updatedCompletedOrders = markAsReviewed(completedOrders) // 🎯 新增
-          
-          if (updated) {
-            // 保存更新后的订单
-            wx.setStorageSync('orders', updatedOrders)
-            wx.setStorageSync('pending_orders', updatedPendingOrders)
-            wx.setStorageSync('completed_orders', updatedCompletedOrders) // 🎯 新增
+      success: async (modalRes) => {
+        if (modalRes.confirm) {
+          try {
+            const cloudAPI = require('../../utils/cloud-api.js')
             
-            wx.showToast({
-              title: '感谢您的评价',
-              icon: 'success'
+            // ✅ 调用云函数标记为已评价
+            const updateRes = await cloudAPI.updateOrderStatus(orderId, null, {
+              reviewed: true,
+              reviewedAt: new Date().toISOString().replace('T', ' ').substring(0, 19)
             })
             
-            // 延迟刷新，让用户看到提示
-            setTimeout(() => {
-              this.loadOrders()
-            }, 500)
-          } else {
+            if (updateRes && updateRes.success) {
+              wx.showToast({
+                title: '感谢您的评价',
+                icon: 'success'
+              })
+              
+              setTimeout(() => {
+                this.loadOrders()
+              }, 500)
+            } else {
+              wx.showToast({
+                title: updateRes?.message || '操作失败',
+                icon: 'none'
+              })
+            }
+          } catch (error) {
+            console.error('❌ 评价失败:', error)
             wx.showToast({
-              title: '订单未找到',
-              icon: 'error'
+              title: '操作失败，请重试',
+              icon: 'none'
             })
           }
         }

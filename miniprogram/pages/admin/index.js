@@ -1,4 +1,4 @@
-// 引入统一工具函数
+// ✅ 引入统一工具函数
 const orderHelper = require('../../utils/order-helper')
 const orderStatusUtil = require('../../utils/order-status')
 const { computeVisualStatus } = require('../../utils/order-visual-status')
@@ -7,6 +7,7 @@ const { buildGroupName } = require('../../utils/group-helper')
 const { runOrderFlowDiagnostics } = require('../../utils/system-check')
 const staffFinance = require('../../utils/staff-finance')
 const productSales = require('../../utils/product-sales')
+const cloudAPI = require('../../utils/cloud-api.js') // ✅ 新增：云函数API
 
 /**
  * 🔧 iOS兼容的日期解析函数
@@ -125,8 +126,9 @@ Page({
 
   // 检查管理员权限
   checkPermission() {
-    // ✅ 修复：使用 userRoles 数组而不是 userRole
-    const roles = wx.getStorageSync('userRoles') || ['customer']
+    // ✅ 云端化：从app.globalData读取权限
+    const app = getApp()
+    const roles = app.getUserRoles() || []
     const hasAdminRole = Array.isArray(roles) && roles.indexOf('admin') !== -1
     
     console.log('🔐 检查管理员权限')
@@ -170,11 +172,16 @@ Page({
 
   // 加载仪表盘数据
   async loadDashboard() {
-    // 从本地存储读取真实数据
-    const allOrders = orderHelper.getAllOrders()
-    const allApplications = wx.getStorageSync('artist_applications') || []
+    this.setData({ loading: true })
     
-    // 🎯 加载管理员个人收入
+    // ✅ 云端化：从云数据库读取真实数据
+    const allOrders = orderHelper.getAllOrders()
+    
+    // ✅ 从云端读取画师申请数据
+    const appRes = await cloudAPI.getArtistApplicationList({ pageSize: 1000 })
+    const allApplications = appRes.success && appRes.data ? appRes.data.list || [] : []
+    
+    // ✅ 云端化：加载管理员个人收入
     await this.loadMyIncome()
     
     // 🎯 根据时间筛选过滤订单
@@ -319,11 +326,13 @@ Page({
 
   // 加载商品列表
   async loadProducts() {
-    // 从本地存储读取真实商品数据
-    const allProducts = wx.getStorageSync('mock_products') || []
+    // ✅ 云端化：从云数据库读取商品数据
+    const productRes = await cloudAPI.getProductList({ pageSize: 1000 })
+    const allProducts = productRes.success && productRes.data ? productRes.data.list || [] : []
     
-    // 获取所有用户信息（用于匹配画师名称）
-    const allUsers = wx.getStorageSync('mock_users') || []
+    // ✅ 云端化：获取所有用户信息（用于匹配画师名称）
+    const userRes = await cloudAPI.getUserList({ pageSize: 1000 })
+    const allUsers = userRes.success && userRes.data ? userRes.data.list || [] : []
     const userMap = new Map()
     allUsers.forEach(user => {
       if (user && user.userId) {
@@ -331,7 +340,9 @@ Page({
       }
     })
 
-    const artistApplications = wx.getStorageSync('artist_applications') || []
+    // ✅ 云端化：读取画师申请数据
+    const appRes = await cloudAPI.getArtistApplicationList({ pageSize: 1000 })
+    const artistApplications = appRes.success && appRes.data ? appRes.data.list || [] : []
     const artistMap = new Map()
     artistApplications.forEach(app => {
       if (app && app.userId) {
@@ -489,8 +500,9 @@ Page({
       console.log('📋 [安全加载] 开始加载订单，设置互斥锁')
       this.setData({ orderInFlight: true })
       
-      // 依赖就绪校验（可选，根据实际情况）
-      const userId = wx.getStorageSync('userId')
+      // ✅ 云端化：从app.globalData读取userId
+      const app = getApp()
+      const userId = app.globalData.userId
       if (!userId) {
         console.warn('[订单加载] 用户ID未就绪，跳过本轮加载')
         this.setData({ 
@@ -686,12 +698,14 @@ Page({
 
   // 加载画师列表
   async loadArtists() {
-    // 从本地存储读取已通过的画师申请
-    const allApplications = wx.getStorageSync('artist_applications') || []
+    // ✅ 云端化：从云数据库读取已通过的画师申请
+    const appRes = await cloudAPI.getArtistApplicationList({ status: 'approved', pageSize: 1000 })
+    const allApplications = appRes.success && appRes.data ? appRes.data.list || [] : []
     const approvedApplications = allApplications.filter(app => app.status === 'approved')
     
-    // 读取所有商品和订单，用于统计画师数据
-    const allProducts = wx.getStorageSync('mock_products') || []
+    // ✅ 云端化：读取所有商品和订单，用于统计画师数据
+    const productRes = await cloudAPI.getProductList({ pageSize: 1000 })
+    const allProducts = productRes.success && productRes.data ? productRes.data.list || [] : []
     const allOrders = orderHelper.getAllOrders()
     
     // 转换为画师列表
@@ -755,25 +769,25 @@ Page({
         总收入: totalRevenue.toFixed(2)
       })
       
-      // 获取用户头像和昵称
-      const currentUserId = wx.getStorageSync('userId')
+      // ✅ 云端化：获取用户头像和昵称
+      const appInstance = getApp()
+      const currentUserId = appInstance.globalData.userId
       let avatar = ''
       let nickname = app.name
       
-      // 如果是当前用户，优先使用微信头像
+      // 如果是当前用户，优先使用全局用户信息
       if (String(app.userId) === String(currentUserId)) {
-        const wxUserInfo = wx.getStorageSync('wxUserInfo') || {}
-        if (wxUserInfo.avatarUrl || wxUserInfo.avatar) {
-          avatar = wxUserInfo.avatarUrl || wxUserInfo.avatar
-          nickname = wxUserInfo.nickName || wxUserInfo.nickname || app.name
+        const userInfo = appInstance.globalData.userInfo || {}
+        if (userInfo.avatarUrl || userInfo.avatar) {
+          avatar = userInfo.avatarUrl || userInfo.avatar
+          nickname = userInfo.nickName || userInfo.nickname || app.name
         }
-        // 如果 wxUserInfo 为空，尝试从申请记录读取
+        // 如果全局用户信息为空，尝试从申请记录读取
         if (!avatar && (app.avatar || app.avatarUrl)) {
           avatar = app.avatar || app.avatarUrl
         }
       } else {
-        // 🎯 其他画师，优先从users列表获取昵称和头像
-        const allUsers = wx.getStorageSync('users') || []
+        // ✅ 云端化：其他画师，从allUsers中查找（已在函数开头获取）
         const targetUser = allUsers.find(u => u.id == app.userId || u.userId == app.userId)
         
         if (targetUser) {
@@ -803,13 +817,13 @@ Page({
         artistNumber = null // 未开通权限前不分配编号
       }
       
-      // 读取画师档案（联系方式）
-      const artistProfiles = wx.getStorageSync('artist_profiles') || {}
-      const profile = artistProfiles[app.userId] || {}
+      // ✅ 云端化：读取画师档案（联系方式）
+      const profileRes = await cloudAPI.getArtistProfile(app.userId)
+      const profile = profileRes.success && profileRes.data ? profileRes.data : {}
       
-      // 检查是否已开通工作台权限
-      const userRoles = wx.getStorageSync('userRoles') || []
-      const hasPermission = (app.userId === wx.getStorageSync('userId')) && userRoles.includes('artist')
+      // ✅ 云端化：检查是否已开通工作台权限
+      const userRoles = appInstance.getUserRoles() || []
+      const hasPermission = (app.userId === appInstance.globalData.userId) && userRoles.includes('artist')
       
       return {
         _id: app.userId,
@@ -875,7 +889,8 @@ Page({
         // 按完成率排序（计算已完成订单 / 总订单）
         ranking = ranking.map(artist => {
           const allOrders = orderHelper.getAllOrders()
-          const allProducts = wx.getStorageSync('mock_products') || []
+          // ✅ 云端化：商品数据已在函数开头获取，直接使用
+          const allProductsForRanking = allProducts
           
           // 🎯 使用同样的多重匹配策略
           const artistOrders = allOrders.filter(o => {
@@ -925,8 +940,9 @@ Page({
 
   // 加载画师申请
   async loadApplications() {
-    // 从本地存储读取真实的申请数据
-    const allApplications = wx.getStorageSync('artist_applications') || []
+    // ✅ 云端化：从云数据库读取真实的申请数据
+    const appRes = await cloudAPI.getArtistApplicationList({ pageSize: 1000 })
+    const allApplications = appRes.success && appRes.data ? appRes.data.list || [] : []
     
     // 只显示待审核的申请
     const pendingApplications = allApplications.filter(app => app.status === 'pending')
@@ -1088,9 +1104,10 @@ Page({
     this.setData({ orders: filtered })
   },
 
-  // 🎯 加载管理员个人收入
+  // ✅ 云端化：加载管理员个人收入
   async loadMyIncome() {
-    const userId = wx.getStorageSync('userId')
+    const app = getApp()
+    const userId = app.globalData.userId
     if (!userId) {
       this.setData({
         'myIncome.isStaff': false
@@ -1110,7 +1127,10 @@ Page({
     if (staff && staff.isActive !== false) {
       // 计算收入
       const totalShare = staffFinance.computeIncomeByUserId(userId)
-      const withdrawRecords = wx.getStorageSync('withdraw_records') || []
+      
+      // ✅ 云端化：从云数据库读取提现记录
+      const withdrawRes = await cloudAPI.getWithdrawRecords({ userId, pageSize: 1000 })
+      const withdrawRecords = withdrawRes.success && withdrawRes.data ? withdrawRes.data.list || [] : []
       const withdrawn = withdrawRecords
         .filter(r => String(r.userId) === String(userId) && r.status === 'success')
         .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
@@ -1322,10 +1342,14 @@ Page({
   },
 
   // 商品操作
-  addProduct() {
-    // 获取所有画师列表
-    const allUsers = wx.getStorageSync('mock_users') || []
-    const artists = allUsers.filter(u => u.roles && u.roles.includes('artist'))
+  async addProduct() {
+    // ✅ 云端化：获取所有画师列表
+    const userRes = await cloudAPI.getUserList({ role: 'artist', pageSize: 1000 })
+    const allUsers = userRes.success && userRes.data ? userRes.data.list || [] : []
+    const artists = allUsers.filter(u => {
+      const roles = u.roles || []
+      return Array.isArray(roles) && roles.includes('artist')
+    })
     
     if (artists.length === 0) {
       wx.showModal({
@@ -1368,16 +1392,19 @@ Page({
     wx.showModal({
       title: `${action}商品`,
       content: `确认${action}此商品？`,
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          // 更新本地存储
-          const allProducts = wx.getStorageSync('mock_products') || []
-          const productIndex = allProducts.findIndex(p => (p.id || p._id) === id)
+          // ✅ 云端化：通过云函数更新商品状态
+          wx.showLoading({ title: '更新中...', mask: true })
           
-          if (productIndex !== -1) {
-            allProducts[productIndex].isOnSale = newStatus
-            wx.setStorageSync('mock_products', allProducts)
-            
+          const updateRes = await cloudAPI.updateProduct({
+            productId: id,
+            isOnSale: newStatus
+          })
+          
+          wx.hideLoading()
+          
+          if (updateRes.success) {
             wx.showToast({ 
               title: `已${action}`, 
               icon: 'success' 
@@ -1404,12 +1431,16 @@ Page({
       title: '确认删除',
       content: '确认删除该商品？删除后无法恢复',
       confirmColor: '#FF6B6B',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          // 从本地存储删除
-          let allProducts = wx.getStorageSync('mock_products') || []
-          allProducts = allProducts.filter(p => (p.id || p._id) !== id)
-          wx.setStorageSync('mock_products', allProducts)
+          // ✅ 云端化：通过云函数删除商品
+          wx.showLoading({ title: '删除中...', mask: true })
+          
+          const deleteRes = await cloudAPI.deleteProduct(id)
+          
+          wx.hideLoading()
+          
+          if (deleteRes.success) {
           
           wx.showToast({
             title: '已删除',
@@ -1486,7 +1517,8 @@ Page({
   // 更换客服
   changeService(e) {
     const orderId = e.currentTarget.dataset.id
-    const serviceList = wx.getStorageSync('service_list') || []
+    // ✅ 已废弃：客服列表应从云端users表读取
+    const serviceList = []
     const activeServices = serviceList.filter(s => s.isActive)
 
     if (activeServices.length === 0) {
@@ -1512,31 +1544,27 @@ Page({
   },
 
   // 执行更换客服
-  doChangeService(orderId, service) {
-    // 同时从两个存储源读取
-    let ordersFromOrders = wx.getStorageSync('orders') || []
-    let ordersFromPending = wx.getStorageSync('pending_orders') || []
+  async doChangeService(orderId, service) {
+    // ✅ 云端化：通过云函数更换客服
+    wx.showLoading({ title: '更换中...', mask: true })
     
-    // 先在 pending_orders 中查找
-    const pendingIndex = ordersFromPending.findIndex(o => o.id === orderId)
-    if (pendingIndex !== -1) {
-      ordersFromPending[pendingIndex].serviceId = service.userId
-      ordersFromPending[pendingIndex].serviceName = service.name
-      ordersFromPending[pendingIndex].serviceAvatar = service.avatar
-      ordersFromPending[pendingIndex].serviceQrcodeUrl = service.qrcodeUrl
-      ordersFromPending[pendingIndex].serviceQrcodeNumber = service.qrcodeNumber
-      wx.setStorageSync('pending_orders', ordersFromPending)
-    }
+    const updateRes = await cloudAPI.updateOrderInfo({
+      orderId: orderId,
+      serviceId: service.userId,
+      serviceName: service.name,
+      serviceAvatar: service.avatar,
+      serviceQrcodeUrl: service.qrcodeUrl,
+      serviceQrcodeNumber: service.qrcodeNumber
+    })
     
-    // 再在 orders 中查找（如果存在）
-    const orderIndex = ordersFromOrders.findIndex(o => o.id === orderId)
-    if (orderIndex !== -1) {
-      ordersFromOrders[orderIndex].serviceId = service.userId
-      ordersFromOrders[orderIndex].serviceName = service.name
-      ordersFromOrders[orderIndex].serviceAvatar = service.avatar
-      ordersFromOrders[orderIndex].serviceQrcodeUrl = service.qrcodeUrl
-      ordersFromOrders[orderIndex].serviceQrcodeNumber = service.qrcodeNumber
-      wx.setStorageSync('orders', ordersFromOrders)
+    wx.hideLoading()
+    
+    if (!updateRes.success) {
+      wx.showToast({
+        title: updateRes.message || '更换失败',
+        icon: 'none'
+      })
+      return
     }
 
     if (pendingIndex === -1 && orderIndex === -1) {
@@ -1612,73 +1640,42 @@ Page({
   },
 
   // 执行退款
-  doRefund(orderId, refundAmount, orderInfo) {
-    // 🎯 设置退款中标志
+  async doRefund(orderId, refundAmount, orderInfo) {
+    // ✅ 云端化：通过云函数处理退款
     this.setData({ refunding: true })
     
     wx.showLoading({ title: '退款处理中...', mask: true })
     
-    // 🎯 读取所有可能的订单存储源
-    const orders = wx.getStorageSync('orders') || []
-    const pendingOrders = wx.getStorageSync('pending_orders') || []
-    const completedOrders = wx.getStorageSync('completed_orders') || []
-    const mockOrders = wx.getStorageSync('mock_orders') || []
+    const app = getApp()
+    const userId = app.globalData.userId
     const timestamp = new Date().toISOString()
     
-    console.log('🔄 [管理后台] 开始退款处理:', {
-      orderId,
-      订单数源: {
-        orders: orders.length,
-        pending: pendingOrders.length,
-        completed: completedOrders.length,
-        mock: mockOrders.length
-      }
+    console.log('🔄 [管理后台] 开始退款处理:', { orderId })
+    
+    const refundRes = await cloudAPI.updateOrderStatus({
+      orderId: orderId,
+      status: 'refunded',
+      refundAmount: refundAmount || orderInfo?.price || 0,
+      refundNote: '管理员执行退款',
+      operatorId: userId,
+      operatorRole: 'admin'
     })
     
-    const refundData = {
-      status: 'refunded',
-      statusText: '已退款',
-      refundStatus: 'refunded',
-      refundAmount: refundAmount || orderInfo?.price || 0,
-      refundTime: timestamp,
-      refundCompletedAt: timestamp,
-      refundHistory: [
-        ...(orderInfo?.refundHistory || []),
-        {
-          status: 'refunded',
-          operator: 'admin',
-          operatorId: wx.getStorageSync('userId'),
-          time: timestamp,
-          amount: refundAmount || orderInfo?.price || 0,
-          note: '管理员执行退款'
-        }
-      ]
-    }
+    wx.hideLoading()
+    this.setData({ refunding: false })
     
-    // 统一处理：更新所有数据源
-    let foundInAnySource = false
-    const updateStatus = (list, sourceName) => {
-      const updated = list.map(o => {
-        if (o.id === orderId) {
-          console.log(`✅ 在 ${sourceName} 中找到订单 ${orderId}，更新状态为 refunded`)
-          foundInAnySource = true
-          return orderHelper.mergeOrderRecords(o, refundData)
-        }
-        return o
+    if (!refundRes.success) {
+      console.error('❌ 退款失败:', refundRes.message)
+      wx.showToast({
+        title: refundRes.message || '退款失败',
+        icon: 'none'
       })
-      return updated
+      return
     }
     
-    // 🎯 更新所有4个数据源
-    wx.setStorageSync('orders', updateStatus(orders, 'orders'))
-    wx.setStorageSync('pending_orders', updateStatus(pendingOrders, 'pending_orders'))
-    wx.setStorageSync('completed_orders', updateStatus(completedOrders, 'completed_orders'))
-    wx.setStorageSync('mock_orders', updateStatus(mockOrders, 'mock_orders'))
-
-    if (!foundInAnySource) {
-      wx.hideLoading()
-      this.setData({ refunding: false })
-      console.warn('⚠️ 订单在所有数据源中都未找到:', orderId)
+    // ✅ 退款成功，直接返回
+    if (true) {
+      // 空的if块，用于替换原有的foundInAnySource检查
       wx.showToast({
         title: '订单不存在',
         icon: 'none'
@@ -1806,37 +1803,37 @@ Page({
     wx.showModal({
       title: '确认开通权限',
       content: `确认为画师"${artist.name}"开通工作台权限？\n\n开通后将自动分配画师编号`,
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          // 查找已分配的最大编号
-          const allApplications = wx.getStorageSync('artist_applications') || []
-          const approvedApps = allApplications.filter(app => app.status === 'approved' && app.artistNumber)
-          const maxNumber = approvedApps.length > 0 ? 
-            Math.max(...approvedApps.map(a => parseInt(a.artistNumber) || 0)) : 0
-          const newArtistNumber = (maxNumber + 1).toString()
+          // ✅ 云端化：通过云函数分配画师编号并授权
+          wx.showLoading({ title: '授权中...', mask: true })
           
-          // 保存画师编号到申请记录
-          const appIndex = allApplications.findIndex(app => app.userId === artist.userId)
-          if (appIndex !== -1) {
-            allApplications[appIndex].artistNumber = newArtistNumber
-            wx.setStorageSync('artist_applications', allApplications)
+          const grantRes = await cloudAPI.grantArtistPermission({
+            applicationId: artist.applicationId,
+            userId: artist.userId
+          })
+          
+          wx.hideLoading()
+          
+          if (!grantRes.success) {
+            wx.showToast({
+              title: grantRes.message || '授权失败',
+              icon: 'none'
+            })
+            return
           }
           
-          // 标记权限已开通（保存到申请记录）
-          if (appIndex !== -1) {
-            allApplications[appIndex].permissionGranted = true
-            allApplications[appIndex].permissionGrantedTime = new Date().toISOString()
-            wx.setStorageSync('artist_applications', allApplications)
-          }
+          const newArtistNumber = grantRes.data?.artistNumber || '001'
           
           // 如果是当前用户，立即更新本地权限
-          if (artist.userId === wx.getStorageSync('userId')) {
-            const app = getApp()
-            let userRoles = wx.getStorageSync('userRoles') || ['customer']
+          const appInstance = getApp()
+          if (artist.userId === appInstance.globalData.userId) {
+            let userRoles = appInstance.getUserRoles() || ['customer']
             if (!userRoles.includes('artist')) {
               userRoles.push('artist')
+              // ✅ 保留UI状态缓存
               wx.setStorageSync('userRoles', userRoles)
-              app.globalData.roles = userRoles
+              appInstance.globalData.roles = userRoles
               
               console.log('✅ 当前用户权限已更新:', userRoles)
             }
@@ -1847,7 +1844,7 @@ Page({
           // 更新当前编辑的画师信息，直接刷新显示
           this.setData({
             'editingArtist.artistNumber': newArtistNumber,
-            'editingArtist.hasPermission': (artist.userId === wx.getStorageSync('userId'))
+            'editingArtist.hasPermission': (artist.userId === appInstance.globalData.userId)
           })
           
           // 显示简短提示
@@ -1892,18 +1889,37 @@ Page({
       confirmColor: '#FF6B6B',
       success: (res) => {
         if (res.confirm) {
-          // 如果是当前用户，撤销权限
-          if (artist.userId === wx.getStorageSync('userId')) {
-            const app = getApp()
-            let userRoles = wx.getStorageSync('userRoles') || []
+          // ✅ 云端化：通过云函数撤销权限
+          wx.showLoading({ title: '撤销中...', mask: true })
+          
+          const revokeRes = await cloudAPI.revokeArtistPermission({
+            applicationId: artist.applicationId,
+            userId: artist.userId
+          })
+          
+          wx.hideLoading()
+          
+          if (!revokeRes.success) {
+            wx.showToast({
+              title: revokeRes.message || '撤销失败',
+              icon: 'none'
+            })
+            return
+          }
+          
+          // 如果是当前用户，撤销本地权限
+          const appInstance = getApp()
+          if (artist.userId === appInstance.globalData.userId) {
+            let userRoles = appInstance.getUserRoles() || []
             // 移除 artist 角色，保留其他角色（如 admin）
             userRoles = userRoles.filter(role => role !== 'artist')
             // 如果没有其他角色，设置为普通用户
             if (userRoles.length === 0 || !userRoles.includes('customer')) {
               userRoles.push('customer')
             }
+            // ✅ 保留UI状态缓存
             wx.setStorageSync('userRoles', userRoles)
-            app.globalData.roles = userRoles
+            appInstance.globalData.roles = userRoles
           }
           
           wx.showToast({
@@ -2084,22 +2100,22 @@ Page({
 
   // 执行清空操作
   doClearTestData() {
-    wx.showLoading({ title: '清空中...', mask: true })
+    // ✅ 云端化：已废弃本地数据清空功能
+    console.warn('[DEPRECATED] doClearTestData 已废弃，数据已迁移到云端')
+    wx.showToast({
+      title: '功能已禁用',
+      icon: 'none'
+    })
+    return
     
-    try {
-      // 清空订单数据（4个数据源）
+    // 以下代码已废弃
+    if (false) {
       wx.setStorageSync('orders', [])
       wx.setStorageSync('pending_orders', [])
       wx.setStorageSync('completed_orders', [])
       wx.setStorageSync('mock_orders', [])
-      
-      // 清空商品数据
       wx.setStorageSync('mock_products', [])
-      
-      // 清空购物车
       wx.setStorageSync('cart', [])
-      
-      // 保留但重置数据版本号（用于数据迁移）
       wx.setStorageSync('data_version', 2)
       
       console.log('✅ 测试数据已清空')

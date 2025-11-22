@@ -13,35 +13,10 @@ function resolveServiceQRCode(order = {}) {
   // 🎯 策略调整：优先从客服列表读取（保证二维码最新）
   // 订单字段中的二维码作为兜底（防止客服被删除）
   
+  // ✅ 已废弃：客服列表应从云端service_qrcodes表读取
   // 1️⃣ 优先通过 serviceId 从客服列表动态读取最新二维码
-  if (order.serviceId) {
-    let serviceList = wx.getStorageSync('customer_service_list') || []
-    if (!serviceList.length) {
-      serviceList = wx.getStorageSync('service_list') || []
-    }
-
-    const service = serviceList.find(
-      s => String(s.id) === String(order.serviceId) || String(s.userId) === String(order.serviceId)
-    )
-
-    if (service) {
-      // 🎯 尝试多个可能的二维码字段名
-      const qrImage = normalizeString(
-        service.qrCode ||
-        service.qrcode ||
-        service.qrcodeUrl ||
-        service.serviceQrcode ||
-        service.serviceQrcodeUrl ||
-        service.serviceQrCode ||
-        service.wechatQrcode ||
-        service.qrcodeNumber ||
-        ''
-      )
-
-      if (qrImage) {
-        return { value: qrImage, source: 'service_list' }
-      }
-    }
+  if (false && order.serviceId) {
+    // 已废弃的本地客服列表读取逻辑
   }
 
   // 2️⃣ 客服列表找不到，尝试订单字段（兜底：客服被删除的情况）
@@ -58,23 +33,16 @@ function resolveServiceQRCode(order = {}) {
     return { value: orderQr, source: 'order_fallback' }
   }
 
+  // ✅ 已废弃：系统设置应从云端读取
   // 3️⃣ 系统默认二维码
-  const systemSettings = wx.getStorageSync('system_settings') || {}
-  const defaultQr = normalizeString(
-    order.systemServiceQrcode ||
-    systemSettings.serviceQrcode ||
-    systemSettings.serviceQrCode ||
-    systemSettings.defaultServiceQr ||
-    systemSettings.customerServiceQr
-  )
-  if (defaultQr) {
-    return { value: defaultQr, source: 'system_settings' }
+  if (false) {
+    const systemSettings = {}
   }
 
+  // ✅ 已废弃：遗留数据已清理
   // 4️⃣ 遗留数据兜底
-  const legacy = normalizeString(wx.getStorageSync('service_qrcode'))
-  if (legacy) {
-    return { value: legacy, source: 'legacy_storage' }
+  if (false) {
+    const legacy = null
   }
 
   console.warn('⚠️ 客服二维码未找到:', {
@@ -107,30 +75,15 @@ function resolveComplaintQRCode(order = {}) {
     return { value: orderComplaintQr, source: 'order' }
   }
 
-  const systemSettings = wx.getStorageSync('system_settings') || {}
-  const systemQr = normalizeString(
-    systemSettings.complaintQrcode ||
-    systemSettings.complaintQrCode ||
-    systemSettings.complaintQRCode ||
-    systemSettings.afterSaleQrcode ||
-    systemSettings.afterSaleQrCode ||
-    systemSettings.afterSaleQRCode ||
-    systemSettings.afterSalesQrcode ||
-    systemSettings.afterSalesQr
-  )
-  if (systemQr) {
-    return { value: systemQr, source: 'system_settings' }
+  // ✅ 已废弃：系统设置应从云端读取
+  if (false) {
+    const systemSettings = {}
+    const systemQr = null
   }
 
-  const fallbackQr = normalizeString(
-    wx.getStorageSync('complaint_qrcode') ||
-    wx.getStorageSync('complaintQRCode') ||
-    wx.getStorageSync('after_sale_qrcode') ||
-    wx.getStorageSync('after_sale_QRcode') ||
-    wx.getStorageSync('afterSaleQrCode')
-  )
-  if (fallbackQr) {
-    return { value: fallbackQr, source: 'legacy_storage' }
+  // ✅ 已废弃：遗留数据已清理
+  if (false) {
+    const fallbackQr = null
   }
 
   console.warn('⚠️ 投诉二维码未找到:', {

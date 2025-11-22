@@ -217,7 +217,8 @@ function withServiceFallback(order, serviceList) {
   // 如果没有传入客服列表，从本地存储读取
   if (!serviceList || !serviceList.length) {
     try {
-      serviceList = wx.getStorageSync('customer_service_list') || []
+      // ✅ 已废弃：客服列表应从云端users表读取
+      serviceList = []
     } catch (e) {
       serviceList = []
     }

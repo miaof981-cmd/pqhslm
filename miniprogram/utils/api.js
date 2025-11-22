@@ -1,4 +1,13 @@
-// API统一封装层
+/**
+ * ⚠️ API统一封装层（已废弃Mock降级逻辑）
+ * 
+ * 重要变更：
+ * 1. 已移除所有 useMockData 降级逻辑
+ * 2. 已移除所有 wx.getStorageSync/setStorageSync
+ * 3. 统一使用云数据库
+ * 
+ * 建议：新功能请使用 cloud-api.js（云函数封装）
+ */
 const config = require('../config/env')
 const db = wx.cloud.database()
 const _ = db.command
@@ -7,13 +16,19 @@ class ApiService {
   constructor() {
     this.db = db
     this.collections = config.collections
+    
+    // ✅ 启动时检查Mock模式
+    if (config.useMockData) {
+      console.error('[API ERROR] Mock模式已禁用，请切换 config/env.js 到生产模式')
+      throw new Error('Mock模式已禁用')
+    }
   }
   
   /**
    * 统一错误处理
    */
   handleError(error, showToast = true) {
-    console.error('API错误:', error)
+    console.error('[API ERROR]', error)
     
     if (showToast) {
       wx.showToast({
@@ -30,14 +45,9 @@ class ApiService {
    * ========== 用户模块 ==========
    */
   
-  // 获取用户信息
+  // 获取用户信息（纯云端）
   async getUserInfo(userId) {
     try {
-      if (config.useMockData || config.emergencyFallback) {
-        const users = wx.getStorageSync('users') || []
-        return users.find(u => u.userId === userId)
-      }
-      
       const res = await this.db.collection(this.collections.users)
         .where({ userId })
         .get()
@@ -48,23 +58,9 @@ class ApiService {
     }
   }
   
-  // 创建/更新用户
+  // 创建/更新用户（纯云端）
   async saveUserInfo(userData) {
     try {
-      if (config.useMockData || config.emergencyFallback) {
-        const users = wx.getStorageSync('users') || []
-        const index = users.findIndex(u => u.userId === userData.userId)
-        
-        if (index >= 0) {
-          users[index] = { ...users[index], ...userData }
-        } else {
-          users.push(userData)
-        }
-        
-        wx.setStorageSync('users', users)
-        return { success: true }
-      }
-      
       // 云数据库upsert
       const res = await this.db.collection(this.collections.users)
         .where({ userId: userData.userId })
@@ -91,16 +87,9 @@ class ApiService {
    * ========== 订单模块 ==========
    */
   
-  // 创建订单
+  // 创建订单（纯云端）
   async createOrder(orderData) {
     try {
-      if (config.useMockData || config.emergencyFallback) {
-        const orders = wx.getStorageSync('pending_orders') || []
-        orders.unshift(orderData)
-        wx.setStorageSync('pending_orders', orders)
-        return { orderId: orderData.id }
-      }
-      
       const res = await this.db.collection(this.collections.orders)
         .add({ data: orderData })
       
@@ -110,28 +99,9 @@ class ApiService {
     }
   }
   
-  // 获取订单列表
+  // 获取订单列表（纯云端）
   async getOrderList(filters = {}) {
     try {
-      if (config.useMockData || config.emergencyFallback) {
-        const pending = wx.getStorageSync('pending_orders') || []
-        const completed = wx.getStorageSync('completed_orders') || []
-        let orders = [...pending, ...completed]
-        
-        // 应用过滤
-        if (filters.status) {
-          orders = orders.filter(o => o.status === filters.status)
-        }
-        if (filters.buyerId) {
-          orders = orders.filter(o => o.buyerId === filters.buyerId)
-        }
-        if (filters.artistId) {
-          orders = orders.filter(o => o.artistId === filters.artistId)
-        }
-        
-        return orders
-      }
-      
       // 构建查询条件
       const where = {}
       if (filters.status) where.status = filters.status
@@ -149,30 +119,9 @@ class ApiService {
     }
   }
   
-  // 更新订单状态
+  // 更新订单状态（纯云端）
   async updateOrderStatus(orderId, status) {
     try {
-      if (config.useMockData || config.emergencyFallback) {
-        const pending = wx.getStorageSync('pending_orders') || []
-        const completed = wx.getStorageSync('completed_orders') || []
-        
-        const order = pending.find(o => o.id === orderId) || 
-                      completed.find(o => o.id === orderId)
-        
-        if (order) {
-          order.status = status
-          if (status === 'completed') {
-            order.completedAt = new Date().toISOString()
-          }
-          
-          // 更新存储
-          wx.setStorageSync('pending_orders', pending)
-          wx.setStorageSync('completed_orders', completed)
-        }
-        
-        return { success: true }
-      }
-      
       await this.db.collection(this.collections.orders)
         .where({ orderId })
         .update({
@@ -192,22 +141,9 @@ class ApiService {
    * ========== 商品模块 ==========
    */
   
-  // 获取商品列表
+  // 获取商品列表（纯云端）
   async getProductList(filters = {}) {
     try {
-      if (config.useMockData || config.emergencyFallback) {
-        let products = wx.getStorageSync('mock_products') || []
-        
-        if (filters.artistId) {
-          products = products.filter(p => p.artistId === filters.artistId)
-        }
-        if (filters.categoryId) {
-          products = products.filter(p => p.categoryId === filters.categoryId)
-        }
-        
-        return products
-      }
-      
       const where = {}
       if (filters.artistId) where.artistId = filters.artistId
       if (filters.categoryId) where.categoryId = filters.categoryId
@@ -222,23 +158,9 @@ class ApiService {
     }
   }
   
-  // 保存商品
+  // 保存商品（纯云端）
   async saveProduct(productData) {
     try {
-      if (config.useMockData || config.emergencyFallback) {
-        const products = wx.getStorageSync('mock_products') || []
-        const index = products.findIndex(p => p.id === productData.id)
-        
-        if (index >= 0) {
-          products[index] = productData
-        } else {
-          products.push(productData)
-        }
-        
-        wx.setStorageSync('mock_products', products)
-        return { success: true }
-      }
-      
       // 云数据库upsert
       const res = await this.db.collection(this.collections.products)
         .where({ productId: productData.id })
@@ -263,16 +185,9 @@ class ApiService {
    * ========== 财务模块 ==========
    */
   
-  // 记录收入
+  // 记录收入（纯云端）
   async createIncomeRecord(data) {
     try {
-      if (config.useMockData || config.emergencyFallback) {
-        const ledger = wx.getStorageSync('service_income_ledger') || []
-        ledger.push(data)
-        wx.setStorageSync('service_income_ledger', ledger)
-        return { success: true }
-      }
-      
       await this.db.collection(this.collections.incomes)
         .add({ data })
       
@@ -282,14 +197,9 @@ class ApiService {
     }
   }
   
-  // 获取收入列表
+  // 获取收入列表（纯云端）
   async getIncomeList(userId) {
     try {
-      if (config.useMockData || config.emergencyFallback) {
-        const ledger = wx.getStorageSync('service_income_ledger') || []
-        return ledger.filter(item => item.userId === userId)
-      }
-      
       const res = await this.db.collection(this.collections.incomes)
         .where({ userId })
         .orderBy('createTime', 'desc')

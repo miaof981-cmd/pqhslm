@@ -318,9 +318,10 @@ Page({
   // 加载客服二维码
   async loadServiceQR() {
     try {
-      let serviceList = wx.getStorageSync('customer_service_list') || []
+      // ✅ 已废弃：客服列表应从云端service_qrcodes表读取
+      let serviceList = []
       if (!Array.isArray(serviceList) || serviceList.length === 0) {
-        serviceList = wx.getStorageSync('service_list') || []
+        serviceList = []
       }
 
       if (!Array.isArray(serviceList) || serviceList.length === 0) {

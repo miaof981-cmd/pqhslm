@@ -147,7 +147,8 @@ Page({
         if (p.id) productMap.set(String(p.id), p)
       })
 
-      const serviceList = wx.getStorageSync('service_list') || []
+      // ✅ 已废弃：客服列表应从云端users表读取
+      const serviceList = []
       const userInfoMap = new Map()
       serviceList.forEach(s => {
         if (s.userId) userInfoMap.set(String(s.userId), s)

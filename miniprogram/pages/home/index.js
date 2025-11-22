@@ -456,11 +456,12 @@ Page({
   // 阻止冒泡
   stopPropagation() {},
 
-  // 创建测试商品
-  createTestProduct(e) {
+  // ✅ 创建测试商品（云端版）
+  async createTestProduct(e) {
     const type = e.currentTarget.dataset.type
-    const userInfo = wx.getStorageSync('userInfo') || {}
-    const userId = wx.getStorageSync('userId') || 1001
+    const app = getApp()
+    const userInfo = app.globalData.userInfo || {}
+    const userId = app.globalData.userId || 1001
     
     // 占位图片（透明1x1像素图片）
     const placeholderImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
@@ -511,25 +512,33 @@ Page({
       newProduct.basePrice = 0
     }
 
-    // 保存到本地存储
-    const products = wx.getStorageSync('mock_products') || []
-    products.unshift(newProduct)
-    
+    // ✅ 通过云端API创建测试商品
     try {
-      wx.setStorageSync('mock_products', products)
-      this.hideTestMenu()
-      wx.showToast({
-        title: '测试商品已创建',
-        icon: 'success'
-      })
-      // 刷新页面
-      setTimeout(() => {
-        this.loadProducts()
-      }, 500)
+      wx.showLoading({ title: '创建中...' })
+      
+      const cloudAPI = require('../../utils/cloud-api.js')
+      const result = await cloudAPI.createProduct(newProduct)
+      
+      wx.hideLoading()
+      
+      if (result.success) {
+        this.hideTestMenu()
+        wx.showToast({
+          title: '测试商品已创建',
+          icon: 'success'
+        })
+        // 刷新页面
+        setTimeout(() => {
+          this.loadProducts()
+        }, 500)
+      } else {
+        throw new Error(result.error || '创建失败')
+      }
     } catch (error) {
-      console.error('创建测试商品失败', error)
+      wx.hideLoading()
+      console.error('❌ 创建测试商品失败:', error)
       wx.showToast({
-        title: '创建失败，存储空间可能不足',
+        title: error.message || '创建失败',
         icon: 'none'
       })
     }

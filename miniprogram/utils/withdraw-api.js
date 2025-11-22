@@ -148,6 +148,7 @@ function queryWithdrawStatus(orderId) {
 
 /**
  * 模拟提现自动成功（开发环境用）
+ * ❌ 已废弃：提现记录已云端化，不再使用本地存储
  * @param {String} recordId 提现记录ID
  * @param {Function} callback 成功回调
  */
@@ -157,50 +158,24 @@ function mockAutoWithdrawSuccess(recordId, callback) {
     return
   }
 
-  console.log('🎯 模拟提现自动成功（3秒后）:', recordId)
+  console.log('🎯 模拟提现自动成功已废弃（提现记录已云端化）:', recordId)
   
-  setTimeout(() => {
-    const records = wx.getStorageSync('withdraw_records') || []
-    const record = records.find(r => r.id === recordId)
-    
-    if (record && record.status === 'pending') {
-      record.status = 'success'
-      record.statusText = '提现成功'
-      record.completedTime = new Date().toLocaleString('zh-CN')
-      record.apiStatus = 'success'
-      record.apiMessage = '提现成功（模拟）'
-      
-      wx.setStorageSync('withdraw_records', records)
-      
-      console.log('✅ 提现自动成功:', record)
-      
-      if (callback) callback(record)
-    }
-  }, 3000)
+  // ❌ 已移除本地存储操作
+  // 云端提现记录由云函数自动更新状态
+  console.warn('⚠️ mockAutoWithdrawSuccess 已废弃，提现状态由云函数管理')
 }
 
 /**
  * 处理提现回调（Webhook）
- * 生产环境由后端调用前端接口更新状态
+ * ❌ 已废弃：提现记录已云端化，状态由云函数更新
  * @param {Object} data 回调数据
  */
 function handleWithdrawCallback(data) {
-  console.log('📥 收到提现回调:', data)
+  console.log('📥 收到提现回调（已废弃）:', data)
   
-  const records = wx.getStorageSync('withdraw_records') || []
-  const record = records.find(r => r.apiOrderId === data.orderId)
-  
-  if (record) {
-    record.status = data.status === 'success' ? 'success' : 'failed'
-    record.statusText = data.status === 'success' ? '提现成功' : '提现失败'
-    record.completedTime = data.completedTime
-    record.apiStatus = data.status
-    record.apiMessage = data.message
-    
-    wx.setStorageSync('withdraw_records', records)
-    
-    console.log('✅ 提现状态已更新:', record)
-  }
+  // ❌ 已移除本地存储操作
+  // 提现状态由云函数直接更新到数据库
+  console.warn('⚠️ handleWithdrawCallback 已废弃，提现状态由云函数更新')
 }
 
 module.exports = {

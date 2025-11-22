@@ -1,5 +1,13 @@
+const app = getApp()
+const cloudAPI = require('../../utils/cloud-api.js')
 const orderDiagnosis = require('../../utils/order-diagnosis.js')
 const orderHelper = require('../../utils/order-helper.js')
+
+/**
+ * ⚠️ 订单诊断工具页面
+ * 已云端化：所有数据从云端读取
+ * 注意：云端化后，数据源统计功能已简化
+ */
 
 Page({
   data: {
@@ -30,21 +38,27 @@ Page({
     this.runDiagnosis()
   },
 
-  runDiagnosis() {
+  async runDiagnosis() {
     this.setData({ loading: true })
     
     try {
-      // 获取完整诊断报告
+      // ✅ 从云端获取所有订单
+      const ordersRes = await cloudAPI.getOrderList({})
+      const allOrders = ordersRes.success ? (ordersRes.data || []) : []
+      
+      // 获取完整诊断报告（基于云端数据）
       const report = orderDiagnosis.diagnoseOrderCounts()
       
       // 检查重复订单
       const duplicates = orderDiagnosis.checkDuplicates()
       
-      // 获取数据源统计
-      const orders = wx.getStorageSync('orders') || []
-      const pendingOrders = wx.getStorageSync('pending_orders') || []
-      const mockOrders = wx.getStorageSync('mock_orders') || []
-      const allOrders = orderHelper.getAllOrders()
+      // ✅ 云端化后，数据源统一（不再分离 orders/pending_orders/mock_orders）
+      const dataSources = {
+        orders: 0,  // ❌ 已废弃
+        pending: 0, // ❌ 已废弃
+        mock: 0,    // ❌ 已废弃
+        total: allOrders.length
+      }
       
       // 详细状态分布
       const unpaidOrders = allOrders.filter(o => o.status === 'unpaid').length
@@ -67,23 +81,19 @@ Page({
           waiting: waitingOrders,
           nearDeadline: nearDeadlineOrders
         },
-        dataSources: {
-          orders: orders.length,
-          pending: pendingOrders.length,
-          mock: mockOrders.length,
-          total: allOrders.length
-        },
+        dataSources: dataSources,
         duplicates: duplicates,
         extraOrders: report.extraInAdmin.map(o => ({
-          id: o.id,
+          id: o._id || o.id,
           status: o.status,
-          product: o.productName || '未知商品',
-          buyer: o.buyerName || o.buyerId || '未知',
-          artistId: o.artistId || ''
+          product: o.productName || o.product_name || '未知商品',
+          buyer: o.buyerName || o.buyer_name || o.buyerId || o.buyer_id || '未知',
+          artistId: o.artistId || o.artist_id || ''
         }))
       })
       
-      console.log('诊断完成:', {
+      console.log('诊断完成（云端版）:', {
+        总订单数: allOrders.length,
         差异: report.difference,
         重复订单: duplicates.length,
         差异订单: report.extraInAdmin.length
@@ -115,4 +125,3 @@ Page({
     wx.navigateBack()
   }
 })
-

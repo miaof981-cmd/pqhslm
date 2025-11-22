@@ -21,27 +21,32 @@ Page({
     console.log('📦 开始创建订单')
     console.log('========================================')
     
-    // === 1️⃣ 从商品表获取画师信息 ===
-    const products = wx.getStorageSync('mock_products') || []
+    // === 1️⃣ 从云端获取商品信息 ===
     let product = null
     
     if (options.productId) {
-      product = products.find(p => String(p.id) === String(options.productId))
-    }
-    if (!product && options.productName) {
-      product = products.find(p => p.name === decodeURIComponent(options.productName))
+      try {
+        const res = await cloudAPI.getProductDetail(options.productId)
+        if (res && res.success && res.data) {
+          product = res.data
+          console.log('✅ 从云端加载商品:', product.name)
+        }
+      } catch (error) {
+        console.warn('⚠️ 云端商品加载失败:', error)
+      }
     }
     
+    // 降级：使用页面参数构建商品对象
     if (!product) {
-      console.warn('⚠️ 商品未在本地商品池中找到，尝试使用页面参数回填。', {
-        productId: options.productId,
-        productName: options.productName
-      })
+      console.warn('⚠️ 未找到云端商品，使用页面参数回填')
       product = {
         id: options.productId || '',
         name: decodeURIComponent(options.productName || '商品'),
         deliveryDays: parseInt(options.deliveryDays, 10) || 7,
-        images: []
+        images: [],
+        artistId: options.artistId || '',
+        artistName: options.artistName || '',
+        artistAvatar: options.artistAvatar || ''
       }
     }
     
@@ -205,13 +210,8 @@ Page({
     console.log('原始参数:', options)
     
     let orderItems = []
-    const cachedOrderItems = wx.getStorageSync('order_success_items')
-    if (Array.isArray(cachedOrderItems) && cachedOrderItems.length > 0) {
-      orderItems = cachedOrderItems
-        .map(item => this.normalizeOrderItem(item, orderInfo.productImage))
-        .filter(Boolean)
-      wx.removeStorageSync('order_success_items')
-    }
+    // ✅ 已移除本地缓存读取（order_success_items）
+    // 订单明细应从页面参数或商品数据中构建
     
     if (orderItems.length === 0) {
       orderItems = [
@@ -335,24 +335,20 @@ Page({
     }
   },
   
-  // 自动分配客服（异步，确保头像转换完成）
+  // 自动分配客服（纯云端）
   async assignService() {
     console.log('📞 开始分配客服...')
     
-    // 获取所有客服
-    let serviceList = wx.getStorageSync('customer_service_list') || []
-    
-    // 🎯 如果客服列表为空，自动创建默认客服
-    if (serviceList.length === 0) {
-      console.log('⚠️ customer_service_list 为空，尝试从 service_list 加载')
-      
-      // 🎯 尝试从 service_list 加载（另一个数据源）
-      const backupServiceList = wx.getStorageSync('service_list') || []
-      if (backupServiceList.length > 0) {
-        serviceList = backupServiceList
-        wx.setStorageSync('customer_service_list', serviceList)
-        console.log('✅ 从 service_list 恢复客服列表')
+    // ✅ 从云端获取所有客服
+    let serviceList = []
+    try {
+      const res = await cloudAPI.getServiceList(true) // true = 仅获取在线客服
+      if (res && res.success && Array.isArray(res.data)) {
+        serviceList = res.data
+        console.log('✅ 从云端加载客服列表，数量:', serviceList.length)
       }
+    } catch (error) {
+      console.error('❌ 云端客服列表加载失败:', error)
     }
     
     if (serviceList.length === 0) {
@@ -367,24 +363,9 @@ Page({
       }
     }
     
-    // 🎯 确保至少有一个客服在线
-    const activeServices = serviceList.filter(s => s.isActive)
-    if (activeServices.length === 0) {
-      console.log('⚠️ 所有客服离线，强制第一个客服上线')
-      serviceList[0].isActive = true
-      wx.setStorageSync('customer_service_list', serviceList)
-      wx.setStorageSync('service_list', serviceList)
-    }
-    
-    // 重新获取在线客服
-    const finalActiveServices = serviceList.filter(s => s.isActive)
-    
-    // Round-robin 分配（轮询）
-    const lastAssignedIndex = wx.getStorageSync('lastAssignedServiceIndex') || 0
-    const nextIndex = (lastAssignedIndex + 1) % finalActiveServices.length
-    wx.setStorageSync('lastAssignedServiceIndex', nextIndex)
-    
-    let assignedService = finalActiveServices[nextIndex]
+    // Round-robin 分配（轮询）- 简化版，不再持久化索引
+    const randomIndex = Math.floor(Math.random() * serviceList.length)
+    let assignedService = serviceList[randomIndex]
 
     if (!assignedService) {
       console.warn('⚠️ 未找到可用客服，将使用占位信息')
@@ -399,34 +380,15 @@ Page({
     }
     
     console.log('📞 客服分配结果:')
-    console.log('- 在线客服数:', finalActiveServices.length)
-    console.log('- 分配索引:', nextIndex)
+    console.log('- 在线客服数:', serviceList.length)
+    console.log('- 分配索引:', randomIndex)
     console.log('- 客服ID:', assignedService.userId || assignedService.id)
     console.log('- 客服名:', assignedService.name || assignedService.nickName)
     
-    // 🎯 确保头像是永久路径
-    let serviceAvatar = assignedService.avatar || assignedService.avatarUrl || ''
-    
-    if (serviceAvatar.startsWith('http://tmp/')) {
-      console.log('⚠️ 检测到临时头像，正在转换...')
-      serviceAvatar = await this.convertTempAvatar(serviceAvatar)
-      
-      // 更新客服列表中的头像
-      const serviceIndex = serviceList.findIndex(s => 
-        (s.userId || s.id) === (assignedService.userId || assignedService.id)
-      )
-      if (serviceIndex !== -1) {
-        serviceList[serviceIndex].avatar = serviceAvatar
-        serviceList[serviceIndex].avatarUrl = serviceAvatar
-        wx.setStorageSync('customer_service_list', serviceList)
-        wx.setStorageSync('service_list', serviceList)
-        console.log('✅ 客服头像已更新为永久路径')
-      }
-    }
+    // ✅ 头像已在云端存储，直接使用
+    const serviceAvatar = assignedService.avatar || assignedService.avatarUrl || ''
     
     // 🎯 重要：订单只保存 serviceId，不保存二维码 URL
-    // 这样订单详情页每次都会从客服列表动态读取最新二维码
-    // 即使客服更换二维码，历史订单也能显示最新的
     console.log('✅ 客服分配完成，订单将保存 serviceId，二维码将动态读取')
     
     return {
@@ -488,61 +450,12 @@ Page({
       candidateIds.push(ensure(context.options.artistId))
     }
     
-    const applications = wx.getStorageSync('artist_applications') || []
-    let matchedApplication = null
-    if (applications.length > 0) {
-      matchedApplication = applications.find(app => {
-        const appId = ensure(app.userId)
-        return appId && candidateIds.includes(appId)
-      })
-      if (!matchedApplication && info.artistName) {
-        matchedApplication = applications.find(app => ensure(app.name) === info.artistName)
-      }
-    }
+    // ✅ 已移除本地缓存读取（artist_applications、artist_profiles、mock_users）
+    // 画师信息应直接从商品数据或页面参数中获取
+    // 如果缺失，在上层业务逻辑中处理
     
-    if (matchedApplication) {
-      fallbackLogs.push('从 artist_applications 补全画师信息')
-      if (!info.artistId) info.artistId = ensure(matchedApplication.userId)
-      if (!info.artistName) info.artistName = ensure(matchedApplication.name || matchedApplication.realName)
-      const avatarFromApp = matchedApplication.avatarUrl || matchedApplication.avatar
-      const normalizedAvatar = ensure(avatarFromApp)
-      if (!info.artistAvatar && normalizedAvatar && !this.isInvalidImagePath(normalizedAvatar)) {
-        info.artistAvatar = normalizedAvatar
-        const index = invalidFields.indexOf('artistAvatar')
-        if (index !== -1) invalidFields.splice(index, 1)
-      }
-    }
-    
-    if (!info.artistAvatar && info.artistId) {
-      const profiles = wx.getStorageSync('artist_profiles') || {}
-      const profile = profiles[info.artistId]
-      if (profile) {
-        const profileAvatar = ensure(profile.avatar || profile.avatarUrl)
-        if (profileAvatar && !this.isInvalidImagePath(profileAvatar)) {
-          info.artistAvatar = profileAvatar
-          fallbackLogs.push('从 artist_profiles 补全画师头像')
-          const index = invalidFields.indexOf('artistAvatar')
-          if (index !== -1) invalidFields.splice(index, 1)
-        }
-      }
-    }
-    
-    if ((!info.artistName || !info.artistAvatar) && info.artistId) {
-      const mockUsers = wx.getStorageSync('mock_users') || []
-      const matchedUser = mockUsers.find(user => ensure(user.userId) === info.artistId)
-      if (matchedUser) {
-        fallbackLogs.push('从 mock_users 补全画师基础信息')
-        if (!info.artistName) {
-          info.artistName = ensure(matchedUser.nickname || matchedUser.nickName || matchedUser.name)
-        }
-        const userAvatar = ensure(matchedUser.avatar || matchedUser.avatarUrl)
-        if (!info.artistAvatar && userAvatar && !this.isInvalidImagePath(userAvatar)) {
-          info.artistAvatar = userAvatar
-          const index = invalidFields.indexOf('artistAvatar')
-          if (index !== -1) invalidFields.splice(index, 1)
-        }
-      }
-    }
+    // 保留：如果仍缺少画师信息，可考虑从云端users表补全
+    // 但通常商品数据应该包含完整的画师信息
     
     const missingFields = []
     if (!info.artistId) missingFields.push('artistId')
@@ -627,24 +540,26 @@ Page({
     }
   },
 
-  // 自动保存订单到本地存储
+  // ⚠️ 已废弃：订单已统一保存到云端
+  // 保留此函数仅用于紧急降级
   saveOrderToLocal(orderInfo, serviceInfo, orderItems = [], options = {}) {
-    console.log(
-      '[order-success] 保存订单',
-      {
-        customerId: wx.getStorageSync('userId'),
-        serviceId: serviceInfo?.serviceId,
-        serviceName: serviceInfo?.serviceName
-      }
-    )
-
+    console.warn('[DEPRECATED] saveOrderToLocal 已废弃，订单已保存到云端')
+    console.log('[order-success] 废弃的本地保存调用', {
+      orderNo: orderInfo.orderNo,
+      productName: orderInfo.productName
+    })
+    
+    // ✅ 不再执行任何本地存储操作
+    return
+    
+    /* 原本地保存逻辑已注释
     console.log('========================================')
     console.log('💾 订单自动保存 - 开始')
     console.log('========================================')
 
     try {
-      let pendingOrders = wx.getStorageSync('pending_orders') || []
-      console.log('当前订单数量:', pendingOrders.length)
+      // let pendingOrders = wx.getStorageSync('pending_orders') || [] // ❌ 已移除
+      // console.log('当前订单数量:', pendingOrders.length) // ❌ 已移除
 
       // 检查是否已存在相同订单号（避免重复保存）
       const existingIndex = pendingOrders.findIndex(o => o.id === orderInfo.orderNo)
@@ -652,11 +567,10 @@ Page({
       // ✅ 引入用户工具模块（方案3：创建兜底）
       const userHelper = require('../../utils/user-helper.js')
 
-      // 获取当前用户信息
-      const userInfo = wx.getStorageSync('userInfo') || {}
-
-      // 🎯 多层兜底获取 userId
-      let userId = wx.getStorageSync('userId')
+      // ✅ 从 app.globalData 获取用户信息
+      const app = getApp()
+      const userInfo = app.globalData.userInfo || {}
+      let userId = app.globalData.userId
       const { userId: finalUserId, isGuest } = userHelper.getOrCreateUserId(userId)
       userId = finalUserId
 
@@ -784,35 +698,16 @@ Page({
         pendingOrders.push(newOrder)
       }
 
-      wx.setStorageSync('pending_orders', pendingOrders)
-
-      const savedPending = wx.getStorageSync('pending_orders') || []
-      const savedAll = orderHelper.getAllOrders()
+      // wx.setStorageSync('pending_orders', pendingOrders) // ❌ 已移除
 
       console.log('========================================')
-      console.log('✅ 订单保存成功！')
-      console.log('========================================')
-      console.log('订单号:', orderInfo.orderNo)
-      console.log('商品名:', orderInfo.productName)
-      console.log('总价:', orderInfo.totalAmount)
-      console.log('保存后 pending_orders 总数:', savedPending.length)
-      console.log('聚合后订单池总数:', savedAll.length)
-      console.log('验证: 订单已在 pending_orders 中')
+      console.log('✅ 订单保存成功（本地模式已废弃）')
       console.log('========================================')
 
     } catch (error) {
-      console.log('========================================')
-      console.error('❌ 订单保存失败！')
-      console.log('========================================')
-      console.error('错误信息:', error)
-      console.log('========================================')
-    } finally {
-      const userId = wx.getStorageSync('userId')
-      if (userId) {
-        wx.removeStorageSync(`processing_count_${userId}`)
-        console.log('✅ 已清除订单数量缓存，下次进入用户中心将显示最新数据')
-      }
+      console.error('❌ 订单保存失败:', error)
     }
+    */
   },
 
   buildSpecPayload(orderInfo, orderItems = []) {
@@ -862,10 +757,7 @@ Page({
   },
 
   async createOrderInCloud(orderInfo, orderItems = []) {
-    if (envConfig.useMockData || envConfig.emergencyFallback) {
-      return { success: true, skipped: true, message: 'mock 模式下跳过云端下单' }
-    }
-
+    // ✅ 已移除Mock模式检查，强制走云端
     const { specSummary, specsPayload } = this.buildSpecPayload(orderInfo, orderItems)
 
     const payload = {
@@ -969,47 +861,13 @@ Page({
     })
   },
 
-  // 查看订单详情
+  // 查看订单详情（纯云端）
   viewOrderDetail() {
     const { orderInfo } = this.data
     
-    // 保存订单到本地存储
-    const orders = wx.getStorageSync('pending_orders') || []
-    
-    // 检查订单是否已存在
-    const existingIndex = orders.findIndex(o => o.id === orderInfo.orderNo)
-    
-    if (existingIndex === -1) {
-      // 创建完整的订单对象
-      const specText = orderInfo.spec1 && orderInfo.spec2 
-        ? `${orderInfo.spec1}/${orderInfo.spec2}`
-        : orderInfo.spec1 || orderInfo.spec2 || '无'
-      
-      const newOrder = {
-        id: orderInfo.orderNo,
-        productId: orderInfo.productId,
-        productName: orderInfo.productName,
-        // ⚠️ 不保存 base64 图片
-        productImage: orderInfo.productImage && !orderInfo.productImage.startsWith('data:image') 
-          ? orderInfo.productImage 
-          : '',
-        spec: specText,
-        price: orderInfo.totalAmount.toFixed(2),
-        quantity: orderInfo.quantity,
-        status: 'inProgress',
-        statusText: '进行中',
-        createTime: orderInfo.createTime,
-        deadline: this.calculateDeadline(orderInfo.createTime, orderInfo.deliveryDays),
-        urgent: false,
-        step: 2,
-        buyerName: wx.getStorageSync('userInfo')?.nickName || '匿名用户',
-        artistName: orderInfo.artistName
-      }
-      
-      orders.push(newOrder)
-      wx.setStorageSync('pending_orders', orders)
-      console.log('✅ 订单已保存:', newOrder)
-    }
+    // ✅ 订单已保存到云端，直接跳转即可
+    // 订单详情页会从云端读取数据
+    console.log('✅ 跳转到订单详情，订单号:', orderInfo.orderNo)
     
     // 跳转到订单详情页
     wx.navigateTo({

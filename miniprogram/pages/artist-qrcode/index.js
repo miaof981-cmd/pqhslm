@@ -1,13 +1,14 @@
+const app = getApp()
+const cloudAPI = require('../../utils/cloud-api.js')
+
 Page({
   data: {
-    isSubmitted: false, // 是否已提交
-    hasArtistPermission: false, // 是否已有画师权限
-    applicationApproved: false, // 申请是否已通过（但权限未开启）
+    isSubmitted: false,
+    hasArtistPermission: false,
+    applicationApproved: false,
     
-    // 工作人员二维码
     staffQRCode: '',
     
-    // 个人信息
     realName: '',
     contactPhone: '',
     contactWechat: '',
@@ -16,75 +17,80 @@ Page({
     codeButtonText: '发送验证码',
     countdown: 60,
     
-    // 紧急联系人
     emergencyName: '',
     emergencyRelation: '',
     emergencyPhone: '',
     relationOptions: ['父母', '配偶', '子女', '兄弟姐妹', '朋友', '其他'],
     relationIndex: -1,
     
-    // 完成信息
     createTime: ''
   },
 
   onLoad() {
-    this.checkApplicationStatus() // 先检查申请状态
+    this.checkApplicationStatus()
     this.checkArtistPermission()
     this.loadStaffQRCode()
     this.checkExistingProfile()
   },
 
   // 检查申请状态
-  checkApplicationStatus() {
-    const app = getApp()
-    const userId = app.globalData.userId || wx.getStorageSync('userId')
+  async checkApplicationStatus() {
+    const userId = app.globalData.userId
     
-    // 读取所有申请记录
-    const allApplications = wx.getStorageSync('artist_applications') || []
-    const userApplications = allApplications.filter(app => app.userId === userId)
-    
-    if (userApplications.length > 0) {
-      // 按时间排序，取最新的
-      userApplications.sort((a, b) => new Date(b.submitTime) - new Date(a.submitTime))
-      const latestApp = userApplications[0]
+    try {
+      // ✅ 从云端读取申请记录
+      const res = await cloudAPI.getArtistApplicationList({ userId })
+      const allApplications = res.success ? (res.data || []) : []
+      const userApplications = allApplications.filter(app => app.userId === userId)
       
-      console.log('📋 [artist-qrcode] 申请状态检查:')
-      console.log('  - 最新申请状态:', latestApp.status)
-      
-      // 如果申请已通过，标记为已通过
-      if (latestApp.status === 'approved') {
-        this.setData({
-          applicationApproved: true
-        })
-        console.log('  ✅ 申请已通过，等待权限开启')
+      if (userApplications.length > 0) {
+        userApplications.sort((a, b) => new Date(b.submitTime) - new Date(a.submitTime))
+        const latestApp = userApplications[0]
+        
+        console.log('📋 [artist-qrcode] 申请状态检查:')
+        console.log('  - 最新申请状态:', latestApp.status)
+        
+        if (latestApp.status === 'approved') {
+          this.setData({
+            applicationApproved: true
+          })
+          console.log('  ✅ 申请已通过，等待权限开启')
+        }
       }
+    } catch (err) {
+      console.error('❌ 检查申请状态失败:', err)
     }
   },
 
   // 检查是否有画师权限
-  checkArtistPermission() {
-    const app = getApp()
-    const userId = app.globalData.userId || wx.getStorageSync('userId')
+  async checkArtistPermission() {
+    const userId = app.globalData.userId
+    // ✅ userRoles 是UI状态，可保留
     let roles = wx.getStorageSync('userRoles') || ['customer']
     
     console.log('🔍 [artist-qrcode] 权限检查详情:')
     console.log('  - 当前用户ID:', userId)
     console.log('  - 当前角色列表:', roles)
     
-    // ⭐ 检查申请记录，如果管理员已授权，自动添加 artist 角色
-    const applications = wx.getStorageSync('artist_applications') || []
-    const userApp = applications.find(app => app.userId == userId && app.status === 'approved' && app.permissionGranted)
-    
-    if (userApp && !roles.includes('artist')) {
-      console.log('✅ 检测到管理员已授权，自动添加 artist 权限')
-      console.log('  - 画师编号:', userApp.artistNumber)
-      console.log('  - 授权时间:', userApp.permissionGrantedTime)
+    try {
+      // ✅ 从云端检查申请记录
+      const res = await cloudAPI.getArtistApplicationList({ userId })
+      const applications = res.success ? (res.data || []) : []
+      const userApp = applications.find(app => app.userId == userId && app.status === 'approved' && app.permissionGranted)
       
-      roles.push('artist')
-      wx.setStorageSync('userRoles', roles)
-      app.globalData.roles = roles
-      
-      console.log('  - 更新后的roles:', roles)
+      if (userApp && !roles.includes('artist')) {
+        console.log('✅ 检测到管理员已授权，自动添加 artist 权限')
+        console.log('  - 画师编号:', userApp.artistNumber)
+        console.log('  - 授权时间:', userApp.permissionGrantedTime)
+        
+        roles.push('artist')
+        wx.setStorageSync('userRoles', roles)
+        app.globalData.roles = roles
+        
+        console.log('  - 更新后的roles:', roles)
+      }
+    } catch (err) {
+      console.error('❌ 检查申请记录失败:', err)
     }
     
     const hasArtistPermission = roles.includes('artist')
@@ -99,33 +105,44 @@ Page({
   },
 
   // 加载工作人员二维码
-  loadStaffQRCode() {
-    const staffQRCode = wx.getStorageSync('staff_contact_qrcode') || '/assets/default-qrcode.png'
-    
-    console.log('👔 加载工作人员联系二维码:', staffQRCode)
-    
-    this.setData({
-      staffQRCode: staffQRCode
-    })
+  async loadStaffQRCode() {
+    try {
+      // ✅ 从云端获取系统设置
+      const res = await cloudAPI.getSystemSettings()
+      const staffQRCode = res.success && res.data ? (res.data.staff_contact_qrcode || res.data.staffContactQrcode || '/assets/default-qrcode.png') : '/assets/default-qrcode.png'
+      
+      console.log('👔 加载工作人员联系二维码:', staffQRCode)
+      
+      this.setData({
+        staffQRCode: staffQRCode
+      })
+    } catch (err) {
+      console.error('❌ 加载工作人员二维码失败:', err)
+      this.setData({
+        staffQRCode: '/assets/default-qrcode.png'
+      })
+    }
   },
 
   // 检查是否已有档案
-  checkExistingProfile() {
-    const app = getApp()
-    const userId = app.globalData.userId || wx.getStorageSync('userId')
+  async checkExistingProfile() {
+    const userId = app.globalData.userId
     
-    // 从本地存储读取画师档案
-    const artistProfiles = wx.getStorageSync('artist_profiles') || {}
-    const profile = artistProfiles[userId]
-    
-    if (profile) {
-      // 已有档案，直接显示完成状态
-      this.setData({
-        isSubmitted: true,
-        contactPhone: profile.contactPhone,
-        contactWechat: profile.contactWechat,
-        createTime: profile.createTime
-      })
+    try {
+      // ✅ 从云端读取画师档案
+      const res = await cloudAPI.getArtistProfile(String(userId))
+      
+      if (res.success && res.data) {
+        const profile = res.data
+        this.setData({
+          isSubmitted: true,
+          contactPhone: profile.contactPhone || profile.contact_phone || '',
+          contactWechat: profile.contactWechat || profile.contact_wechat || '',
+          createTime: profile.createTime || profile.create_time || ''
+        })
+      }
+    } catch (err) {
+      console.error('❌ 加载画师档案失败:', err)
     }
   },
 
@@ -196,10 +213,9 @@ Page({
         icon: 'success'
       })
       
-      // 开始倒计时
       this.startCountdown()
       
-      // 实际项目中应调用云函数发送短信
+      // TODO: 实际项目中应调用云函数发送短信
       console.log('📱 发送验证码到:', this.data.contactPhone)
     }, 500)
   },
@@ -261,25 +277,10 @@ Page({
     
     // 验证码校验
     // TODO: 接入真实短信验证接口
-    // 开发阶段：任何6位数字都通过
-    // 生产阶段：需要调用后端接口验证
-    
-    const isDev = true // 开发模式开关，上线时改为 false
+    const isDev = true
     
     if (isDev) {
-      // 开发模式：任何6位数字都通过
       console.log('📱 [开发模式] 验证码校验通过:', verifyCode)
-    } else {
-      // 生产模式：调用后端验证
-      // TODO: 调用云函数或后端API验证验证码
-      // const result = await wx.cloud.callFunction({
-      //   name: 'verifyCode',
-      //   data: { phone: contactPhone, code: verifyCode }
-      // })
-      // if (!result.success) {
-      //   wx.showToast({ title: '验证码错误', icon: 'none' })
-      //   return
-      // }
     }
     
     if (!contactWechat || contactWechat.length < 2) {
@@ -319,58 +320,43 @@ Page({
   },
 
   // 保存画师档案
-  saveProfile() {
+  async saveProfile() {
     wx.showLoading({ title: '提交中...' })
     
-    const app = getApp()
-    const userId = app.globalData.userId || wx.getStorageSync('userId')
+    const userId = app.globalData.userId
     const now = new Date()
     const createTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
     
     // 构建档案数据
-    const profile = {
-      userId: userId,
-      // 个人信息
+    const profileData = {
+      userId: String(userId),
       realName: this.data.realName,
       contactPhone: this.data.contactPhone,
       contactWechat: this.data.contactWechat,
       emergencyName: this.data.emergencyName,
       emergencyRelation: this.data.emergencyRelation,
-      emergencyPhone: this.data.emergencyPhone,
-      // 时间戳
-      createTime: createTime,
-      updateTime: createTime
+      emergencyPhone: this.data.emergencyPhone
     }
     
-    // 保存到画师档案
-    const artistProfiles = wx.getStorageSync('artist_profiles') || {}
-    artistProfiles[userId] = profile
-    wx.setStorageSync('artist_profiles', artistProfiles)
-    
-    // 保存联系方式历史记录（用于后台查看，画师无法删除）
-    const contactHistory = wx.getStorageSync('artist_contact_history') || {}
-    if (!contactHistory[userId]) {
-      contactHistory[userId] = []
-    }
-    contactHistory[userId].push({
-      realName: this.data.realName,
-      contactPhone: this.data.contactPhone,
-      contactWechat: this.data.contactWechat,
-      emergencyName: this.data.emergencyName,
-      emergencyRelation: this.data.emergencyRelation,
-      emergencyPhone: this.data.emergencyPhone,
-      recordTime: createTime
-    })
-    wx.setStorageSync('artist_contact_history', contactHistory)
-    
-    console.log('✅ 画师档案已保存')
-    console.log('  - 用户ID:', userId)
-    console.log('  - 真实姓名:', this.data.realName)
-    console.log('  - 联系电话:', this.data.contactPhone)
-    console.log('  - 紧急联系人:', this.data.emergencyName, '(', this.data.emergencyRelation, ')')
-    console.log('  - 联系方式历史记录数:', contactHistory[userId].length)
-    
-    setTimeout(() => {
+    try {
+      // ✅ 保存到云端
+      const res = await cloudAPI.updateArtistProfile(String(userId), profileData)
+      
+      if (!res.success) {
+        wx.hideLoading()
+        wx.showToast({
+          title: res.error || '保存失败',
+          icon: 'none'
+        })
+        return
+      }
+      
+      console.log('✅ 画师档案已保存（云端）')
+      console.log('  - 用户ID:', userId)
+      console.log('  - 真实姓名:', this.data.realName)
+      console.log('  - 联系电话:', this.data.contactPhone)
+      console.log('  - 紧急联系人:', this.data.emergencyName, '(', this.data.emergencyRelation, ')')
+      
       wx.hideLoading()
       
       this.setData({
@@ -390,7 +376,7 @@ Page({
         duration: 300
       })
       
-      // ⭐ 3秒后自动跳转到工作台
+      // 3秒后自动跳转到工作台
       setTimeout(() => {
         console.log('📍 档案建立完成，3秒后跳转到工作台')
         wx.redirectTo({
@@ -400,21 +386,30 @@ Page({
           },
           fail: (err) => {
             console.error('❌ 跳转失败:', err)
-            // 如果跳转失败，尝试用 navigateTo
             wx.navigateTo({
               url: '/pages/workspace/index'
             })
           }
         })
       }, 3000)
-    }, 1000)
+    } catch (err) {
+      wx.hideLoading()
+      console.error('❌ 保存画师档案失败:', err)
+      wx.showToast({
+        title: '保存失败',
+        icon: 'none'
+      })
+    }
   },
 
   // 进入工作台
   goToWorkspace() {
+    const userId = app.globalData.userId
+    const roles = app.globalData.roles || wx.getStorageSync('userRoles') || []
+    
     console.log('🚀 [artist-qrcode] 点击了"进入工作台"按钮')
-    console.log('  - 当前用户ID:', wx.getStorageSync('userId'))
-    console.log('  - 当前角色:', wx.getStorageSync('userRoles'))
+    console.log('  - 当前用户ID:', userId)
+    console.log('  - 当前角色:', roles)
     console.log('  - 准备跳转到 /pages/workspace/index')
     
     wx.redirectTo({
@@ -424,7 +419,6 @@ Page({
       },
       fail: (err) => {
         console.error('❌ 跳转失败:', err)
-        // 如果 redirectTo 失败，尝试 navigateTo
         wx.navigateTo({
           url: '/pages/workspace/index',
           success: () => {

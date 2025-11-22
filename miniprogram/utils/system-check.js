@@ -29,9 +29,10 @@ function isValidImage(url) {
 }
 
 function pickServiceList() {
-  const primary = normalizeArray(wx.getStorageSync('customer_service_list'))
+  // ✅ 已废弃：客服列表应从云端service_qrcodes表读取
+  const primary = []
   if (primary.length > 0) return primary
-  return normalizeArray(wx.getStorageSync('service_list'))
+  return []
 }
 
 function runOrderFlowDiagnostics(options = {}) {

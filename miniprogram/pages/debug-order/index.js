@@ -1,4 +1,13 @@
+const app = getApp()
+const cloudAPI = require('../../utils/cloud-api.js')
 const orderHelper = require('../../utils/order-helper.js')
+
+/**
+ * ⚠️ 调试工具页面
+ * 用于诊断订单和商品数据问题
+ * 已云端化：所有数据从云端读取
+ * ❌ 已废弃修复功能：数据修复应在云端进行
+ */
 
 Page({
   data: {
@@ -7,15 +16,15 @@ Page({
     totalOrders: 0,
     totalProducts: 0,
     totalServices: 0,
-    problemOrders: [],  // 问题订单列表
-    problemProducts: [], // 🎯 新增：问题商品列表
+    problemOrders: [],
+    problemProducts: [],
     issueStats: {
       productNotFound: 0,
       artistMismatch: 0,
       noService: 0,
       missingFields: 0,
-      wrongArtistName: 0,  // 🎯 新增：画师名字错误
-      wrongCategory: 0     // 🎯 新增：分类错误
+      wrongArtistName: 0,
+      wrongCategory: 0
     }
   },
 
@@ -23,19 +32,27 @@ Page({
     this.runDiagnosis()
   },
 
-  runDiagnosis() {
+  async runDiagnosis() {
     this.setData({ loading: true })
     
-    setTimeout(() => {
-      // 1️⃣ 加载所有数据
-      const allOrders = orderHelper.getAllOrders()
-      const products = wx.getStorageSync('mock_products') || []
-      const services = wx.getStorageSync('customer_service_list') || 
-                       wx.getStorageSync('service_list') || []
+    try {
+      // ✅ 从云端加载所有数据
+      const [ordersRes, productsRes, categoriesRes, appsRes] = await Promise.all([
+        cloudAPI.getOrderList({}),
+        cloudAPI.getProductList({}),
+        cloudAPI.getCategoryList(),
+        cloudAPI.getArtistApplicationList({})
+      ])
+
+      const allOrders = ordersRes.success ? (ordersRes.data || []) : []
+      const products = productsRes.success ? (productsRes.data || []) : []
+      const categories = categoriesRes.success ? (categoriesRes.data || []) : []
+      const applications = appsRes.success ? (appsRes.data || []) : []
+      const services = []  // ✅ 客服列表从云端用户表读取
 
       this.setData({ scanProgress: allOrders.length })
 
-      // 2️⃣ 扫描每个订单
+      // 扫描每个订单
       const problemOrders = []
       const stats = {
         productNotFound: 0,
@@ -47,9 +64,6 @@ Page({
       }
       
       // 🎯 扫描商品画师名字 + 分类异常
-      const users = wx.getStorageSync('users') || []
-      const applications = wx.getStorageSync('artist_applications') || []
-      const categories = wx.getStorageSync('categories') || []
       const problemProducts = []
       
       // 🎯 检测异常英文的辅助函数
@@ -59,31 +73,24 @@ Page({
         return str.includes('cat_') || 
                str === 'emoticon' || 
                str === 'portrait' ||
-               /^[a-zA-Z0-9_]+$/.test(str)  // 纯英文+数字+下划线
+               /^[a-zA-Z0-9_]+$/.test(str)
       }
       
       products.forEach(product => {
-        const artistName = product.artistName || ''
-        const artistId = product.artistId
-        const category = product.category || ''
+        const artistName = product.artistName || product.artist_name || ''
+        const artistId = product.artistId || product.artist_id
+        const category = product.category
         
         let issues = []
         
-        // 🎯 检查1：画师名字是否是错误的英文
+        // 检查1：画师名字是否是错误的英文
         if (isInvalidEnglish(artistName) && artistId) {
           let correctName = null
           const app = applications.find(a => 
-            String(a.userId) === String(artistId) && a.status === 'approved'
+            String(a.userId || a.user_id) === String(artistId) && a.status === 'approved'
           )
           if (app) {
-            correctName = app.name || app.nickName
-          } else {
-            const user = users.find(u => 
-              String(u.id) === String(artistId) || String(u.userId) === String(artistId)
-            )
-            if (user) {
-              correctName = user.nickName || user.name
-            }
+            correctName = app.name || app.nickName || app.nick_name
           }
           
           if (correctName) {
@@ -96,14 +103,12 @@ Page({
           }
         }
         
-        // 🎯 检查2：分类显示是否正确
-        const categoryName = product.categoryName || ''
+        // 检查2：分类显示是否正确
+        const categoryName = product.categoryName || product.category_name || ''
         if (category) {
-          // 先查找该分类是否存在
-          const validCategory = categories.find(c => String(c.id) === String(category))
+          const validCategory = categories.find(c => String(c._id || c.id) === String(category))
           
           if (!validCategory) {
-            // 分类ID不存在于系统中
             issues.push({
               type: 'category',
               wrongValue: `${category}（分类已失效）`,
@@ -111,7 +116,6 @@ Page({
             })
             stats.wrongCategory++
           } else if (!categoryName || categoryName !== validCategory.name) {
-            // 分类ID存在，但categoryName不匹配
             issues.push({
               type: 'category',
               wrongValue: categoryName || '未设置',
@@ -120,7 +124,6 @@ Page({
             stats.wrongCategory++
           }
         } else if (!category && !categoryName) {
-          // 完全没有设置分类
           issues.push({
             type: 'category',
             wrongValue: '未分类',
@@ -131,7 +134,7 @@ Page({
         
         if (issues.length > 0) {
           problemProducts.push({
-            productId: product.id,
+            productId: product._id || product.id,
             productName: product.name,
             artistId: artistId,
             issues: issues
@@ -143,37 +146,39 @@ Page({
         const issues = []
         let hasIssue = false
 
-        // 🎯 检查1：商品是否存在
+        // 检查1：商品是否存在
         const product = products.find(p => 
-          String(p.id || p._id) === String(order.productId)
+          String(p._id || p.id) === String(order.productId || order.product_id)
         )
         if (!product) {
           issues.push({ level: 'error', text: '❌商品不存在' })
           stats.productNotFound++
           hasIssue = true
         } else {
-          // 🎯 检查2：画师ID是否匹配
-          if (product.artistId && order.artistId && 
-              String(product.artistId) !== String(order.artistId)) {
-            issues.push({ level: 'warning', text: `⚠️画师ID不匹配(商品=${product.artistId})` })
+          // 检查2：画师ID是否匹配
+          const productArtistId = product.artistId || product.artist_id
+          const orderArtistId = order.artistId || order.artist_id
+          if (productArtistId && orderArtistId && 
+              String(productArtistId) !== String(orderArtistId)) {
+            issues.push({ level: 'warning', text: `⚠️画师ID不匹配(商品=${productArtistId})` })
             stats.artistMismatch++
             hasIssue = true
           }
         }
 
-        // 🎯 检查3：客服是否分配（检查3个字段：serviceId OR serviceName OR serviceQRCode）
-        const hasService = order.serviceId || order.serviceName || order.serviceQRCode
+        // 检查3：客服是否分配
+        const hasService = order.serviceId || order.service_id || order.serviceName || order.service_name || order.serviceQRCode || order.service_qrcode
         if (!hasService) {
           issues.push({ level: 'warning', text: '⚠️客服未分配' })
           stats.noService++
           hasIssue = true
         }
 
-        // 🎯 检查4：关键字段是否缺失
+        // 检查4：关键字段是否缺失
         const missingFields = []
-        if (!order.buyerId) missingFields.push('买家ID')
-        if (!order.artistId) missingFields.push('画师ID')
-        if (!order.productId) missingFields.push('商品ID')
+        if (!order.buyerId && !order.buyer_id) missingFields.push('买家ID')
+        if (!order.artistId && !order.artist_id) missingFields.push('画师ID')
+        if (!order.productId && !order.product_id) missingFields.push('商品ID')
         if (missingFields.length > 0) {
           issues.push({ level: 'warning', text: `⚠️缺失: ${missingFields.join(',')}` })
           stats.missingFields++
@@ -182,19 +187,19 @@ Page({
 
         if (hasIssue) {
           problemOrders.push({
-            orderId: order.id || order._id,
-            productName: order.productName || '未知商品',
-            buyerId: order.buyerId,
-            artistId: order.artistId,
-            productId: order.productId,
-            serviceId: order.serviceId,
+            orderId: order._id || order.id,
+            productName: order.productName || order.product_name || '未知商品',
+            buyerId: order.buyerId || order.buyer_id,
+            artistId: order.artistId || order.artist_id,
+            productId: order.productId || order.product_id,
+            serviceId: order.serviceId || order.service_id,
             issues: issues,
-            _rawOrder: order  // 保存原始订单用于修复
+            _rawOrder: order
           })
         }
       })
 
-      console.log('=== 诊断完成 ===')
+      console.log('=== 诊断完成（云端版）===')
       console.log('总订单数:', allOrders.length)
       console.log('问题订单数:', problemOrders.length)
       console.log('问题统计:', stats)
@@ -205,15 +210,23 @@ Page({
         totalOrders: allOrders.length,
         totalProducts: products.length,
         totalServices: services.length,
-        problemOrders: problemOrders.slice(0, 10),  // 只显示前10个
-        problemProducts: problemProducts.slice(0, 10),  // 🎯 新增
+        problemOrders: problemOrders.slice(0, 10),
+        problemProducts: problemProducts.slice(0, 10),
         issueStats: stats
       })
-    }, 500)
+    } catch (err) {
+      console.error('❌ 诊断失败:', err)
+      wx.hideLoading()
+      wx.showToast({
+        title: '诊断失败',
+        icon: 'none'
+      })
+      this.setData({ loading: false })
+    }
   },
 
   copyResult() {
-    let result = `【全局诊断报告】\n`
+    let result = `【全局诊断报告（云端版）】\n`
     result += `扫描时间: ${new Date().toLocaleString()}\n\n`
     result += `📊 数据统计\n`
     result += `总订单数: ${this.data.totalOrders}\n`
@@ -269,114 +282,21 @@ Page({
   },
 
   fixAllIssues() {
-    const totalIssues = this.data.problemOrders.length + this.data.problemProducts.length
     wx.showModal({
-      title: '批量修复',
-      content: `将修复以下问题：\n\n` +
-               `订单问题: ${this.data.problemOrders.length}个\n` +
-               `商品画师名字: ${this.data.problemProducts.length}个\n\n` +
-               `确定继续？`,
-      success: (res) => {
-        if (res.confirm) {
-          this.doFixIssues()
-        }
-      }
+      title: '批量修复已废弃',
+      content: '数据修复功能已迁移到云端。\n\n请联系开发人员在云端数据库中修复这些问题。\n\n或使用管理后台的数据修复工具。',
+      showCancel: false,
+      confirmText: '知道了',
+      confirmColor: '#E74C3C'
     })
   },
 
   doFixIssues() {
-    wx.showLoading({ title: '修复中...', mask: true })
-
-    setTimeout(() => {
-      let products = wx.getStorageSync('mock_products') || []
-      let fixedCount = 0
-
-      // 🎯 1️⃣ 修复商品数据（画师名字 + 分类）
-      if (this.data.problemProducts.length > 0) {
-        console.log('=== 开始修复商品数据 ===')
-        products = products.map(product => {
-          const problem = this.data.problemProducts.find(p => 
-            String(p.productId) === String(product.id)
-          )
-          if (problem) {
-            let updates = {}
-            
-            problem.issues.forEach(issue => {
-              if (issue.type === 'artistName') {
-                console.log(`✅ 修复画师名字 "${product.name}": "${issue.wrongValue}" → "${issue.correctValue}"`)
-                updates.artistName = issue.correctValue
-              } else if (issue.type === 'category') {
-                console.log(`✅ 清空异常分类 "${product.name}": "${issue.wrongValue}" → ""`)
-                updates.category = ''  // 清空异常分类，用户需手动重新选择
-                updates.categoryName = ''
-              }
-            })
-            
-            if (Object.keys(updates).length > 0) {
-              fixedCount++
-              return { ...product, ...updates }
-            }
-          }
-          return product
-        })
-        wx.setStorageSync('mock_products', products)
-        console.log(`✅ 已修复 ${fixedCount} 个商品`)
-      }
-
-      // 🎯 2️⃣ 修复订单画师ID
-      if (this.data.problemOrders.length > 0) {
-        console.log('=== 开始修复订单画师ID ===')
-        const orders = wx.getStorageSync('orders') || []
-        const pendingOrders = wx.getStorageSync('pending_orders') || []
-        const completedOrders = wx.getStorageSync('completed_orders') || []
-        const mockOrders = wx.getStorageSync('mock_orders') || []
-
-        this.data.problemOrders.forEach(problemOrder => {
-          const orderId = problemOrder.orderId
-          const product = products.find(p => 
-            String(p.id || p._id) === String(problemOrder.productId)
-          )
-
-          if (!product) {
-            console.warn(`⚠️ 商品不存在，无法修复订单 ${orderId}`)
-            return
-          }
-
-          const updateOrder = (list) => {
-            return list.map(o => {
-              if (o.id === orderId || o._id === orderId) {
-                console.log(`✅ 修复订单 ${orderId}: artistId ${o.artistId} → ${product.artistId}`)
-                fixedCount++
-                return {
-                  ...o,
-                  artistId: product.artistId,
-                  artistName: product.artistName || o.artistName,
-                  productName: product.name || o.productName
-                }
-              }
-              return o
-            })
-          }
-
-          wx.setStorageSync('orders', updateOrder(orders))
-          wx.setStorageSync('pending_orders', updateOrder(pendingOrders))
-          wx.setStorageSync('completed_orders', updateOrder(completedOrders))
-          wx.setStorageSync('mock_orders', updateOrder(mockOrders))
-        })
-      }
-
-      wx.hideLoading()
-      wx.showToast({ 
-        title: `已修复${fixedCount}项`, 
-        icon: 'success',
-        duration: 2000
-      })
-
-      // 重新扫描
-      setTimeout(() => {
-        this.runDiagnosis()
-      }, 2000)
-    }, 500)
+    // ❌ 已废弃：数据修复应在云端进行
+    wx.showToast({
+      title: '修复功能已废弃',
+      icon: 'none'
+    })
   },
 
   goBack() {

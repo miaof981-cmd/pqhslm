@@ -140,13 +140,12 @@ Page({
   checkPermission() {
     const app = getApp()
     const roles = app.getUserRoles()
-    const userId = app.globalData.userId || wx.getStorageSync('userId')
+    const userId = app.globalData.userId // ✅ 仅从app.globalData读取
     
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     console.log('🔐 [workspace] 权限检查开始')
     console.log('  - 用户ID:', userId)
     console.log('  - getUserRoles() 返回:', roles)
-    console.log('  - 本地存储 userRoles:', wx.getStorageSync('userRoles'))
     console.log('  - app.globalData.roles:', app.globalData.roles)
     
     // 收集用户可以使用的工作角色（只有画师和客服）
@@ -181,12 +180,22 @@ Page({
       return
     }
     
-    // ⭐ 如果没有工作台权限，检查是否申请已通过
+    // ⭐ 如果没有工作台权限，跳转到权限申请页
     if (availableRoles.length === 0) {
-      console.log('🔍 没有工作台权限，检查申请状态...')
+      console.log('🔍 没有工作台权限，跳转到申请页面')
       
-      // 检查画师申请状态
-      const applications = wx.getStorageSync('artist_applications') || []
+      // ✅ 不再从本地检查申请状态，直接跳转
+      // 申请状态应由专门的申请页面处理
+      wx.redirectTo({
+        url: '/pages/artist-qrcode/index'
+      })
+      return
+    }
+    
+    // ✅ 旧代码已废弃：不再从本地检查申请状态
+    if (false) {
+      // 已废弃的本地检查逻辑
+      const applications = []
       const userApplications = applications.filter(app => app.userId === userId)
       
       if (userApplications.length > 0) {
@@ -198,7 +207,7 @@ Page({
         
         // 如果申请已通过，检查是否已建立档案
         if (latestApp.status === 'approved') {
-          const profiles = wx.getStorageSync('artist_profiles') || {}
+          const profiles = {}
           const hasProfile = !!profiles[userId]
           
           console.log('📝 是否已建立档案:', hasProfile)
@@ -258,24 +267,10 @@ Page({
       return
     }
     
-    // ✅ 新增：如果是画师，检查是否已设置工作二维码
-    if (roles.includes('artist')) {
-      const userId = app.globalData.userId || wx.getStorageSync('userId')
-      const artistQRCodes = wx.getStorageSync('artist_qrcodes') || {}
-      const hasQRCode = !!artistQRCodes[userId]
-      
-      console.log('📱 检查画师工作二维码:', hasQRCode ? '已设置' : '未设置')
-      
-      if (!hasQRCode) {
-        // 没有工作二维码，跳转到上传页面
-        wx.redirectTo({
-          url: '/pages/artist-qrcode/index'
-        })
-        return
-      }
-    }
+    // ✅ 二维码检查已移除（云端存储）
+    // 画师二维码信息应从云端users表读取
     
-    // 从本地存储读取上次选择的角色
+    // ✅ 保留：工作台角色是前端UI状态，可以保留本地缓存
     let userRole = wx.getStorageSync('workspace_role') || availableRoles[0]
     
     // 确保选择的角色在可用列表中
@@ -339,7 +334,8 @@ Page({
   // 加载待处理订单统计
   async loadPendingStats() {
     const { userRole } = this.data
-    const currentUserId = wx.getStorageSync('userId')
+    const app = getApp()
+    const currentUserId = app.globalData.userId
     
     console.log('========================================')
     console.log('📦 [画师/客服端] 从云数据库加载订单')
@@ -604,22 +600,18 @@ Page({
     }
   },
 
-  // 客服二维码管理
+  // ⚠️ 已废弃：客服二维码应在客服管理页面管理
   manageQRCode() {
-    const userId = wx.getStorageSync('userId')
-    const serviceQRCodes = wx.getStorageSync('service_qrcodes') || {}
-    const currentQR = serviceQRCodes[userId]
+    const app = getApp()
+    const userId = app.globalData.userId
+    // ✅ 二维码信息应从云端service_qrcodes表读取
+    const currentQR = null
 
     wx.showModal({
-      title: '客服二维码管理',
-      content: currentQR ? '当前二维码已设置\n\n点击"更换"可上传新的客服二维码' : '尚未设置客服二维码\n\n点击"上传"设置您的客服二维码',
-      confirmText: currentQR ? '更换' : '上传',
-      cancelText: '取消',
-      success: (res) => {
-        if (res.confirm) {
-          this.uploadQRCode()
-        }
-      }
+      title: '功能已迁移',
+      content: '客服二维码管理功能已迁移到云端\n\n请在客服二维码管理页面进行操作',
+      confirmText: '我知道了',
+      showCancel: false
     })
   },
 
@@ -642,16 +634,8 @@ Page({
           success: (fileRes) => {
             const base64 = 'data:image/jpeg;base64,' + fileRes.data
             
-            // 保存到本地存储
-            const userId = wx.getStorageSync('userId')
-            const serviceQRCodes = wx.getStorageSync('service_qrcodes') || {}
-            
-            serviceQRCodes[userId] = {
-              imageUrl: base64,
-              updateTime: new Date().toLocaleString()
-            }
-            
-            wx.setStorageSync('service_qrcodes', serviceQRCodes)
+            // ✅ 已废弃：不再保存到本地
+            console.warn('[DEPRECATED] 客服二维码应通过云端service_qrcodes表管理')
             
             wx.hideLoading()
             wx.showToast({
@@ -792,33 +776,10 @@ Page({
   },
 
   // 更新订单到本地存储
+  // ⚠️ 已废弃：订单已统一存储到云端
   updateOrderInStorage(order) {
-    // 🎯 同时更新 orders 和 pending_orders 两个存储
-    let updated = false
-    
-    // 更新 orders
-    const orders = wx.getStorageSync('orders') || []
-    const ordersIndex = orders.findIndex(o => o.id === order.id)
-    if (ordersIndex !== -1) {
-      orders[ordersIndex] = order
-      wx.setStorageSync('orders', orders)
-      updated = true
-      console.log('✅ 订单已更新到 orders')
-    }
-    
-    // 更新 pending_orders
-    const pendingOrders = wx.getStorageSync('pending_orders') || []
-    const pendingIndex = pendingOrders.findIndex(o => o.id === order.id)
-    if (pendingIndex !== -1) {
-      pendingOrders[pendingIndex] = order
-      wx.setStorageSync('pending_orders', pendingOrders)
-      updated = true
-      console.log('✅ 订单已更新到 pending_orders')
-    }
-    
-    if (!updated) {
-      console.warn('⚠️ 订单未找到:', order.id)
-    }
+    console.warn('[DEPRECATED] updateOrderInStorage 已废弃，订单统一存储到云端')
+    // ✅ 不再执行任何本地存储操作
   },
   
   // 筛选订单

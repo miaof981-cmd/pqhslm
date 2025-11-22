@@ -217,7 +217,8 @@ Page({
 
     try {
       // 获取当前用户头像
-      const userInfo = wx.getStorageSync('current_user') || {}
+      const app = getApp()
+      const userInfo = app.globalData.userInfo || {}
       const avatarUrl = qrcodeUrl || userInfo.avatarUrl || ''
 
       const res = await cloudAPI.addService({

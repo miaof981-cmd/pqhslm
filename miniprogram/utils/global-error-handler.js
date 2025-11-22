@@ -60,15 +60,23 @@ class GlobalErrorHandler {
    * 捕获控制台错误（包装 console.error）
    */
   captureConsoleError() {
-    const originalError = console.error
-    console.error = function(...args) {
-      globalErrorHandler.logError({
-        type: 'CONSOLE_ERROR',
-        args: args,
-        message: args.join(' '),
-        stack: new Error().stack
-      })
-      originalError.apply(console, args)
+    // ✅ 保存原始 console.error 到实例变量
+    this.originalConsoleError = console.error
+    
+    console.error = (...args) => {
+      // ✅ 避免递归：只记录用户代码的错误，不记录全局错误处理器自身的日志
+      const isInternalLog = args.length > 0 && args[0] === '[GLOBAL ERROR]'
+      
+      if (!isInternalLog) {
+        globalErrorHandler.logError({
+          type: 'CONSOLE_ERROR',
+          args: args,
+          message: args.join(' '),
+          stack: new Error().stack
+        })
+      }
+      
+      this.originalConsoleError.apply(console, args)
     }
   }
 
@@ -247,30 +255,36 @@ class GlobalErrorHandler {
    * @param {object} errorInfo - 错误信息
    */
   logError(errorInfo) {
-    const errorRecord = {
-      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-      ...errorInfo,
-      // 提取调用栈信息
-      caller: this.extractCaller(errorInfo.stack)
+    try {
+      const errorRecord = {
+        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        ...errorInfo,
+        // 提取调用栈信息
+        caller: this.extractCaller(errorInfo.stack)
+      }
+
+      // 保存到内存日志
+      this.errorLog.unshift(errorRecord)
+      if (this.errorLog.length > this.maxLogSize) {
+        this.errorLog.pop()
+      }
+
+      // ✅ 使用原始 console.error 避免递归
+      const logFn = this.originalConsoleError || console.log
+      logFn.call(console, '[GLOBAL ERROR]', {
+        type: errorRecord.type,
+        file: errorRecord.caller?.file || 'unknown',
+        line: errorRecord.caller?.line || 'unknown',
+        message: errorRecord.message
+      })
+
+      // 可选：上报到云端
+      this.reportToCloud(errorRecord)
+    } catch (err) {
+      // ✅ 防止错误处理器自身出错导致崩溃
+      const fallbackLog = this.originalConsoleError || console.log
+      fallbackLog.call(console, '[ERROR HANDLER FAILED]', err)
     }
-
-    // 保存到内存日志
-    this.errorLog.unshift(errorRecord)
-    if (this.errorLog.length > this.maxLogSize) {
-      this.errorLog.pop()
-    }
-
-    // 打印到控制台
-    console.error('[GLOBAL ERROR]', {
-      type: errorRecord.type,
-      file: errorRecord.caller?.file || 'unknown',
-      line: errorRecord.caller?.line || 'unknown',
-      message: errorRecord.message,
-      details: errorRecord
-    })
-
-    // 可选：上报到云端
-    this.reportToCloud(errorRecord)
   }
 
   /**

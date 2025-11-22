@@ -40,29 +40,19 @@ function logUserError(msg, extra = {}) {
  * @returns {string|null} userId
  */
 function getCurrentUserId() {
-  // 1. 尝试从 localStorage 获取
-  let userId = wx.getStorageSync('userId')
-  
-  if (userId) {
-    return userId
-  }
-  
-  // 2. 尝试从全局变量获取
+  // ✅ 统一从 app.globalData 获取
   try {
     const app = getApp()
-    userId = app?.globalData?.userId
+    const userId = app?.globalData?.userId
     
     if (userId) {
-      // 如果全局变量有但本地没有，同步到本地
-      wx.setStorageSync('userId', userId)
-      logger.info('从全局变量同步 userId 到本地', userId)
       return userId
     }
   } catch (e) {
     logUserError('getApp() 失败，可能应用尚未初始化', { error: e.message })
   }
   
-  // 3. 如果还是没有，记录警告并返回 null
+  // 如果没有，记录警告并返回 null
   logUserError('无法获取 userId，用户可能未登录')
   return null
 }
@@ -149,14 +139,15 @@ function getOrCreateUserId(userId) {
   
   logUserError('无法获取 userId，使用游客 ID', { guestId })
   
+  // ✅ 已废弃：游客订单应通过云函数记录
   // 记录游客订单以便后续追踪
-  const guestOrders = wx.getStorageSync('guest_orders') || []
+  const guestOrders = []
   guestOrders.push({
     guestId: guestId,
     timestamp: new Date().toISOString(),
     deviceInfo: wx.getSystemInfoSync()
   })
-  wx.setStorageSync('guest_orders', guestOrders)
+  // ✅ 不再保存到本地
   
   return { userId: guestId, isGuest: true }
 }
@@ -207,51 +198,12 @@ async function syncUserInfo() {
  * @param {string} userId - 正式用户ID
  */
 function migrateGuestOrders(userId) {
-  const guestOrders = wx.getStorageSync('guest_orders') || []
-  
-  if (guestOrders.length === 0) {
-    logger.info('无游客订单需要迁移')
-    return
-  }
-  
-  logger.info(`发现 ${guestOrders.length} 个游客订单，开始迁移...`)
-  
-  // 读取所有订单
-  const orders = wx.getStorageSync('orders') || []
-  const pendingOrders = wx.getStorageSync('pending_orders') || []
-  
-  let migratedCount = 0
-  
-  // 迁移 orders
-  const updatedOrders = orders.map(order => {
-    if (order.buyerId && order.buyerId.startsWith('guest_')) {
-      migratedCount++
-      return { ...order, buyerId: userId }
-    }
-    return order
-  })
-  
-  // 迁移 pending_orders
-  const updatedPendingOrders = pendingOrders.map(order => {
-    if (order.buyerId && order.buyerId.startsWith('guest_')) {
-      migratedCount++
-      return { ...order, buyerId: userId }
-    }
-    return order
-  })
-  
-  // 保存
-  wx.setStorageSync('orders', updatedOrders)
-  wx.setStorageSync('pending_orders', updatedPendingOrders)
-  
-  // 清空游客记录
-  wx.removeStorageSync('guest_orders')
-  
-  logger.info(`成功迁移 ${migratedCount} 个游客订单`)
+  // ✅ 已废弃：游客订单迁移应通过云函数处理
+  logger.info('[DEPRECATED] migrateGuestOrders 已废弃，应调用云函数处理')
   
   wx.showToast({
-    title: `已关联${migratedCount}个订单`,
-    icon: 'success'
+    title: '游客订单迁移功能已迁移到云端',
+    icon: 'none'
   })
 }
 
@@ -261,59 +213,8 @@ function migrateGuestOrders(userId) {
  * 在应用启动时自动执行，修复所有 buyerId 缺失的订单
  */
 function fixHistoricalOrders() {
-  logger.info('开始检查历史订单数据完整性...')
-  
-  const userId = getCurrentUserId()
-  if (!userId) {
-    logger.info('用户未登录，跳过历史订单修复')
-    return
-  }
-  
-  const orders = wx.getStorageSync('orders') || []
-  const pendingOrders = wx.getStorageSync('pending_orders') || []
-  const currentUser = wx.getStorageSync('userInfo') || {}
-  
-  let fixedCount = 0
-  
-  const needsFix = (order) => {
-    if (!order) return false
-    const buyerKey = order.buyerId != null ? String(order.buyerId).trim() : ''
-    if (!buyerKey || buyerKey === 'undefined' || buyerKey === 'null') return true
-    if (buyerKey.startsWith('guest_')) return true
-    return false
-  }
-
-  const normalizeBuyer = (order) => {
-    if (!order) return order
-    const patched = { ...order }
-
-    if (needsFix(patched)) {
-      fixedCount++
-      logger.debug(`修复订单 ${patched.id} 的 buyerId`, { oldBuyerId: patched.buyerId, newBuyerId: userId })
-      patched.buyerId = userId
-    }
-
-    if (!patched.buyerName) {
-      patched.buyerName = currentUser?.nickName || currentUser?.name || currentUser?.nickname || `用户_${String(userId).slice(-4)}`
-    }
-
-    if (!patched.buyerAvatar || patched.buyerAvatar === 'undefined' || patched.buyerAvatar.startsWith('http://tmp/')) {
-      patched.buyerAvatar = currentUser?.avatarUrl || currentUser?.avatar || ''
-    }
-
-    return patched
-  }
-
-  const fixedOrders = orders.map(normalizeBuyer)
-  const fixedPendingOrders = pendingOrders.map(normalizeBuyer)
-  
-  if (fixedCount > 0) {
-    wx.setStorageSync('orders', fixedOrders)
-    wx.setStorageSync('pending_orders', fixedPendingOrders)
-    logger.info(`成功修复 ${fixedCount} 个历史订单的 buyerId`)
-  } else {
-    logger.info('历史订单数据完整，无需修复')
-  }
+  // ✅ 已废弃：历史订单修复应通过云函数处理
+  logger.info('[DEPRECATED] fixHistoricalOrders 已废弃，订单数据应从云端读取')
 }
 
 module.exports = {

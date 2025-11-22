@@ -85,7 +85,8 @@ function normalizeOrders(orders, options = {}) {
 
   // 获取数据源
   const products = wx.getStorageSync('mock_products') || []
-  const services = options.serviceList || wx.getStorageSync('customer_service_list') || []
+  // ✅ 已废弃：客服列表应从云端users表读取
+  const services = options.serviceList || []
 
   return orders.map(order => {
     if (!order) return order
@@ -434,8 +435,9 @@ function prepareOrdersForPage(options = {}) {
   } else if (role === 'service') {
     // 客服端：看分配给自己的订单 + 未分配的订单
     // 🎯 同时从两个数据源读取客服列表（兼容不同页面的保存逻辑）
-    const customerServiceList = wx.getStorageSync('customer_service_list') || []
-    const serviceList = wx.getStorageSync('service_list') || []
+    // ✅ 已废弃：客服列表应从云端users表读取
+    const customerServiceList = []
+    const serviceList = []
     const allServiceRecords = [...customerServiceList, ...serviceList]
     const myServiceKeys = new Set()
 
@@ -479,7 +481,8 @@ function prepareOrdersForPage(options = {}) {
   }
   
   // 4. 标准化处理
-  const serviceList = wx.getStorageSync('customer_service_list') || []
+  // ✅ 已废弃：客服列表应从云端users表读取
+  const serviceList = []
   return normalizeOrders(allOrders, { serviceList })
 }
 

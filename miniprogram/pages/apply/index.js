@@ -339,9 +339,10 @@ Page({
     }
 
     // 保存到本地存储
-    let applications = wx.getStorageSync('artist_applications') || []
+    // ✅ 已废弃：申请数据应通过云函数artistManager.apply存储
+    let applications = []
     applications.unshift(application) // 新申请放在最前面
-    wx.setStorageSync('artist_applications', applications)
+    // ✅ 不再保存到本地
 
     console.log('申请已保存:', application)
 

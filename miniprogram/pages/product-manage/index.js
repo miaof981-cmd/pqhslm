@@ -1,3 +1,5 @@
+const app = getApp()
+const cloudAPI = require('../../utils/cloud-api.js')
 const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/image-helper.js')
 
 Page({
@@ -16,8 +18,8 @@ Page({
   },
 
   onLoad(options) {
-    // 从options或当前用户ID获取画师ID
-    const artistId = options.artistId || wx.getStorageSync('userId')
+    // ✅ 从options或全局数据获取画师ID
+    const artistId = options.artistId || app.globalData.userId
     const artistName = options.artistName || '我'
     
     this.setData({
@@ -33,12 +35,10 @@ Page({
   },
 
   async loadProducts() {
-    console.log('=== 商品管理页加载数据 ===')
+    console.log('=== 商品管理页加载数据（云端版）===')
     console.log('当前画师ID:', this.data.artistId)
     
-    const cloudAPI = require('../../utils/cloud-api.js')
-    
-    // 从云数据库加载当前画师的商品
+    // ✅ 从云数据库加载当前画师的商品
     const res = await cloudAPI.getProductList({ 
       artistId: this.data.artistId,
       pageSize: 100
@@ -143,7 +143,7 @@ Page({
     })
   },
 
-  toggleProductStatus(e) {
+  async toggleProductStatus(e) {
     const id = e.currentTarget.dataset.id
     const currentStatus = e.currentTarget.dataset.status
     const newStatus = currentStatus === 'online' ? 'offline' : 'online'
@@ -153,51 +153,80 @@ Page({
     wx.showModal({
       title: `确认${actionText}`,
       content: `确认${actionText}此商品？`,
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          // 更新本地存储
-          const allProducts = wx.getStorageSync('mock_products') || []
-          const productIndex = allProducts.findIndex(p => (p.id || p._id) === id)
-          
-          if (productIndex !== -1) {
-            allProducts[productIndex].isOnSale = newIsOnSale
-            wx.setStorageSync('mock_products', allProducts)
+          try {
+            wx.showLoading({ title: '处理中...' })
             
-            wx.showToast({
-              title: `已${actionText}`,
-              icon: 'success'
+            // ✅ 云端更新商品状态
+            const result = await cloudAPI.updateProduct(id, {
+              isOnSale: newIsOnSale,
+              status: newIsOnSale ? 'active' : 'inactive'
             })
             
-            // 重新加载数据
-            this.loadProducts()
+            wx.hideLoading()
+            
+            if (result.success) {
+              wx.showToast({
+                title: `已${actionText}`,
+                icon: 'success'
+              })
+              
+              // 重新加载数据
+              this.loadProducts()
+            } else {
+              throw new Error(result.error || '更新失败')
+            }
+          } catch (err) {
+            wx.hideLoading()
+            console.error('❌ 切换商品状态失败:', err)
+            wx.showToast({
+              title: err.message || '操作失败',
+              icon: 'none'
+            })
           }
         }
       }
     })
   },
 
-  // 删除商品
-  deleteProduct(e) {
+  // ✅ 删除商品（云端版）
+  async deleteProduct(e) {
     const id = e.currentTarget.dataset.id
     
     wx.showModal({
       title: '确认删除',
       content: '确认删除该商品？删除后无法恢复',
       confirmColor: '#FF6B6B',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          // 从本地存储删除
-          let allProducts = wx.getStorageSync('mock_products') || []
-          allProducts = allProducts.filter(p => (p.id || p._id) !== id)
-          wx.setStorageSync('mock_products', allProducts)
-          
-          wx.showToast({
-            title: '已删除',
-            icon: 'success'
-          })
-          
-          // 重新加载
-          this.loadProducts()
+          try {
+            wx.showLoading({ title: '删除中...' })
+            
+            // ✅ 云端删除商品
+            const result = await cloudAPI.deleteProduct(id)
+            
+            wx.hideLoading()
+            
+            if (result.success) {
+              wx.showToast({
+                title: '已删除',
+                icon: 'success'
+              })
+              
+              // 重新加载
+              this.loadProducts()
+            } else {
+              throw new Error(result.error || '删除失败')
+            }
+          } catch (err) {
+            wx.hideLoading()
+            console.error('❌ 删除商品失败:', err)
+            wx.showToast({
+              title: err.message || '删除失败',
+              icon: 'none'
+            })
+          }
         }
       }
     })
