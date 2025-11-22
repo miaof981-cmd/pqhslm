@@ -51,7 +51,8 @@ Page({
       
       // ✅ 从云端获取画师申请信息
       const appsRes = await cloudAPI.getArtistApplicationList({})
-      const allApplications = appsRes.success ? (appsRes.data || []) : []
+      // 🛡️ 安全数组解析
+      const allApplications = cloudAPI.safeArray(appsRes)
       const artistApp = allApplications.find(app => app.userId == artistId && app.status === 'approved')
       
       // 构建用户信息（优先从申请记录）
@@ -101,8 +102,9 @@ Page({
         cloudAPI.getOrderList({ artistId })
       ])
       
-      const artistProducts = productsRes.success ? (productsRes.data || []) : []
-      const artistOrders = ordersRes.success ? (ordersRes.data || []) : []
+      // 🛡️ 安全数组解析
+      const artistProducts = cloudAPI.safeArray(productsRes)
+      const artistOrders = cloudAPI.safeArray(ordersRes)
       const completedOrders = artistOrders.filter(o => o.status === 'completed')
       
       // 计算成交额
@@ -140,8 +142,9 @@ Page({
         cloudAPI.getOrderList({ artistId })
       ])
       
-      const artistProducts = productsRes.success ? (productsRes.data || []) : []
-      const allOrders = ordersRes.success ? (ordersRes.data || []) : []
+      // 🛡️ 安全数组解析
+      const artistProducts = cloudAPI.safeArray(productsRes)
+      const allOrders = cloudAPI.safeArray(ordersRes)
       
       // 统计每个商品的销量
       const products = artistProducts.map(product => {
@@ -175,7 +178,8 @@ Page({
       
       // ✅ 从云端读取订单
       const ordersRes = await cloudAPI.getOrderList({ artistId })
-      const artistOrders = ordersRes.success ? (ordersRes.data || []) : []
+      // 🛡️ 安全数组解析
+      const artistOrders = cloudAPI.safeArray(ordersRes)
       const completedOrders = artistOrders.filter(o => o.status === 'completed')
       
       // 计算本月订单（最近30天）
@@ -225,8 +229,9 @@ Page({
         cloudAPI.getOrderList({ artistId })
       ])
       
-      const allPosts = postsRes.success ? (postsRes.data || []) : []
-      const artistOrders = ordersRes.success ? (ordersRes.data || []) : []
+      // 🛡️ 安全数组解析
+      const allPosts = cloudAPI.safeArray(postsRes)
+      const artistOrders = cloudAPI.safeArray(ordersRes)
       
       // 找出该画师的订单ID
       const artistOrderIds = artistOrders.map(o => String(o._id || o.id))
@@ -289,7 +294,8 @@ Page({
     try {
       // ✅ 从云端读取画师申请信息
       const res = await cloudAPI.getArtistApplicationList({})
-      const allApplications = res.success ? (res.data || []) : []
+      // 🛡️ 安全数组解析
+      const allApplications = cloudAPI.safeArray(res)
       const artistApp = allApplications.find(app => app.userId == artistId && app.status === 'approved')
       
       if (!artistApp) {

@@ -42,9 +42,10 @@ Page({
         cloudAPI.getWithdrawList({ userId })
       ])
 
-      const allOrders = ordersRes.success ? (ordersRes.data || []) : []
-      const rewardRecords = rewardsRes.success ? (rewardsRes.data || []) : []
-      const withdrawRecords = withdrawsRes.success ? (withdrawsRes.data || []) : []
+      // 🛡️ 安全数组解析
+      const allOrders = cloudAPI.safeArray(ordersRes)
+      const rewardRecords = cloudAPI.safeArray(rewardsRes)
+      const withdrawRecords = cloudAPI.safeArray(withdrawsRes)
 
       // 🎯 2. 计算画师打赏收入
       const myRewards = rewardRecords.filter(record => {
@@ -249,7 +250,8 @@ Page({
     try {
       // ✅ 从云端获取提现记录
       const res = await cloudAPI.getWithdrawList({ userId: userKey })
-      const myRecords = res.success ? (res.data || []).filter(r => String(r.userId || r.user_id) === userKey) : []
+      // 🛡️ 安全数组解析
+      const myRecords = cloudAPI.safeArray(res).filter(r => String(r.userId || r.user_id) === userKey)
       
       // 按时间倒序
       myRecords.sort((a, b) => {

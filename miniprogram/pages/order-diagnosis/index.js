@@ -44,7 +44,8 @@ Page({
     try {
       // ✅ 从云端获取所有订单
       const ordersRes = await cloudAPI.getOrderList({})
-      const allOrders = ordersRes.success ? (ordersRes.data || []) : []
+      // 🛡️ 安全数组解析
+      const allOrders = cloudAPI.safeArray(ordersRes)
       
       // 获取完整诊断报告（基于云端数据）
       const report = orderDiagnosis.diagnoseOrderCounts()

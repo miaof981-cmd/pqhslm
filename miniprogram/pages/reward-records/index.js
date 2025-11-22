@@ -158,7 +158,7 @@ Page({
 
       // ✅ 从云端获取画师申请信息
       const artistAppsRes = await cloudAPI.getArtistApplications()
-      const artistApps = artistAppsRes.success && artistAppsRes.data ? artistAppsRes.data : []
+      const artistApps = cloudAPI.safeArray(artistAppsRes)
       const artistMap = new Map()
       artistApps.forEach(app => {
         if (app.userId) artistMap.set(String(app.userId), app)

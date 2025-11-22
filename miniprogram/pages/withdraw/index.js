@@ -50,9 +50,10 @@ Page({
         cloudAPI.getWithdrawList({ userId })
       ])
 
-      const allOrders = ordersRes.success ? (ordersRes.data || []) : []
-      const rewardRecords = rewardsRes.success ? (rewardsRes.data || []) : []
-      const withdrawRecords = withdrawsRes.success ? (withdrawsRes.data || []) : []
+      // 🛡️ 安全数组解析
+      const allOrders = cloudAPI.safeArray(ordersRes)
+      const rewardRecords = cloudAPI.safeArray(rewardsRes)
+      const withdrawRecords = cloudAPI.safeArray(withdrawsRes)
 
       // 🎯 计算画师订单稿费（已完成订单的：订单金额 - 平台扣除，按数量计算）
       const PLATFORM_DEDUCTION_PER_ITEM = 5.00
@@ -604,7 +605,8 @@ Page({
     try {
       // ✅ 从云端获取提现记录
       const res = await cloudAPI.getWithdrawList({ userId: userKey })
-      const myRecords = res.success ? (res.data || []) : []
+      // 🛡️ 安全数组解析
+      const myRecords = cloudAPI.safeArray(res)
 
       const parseRecordTime = (record) => {
         const raw = record.completedTime || record.completed_time || record.time || record.updatedAt || record.updated_at || record.createdAt || record.created_at || ''

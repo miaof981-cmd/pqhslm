@@ -31,7 +31,8 @@ Page({
       
       // ✅ 从云端获取申请列表
       const res = await cloudAPI.getArtistApplicationList({})
-      const allApplications = res.success ? (res.data || []) : []
+      // 🛡️ 安全数组解析
+      const allApplications = cloudAPI.safeArray(res)
       const application = allApplications.find(app => (app.id || app._id) === this.data.applicationId)
       
       if (!application) {

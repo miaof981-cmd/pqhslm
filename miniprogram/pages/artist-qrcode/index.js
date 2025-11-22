@@ -40,7 +40,8 @@ Page({
     try {
       // ✅ 从云端读取申请记录
       const res = await cloudAPI.getArtistApplicationList({ userId })
-      const allApplications = res.success ? (res.data || []) : []
+      // 🛡️ 安全数组解析
+      const allApplications = cloudAPI.safeArray(res)
       const userApplications = allApplications.filter(app => app.userId === userId)
       
       if (userApplications.length > 0) {
@@ -75,7 +76,8 @@ Page({
     try {
       // ✅ 从云端检查申请记录
       const res = await cloudAPI.getArtistApplicationList({ userId })
-      const applications = res.success ? (res.data || []) : []
+      // 🛡️ 安全数组解析
+      const applications = cloudAPI.safeArray(res)
       const userApp = applications.find(app => app.userId == userId && app.status === 'approved' && app.permissionGranted)
       
       if (userApp && !roles.includes('artist')) {

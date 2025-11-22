@@ -44,10 +44,11 @@ Page({
         cloudAPI.getArtistApplicationList({})
       ])
 
-      const allOrders = ordersRes.success ? (ordersRes.data || []) : []
-      const products = productsRes.success ? (productsRes.data || []) : []
-      const categories = categoriesRes.success ? (categoriesRes.data || []) : []
-      const applications = appsRes.success ? (appsRes.data || []) : []
+      // 🛡️ 安全数组解析
+      const allOrders = cloudAPI.safeArray(ordersRes)
+      const products = cloudAPI.safeArray(productsRes)
+      const categories = cloudAPI.safeArray(categoriesRes)
+      const applications = cloudAPI.safeArray(appsRes)
       const services = []  // ✅ 客服列表从云端用户表读取
 
       this.setData({ scanProgress: allOrders.length })

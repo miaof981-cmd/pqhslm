@@ -91,7 +91,8 @@ Page({
     try {
       // ✅ 从云端获取分类数据
       const res = await cloudAPI.getCategoryList()
-      const cloudCategories = res.success ? (res.data || []) : []
+      // 🛡️ 安全数组解析
+      const cloudCategories = cloudAPI.safeArray(res)
       
       const serviceOptions = categoryService.getCategoryOptions()
       

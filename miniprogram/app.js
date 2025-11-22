@@ -500,7 +500,8 @@ App({
         return
       }
       
-      const userApplications = res.data || []
+      // 🛡️ 安全数组解析
+      const userApplications = cloudAPI.safeArray(res)
       
       if (userApplications.length > 0) {
         // 按时间排序，取最新的

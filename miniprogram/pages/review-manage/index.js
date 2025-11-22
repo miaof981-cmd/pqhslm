@@ -51,7 +51,8 @@ Page({
   async calculateTodayReview() {
     try {
       const res = await cloudAPI.getArtistApplicationList({})
-      const allApplications = res.success ? (res.data || []) : []
+      // 🛡️ 安全数组解析
+      const allApplications = cloudAPI.safeArray(res)
       const today = new Date().toLocaleDateString('zh-CN')
       
       const todayReviewed = allApplications.filter(app => {
@@ -78,7 +79,8 @@ Page({
       wx.showLoading({ title: '加载中...' })
       
       const res = await cloudAPI.getArtistApplicationList({})
-      const allApplications = res.success ? (res.data || []) : []
+      // 🛡️ 安全数组解析
+      const allApplications = cloudAPI.safeArray(res)
       const { currentTab, searchKeyword } = this.data
       
       let filteredApplications = []

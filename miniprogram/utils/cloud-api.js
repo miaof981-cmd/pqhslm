@@ -22,6 +22,32 @@ class CloudAPI {
   }
 
   /**
+   * 🛡️ 安全数组解析
+   * 统一处理云函数返回的数据，确保返回的是数组
+   * 支持两种返回格式：
+   * 1. { success: true, data: [...] }
+   * 2. { success: true, data: { list: [...], total: 10 } }
+   */
+  safeArrayParse(res) {
+    if (!res || !res.success) {
+      return []
+    }
+    
+    // 如果 data 本身就是数组，直接返回
+    if (Array.isArray(res.data)) {
+      return res.data
+    }
+    
+    // 如果 data 是对象且包含 list 字段（分页数据）
+    if (res.data && typeof res.data === 'object' && Array.isArray(res.data.list)) {
+      return res.data.list
+    }
+    
+    // 其他情况返回空数组
+    return []
+  }
+
+  /**
    * 调用云函数的统一方法
    */
   async callFunction(name, data) {
@@ -940,6 +966,9 @@ class CloudAPI {
 
 // 创建单例
 const cloudAPI = new CloudAPI()
+
+// 导出全局安全解析函数
+cloudAPI.safeArray = (res) => cloudAPI.safeArrayParse(res)
 
 module.exports = cloudAPI
 

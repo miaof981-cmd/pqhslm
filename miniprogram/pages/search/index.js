@@ -65,7 +65,8 @@ Page({
     // ✅ 从云端获取商品列表
     const cloudAPI = require('../../utils/cloud-api.js')
     const res = await cloudAPI.getProductList({ pageSize: 999 })
-    const rawProducts = res.success ? (res.data || []) : []
+    // 🛡️ 安全数组解析
+    const rawProducts = cloudAPI.safeArray(res)
     
     const users = []
     const artistApplications = []

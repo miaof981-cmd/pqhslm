@@ -52,7 +52,8 @@ Page({
     try {
       // ✅ 从云端读取画师申请信息
       const res = await cloudAPI.getArtistApplicationList({})
-      const allApplications = res.success ? (res.data || []) : []
+      // 🛡️ 安全数组解析
+      const allApplications = cloudAPI.safeArray(res)
       console.log('所有画师申请:', allApplications.length)
       
       const artistApp = allApplications.find(app => {
@@ -133,7 +134,8 @@ Page({
     try {
       // ✅ 从云端读取该画师的商品
       const res = await cloudAPI.getProductList({ artistId })
-      const artistProducts = (res.success ? (res.data || []) : []).map(product => {
+      // 🛡️ 安全数组解析
+      const artistProducts = cloudAPI.safeArray(res).map(product => {
         let displayPrice = parseFloat(product.price) || parseFloat(product.basePrice || product.base_price) || 0
         const images = product.images || []
         const productImage = product.productImage || product.product_image

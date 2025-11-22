@@ -122,7 +122,8 @@ Page({
     try {
       // ✅ 从云端检查申请记录
       const appsRes = await cloudAPI.getArtistApplicationList({ userId })
-      const applications = appsRes.success ? (appsRes.data || []) : []
+      // 🛡️ 安全数组解析
+      const applications = cloudAPI.safeArray(appsRes)
       const userApp = applications.find(app => app.userId === userId && app.status === 'approved' && app.permissionGranted)
       
       if (userApp && !roles.includes('artist')) {
@@ -150,7 +151,8 @@ Page({
     try {
       // ✅ 从云端获取申请记录
       const appsRes = await cloudAPI.getArtistApplicationList({ userId })
-      const applications = appsRes.success ? (appsRes.data || []) : []
+      // 🛡️ 安全数组解析
+      const applications = cloudAPI.safeArray(appsRes)
       const userApplications = applications.filter(app => app.userId === userId)
       let applicationApproved = false
       
@@ -597,9 +599,10 @@ Page({
         cloudAPI.getWithdrawList({ userId })
       ])
 
-      const allOrders = ordersRes.success ? (ordersRes.data || []) : []
-      const rewardRecords = rewardsRes.success ? (rewardsRes.data || []) : []
-      const withdrawRecords = withdrawsRes.success ? (withdrawsRes.data || []) : []
+      // 🛡️ 安全数组解析
+      const allOrders = cloudAPI.safeArray(ordersRes)
+      const rewardRecords = cloudAPI.safeArray(rewardsRes)
+      const withdrawRecords = cloudAPI.safeArray(withdrawsRes)
 
       console.log('📦 云端数据获取成功:', {
         订单数: allOrders.length,
@@ -816,7 +819,8 @@ Page({
     try {
       // ✅ 从云端获取申请记录
       const res = await cloudAPI.getArtistApplicationList({ userId })
-      const applications = res.success ? (res.data || []) : []
+      // 🛡️ 安全数组解析
+      const applications = cloudAPI.safeArray(res)
       
       console.log('📦 云端申请记录总数:', applications.length)
       

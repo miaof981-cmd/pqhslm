@@ -110,15 +110,16 @@ Page({
       
       // ✅ 从云端获取所有订单
       const ordersRes = await cloudAPI.getOrderList({ pageSize: 999 })
-      const allOrders = ordersRes.success ? (ordersRes.data || []) : []
+      // 🛡️ 安全数组解析
+      const allOrders = cloudAPI.safeArray(ordersRes)
       
       // ✅ 从云端获取提现记录
       const withdrawRes = await cloudAPI.getWithdrawList({ pageSize: 999 })
-      const withdrawRecords = withdrawRes.success ? (withdrawRes.data || []) : []
+      const withdrawRecords = cloudAPI.safeArray(withdrawRes)
       
       // ✅ 从云端获取打赏记录
       const rewardRes = await cloudAPI.getRewardList({ pageSize: 999 })
-      const rewardRecords = rewardRes.success ? (rewardRes.data || []) : []
+      const rewardRecords = cloudAPI.safeArray(rewardRes)
       
       // 加载画师数据
       const artistList = this.loadArtistIncome(allOrders, rewardRecords, withdrawRecords, startDate, endDate)

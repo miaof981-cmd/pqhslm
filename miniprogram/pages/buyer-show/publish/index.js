@@ -92,7 +92,8 @@ Page({
       // ✅ 从云端获取商品信息
       const cloudAPI = require('../../utils/cloud-api.js')
       const res = await cloudAPI.getProductList({ productId: this.data.productId })
-      const products = res.success ? (res.data || []) : []
+      // 🛡️ 安全数组解析
+      const products = cloudAPI.safeArray(res)
       const product = products.find(item => String(item.id || item._id) === String(this.data.productId))
       if (product) {
         this.setData({
