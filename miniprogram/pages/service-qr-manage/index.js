@@ -164,8 +164,8 @@ Page({
     }
   },
 
-  // 选择二维码
-  async chooseQRCode() {
+  // 选择二维码（添加弹窗中使用）
+  async uploadQrcode() {
     try {
       const res = await wx.chooseImage({
         count: 1,
@@ -184,11 +184,25 @@ Page({
         })
         
         console.log('✅ 二维码已选择（base64）')
+        wx.showToast({ title: '二维码已选择', icon: 'success' })
       }
     } catch (error) {
       console.error('选择二维码失败:', error)
       wx.showToast({ title: '选择失败', icon: 'none' })
     }
+  },
+
+  // 选择二维码（别名，兼容旧代码）
+  async chooseQRCode() {
+    return await this.uploadQrcode()
+  },
+
+  // 移除二维码
+  removeQrcode() {
+    this.setData({
+      'newService.qrcodeUrl': ''
+    })
+    wx.showToast({ title: '已移除', icon: 'success' })
   },
 
   // 转换临时路径为base64
@@ -205,8 +219,8 @@ Page({
     })
   },
 
-  // ✅ 添加客服（云端）
-  async addService() {
+  // ✅ 确认添加客服（WXML调用）
+  async confirmAddService() {
     const { userId, name, wechatId, qrcodeUrl } = this.data.newService
 
     // 验证
@@ -247,6 +261,11 @@ Page({
     }
   },
 
+  // ✅ 添加客服（别名，兼容旧代码）
+  async addService() {
+    return await this.confirmAddService()
+  },
+
   // ✅ 切换客服状态（云端）
   async toggleServiceStatus(e) {
     const { id, status } = e.currentTarget.dataset
@@ -274,21 +293,87 @@ Page({
 
   // 显示编辑弹窗
   showEditServiceModal(e) {
-    const service = e.currentTarget.dataset.service
+    const id = e.currentTarget.dataset.id
+    const service = e.currentTarget.dataset.service || this.data.currentService
+    
+    // 如果没有传service，从列表中查找
+    const targetService = service || this.data.serviceList.find(s => s.id === id)
+    
+    if (!targetService) {
+      wx.showToast({ title: '客服不存在', icon: 'none' })
+      return
+    }
     
     this.setData({
       showEditModal: true,
+      showDetailModal: false, // 关闭详情弹窗
       editService: {
-        id: service.id,
-        userId: service.userId,
-        name: service.name,
-        wechatId: service.wechatId
+        id: targetService.id,
+        userId: targetService.userId,
+        name: targetService.name,
+        wechatId: targetService.wechatId
       }
     })
   },
 
-  // ✅ 保存编辑（云端）
-  async saveEdit() {
+  // 绑定二维码（详情弹窗中）
+  async bindQrcode(e) {
+    const id = e.currentTarget.dataset.id
+    
+    try {
+      const res = await wx.chooseImage({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera']
+      })
+
+      if (res.tempFilePaths && res.tempFilePaths.length > 0) {
+        const tempPath = res.tempFilePaths[0]
+        
+        // ✅ 转换为base64
+        const base64 = await this.convertTempToBase64(tempPath)
+        
+        wx.showLoading({ title: '上传中...' })
+        
+        // ✅ 更新云端客服二维码
+        const updateRes = await cloudAPI.updateService(id, {
+          qrcodeUrl: base64
+        })
+        
+        wx.hideLoading()
+        
+        if (updateRes && updateRes.success) {
+          wx.showToast({ title: '二维码已绑定', icon: 'success' })
+          this.hideDetailModal()
+          this.loadServiceList()
+        } else {
+          throw new Error(updateRes?.message || '上传失败')
+        }
+      }
+    } catch (error) {
+      wx.hideLoading()
+      console.error('绑定二维码失败:', error)
+      wx.showToast({ title: error.message || '操作失败', icon: 'none' })
+    }
+  },
+
+  // 更换二维码（详情弹窗中）
+  async changeQrcode(e) {
+    const id = e.currentTarget.dataset.id
+    
+    wx.showModal({
+      title: '更换二维码',
+      content: '确定要更换客服二维码吗？',
+      success: async (res) => {
+        if (res.confirm) {
+          await this.bindQrcode(e)
+        }
+      }
+    })
+  },
+
+  // ✅ 确认编辑客服（WXML调用）
+  async confirmEditService() {
     const { id, name, wechatId } = this.data.editService
 
     if (!name || !name.trim()) {
@@ -318,6 +403,11 @@ Page({
       console.error('保存失败:', error)
       wx.showToast({ title: '保存失败', icon: 'none' })
     }
+  },
+
+  // ✅ 保存编辑（别名，兼容旧代码）
+  async saveEdit() {
+    return await this.confirmEditService()
   },
 
   // ✅ 删除客服（云端）
@@ -352,14 +442,25 @@ Page({
     }
   },
 
-  // 显示二维码详情
-  showQRCodeDetail(e) {
-    const service = e.currentTarget.dataset.service
+  // 查看客服详情
+  viewServiceDetail(e) {
+    const id = e.currentTarget.dataset.id
+    const service = this.data.serviceList.find(s => s.id === id)
+    
+    if (!service) {
+      wx.showToast({ title: '客服不存在', icon: 'none' })
+      return
+    }
     
     this.setData({
       showDetailModal: true,
       currentService: service
     })
+  },
+
+  // 显示二维码详情（别名）
+  showQRCodeDetail(e) {
+    return this.viewServiceDetail(e)
   },
 
   // 隐藏二维码详情

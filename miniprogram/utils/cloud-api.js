@@ -457,6 +457,29 @@ class CloudAPI {
     })
   }
 
+  // ==================== 短信验证码模块 ====================
+
+  /**
+   * 发送验证码
+   */
+  async sendVerificationCode(phone) {
+    return await this.callFunction('smsManager', {
+      action: 'sendCode',
+      phone
+    })
+  }
+
+  /**
+   * 验证验证码
+   */
+  async verifyCode(phone, code) {
+    return await this.callFunction('smsManager', {
+      action: 'verifyCode',
+      phone,
+      code
+    })
+  }
+
   // ==================== 画师申请模块 ====================
 
   /**

@@ -4,6 +4,8 @@ Page({
       name: '',           // 真实姓名
       age: '',            // 真实年龄
       wechat: '',         // 联系微信
+      phone: '',          // 手机号
+      verifyCode: '',     // 验证码
       idealPrice: '',     // 理想稿酬
       minPrice: '',       // 最低可接受价格
       finishedWorks: [],  // 满意的作品
@@ -12,6 +14,10 @@ Page({
     agreedToTerms: false,     // 是否同意条款
     showTermsDetail: false,   // 是否显示详细条款
     uploading: false,
+    // ✅ 验证码相关
+    codeSent: false,          // 是否已发送验证码
+    countdown: 0,             // 倒计时秒数
+    countdownTimer: null,     // 倒计时定时器
     // ✅ 新增：申请记录相关
     hasApplicationHistory: false,  // 是否有申请记录
     applicationStatus: null,       // 最新申请状态
@@ -203,9 +209,101 @@ Page({
     })
   },
 
+  // 📱 发送验证码
+  async sendCode() {
+    const phone = this.data.formData.phone
+
+    // 验证手机号格式
+    if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+      wx.showToast({
+        title: '请输入正确的手机号',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 防止重复发送
+    if (this.data.countdown > 0) {
+      return
+    }
+
+    wx.showLoading({ title: '发送中...' })
+
+    const cloudAPI = require('../../utils/cloud-api.js')
+    
+    try {
+      const res = await cloudAPI.sendVerificationCode(phone)
+
+      wx.hideLoading()
+
+      if (res && res.success) {
+        // ⚠️ 开发测试：显示验证码
+        if (res.debugCode) {
+          wx.showModal({
+            title: '验证码（测试）',
+            content: `验证码：${res.debugCode}\n\n⚠️ 生产环境将通过短信发送`,
+            showCancel: false
+          })
+        } else {
+          wx.showToast({
+            title: '验证码已发送',
+            icon: 'success'
+          })
+        }
+
+        // 开始60秒倒计时
+        this.startCountdown()
+      } else {
+        wx.showToast({
+          title: res?.message || '发送失败',
+          icon: 'none'
+        })
+      }
+    } catch (error) {
+      wx.hideLoading()
+      console.error('发送验证码失败:', error)
+      wx.showToast({
+        title: '发送失败，请重试',
+        icon: 'none'
+      })
+    }
+  },
+
+  // 📱 开始倒计时
+  startCountdown() {
+    this.setData({
+      codeSent: true,
+      countdown: 60
+    })
+
+    const timer = setInterval(() => {
+      const countdown = this.data.countdown - 1
+      
+      if (countdown <= 0) {
+        clearInterval(timer)
+        this.setData({
+          codeSent: false,
+          countdown: 0,
+          countdownTimer: null
+        })
+      } else {
+        this.setData({ countdown })
+      }
+    }, 1000)
+
+    this.setData({ countdownTimer: timer })
+  },
+
+  // 📱 页面卸载时清除定时器
+  onUnload() {
+    if (this.data.countdownTimer) {
+      clearInterval(this.data.countdownTimer)
+    }
+  },
+
   // 表单验证
   validateForm() {
-    const { name, age, wechat, idealPrice, minPrice, finishedWorks, processImages } = this.data.formData
+    const { name, age, wechat, phone, verifyCode, idealPrice, minPrice, finishedWorks, processImages } = this.data.formData
     
     if (!name.trim()) {
       wx.showToast({
@@ -218,6 +316,24 @@ Page({
     if (!age || age < 16 || age > 100) {
       wx.showToast({
         title: '请输入有效的年龄（16-100岁）',
+        icon: 'none'
+      })
+      return false
+    }
+
+    // 📱 验证手机号
+    if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+      wx.showToast({
+        title: '请输入正确的手机号',
+        icon: 'none'
+      })
+      return false
+    }
+
+    // 📱 验证验证码
+    if (!verifyCode || verifyCode.length !== 6) {
+      wx.showToast({
+        title: '请输入6位验证码',
         icon: 'none'
       })
       return false
@@ -334,6 +450,25 @@ Page({
 
   // 执行提交申请
   async doSubmitApplication(userInfo) {
+    const cloudAPI = require('../../utils/cloud-api.js')
+
+    // 📱 第1步：验证验证码
+    wx.showLoading({ title: '验证中...' })
+
+    const { phone, verifyCode } = this.data.formData
+
+    const verifyRes = await cloudAPI.verifyCode(phone, verifyCode)
+
+    if (!verifyRes || !verifyRes.success) {
+      wx.hideLoading()
+      wx.showToast({
+        title: verifyRes?.message || '验证码错误',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 📱 第2步：提交申请
     wx.showLoading({ title: '提交中...' })
 
     const app = getApp()
@@ -341,8 +476,6 @@ Page({
     const openid = wx.getStorageSync('openid') || app.globalData.openid || 'mock_openid_' + userId
 
     // ✅ 云端化：调用云函数提交申请
-    const cloudAPI = require('../../utils/cloud-api.js')
-    
     try {
       const res = await cloudAPI.submitArtistApplication({
         userId: userId,
@@ -354,6 +487,7 @@ Page({
         name: this.data.formData.name,
         age: this.data.formData.age,
         wechat: this.data.formData.wechat,
+        phone: this.data.formData.phone,  // 📱 手机号
         idealPrice: this.data.formData.idealPrice,
         minPrice: this.data.formData.minPrice,
         finishedWorks: this.data.formData.finishedWorks,
@@ -377,13 +511,22 @@ Page({
                 name: '',
                 age: '',
                 wechat: '',
+                phone: '',
+                verifyCode: '',
                 idealPrice: '',
                 minPrice: '',
                 finishedWorks: [],
                 processImages: []
               },
-              agreedToTerms: false
+              agreedToTerms: false,
+              codeSent: false,
+              countdown: 0
             })
+
+            // 清除倒计时
+            if (this.data.countdownTimer) {
+              clearInterval(this.data.countdownTimer)
+            }
 
             // 返回上一页
             wx.navigateBack()
