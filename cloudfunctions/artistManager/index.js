@@ -24,6 +24,8 @@ exports.main = async (event, context) => {
         return await applyArtist(openid, event)
       case 'getStatus':
         return await getApplicationStatus(openid)
+      case 'getApplications':
+        return await getApplications(openid, event)
       case 'approve':
         return await approveApplication(openid, event)
       case 'reject':
@@ -138,6 +140,53 @@ async function getApplicationStatus(openid) {
   return {
     success: true,
     data: appRes.data[0]
+  }
+}
+
+/**
+ * 获取画师申请列表（根据userId查询，前端调用）
+ */
+async function getApplications(openid, event) {
+  const { userId, status } = event
+  
+  console.log('[getApplications] 参数:', { userId, status, openid })
+
+  // 构建查询条件
+  let query = db.collection('artist_applications')
+
+  // 如果传入了 userId，按 userId 查询
+  if (userId) {
+    query = query.where({ userId: String(userId) })
+  } else {
+    // 如果没有传入 userId，使用 openid 查询对应的用户
+    const userRes = await db.collection('users')
+      .where({ _openid: openid })
+      .get()
+
+    if (userRes.data.length === 0) {
+      console.log('[getApplications] 用户不存在')
+      return { success: true, data: [] }
+    }
+
+    const currentUserId = userRes.data[0].userId
+    query = query.where({ userId: String(currentUserId) })
+  }
+
+  // 如果指定了状态，添加状态过滤
+  if (status) {
+    query = query.where({ status })
+  }
+
+  // 执行查询
+  const res = await query
+    .orderBy('createdAt', 'desc')
+    .get()
+
+  console.log('[getApplications] 查询结果:', res.data.length, '条')
+
+  return {
+    success: true,
+    data: res.data || []
   }
 }
 
