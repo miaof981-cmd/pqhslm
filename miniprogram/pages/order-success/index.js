@@ -602,18 +602,29 @@ Page({
       this.setData({ 'orderInfo.orderNo': cloudOrderId })
       console.log('✅ 云端订单号同步完成:', cloudOrderId)
     } else if (!cloudResult.success && !cloudResult.skipped) {
+      // 🎯 云端失败，启用降级模式
+      console.warn('⚠️ 云端订单创建失败，启用降级备份')
+      this.saveOrderToLocal(orderInfo, serviceInfo, orderItems, {
+        clientOrderNo,
+        cloudSynced: false,
+        cloudOrderId: '',
+        cloudError: cloudResult.message
+      })
       wx.showToast({ title: '订单已暂存，云端同步失败', icon: 'none' })
-      console.warn('⚠️ 云端订单创建失败，已保留客户端订单号:', clientOrderNo)
     } else if (cloudResult.skipped) {
-      console.log('ℹ️ 当前为 mock/降级模式，跳过云端下单')
+      // 🎯 Mock模式，写入本地用于开发测试
+      console.log('ℹ️ 当前为 mock/降级模式，写入本地')
+      this.saveOrderToLocal(orderInfo, serviceInfo, orderItems, {
+        clientOrderNo,
+        cloudSynced: false,
+        cloudOrderId: '',
+        cloudError: 'mock_mode'
+      })
+    } else {
+      // ✅ 云端成功，不写本地
+      console.log('✅ 订单已保存至云数据库:', cloudResult.data.id)
+      console.log('ℹ️ 生产模式：不写入本地存储，所有数据从云端读取')
     }
-
-    this.saveOrderToLocal(orderInfo, serviceInfo, orderItems, {
-      clientOrderNo,
-      cloudSynced: Boolean(cloudResult.success && !cloudResult.skipped),
-      cloudOrderId: orderInfo.cloudOrderId || '',
-      cloudError: cloudResult.message
-    })
   },
 
   // 自动保存订单到本地存储

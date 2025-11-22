@@ -20,7 +20,7 @@ const ENV = {
 }
 
 // 当前环境（手动切换）
-const currentEnv = 'dev'  // 'dev' | 'prod'
+const currentEnv = 'prod'  // 'dev' | 'prod'
 
 module.exports = {
   ...ENV[currentEnv],
