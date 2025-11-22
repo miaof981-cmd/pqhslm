@@ -35,6 +35,8 @@ exports.main = async (event, context) => {
         return await approveApplication(openid, event)
       case 'reject':
         return await rejectApplication(openid, event)
+      case 'updateStatus':
+        return await updateApplicationStatus(openid, event)
       case 'getList':
         return await getApplicationList(openid, event)
       
@@ -296,6 +298,105 @@ async function rejectApplication(openid, event) {
   return {
     success: true,
     message: '申请已拒绝'
+  }
+}
+
+/**
+ * 更新申请状态（统一接口，支持approved和rejected）
+ */
+async function updateApplicationStatus(openid, event) {
+  const { applicationId, status, rejectReason } = event
+
+  console.log('[updateApplicationStatus] 参数:', { applicationId, status, rejectReason })
+
+  // 检查管理员权限
+  const adminRes = await db.collection('system_admin')
+    .where({ _openid: openid, isAdmin: true })
+    .get()
+
+  if (adminRes.data.length === 0) {
+    return { success: false, message: '仅管理员可操作' }
+  }
+
+  // 验证status参数
+  if (!['approved', 'rejected'].includes(status)) {
+    return { success: false, message: '无效的状态值' }
+  }
+
+  const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
+
+  try {
+    // 根据不同状态设置不同的更新数据
+    const updateData = {
+      status: status,
+      updatedAt: now
+    }
+
+    if (status === 'approved') {
+      updateData.approveTime = now
+      updateData.approvedAt = now
+    } else if (status === 'rejected') {
+      updateData.rejectTime = now
+      updateData.rejectedAt = now
+      updateData.rejectReason = rejectReason || '未通过审核'
+    }
+
+    // 更新申请状态（使用 id 或 _id 查询）
+    const updateRes = await db.collection('artist_applications')
+      .where({
+        _: db.command.or([
+          { id: applicationId },
+          { _id: applicationId }
+        ])
+      })
+      .update({
+        data: updateData
+      })
+
+    console.log('[updateApplicationStatus] 更新结果:', updateRes)
+
+    if (updateRes.stats.updated === 0) {
+      return { success: false, message: '申请不存在或已处理' }
+    }
+
+    // 如果是通过，更新用户角色
+    if (status === 'approved') {
+      // 获取申请的 userId
+      const appRes = await db.collection('artist_applications')
+        .where({
+          _: db.command.or([
+            { id: applicationId },
+            { _id: applicationId }
+          ])
+        })
+        .get()
+
+      if (appRes.data.length > 0) {
+        const userId = appRes.data[0].userId
+
+        await db.collection('users')
+          .where({ userId: String(userId) })
+          .update({
+            data: {
+              role: 'artist',
+              updatedAt: now
+            }
+          })
+
+        console.log('[updateApplicationStatus] 已更新用户角色:', userId)
+      }
+    }
+
+    return {
+      success: true,
+      message: status === 'approved' ? '审核通过' : '已驳回'
+    }
+  } catch (error) {
+    console.error('[updateApplicationStatus] 错误:', error)
+    return {
+      success: false,
+      message: error.message || '更新失败'
+    }
   }
 }
 
