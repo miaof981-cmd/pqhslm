@@ -172,12 +172,7 @@ App({
       console.log('[app] ⚠️ 用户信息同步失败:', err)
     })
     
-    // ❌ 已废弃：订单数据迁移函数（严格云端模式下不再使用本地存储）
-    // const migrated = wx.getStorageSync('avatar_migrated_v2')
-    // if (!migrated) {
-    //   this.migrateOrderAvatars()
-    //   wx.setStorageSync('avatar_migrated_v2', true)
-    // }
+    // ❌ 已删除：订单数据迁移函数（严格云端模式下不再需要）
     
     // ✅ 新增：检查画师申请状态，自动赋予权限
     this.checkArtistApplication()
