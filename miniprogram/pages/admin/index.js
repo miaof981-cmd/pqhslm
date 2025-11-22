@@ -1459,14 +1459,14 @@ Page({
           wx.hideLoading()
           
           if (deleteRes.success) {
-          
-          wx.showToast({
-            title: '已删除',
-            icon: 'success'
-          })
-          
-          // 重新加载
-          this.loadProducts()
+            wx.showToast({
+              title: '已删除',
+              icon: 'success'
+            })
+            
+            // 重新加载
+            this.loadProducts()
+          }
         }
       }
     })
