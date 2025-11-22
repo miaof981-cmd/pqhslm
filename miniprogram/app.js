@@ -10,7 +10,10 @@
     'userInfo',       // 用户基本信息缓存（从云端获取后缓存）
     'userRoles',      // 用户角色缓存（从云端获取后缓存）
     'avatar_migrated_v2', // 头像迁移标记
-    'userId_counter'  // userId计数器（已废弃，但避免误报）
+    'userId_counter', // userId计数器（已废弃，但避免误报）
+    'product_draft',  // 商品编辑草稿（用户体验必需）
+    'reject_templates', // 审核驳回模板（用户体验必需）
+    'cart_items'      // 购物车（待云端化，临时允许）
   ]
 
   const FORBIDDEN_PATTERNS = [
@@ -28,10 +31,13 @@
     /^withdraw_records$/,
     /^reward_records$/,
     /^income_ledger$/,
-    /.*_draft$/,      // 所有草稿
+    /.*_draft$/,      // 所有草稿（product_draft 已加入白名单）
     /.*_cache$/,      // 所有缓存
     /.*_temp$/        // 所有临时数据
   ]
+  
+  // ⚠️ 注意：黑名单优先级低于白名单
+  // 如果某个键同时匹配白名单和黑名单，白名单优先
 
   function isKeyForbidden(key) {
     if (!key) return false
