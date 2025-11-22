@@ -2124,42 +2124,6 @@ Page({
       title: '功能已禁用',
       icon: 'none'
     })
-    return
-    
-    // 以下代码已废弃
-    if (false) {
-      wx.setStorageSync('orders', [])
-      wx.setStorageSync('pending_orders', [])
-      wx.setStorageSync('completed_orders', [])
-      wx.setStorageSync('mock_orders', [])
-      wx.setStorageSync('mock_products', [])
-      wx.setStorageSync('cart', [])
-      wx.setStorageSync('data_version', 2)
-      
-      console.log('✅ 测试数据已清空')
-      console.log('保留数据：用户信息、系统设置、画师申请')
-      
-      wx.hideLoading()
-      
-      wx.showToast({
-        title: '数据已清空',
-        icon: 'success',
-        duration: 2000
-      })
-      
-      // 刷新页面数据
-      setTimeout(() => {
-        this.loadData()
-      }, 500)
-      
-    } catch (err) {
-      console.error('❌ 清空数据失败:', err)
-      wx.hideLoading()
-      wx.showToast({
-        title: '清空失败',
-        icon: 'none'
-      })
-    }
   },
 
   // ❌ 已废弃：使用 computeVisualStatus 替代
