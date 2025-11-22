@@ -60,9 +60,11 @@ Page({
     this.setData({ loading: true })
     
     try {
-      // 从本地存储加载商品
-      const products = wx.getStorageSync('mock_products') || []
-      const product = products.find(p => p.id === this.data.productId)
+      // ✅ 从云端加载商品
+      const cloudAPI = require('../../utils/cloud-api.js')
+      const res = await cloudAPI.getProductList({ productId: this.data.productId })
+      const products = res.success ? (res.data || []) : []
+      const product = products.find(p => (p.id || p._id) === this.data.productId)
       
       console.log('=== 商品详情页加载 ===')
       console.log('productId:', this.data.productId)
@@ -119,9 +121,9 @@ Page({
       // 🎯 修复：多来源兜底 + 统一格式解析画师编号
       let artistNumber = ''
       if (artistUserId) {
-        // 1. 多来源兜底取值
-        const allApplications = wx.getStorageSync('artist_applications') || []
-        const allProfiles = wx.getStorageSync('artist_profiles') || {}
+        // ✅ 已废弃：画师信息应从云端读取
+        const allApplications = []
+        const allProfiles = {}
         
         const fromApp = allApplications.find(app => 
           app.userId === artistUserId && app.status === 'approved'

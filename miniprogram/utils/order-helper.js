@@ -83,9 +83,8 @@ function getMeaningfulAvatar(avatar) {
 function normalizeOrders(orders, options = {}) {
   if (!Array.isArray(orders)) return []
 
-  // 获取数据源
-  const products = wx.getStorageSync('mock_products') || []
-  // ✅ 已废弃：客服列表应从云端users表读取
+  // ✅ 数据源统一从参数传入（不再从本地读取）
+  const products = options.productList || []
   const services = options.serviceList || []
 
   return orders.map(order => {
@@ -386,10 +385,16 @@ function mergeOrderRecords(existing, incoming) {
  * @returns {Array} 合并后的订单数组
  */
 function getAllOrders() {
-  const legacyOrders = wx.getStorageSync('mock_orders') || []
-  const orders = wx.getStorageSync('orders') || []
-  const pendingOrders = wx.getStorageSync('pending_orders') || []
-  const completedOrders = wx.getStorageSync('completed_orders') || []  // 🎯 新增：已完成订单源
+  // ✅ 已废弃：所有订单应从云端通过参数传入
+  console.warn('[DEPRECATED] getAllOrders() 已废弃，请使用 options.orders 参数传入订单数据')
+  return []
+  
+  // 以下代码已禁用
+  if (false) {
+  const legacyOrders = []
+  const orders = []
+  const pendingOrders = []
+  const completedOrders = []
   
   // 合并订单（去重，以 id 为准）
   const orderMap = new Map()
@@ -405,6 +410,7 @@ function getAllOrders() {
   })
   
   return Array.from(orderMap.values())
+  }
 }
 
 /**

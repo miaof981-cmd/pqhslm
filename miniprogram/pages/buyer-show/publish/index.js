@@ -89,8 +89,11 @@ Page({
         productId: targetOrder.productId || this.data.productId
       })
     } else if (this.data.productId) {
-      const products = wx.getStorageSync('mock_products') || []
-      const product = products.find(item => String(item.id) === String(this.data.productId))
+      // ✅ 从云端获取商品信息
+      const cloudAPI = require('../../utils/cloud-api.js')
+      const res = await cloudAPI.getProductList({ productId: this.data.productId })
+      const products = res.success ? (res.data || []) : []
+      const product = products.find(item => String(item.id || item._id) === String(this.data.productId))
       if (product) {
         this.setData({
           productName: product.name || this.data.productName,

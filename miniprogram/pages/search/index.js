@@ -61,10 +61,14 @@ Page({
     })
   },
 
-  loadProducts() {
-    const rawProducts = wx.getStorageSync('mock_products') || []
-    const users = wx.getStorageSync('users') || []
-    const artistApplications = wx.getStorageSync('artist_applications') || []
+  async loadProducts() {
+    // ✅ 从云端获取商品列表
+    const cloudAPI = require('../../utils/cloud-api.js')
+    const res = await cloudAPI.getProductList({ pageSize: 999 })
+    const rawProducts = res.success ? (res.data || []) : []
+    
+    const users = []
+    const artistApplications = []
     
     // 🔍 诊断记录器
     const diagnostic = {

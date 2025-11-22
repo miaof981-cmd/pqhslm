@@ -81,11 +81,12 @@ function runOrderFlowDiagnostics(options = {}) {
   }
 
   // === 2️⃣ 画师与商品配置检查 ===
-  const applications = normalizeArray(wx.getStorageSync('artist_applications'))
-  const approvedArtists = applications.filter(app => (app && app.status === 'approved'))
+  // ✅ 已废弃：画师申请和商品应从云端读取
+  const applications = []
+  const approvedArtists = []
   summary.artists.approved = approvedArtists.length
 
-  const products = normalizeArray(wx.getStorageSync('mock_products'))
+  const products = []
   
   // 🎯 优化：如果没有已审核画师，但已有商品，说明画师权限正常（测试环境）
   if (approvedArtists.length === 0 && products.length === 0) {
