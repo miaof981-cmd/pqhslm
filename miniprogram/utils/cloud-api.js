@@ -865,6 +865,77 @@ class CloudAPI {
       settings
     })
   }
+
+  // ==================== 购物车模块 ====================
+
+  /**
+   * 获取购物车列表
+   * @param {Object} options - 查询选项
+   * @param {string} options.userId - 用户ID（可选，不传则使用当前用户）
+   */
+  async getCartList(options = {}) {
+    return await this.callFunction('cartManager', {
+      action: 'getList',
+      ...options
+    })
+  }
+
+  /**
+   * 添加商品到购物车
+   * @param {Object} cartItem - 购物车项数据
+   */
+  async addToCart(cartItem) {
+    return await this.callFunction('cartManager', {
+      action: 'add',
+      cartItem
+    })
+  }
+
+  /**
+   * 更新购物车项
+   * @param {string} cartItemId - 购物车项ID
+   * @param {Object} updates - 更新内容
+   */
+  async updateCartItem(cartItemId, updates) {
+    return await this.callFunction('cartManager', {
+      action: 'update',
+      cartItemId,
+      updates
+    })
+  }
+
+  /**
+   * 删除购物车项
+   * @param {string} cartItemId - 购物车项ID
+   */
+  async removeFromCart(cartItemId) {
+    return await this.callFunction('cartManager', {
+      action: 'remove',
+      cartItemId
+    })
+  }
+
+  /**
+   * 批量删除购物车项
+   * @param {Array<string>} cartItemIds - 购物车项ID数组
+   */
+  async batchRemoveFromCart(cartItemIds) {
+    return await this.callFunction('cartManager', {
+      action: 'batchRemove',
+      cartItemIds
+    })
+  }
+
+  /**
+   * 清空购物车
+   * @param {string} userId - 用户ID（可选）
+   */
+  async clearCart(userId = null) {
+    return await this.callFunction('cartManager', {
+      action: 'clear',
+      userId
+    })
+  }
 }
 
 // 创建单例
