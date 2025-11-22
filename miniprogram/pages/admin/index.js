@@ -1905,7 +1905,7 @@ Page({
       content: `确认撤销画师"${artist.name}"的工作台权限？\n\n撤销后：\n• 该画师变为普通用户\n• 无法访问工作台\n• 可以重新提交画师申请\n• 画师编号会保留`,
       confirmText: '确认撤销',
       confirmColor: '#FF6B6B',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
           // ✅ 云端化：通过云函数撤销权限
           wx.showLoading({ title: '撤销中...', mask: true })
