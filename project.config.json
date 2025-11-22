@@ -28,5 +28,6 @@
     "tabSize": 2
   },
   "srcMiniprogramRoot": "miniprogram/",
-  "condition": {}
+  "condition": {},
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/"
 }

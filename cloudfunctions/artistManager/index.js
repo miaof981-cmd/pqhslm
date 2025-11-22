@@ -17,6 +17,11 @@ exports.main = async (event, context) => {
   const openid = wxContext.OPENID
   const { action } = event
 
+  // 🔍 调试日志：打印收到的完整参数
+  console.log('[artistManager] 收到请求:', JSON.stringify(event))
+  console.log('[artistManager] action 值:', action)
+  console.log('[artistManager] openid:', openid)
+
   try {
     switch (action) {
       // 申请相关
@@ -42,7 +47,8 @@ exports.main = async (event, context) => {
         return await updateProfile(openid, event)
       
       default:
-        return { success: false, message: '未知操作' }
+        console.error('[artistManager] 未知操作! action:', action, '完整event:', event)
+        return { success: false, message: '未知操作', receivedAction: action, allKeys: Object.keys(event) }
     }
   } catch (error) {
     console.error('画师申请管理错误:', error)
