@@ -23,11 +23,14 @@ function normalizeCategory(raw) {
   }
 }
 
-function getRawCategoryList() {
+async function getRawCategoryList() {
+  // ✅ 从云端获取分类列表
   try {
-    const stored = wx.getStorageSync('product_categories')
-    if (Array.isArray(stored) && stored.length > 0) {
-      const normalized = stored
+    const cloudAPI = require('./cloud-api.js')
+    const res = await cloudAPI.getCategoryList()
+    
+    if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+      const normalized = res.data
         .map(normalizeCategory)
         .filter(Boolean)
 
@@ -36,19 +39,20 @@ function getRawCategoryList() {
       }
     }
   } catch (error) {
-    console.warn('[category-service] 读取 product_categories 失败:', error)
+    console.warn('[category-service] 从云端读取分类失败:', error)
   }
 
   return DEFAULT_CATEGORIES.slice()
 }
 
-function getAvailableCategories(options = {}) {
+async function getAvailableCategories(options = {}) {
   const { includeDisabled = false } = options
-  return getRawCategoryList().filter(category => includeDisabled || category.status !== 'disabled')
+  const rawList = await getRawCategoryList()
+  return rawList.filter(category => includeDisabled || category.status !== 'disabled')
 }
 
-function getSelectableCategories(currentId = 'all') {
-  const categories = getAvailableCategories()
+async function getSelectableCategories(currentId = 'all') {
+  const categories = await getAvailableCategories()
   const list = categories.map(category => ({
     ...category,
     active: category.id === currentId

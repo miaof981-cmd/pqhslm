@@ -85,8 +85,8 @@ Page({
     await this.setSelectableCategories(this.data.currentCategory || 'all')
   },
 
-  setSelectableCategories(selectedId = 'all') {
-    const categories = categoryService.getSelectableCategories(selectedId)
+  async setSelectableCategories(selectedId = 'all') {
+    const categories = await categoryService.getSelectableCategories(selectedId)
     this.setData({
       categories
     })
