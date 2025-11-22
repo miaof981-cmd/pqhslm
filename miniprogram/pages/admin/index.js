@@ -703,10 +703,29 @@ Page({
     const allApplications = appRes.success && appRes.data ? appRes.data.list || [] : []
     const approvedApplications = allApplications.filter(app => app.status === 'approved')
     
+    // ✅ 云端化：读取所有用户信息（用于获取头像和昵称）
+    const userRes = await cloudAPI.getUserList({ pageSize: 1000 })
+    const allUsers = userRes.success && userRes.data ? userRes.data.list || userRes.data || [] : []
+    
     // ✅ 云端化：读取所有商品和订单，用于统计画师数据
     const productRes = await cloudAPI.getProductList({ pageSize: 1000 })
     const allProducts = productRes.success && productRes.data ? productRes.data.list || [] : []
     const allOrders = orderHelper.getAllOrders()
+    
+    // ✅ 云端化：批量获取所有画师档案
+    const profilePromises = approvedApplications.map(app => 
+      cloudAPI.getArtistProfile(app.userId).catch(err => {
+        console.warn(`获取画师档案失败 (userId: ${app.userId}):`, err)
+        return { success: false, data: null }
+      })
+    )
+    const profileResults = await Promise.all(profilePromises)
+    const profileMap = new Map()
+    profileResults.forEach((res, index) => {
+      if (res.success && res.data) {
+        profileMap.set(approvedApplications[index].userId, res.data)
+      }
+    })
     
     // 转换为画师列表
     const artists = approvedApplications.map(app => {
@@ -817,9 +836,8 @@ Page({
         artistNumber = null // 未开通权限前不分配编号
       }
       
-      // ✅ 云端化：读取画师档案（联系方式）
-      const profileRes = await cloudAPI.getArtistProfile(app.userId)
-      const profile = profileRes.success && profileRes.data ? profileRes.data : {}
+      // ✅ 云端化：从预加载的档案 Map 中获取
+      const profile = profileMap.get(app.userId) || {}
       
       // ✅ 云端化：检查是否已开通工作台权限
       const userRoles = appInstance.getUserRoles() || []
