@@ -114,7 +114,7 @@ Page({
           overdueDays: order.overdueDays || 0
         },
         loading: false,
-        buyerShowId: buyerShowPost ? buyerShowPost.id : '',
+        buyerShowId: '', // buyerShowPost 未定义，暂时为空
         canPublishBuyerShow
       })
       
@@ -132,8 +132,16 @@ Page({
         serviceQrSource: serviceQrResult.source,
         complaintQrSource: complaintQrResult.source
       })
-    } else {
-      this.loadMockOrder(orderId)
+      
+    } catch (e) {
+      console.error('❌ 订单详情加载失败:', e)
+      wx.showToast({
+        title: '加载失败',
+        icon: 'none'
+      })
+      setTimeout(() => {
+        wx.navigateBack()
+      }, 1500)
     }
   },
   
@@ -394,7 +402,7 @@ Page({
   },
 
   // 执行退款申请
-  doRequestRefund(order) {
+  async doRequestRefund(order) {
     wx.showLoading({ title: '提交中...', mask: true })
     
     // 更新订单退款状态为"申请中"
@@ -402,8 +410,6 @@ Page({
     order.refundRequestTime = new Date().toISOString()
     order.refundRequestor = 'buyer' // 买家申请
     
-    // 保存到本地存储
-    const orderHelper = require('../../utils/order-helper.js')
     // ✅ 调用云函数更新订单
     try {
       const cloudAPI = require('../../utils/cloud-api.js')
