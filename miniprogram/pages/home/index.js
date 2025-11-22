@@ -82,7 +82,7 @@ Page({
 
   // 加载商品分类
   async loadCategories() {
-    this.setSelectableCategories(this.data.currentCategory || 'all')
+    await this.setSelectableCategories(this.data.currentCategory || 'all')
   },
 
   setSelectableCategories(selectedId = 'all') {
