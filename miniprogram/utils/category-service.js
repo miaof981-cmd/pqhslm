@@ -29,8 +29,10 @@ async function getRawCategoryList() {
     const cloudAPI = require('./cloud-api.js')
     const res = await cloudAPI.getCategoryList()
     
-    if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-      const normalized = res.data
+    if (res.success) {
+      // 🛡️ 安全数组解析
+      const categories = cloudAPI.safeArray(res)
+      const normalized = categories
         .map(normalizeCategory)
         .filter(Boolean)
 

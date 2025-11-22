@@ -52,10 +52,11 @@ Page({
       // ✅ 从云端读取分类
       const res = await cloudAPI.getCategoryList()
       
+      // 🛡️ 安全数组解析
       let categories = []
       
-      if (res && res.success && res.data) {
-        categories = res.data
+      if (res && res.success) {
+        categories = cloudAPI.safeArray(res)
       } else {
         console.warn('云端获取分类失败:', res?.message)
         categories = []

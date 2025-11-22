@@ -343,8 +343,9 @@ Page({
     let serviceList = []
     try {
       const res = await cloudAPI.getServiceList(true) // true = 仅获取在线客服
-      if (res && res.success && Array.isArray(res.data)) {
-        serviceList = res.data
+      if (res && res.success) {
+        // 🛡️ 安全数组解析
+        serviceList = cloudAPI.safeArray(res)
         console.log('✅ 从云端加载客服列表，数量:', serviceList.length)
       }
     } catch (error) {

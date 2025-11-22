@@ -147,9 +147,12 @@ Page({
       // ✅ 从云端获取实名认证记录
       const res = await cloudAPI.getIdentityVerifyRecords(userKey)
       
-      if (res.success && res.data && res.data.length > 0) {
+      // 🛡️ 安全数组解析
+      const records = cloudAPI.safeArray(res)
+      
+      if (res.success && records.length > 0) {
         // 找到已认证的记录
-        const verifiedRecord = res.data.find(v => v.status === 'verified')
+        const verifiedRecord = records.find(v => v.status === 'verified')
         if (verifiedRecord) {
           this.setData({
             isVerified: true,
@@ -180,7 +183,9 @@ Page({
     try {
       // ✅ 检查实名认证状态（从云端）
       const res = await cloudAPI.getIdentityVerifyRecords(userKey)
-      const myVerify = res.success && res.data ? res.data.find(v => String(v.userId || v.user_id) === userKey) : null
+      // 🛡️ 安全数组解析
+      const verifyRecords = cloudAPI.safeArray(res)
+      const myVerify = verifyRecords.find(v => String(v.userId || v.user_id) === userKey) || null
 
       if (!myVerify || myVerify.status !== 'verified') {
         // 未认证，跳转认证页面
@@ -523,7 +528,9 @@ Page({
     try {
       // ✅ 从云端获取实名认证信息
       const verifyRes = await cloudAPI.getIdentityVerifyRecords(userKey)
-      const myVerify = verifyRes.success && verifyRes.data ? verifyRes.data.find(v => String(v.userId || v.user_id) === userKey) : null
+      // 🛡️ 安全数组解析
+      const verifyRecords = cloudAPI.safeArray(verifyRes)
+      const myVerify = verifyRecords.find(v => String(v.userId || v.user_id) === userKey) || null
       
       if (!myVerify || myVerify.status !== 'verified') {
         wx.showToast({ title: '请先完成实名认证', icon: 'none' })

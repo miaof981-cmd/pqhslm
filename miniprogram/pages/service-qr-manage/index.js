@@ -40,7 +40,9 @@ Page({
       const res = await cloudAPI.getServiceList(false) // 获取所有客服（包括离线）
       
       if (res && res.success) {
-        const services = res.data.map(s => ({
+        // 🛡️ 安全数组解析
+        const serviceList = cloudAPI.safeArray(res)
+        const services = serviceList.map(s => ({
           id: s.userId,
           userId: s.userId,
           name: s.name || s.nickName,

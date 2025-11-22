@@ -68,8 +68,10 @@ Page({
     const cloudAPI = require('../../utils/cloud-api.js')
     
     const res = await cloudAPI.getBannerList()
-    if (res.success && res.data) {
-      const bannerImages = res.data.map(b => b.image).filter(img => img)
+    if (res.success) {
+      // 🛡️ 安全数组解析
+      const banners = cloudAPI.safeArray(res)
+      const bannerImages = banners.map(b => b.image).filter(img => img)
       this.setData({
         banners: bannerImages
       })
@@ -198,10 +200,8 @@ Page({
       
       // 从云数据库读取公告列表
       const res = await cloudAPI.getNoticeList()
-      let allNotices = []
-      if (res.success && res.data) {
-        allNotices = res.data
-      }
+      // 🛡️ 安全数组解析
+      const allNotices = cloudAPI.safeArray(res)
       
       // 只显示启用状态的公告
       const activeNotices = allNotices.filter(notice => notice.status === 'enabled' || notice.status === 'active')
