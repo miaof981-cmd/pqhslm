@@ -1,3 +1,122 @@
+// ==================== 严格云端模式（Strict Cloud Mode）====================
+// ✅ 全局拦截所有本地存储操作，强制使用云端数据
+(function enableStrictCloudMode() {
+  const ALLOWED_KEYS = [
+    'logs',           // 系统日志
+    'hasLoggedIn',    // 登录状态标记
+    'isGuestMode',    // 游客模式标记
+    'userId',         // 用户ID缓存（从云端获取后缓存）
+    'openid',         // 用户openid缓存
+    'userInfo',       // 用户基本信息缓存（从云端获取后缓存）
+    'userRoles',      // 用户角色缓存（从云端获取后缓存）
+    'avatar_migrated_v2', // 头像迁移标记
+    'userId_counter'  // userId计数器（已废弃，但避免误报）
+  ]
+
+  const FORBIDDEN_PATTERNS = [
+    /^pending_orders$/,
+    /^completed_orders$/,
+    /^orders$/,
+    /^mock_orders$/,
+    /^service_list$/,
+    /^customer_service_list$/,
+    /^artist_applications$/,
+    /^product_categories$/,
+    /^mock_products$/,
+    /^products$/,
+    /^guest_orders$/,
+    /^withdraw_records$/,
+    /^reward_records$/,
+    /^income_ledger$/,
+    /.*_draft$/,      // 所有草稿
+    /.*_cache$/,      // 所有缓存
+    /.*_temp$/        // 所有临时数据
+  ]
+
+  function isKeyForbidden(key) {
+    if (!key) return false
+    
+    // 白名单检查
+    if (ALLOWED_KEYS.includes(key)) {
+      return false
+    }
+    
+    // 黑名单检查
+    for (const pattern of FORBIDDEN_PATTERNS) {
+      if (pattern.test(key)) {
+        return true
+      }
+    }
+    
+    return false
+  }
+
+  function throwStorageError(operation, key) {
+    const error = new Error(`❌ 禁止使用本地缓存：${key} (operation: ${operation})`)
+    console.error(error.message)
+    console.error('📋 调用栈:', error.stack)
+    console.error('💡 解决方案：请使用 cloudAPI 从云端获取数据')
+    throw error
+  }
+
+  // 🔒 拦截同步方法
+  const originalGetStorageSync = wx.getStorageSync
+  const originalSetStorageSync = wx.setStorageSync
+  const originalRemoveStorageSync = wx.removeStorageSync
+
+  wx.getStorageSync = function(key) {
+    if (isKeyForbidden(key)) {
+      throwStorageError('getStorageSync', key)
+    }
+    return originalGetStorageSync.call(wx, key)
+  }
+
+  wx.setStorageSync = function(key, data) {
+    if (isKeyForbidden(key)) {
+      throwStorageError('setStorageSync', key)
+    }
+    return originalSetStorageSync.call(wx, key, data)
+  }
+
+  wx.removeStorageSync = function(key) {
+    if (isKeyForbidden(key)) {
+      throwStorageError('removeStorageSync', key)
+    }
+    return originalRemoveStorageSync.call(wx, key)
+  }
+
+  // 🔒 拦截异步方法
+  const originalGetStorage = wx.getStorage
+  const originalSetStorage = wx.setStorage
+  const originalRemoveStorage = wx.removeStorage
+
+  wx.getStorage = function(options = {}) {
+    if (isKeyForbidden(options.key)) {
+      throwStorageError('getStorage', options.key)
+    }
+    return originalGetStorage.call(wx, options)
+  }
+
+  wx.setStorage = function(options = {}) {
+    if (isKeyForbidden(options.key)) {
+      throwStorageError('setStorage', options.key)
+    }
+    return originalSetStorage.call(wx, options)
+  }
+
+  wx.removeStorage = function(options = {}) {
+    if (isKeyForbidden(options.key)) {
+      throwStorageError('removeStorage', options.key)
+    }
+    return originalRemoveStorage.call(wx, options)
+  }
+
+  console.log('🔒 严格云端模式已启用')
+  console.log('✅ 允许的本地缓存键:', ALLOWED_KEYS.join(', '))
+  console.log('❌ 禁止的缓存模式:', FORBIDDEN_PATTERNS.map(p => p.source).join(', '))
+})()
+// ==================== 严格云端模式结束 ====================
+
 // ✅ 引入全局错误处理模块
 const { globalErrorHandler } = require('./utils/global-error-handler.js')
 
