@@ -294,40 +294,33 @@ Page({
           icon: icon || '',
           status: status || 'active'
         })
-            
-            if (updatedCount > 0) {
-              wx.setStorageSync('mock_products', products)
-              console.log(`✅ 已同步更新 ${updatedCount} 个商品的分类名称: ${oldName} → ${newName}`)
-            }
-          }
-        }
       } else {
-        // 🎯 新增模式：添加新分类
-        const newId = `cat_${Date.now()}`
-        categories.push({
-          id: newId,
-          _id: newId,
+        // ✅ 新增模式：创建云端分类
+        result = await cloudAPI.createCategory({
           name: name.trim(),
-          sort: sort || categories.length + 1,
+          sort: sort || 0,
           parentId: parentId || '',
           icon: icon || '📦',
-          status: status || 'active',
-          createTime: new Date().toISOString()
+          status: status || 'active'
         })
       }
       
-      wx.setStorageSync('product_categories', categories)
       wx.hideLoading()
-      wx.showToast({ 
-        title: this.data.isEdit ? '修改成功' : '添加成功', 
-        icon: 'success' 
-      })
-      this.closeModal()
-      this.loadCategories()
+      
+      if (result && result.success) {
+        wx.showToast({ 
+          title: this.data.isEdit ? '修改成功' : '添加成功', 
+          icon: 'success' 
+        })
+        this.closeModal()
+        this.loadCategories()
+      } else {
+        throw new Error(result?.message || '操作失败')
+      }
     } catch (error) {
       wx.hideLoading()
       console.error('保存分类失败', error)
-      wx.showToast({ title: '保存失败', icon: 'none' })
+      wx.showToast({ title: error.message || '保存失败', icon: 'none' })
     }
   },
 

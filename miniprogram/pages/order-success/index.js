@@ -622,7 +622,7 @@ Page({
       })
     } else {
       // ✅ 云端成功，不写本地
-      console.log('✅ 订单已保存至云数据库:', cloudResult.data.id)
+      console.log('✅ 订单已保存至云数据库:', cloudResult.data.orderId)
       console.log('ℹ️ 生产模式：不写入本地存储，所有数据从云端读取')
     }
   },
