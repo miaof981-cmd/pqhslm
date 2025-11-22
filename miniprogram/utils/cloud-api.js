@@ -915,6 +915,38 @@ class CloudAPI {
     })
   }
 
+  /**
+   * 上传工作人员二维码
+   */
+  async uploadStaffQRCode(fileID, cloudPath) {
+    return await this.callFunction('systemManager', {
+      action: 'uploadStaffQRCode',
+      fileID,
+      cloudPath
+    })
+  }
+
+  /**
+   * 上传售后二维码
+   */
+  async uploadServiceQRCode(fileID, cloudPath) {
+    return await this.callFunction('systemManager', {
+      action: 'uploadServiceQRCode',
+      fileID,
+      cloudPath
+    })
+  }
+
+  /**
+   * 原有的更新系统设置方法（保留兼容）
+   */
+  async updateSystemSettings(settings) {
+    return await this.callFunction('systemManager', {
+      action: 'updateSystemSettings',
+      settings
+    })
+  }
+
   // ==================== 购物车模块 ====================
 
   /**
