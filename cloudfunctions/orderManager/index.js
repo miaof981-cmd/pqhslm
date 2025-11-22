@@ -59,7 +59,8 @@ async function createOrder(openid, event) {
     artistId,
     artistName,
     artistAvatar,
-    notes
+    notes,
+    clientOrderNo
   } = event
 
   // 获取当前用户信息
@@ -98,6 +99,7 @@ async function createOrder(openid, event) {
   const order = {
     id: orderId,
     orderNumber: orderId,
+    clientOrderNo: clientOrderNo || '',
     
     // 商品信息
     productId,
@@ -158,7 +160,7 @@ async function createOrder(openid, event) {
 
   return {
     success: true,
-    data: { orderId },
+    data: { orderId, clientOrderNo: clientOrderNo || '' },
     message: '订单创建成功'
   }
 }

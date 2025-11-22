@@ -23,5 +23,10 @@
     "include": []
   },
   "appid": "wxf7ea9223885b32a3",
-  "editorSetting": {}
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  },
+  "srcMiniprogramRoot": "miniprogram/",
+  "condition": {}
 }

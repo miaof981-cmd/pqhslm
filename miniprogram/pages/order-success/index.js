@@ -3,6 +3,8 @@ const { ensureRenderableImage, DEFAULT_PLACEHOLDER } = require('../../utils/imag
 const categoryService = require('../../utils/category-service.js')
 const productSales = require('../../utils/product-sales.js')
 const { resolveServiceQRCode } = require('../../utils/qrcode-helper.js')  // 🎯 新增
+const cloudAPI = require('../../utils/cloud-api.js')
+const envConfig = require('../../config/env.js')
 
 Page({
   data: {
@@ -167,11 +169,14 @@ Page({
     })
     
     // 从URL参数获取订单信息（需要解码）
+    const decodedProductImage = decodeURIComponent(options.productImage || '')
+
     const orderInfo = {
       orderNo: this.generateOrderNo(),
       productId: options.productId || '',
       productName: decodeURIComponent(options.productName || '商品'),
-      productImage: decodeURIComponent(options.productImage || ''),
+      productImage: decodedProductImage,
+      originalProductImage: decodedProductImage,
       spec1: decodeURIComponent(options.spec1 || ''),
       spec2: decodeURIComponent(options.spec2 || ''),
       quantity: parseInt(options.quantity) || 1,
@@ -278,7 +283,10 @@ Page({
     console.log('- 客服名:', serviceInfo.serviceName)
     console.log('- 客服头像:', serviceInfo.serviceAvatar ? '有' : '无')
     console.log('- 客服二维码:', serviceQR ? '有 (' + (serviceQR.imageUrl ? '图片' : '空') + ')' : '无')
-    
+
+    // 记录客户端生成的订单号，便于和云端对齐
+    orderInfo.clientOrderNo = orderInfo.orderNo
+
     this.setData({
       orderInfo: orderInfo,
       orderItems: orderItems,
@@ -286,9 +294,9 @@ Page({
       serviceQR: serviceQR,
       servicePending: isPlaceholderService
     })
-    
-    // ✅ 自动保存订单到本地存储（包含客服信息）
-    this.saveOrderToLocal(orderInfo, serviceInfo, orderItems)
+
+    // ✅ 统一持久化逻辑：优先写入云端，失败后保留本地兜底
+    await this.persistOrder(orderInfo, serviceInfo, orderItems)
 
     // 禁止用户返回（可选）
     // wx.hideHomeButton() // 隐藏返回首页按钮
@@ -576,8 +584,40 @@ Page({
     })
   },
   
+  async persistOrder(orderInfo, serviceInfo, orderItems = []) {
+    const clientOrderNo = orderInfo.clientOrderNo || orderInfo.orderNo
+    let cloudResult = { success: false, skipped: false }
+
+    try {
+      cloudResult = await this.createOrderInCloud(orderInfo, orderItems)
+    } catch (error) {
+      console.error('❌ 云端订单创建异常:', error)
+      cloudResult = { success: false, skipped: false, message: error.message }
+    }
+
+    if (cloudResult.success && cloudResult.data && cloudResult.data.orderId) {
+      const cloudOrderId = cloudResult.data.orderId
+      orderInfo.cloudOrderId = cloudOrderId
+      orderInfo.orderNo = cloudOrderId
+      this.setData({ 'orderInfo.orderNo': cloudOrderId })
+      console.log('✅ 云端订单号同步完成:', cloudOrderId)
+    } else if (!cloudResult.success && !cloudResult.skipped) {
+      wx.showToast({ title: '订单已暂存，云端同步失败', icon: 'none' })
+      console.warn('⚠️ 云端订单创建失败，已保留客户端订单号:', clientOrderNo)
+    } else if (cloudResult.skipped) {
+      console.log('ℹ️ 当前为 mock/降级模式，跳过云端下单')
+    }
+
+    this.saveOrderToLocal(orderInfo, serviceInfo, orderItems, {
+      clientOrderNo,
+      cloudSynced: Boolean(cloudResult.success && !cloudResult.skipped),
+      cloudOrderId: orderInfo.cloudOrderId || '',
+      cloudError: cloudResult.message
+    })
+  },
+
   // 自动保存订单到本地存储
-  saveOrderToLocal(orderInfo, serviceInfo, orderItems = []) {
+  saveOrderToLocal(orderInfo, serviceInfo, orderItems = [], options = {}) {
     console.log(
       '[order-success] 保存订单',
       {
@@ -586,49 +626,43 @@ Page({
         serviceName: serviceInfo?.serviceName
       }
     )
-    
+
     console.log('========================================')
     console.log('💾 订单自动保存 - 开始')
     console.log('========================================')
-    
+
     try {
       let pendingOrders = wx.getStorageSync('pending_orders') || []
       console.log('当前订单数量:', pendingOrders.length)
-      
+
       // 检查是否已存在相同订单号（避免重复保存）
       const existingIndex = pendingOrders.findIndex(o => o.id === orderInfo.orderNo)
-      
+
       // ✅ 引入用户工具模块（方案3：创建兜底）
       const userHelper = require('../../utils/user-helper.js')
-      
+
       // 获取当前用户信息
       const userInfo = wx.getStorageSync('userInfo') || {}
-      
+
       // 🎯 多层兜底获取 userId
       let userId = wx.getStorageSync('userId')
       const { userId: finalUserId, isGuest } = userHelper.getOrCreateUserId(userId)
       userId = finalUserId
-      
+
       console.log('📱 获取用户信息:')
       console.log('- 昵称:', userInfo.nickName)
       console.log('- 头像:', userInfo.avatarUrl ? '已设置' : '未设置')
       console.log('- 用户ID:', userId)
       console.log('- 是否游客:', isGuest ? '是 ⚠️' : '否 ✅')
-      
-      // 构建订单数据
-      const primaryItem = orderItems[0] || {}
-      const specSummary = primaryItem.specText || (orderInfo.spec1 || orderInfo.spec2
-        ? `${orderInfo.spec1 || ''}${orderInfo.spec2 ? ' / ' + orderInfo.spec2 : ''}`
-        : '')
+
+      const { specSummary } = this.buildSpecPayload(orderInfo, orderItems)
 
       const newOrder = {
         id: orderInfo.orderNo,
         productId: orderInfo.productId,
         productName: orderInfo.productName,
-        // ⚠️ 不保存 base64 图片，避免 setData 数据量过大
-        // 页面显示时通过 productId 从商品表动态读取
-        productImage: orderInfo.productImage && !orderInfo.productImage.startsWith('data:image') 
-          ? orderInfo.productImage 
+        productImage: orderInfo.productImage && !orderInfo.productImage.startsWith('data:image')
+          ? orderInfo.productImage
           : '',
         spec: specSummary || '无',
         price: Number(orderInfo.totalAmount),
@@ -636,57 +670,44 @@ Page({
         deliveryDays: orderInfo.deliveryDays,
         items: orderItems,
         totalAmount: Number(orderInfo.totalAmount),
-        
-        // ✅ 时间字段（多个字段确保兼容性）
+
         createTime: orderInfo.createTime,
-        startDate: orderInfo.createTime,  // 新增：用于进度条计算
-        createdAt: orderInfo.createTime,  // 新增：备用字段
+        startDate: orderInfo.createTime,
+        createdAt: orderInfo.createTime,
         deadline: orderInfo.deadline,
-        
+
         status: 'inProgress',
-        
-        // ✅ 保存下单者信息（ID统一为string类型）
+
         buyerId: String(userId),
         buyerName: userInfo.nickName || '客户',
         buyerAvatar: userInfo.avatarUrl || '',
         buyerOpenId: userInfo.openid || '',
-        
-        // ✅ 保存画师完整信息（ID统一为string类型）
+
         artistId: String(orderInfo.artistId || ''),
         artistName: orderInfo.artistName,
         artistAvatar: orderInfo.artistAvatar || '',
-        
-        // ✅ 保存客服信息（已分配，ID统一为string类型）
+
         serviceId: String(serviceInfo.serviceId || ''),
         serviceName: serviceInfo.serviceName,
         serviceAvatar: serviceInfo.serviceAvatar,
         serviceQrcodeUrl: serviceInfo.serviceQrcodeUrl,
-      serviceQrcodeNumber: serviceInfo.serviceQrcodeNumber,
-      serviceStatus: serviceInfo.isPlaceholder ? 'pending' : 'assigned',
-      needsService: serviceInfo.isPlaceholder ? true : false
+        serviceQrcodeNumber: serviceInfo.serviceQrcodeNumber,
+        serviceStatus: serviceInfo.isPlaceholder ? 'pending' : 'assigned',
+        needsService: serviceInfo.isPlaceholder ? true : false,
+
+        clientOrderNo: options.clientOrderNo || orderInfo.clientOrderNo || orderInfo.orderNo,
+        cloudOrderId: options.cloudOrderId || orderInfo.cloudOrderId || '',
+        cloudSyncStatus: options.cloudSynced ? 'synced' : 'pending'
       }
-      
+
       console.log('[order-success] newOrder.service', {
         id: newOrder.serviceId,
         name: newOrder.serviceName,
         avatar: newOrder.serviceAvatar?.slice(0, 80)
       })
-      
-      // 🎯 最终验证：6个字段必须完整且有效
-      console.log('========================================')
-      console.log('🔍 订单落库前最终验证')
-      console.log('========================================')
-      console.log('artistId:', newOrder.artistId)
-      console.log('artistName:', newOrder.artistName)
-      console.log('artistAvatar:', newOrder.artistAvatar ? newOrder.artistAvatar.substring(0, 60) + '...' : '❌ 空')
-      console.log('serviceId:', newOrder.serviceId)
-      console.log('serviceName:', newOrder.serviceName)
-      console.log('serviceAvatar:', newOrder.serviceAvatar ? newOrder.serviceAvatar.substring(0, 60) + '...' : '❌ 空')
-      console.log('serviceStatus:', newOrder.serviceStatus)
-      
+
       const serviceAssigned = !serviceInfo?.isPlaceholder
-      
-      // ⚠️ 验证必填字段
+
       const requiredFields = [
         { name: 'artistId', value: newOrder.artistId },
         { name: 'artistName', value: newOrder.artistName },
@@ -699,12 +720,11 @@ Page({
           { name: 'serviceAvatar', value: newOrder.serviceAvatar }
         )
       }
-      
+
       const missingFields = requiredFields.filter(f => !f.value)
       if (missingFields.length > 0) {
         console.error('❌ 订单缺少必填字段:', missingFields.map(f => f.name).join(', '))
-        
-        // 🔧 特别记录 artistId 缺失（但不阻止下单，因为这是数据问题不是用户问题）
+
         if (missingFields.some(f => f.name === 'artistId')) {
           console.error('🚨 [严重] artistId 为空，画师端将无法看到此订单！')
           console.error('商品信息:', {
@@ -714,12 +734,11 @@ Page({
           })
           console.error('⚠️ 这是商品数据问题，请检查商品发布时是否正确绑定了画师ID')
         }
-        
+
         wx.showToast({ title: '订单信息不完整', icon: 'none' })
         return
       }
-      
-      // ⚠️ 验证头像路径
+
       if (newOrder.artistAvatar.startsWith('http://tmp/') || newOrder.artistAvatar.startsWith('/assets/')) {
         console.error('❌ 画师头像是临时路径:', newOrder.artistAvatar)
         wx.showToast({ title: '画师头像无效', icon: 'none' })
@@ -730,18 +749,15 @@ Page({
         wx.showToast({ title: '客服头像无效', icon: 'none' })
         return
       }
-      
+
       console.log('✅ 订单验证通过，准备保存')
       console.log('========================================')
-      
-      // 🎯 新增：下单时扣减库存
+
       if (existingIndex === -1) {
-        // 只有新订单才扣减库存，避免重复扣减
         const stockResult = productSales.decreaseStock(orderInfo.productId, orderInfo.quantity)
         if (!stockResult.success) {
           console.error('❌ 库存扣减失败:', stockResult.message)
           wx.showToast({ title: stockResult.message, icon: 'none', duration: 2000 })
-          // 库存不足，不继续保存订单
           if (stockResult.message.includes('库存不足')) {
             return
           }
@@ -749,28 +765,20 @@ Page({
           console.log('✅ 库存扣减成功，剩余库存:', stockResult.remainingStock === Infinity ? '无限' : stockResult.remainingStock)
         }
       }
-      
-      let isNewOrder = false
 
       if (existingIndex !== -1) {
         console.log('⚠️ 订单已存在，进行合并更新')
         pendingOrders[existingIndex] = orderHelper.mergeOrderRecords(pendingOrders[existingIndex], newOrder)
       } else {
         pendingOrders.push(newOrder)
-        isNewOrder = true
       }
-      
-      // ✅ 只保存到pending_orders（避免重复写入）
-      // 订单完成后会自动移入completed_orders，不需要同时写入orders
+
       wx.setStorageSync('pending_orders', pendingOrders)
-     
-     // 验证保存
+
       const savedPending = wx.getStorageSync('pending_orders') || []
       const savedAll = orderHelper.getAllOrders()
-      // ❌ 已移除：下单时增加销量的错误逻辑
-      // 销量应在订单完成时更新，而非下单时
-     
-     console.log('========================================')
+
+      console.log('========================================')
       console.log('✅ 订单保存成功！')
       console.log('========================================')
       console.log('订单号:', orderInfo.orderNo)
@@ -780,7 +788,7 @@ Page({
       console.log('聚合后订单池总数:', savedAll.length)
       console.log('验证: 订单已在 pending_orders 中')
       console.log('========================================')
-      
+
     } catch (error) {
       console.log('========================================')
       console.error('❌ 订单保存失败！')
@@ -788,13 +796,96 @@ Page({
       console.error('错误信息:', error)
       console.log('========================================')
     } finally {
-      // 🎯 清除用户中心订单数量缓存，确保下次加载时显示最新数据
       const userId = wx.getStorageSync('userId')
       if (userId) {
         wx.removeStorageSync(`processing_count_${userId}`)
         console.log('✅ 已清除订单数量缓存，下次进入用户中心将显示最新数据')
       }
     }
+  },
+
+  buildSpecPayload(orderInfo, orderItems = []) {
+    const primaryItem = orderItems[0] || {}
+    const specSummary = primaryItem.specText || (orderInfo.spec1 || orderInfo.spec2
+      ? `${orderInfo.spec1 || ''}${orderInfo.spec2 ? ' / ' + orderInfo.spec2 : ''}`
+      : '')
+
+    const specsPayload = orderItems.map(item => {
+      const safeUnitPrice = Number(item.unitPrice != null ? item.unitPrice : item.price || 0)
+      const quantity = Number(item.quantity) || 1
+      return {
+        productId: item.productId || orderInfo.productId || '',
+        spec1: item.spec1 || '',
+        spec2: item.spec2 || '',
+        specText: item.specText || specSummary || '',
+        quantity,
+        unitPrice: Number(safeUnitPrice.toFixed(2)),
+        totalPrice: Number((item.totalPrice != null ? item.totalPrice : safeUnitPrice * quantity).toFixed(2)),
+        deliveryDays: item.deliveryDays || orderInfo.deliveryDays || 0
+      }
+    })
+
+    return {
+      specSummary: specSummary || '无',
+      specsPayload
+    }
+  },
+
+  getCloudProductImage(orderInfo, orderItems = []) {
+    const candidates = []
+    const pushCandidate = (value) => {
+      if (!value || typeof value !== 'string') return
+      const trimmed = value.trim()
+      if (!trimmed || trimmed.startsWith('data:image')) return
+      candidates.push(trimmed)
+    }
+
+    pushCandidate(orderInfo.originalProductImage)
+    if (Array.isArray(orderInfo.productImages)) {
+      orderInfo.productImages.forEach(pushCandidate)
+    }
+    orderItems.forEach(item => pushCandidate(item.productImage))
+    pushCandidate(orderInfo.productImage)
+
+    return candidates[0] || ''
+  },
+
+  async createOrderInCloud(orderInfo, orderItems = []) {
+    if (envConfig.useMockData || envConfig.emergencyFallback) {
+      return { success: true, skipped: true, message: 'mock 模式下跳过云端下单' }
+    }
+
+    const { specSummary, specsPayload } = this.buildSpecPayload(orderInfo, orderItems)
+
+    const payload = {
+      productId: orderInfo.productId,
+      productName: orderInfo.productName,
+      productImage: this.getCloudProductImage(orderInfo, orderItems),
+      spec: specSummary,
+      specs: specsPayload,
+      quantity: orderInfo.quantity,
+      price: Number(orderInfo.price || orderInfo.totalAmount || 0),
+      totalAmount: Number(orderInfo.totalAmount || 0),
+      deadline: orderInfo.deadline,
+      deliveryDays: orderInfo.deliveryDays,
+      artistId: orderInfo.artistId,
+      artistName: orderInfo.artistName,
+      artistAvatar: orderInfo.artistAvatar,
+      notes: orderInfo.notes || '',
+      clientOrderNo: orderInfo.clientOrderNo || orderInfo.orderNo
+    }
+
+    console.log('📡 正在同步订单到云数据库:', payload)
+
+    const res = await cloudAPI.createOrder(payload)
+    if (!res || !res.success) {
+      const message = res?.message || '云端创建订单失败'
+      console.error('❌ 云端订单创建失败:', message, res)
+      return { success: false, message }
+    }
+
+    console.log('✅ 云端订单创建成功:', res.data)
+    return { success: true, data: res.data }
   },
 
   // ❌ 已废弃：销量应在订单完成时更新，使用 utils/product-sales.js
