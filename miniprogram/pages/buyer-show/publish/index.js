@@ -9,7 +9,7 @@ Page({
     maxImages: 6
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     const orderId = options.orderId
     if (!orderId) {
       wx.showToast({
@@ -32,10 +32,10 @@ Page({
       productImage
     })
 
-    this.ensureOrderCanPublish({ orderId, status })
+    await this.ensureOrderCanPublish({ orderId, status })
   },
 
-  ensureOrderCanPublish({ orderId, status }) {
+  async ensureOrderCanPublish({ orderId, status }) {
     const storageKeys = ['orders', 'pending_orders', 'completed_orders']
     let targetOrder = null
 

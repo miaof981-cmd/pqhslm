@@ -1,0 +1,388 @@
+{
+  "scannedFiles": 35,
+  "fixedFiles": 21,
+  "totalFixes": 46,
+  "details": [
+    {
+      "file": "miniprogram/pages/admin/index.js",
+      "fixes": [
+        {
+          "line": 338,
+          "function": "if",
+          "before": "if (user && user.userId) {",
+          "after": "async if (user && user.userId) {"
+        },
+        {
+          "line": 506,
+          "function": "if",
+          "before": "if (!userId) {",
+          "after": "async if (!userId) {"
+        },
+        {
+          "line": 536,
+          "function": "if",
+          "before": "if (!this.data.orderLoading) {",
+          "after": "async if (!this.data.orderLoading) {"
+        },
+        {
+          "line": 1145,
+          "function": "if",
+          "before": "if (staff && staff.isActive !== false) {",
+          "after": "async if (staff && staff.isActive !== false) {"
+        },
+        {
+          "line": 1414,
+          "function": "if",
+          "before": "if (res.confirm) {",
+          "after": "async if (res.confirm) {"
+        },
+        {
+          "line": 1453,
+          "function": "if",
+          "before": "if (res.confirm) {",
+          "after": "async if (res.confirm) {"
+        },
+        {
+          "line": 1825,
+          "function": "if",
+          "before": "if (res.confirm) {",
+          "after": "async if (res.confirm) {"
+        },
+        {
+          "line": 1909,
+          "function": "if",
+          "before": "if (res.confirm) {",
+          "after": "async if (res.confirm) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/withdraw/index.js",
+      "fixes": [
+        {
+          "line": 419,
+          "function": "if",
+          "before": "if (bankCard.length < 16) {",
+          "after": "async if (bankCard.length < 16) {"
+        },
+        {
+          "line": 535,
+          "function": "if",
+          "before": "if (!myVerify || myVerify.status !== 'verified') {",
+          "after": "async if (!myVerify || myVerify.status !== 'verified') {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/category-manage/index.js",
+      "fixes": [
+        {
+          "line": 79,
+          "function": "for",
+          "before": "for (const cat of defaultCategories) {",
+          "after": "async for (const cat of defaultCategories) {"
+        },
+        {
+          "line": 175,
+          "function": "if",
+          "before": "if (res.confirm) {",
+          "after": "async if (res.confirm) {"
+        },
+        {
+          "line": 210,
+          "function": "if",
+          "before": "if (res.confirm) {",
+          "after": "async if (res.confirm) {"
+        },
+        {
+          "line": 286,
+          "function": "if",
+          "before": "if (this.data.isEdit) {",
+          "after": "async if (this.data.isEdit) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/order-success/index.js",
+      "fixes": [
+        {
+          "line": 27,
+          "function": "if",
+          "before": "if (options.productId) {",
+          "after": "async if (options.productId) {"
+        },
+        {
+          "line": 81,
+          "function": "if",
+          "before": "if (artistResolution.missingFields && artistResolution.missingFields.length > 0) {",
+          "after": "async if (artistResolution.missingFields && artistResolution.missingFields.length > 0) {"
+        },
+        {
+          "line": 270,
+          "function": "if",
+          "before": "if (qrResult.value) {",
+          "after": "async if (qrResult.value) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/service-qr-manage/index.js",
+      "fixes": [
+        {
+          "line": 149,
+          "function": "if",
+          "before": "if (res.tempFilePaths && res.tempFilePaths.length > 0) {",
+          "after": "async if (res.tempFilePaths && res.tempFilePaths.length > 0) {"
+        },
+        {
+          "line": 176,
+          "function": "if",
+          "before": "if (res.tempFilePaths && res.tempFilePaths.length > 0) {",
+          "after": "async if (res.tempFilePaths && res.tempFilePaths.length > 0) {"
+        },
+        {
+          "line": 377,
+          "function": "if",
+          "before": "if (!currentService || !currentService.qrcodeUrl) {",
+          "after": "async if (!currentService || !currentService.qrcodeUrl) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/home/index.js",
+      "fixes": [
+        {
+          "line": 490,
+          "function": "if",
+          "before": "if (type === 'single') {",
+          "after": "async if (type === 'single') {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/user-center/index.js",
+      "fixes": [
+        {
+          "line": 117,
+          "function": "if",
+          "before": "if (!roles || roles.length === 0) {",
+          "after": "async if (!roles || roles.length === 0) {"
+        },
+        {
+          "line": 292,
+          "function": "if",
+          "before": "if (!newName) {",
+          "after": "async if (!newName) {"
+        },
+        {
+          "line": 368,
+          "function": "if",
+          "before": "if (result.success) {",
+          "after": "async if (result.success) {"
+        },
+        {
+          "line": 444,
+          "function": "if",
+          "before": "if (isArtist) {",
+          "after": "async if (isArtist) {"
+        },
+        {
+          "line": 582,
+          "function": "if",
+          "before": "if (!userId) {",
+          "after": "async if (!userId) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/product-edit/index.js",
+      "fixes": [
+        {
+          "line": 1620,
+          "function": "if",
+          "before": "if (this.data.isEdit) {",
+          "after": "async if (this.data.isEdit) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/artist-products-manage/index.js",
+      "fixes": [
+        {
+          "line": 237,
+          "function": "if",
+          "before": "if (res.confirm) {",
+          "after": "async if (res.confirm) {"
+        },
+        {
+          "line": 286,
+          "function": "if",
+          "before": "if (res.confirm) {",
+          "after": "async if (res.confirm) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/artist-detail/index.js",
+      "fixes": [
+        {
+          "line": 92,
+          "function": "if",
+          "before": "if (artistId == currentUserId && wxUserInfo.avatarUrl) {",
+          "after": "async if (artistId == currentUserId && wxUserInfo.avatarUrl) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/artist-application-detail/index.js",
+      "fixes": [
+        {
+          "line": 90,
+          "function": "if",
+          "before": "if (res.confirm) {",
+          "after": "async if (res.confirm) {"
+        },
+        {
+          "line": 104,
+          "function": "if",
+          "before": "if (application.userId === currentUserId) {",
+          "after": "async if (application.userId === currentUserId) {"
+        },
+        {
+          "line": 146,
+          "function": "if",
+          "before": "if (res.confirm) {",
+          "after": "async if (res.confirm) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/review-manage/index.js",
+      "fixes": [
+        {
+          "line": 215,
+          "function": "if",
+          "before": "if (artistUserId === currentUserId) {",
+          "after": "async if (artistUserId === currentUserId) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/report/index.js",
+      "fixes": [
+        {
+          "line": 104,
+          "function": "if",
+          "before": "if (!dateRange) {",
+          "after": "async if (!dateRange) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/buyer-show/publish/index.js",
+      "fixes": [
+        {
+          "line": 83,
+          "function": "if",
+          "before": "if (targetOrder) {",
+          "after": "async if (targetOrder) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/product-detail/index.js",
+      "fixes": [
+        {
+          "line": 162,
+          "function": "if",
+          "before": "if (artistNumber) {",
+          "after": "async if (artistNumber) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/reward-records/index.js",
+      "fixes": [
+        {
+          "line": 136,
+          "function": "if",
+          "before": "if (userKey) {",
+          "after": "async if (userKey) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/order-detail/index.js",
+      "fixes": [
+        {
+          "line": 397,
+          "function": "doRequestRefund",
+          "before": "doRequestRefund(order) {",
+          "after": "async doRequestRefund(order) {"
+        },
+        {
+          "line": 510,
+          "function": "if",
+          "before": "if (modalRes.confirm) {",
+          "after": "async if (modalRes.confirm) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/order-list/index.js",
+      "fixes": [
+        {
+          "line": 413,
+          "function": "if",
+          "before": "if (modalRes.confirm) {",
+          "after": "async if (modalRes.confirm) {"
+        },
+        {
+          "line": 558,
+          "function": "if",
+          "before": "if (modalRes.confirm) {",
+          "after": "async if (modalRes.confirm) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/product-manage/index.js",
+      "fixes": [
+        {
+          "line": 157,
+          "function": "if",
+          "before": "if (res.confirm) {",
+          "after": "async if (res.confirm) {"
+        },
+        {
+          "line": 202,
+          "function": "if",
+          "before": "if (res.confirm) {",
+          "after": "async if (res.confirm) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/apply/index.js",
+      "fixes": [
+        {
+          "line": 284,
+          "function": "if",
+          "before": "if (!userInfo) {",
+          "after": "async if (!userInfo) {"
+        }
+      ]
+    },
+    {
+      "file": "miniprogram/pages/banner-manage/index.js",
+      "fixes": [
+        {
+          "line": 84,
+          "function": "if",
+          "before": "if (res.confirm) {",
+          "after": "async if (res.confirm) {"
+        }
+      ]
+    }
+  ]
+}
