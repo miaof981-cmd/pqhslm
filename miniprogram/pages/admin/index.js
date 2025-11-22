@@ -117,7 +117,18 @@ Page({
   },
 
   onLoad() {
-    this.checkPermission()
+    try {
+      console.log('📱 管理后台 onLoad 开始')
+      this.checkPermission()
+      console.log('✅ 管理后台 onLoad 完成')
+    } catch (error) {
+      console.error('❌ 管理后台 onLoad 失败:', error)
+      wx.showToast({
+        title: `初始化失败: ${error.message}`,
+        icon: 'none',
+        duration: 5000
+      })
+    }
   },
 
   onShow() {
@@ -175,7 +186,8 @@ Page({
     this.setData({ loading: true })
     
     // ✅ 云端化：从云数据库读取真实数据
-    const allOrders = orderHelper.getAllOrders()
+    const ordersRes = await cloudAPI.getOrderList({ pageSize: 10000 })
+    const allOrders = cloudAPI.safeArray(ordersRes)
     
     // ✅ 从云端读取画师申请数据
     const appRes = await cloudAPI.getArtistApplicationList({ pageSize: 1000 })
@@ -710,7 +722,8 @@ Page({
     // ✅ 云端化：读取所有商品和订单，用于统计画师数据
     const productRes = await cloudAPI.getProductList({ pageSize: 1000 })
     const allProducts = productRes.success && productRes.data ? productRes.data.list || [] : []
-    const allOrders = orderHelper.getAllOrders()
+    const ordersRes = await cloudAPI.getOrderList({ pageSize: 10000 })
+    const allOrders = cloudAPI.safeArray(ordersRes)
     
     // ✅ 云端化：批量获取所有画师档案
     const profilePromises = approvedApplications.map(app => 
@@ -879,7 +892,9 @@ Page({
     // 🎯 生成画师排行榜数据（根据rankingType动态排序）
     this.setData({
       artists: artists,
-      artistPerformance: performance
+      artistPerformance: performance,
+      allOrders: allOrders,  // ✅ 存储订单数据供排行榜使用
+      allProducts: allProducts  // ✅ 存储商品数据供排行榜使用
     }, () => {
       // 在 setData 完成后生成排行榜
       this.generateArtistRanking()
@@ -906,15 +921,15 @@ Page({
       case 'rate':
         // 按完成率排序（计算已完成订单 / 总订单）
         ranking = ranking.map(artist => {
-          const allOrders = orderHelper.getAllOrders()
+          const allOrders = this.data.allOrders || []
           // ✅ 云端化：商品数据已在函数开头获取，直接使用
-          const allProductsForRanking = allProducts
+          const allProductsForRanking = this.data.allProducts || []
           
           // 🎯 使用同样的多重匹配策略
           const artistOrders = allOrders.filter(o => {
             if (o.artistId && String(o.artistId) === String(artist.userId)) return true
             if (o.productId) {
-              const orderProduct = allProducts.find(p => String(p.id) === String(o.productId))
+              const orderProduct = allProductsForRanking.find(p => String(p.id) === String(o.productId))
               if (orderProduct && String(orderProduct.artistId) === String(artist.userId)) return true
             }
             if (o.artistName && o.artistName === artist.name) return true
@@ -1608,7 +1623,7 @@ Page({
   },
 
   // 发起退款（管理员/客服）
-  initiateRefund(e) {
+  async initiateRefund(e) {
     const orderId = e.currentTarget.dataset.id
     
     // 🎯 防止重复点击
@@ -1620,9 +1635,9 @@ Page({
       return
     }
     
-    // 查找订单获取金额
-    const allOrders = orderHelper.getAllOrders()
-    const order = allOrders.find(o => o.id === orderId)
+    // ✅ 从云端查找订单获取金额
+    const ordersRes = await cloudAPI.getOrderDetail(orderId)
+    const order = ordersRes.success && ordersRes.data ? ordersRes.data : null
     
     if (!order) {
       wx.showToast({
