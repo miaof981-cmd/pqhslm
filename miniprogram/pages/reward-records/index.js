@@ -386,7 +386,6 @@ Page({
     const now = Date.now()
     
     // ✅ 从云端获取订单信息以获取 artistId
-    const cloudAPI = require('../../utils/cloud-api.js')
     const orderRes = await cloudAPI.getOrderList({ orderId: order.id })
     const fullOrder = orderRes.success && orderRes.data && orderRes.data.list && orderRes.data.list.length > 0 
       ? orderRes.data.list[0] 
