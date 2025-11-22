@@ -108,8 +108,9 @@ Page({
         orderMap.set(String(order.id), { ...order })
       })
 
-      // 合并已完成订单的额外信息，确保 30 天前的数据也能显示
-      const completedOrdersRaw = wx.getStorageSync('completed_orders') || []
+      // ✅ 从云端获取已完成订单的额外信息，确保 30 天前的数据也能显示
+      const completedRes = await cloudAPI.getOrderList({ status: 'completed', pageSize: 500 })
+      const completedOrdersRaw = completedRes.success && completedRes.data ? completedRes.data.list : []
       const normalizedCompleted = orderHelper.normalizeOrders(completedOrdersRaw)
       normalizedCompleted.forEach(order => {
         if (!order || !order.id) return
@@ -140,8 +141,9 @@ Page({
         })
       }
 
-      // 🎯 修复画师头像：从商品信息和用户信息中获取正确的头像
-      const products = wx.getStorageSync('mock_products') || []
+      // ✅ 从云端获取商品信息
+      const productsRes = await cloudAPI.getProductList({ pageSize: 500 })
+      const products = productsRes.success && productsRes.data ? productsRes.data.list : []
       const productMap = new Map()
       products.forEach(p => {
         if (p.id) productMap.set(String(p.id), p)
@@ -154,8 +156,9 @@ Page({
         if (s.userId) userInfoMap.set(String(s.userId), s)
       })
 
-      // 从 artist_applications 获取画师头像
-      const artistApps = wx.getStorageSync('artist_applications') || []
+      // ✅ 从云端获取画师申请信息
+      const artistAppsRes = await cloudAPI.getArtistApplications()
+      const artistApps = artistAppsRes.success && artistAppsRes.data ? artistAppsRes.data : []
       const artistMap = new Map()
       artistApps.forEach(app => {
         if (app.userId) artistMap.set(String(app.userId), app)
@@ -382,12 +385,12 @@ Page({
     const cloudAPI = require('../../utils/cloud-api.js')
     const now = Date.now()
     
-    // 🎯 从订单中获取 artistId
-    const orders = wx.getStorageSync('orders') || []
-    const storedPendingOrders = wx.getStorageSync('pending_orders') || []
-    const completedOrders = wx.getStorageSync('completed_orders') || []
-    const allOrders = [...orders, ...storedPendingOrders, ...completedOrders]
-    const fullOrder = allOrders.find(o => String(o.id) === String(order.id))
+    // ✅ 从云端获取订单信息以获取 artistId
+    const cloudAPI = require('../../utils/cloud-api.js')
+    const orderRes = await cloudAPI.getOrderList({ orderId: order.id })
+    const fullOrder = orderRes.success && orderRes.data && orderRes.data.list && orderRes.data.list.length > 0 
+      ? orderRes.data.list[0] 
+      : order
     
     const record = {
       id: now,

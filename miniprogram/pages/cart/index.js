@@ -32,8 +32,10 @@ Page({
         cartItems = []
       }
       
-      // 获取所有商品数据，用于补充商品信息
-      const allProducts = wx.getStorageSync('mock_products') || []
+      // ✅ 从云端获取商品数据，用于补充商品信息
+      const cloudAPI = require('../../utils/cloud-api.js')
+      const productsRes = await cloudAPI.getProductList({ pageSize: 500 })
+      const allProducts = productsRes.success && productsRes.data ? productsRes.data.list : []
       
       // 补充商品信息（图片、名称等）
       cartItems = cartItems.map(cartItem => {
@@ -129,8 +131,10 @@ Page({
   // 加载推荐商品
   async loadRecommend() {
     try {
-      // 从本地存储读取商品数据
-      const allProducts = wx.getStorageSync('mock_products') || []
+      // ✅ 从云端读取商品数据
+      const cloudAPI = require('../../utils/cloud-api.js')
+      const productsRes = await cloudAPI.getProductList({ pageSize: 500 })
+      const allProducts = productsRes.success && productsRes.data ? productsRes.data.list : []
       
       // 过滤出上架的商品
       let onSaleProducts = allProducts.filter(p => p.isOnSale)

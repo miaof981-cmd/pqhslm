@@ -162,12 +162,12 @@ App({
       console.log('[app] ⚠️ 用户信息同步失败:', err)
     })
     
-    // ✅ 启动时修复订单中的头像数据（仅首次执行）
-    const migrated = wx.getStorageSync('avatar_migrated_v2')
-    if (!migrated) {
-      this.migrateOrderAvatars()
-      wx.setStorageSync('avatar_migrated_v2', true)
-    }
+    // ❌ 已废弃：订单数据迁移函数（严格云端模式下不再使用本地存储）
+    // const migrated = wx.getStorageSync('avatar_migrated_v2')
+    // if (!migrated) {
+    //   this.migrateOrderAvatars()
+    //   wx.setStorageSync('avatar_migrated_v2', true)
+    // }
     
     // ✅ 新增：检查画师申请状态，自动赋予权限
     this.checkArtistApplication()
@@ -333,7 +333,13 @@ App({
     return userRoles.includes(requiredRole)
   },
 
+  // ❌ 已废弃：订单数据迁移函数（严格云端模式下不再使用本地存储）
+  // 该函数用于一次性修复旧订单数据，现在所有数据都从云端读取，不再需要此迁移逻辑
   migrateOrderAvatars() {
+    console.warn('[app][migrate] ⚠️ 此函数已废弃，严格云端模式下不再执行本地迁移')
+    return
+    
+    /* 以下代码已注释
     try {
       const toKey = (value) => {
         if (value === undefined || value === null) return ''
@@ -458,6 +464,7 @@ App({
     } catch (error) {
       console.error('[app][migrate] 订单头像修复失败', error)
     }
+    */
   },
   
   // 检查是否有任一权限
@@ -472,32 +479,41 @@ App({
   },
 
   // ✅ 检查画师申请状态（仅用于显示，不自动赋权）
-  checkArtistApplication() {
+  async checkArtistApplication() {
     const userId = this.globalData.userId || wx.getStorageSync('userId')
     if (!userId) return
 
     console.log('🎨 检查画师申请状态...')
 
-    // 读取所有申请记录
-    const allApplications = wx.getStorageSync('artist_applications') || []
-    
-    // 查找当前用户的申请
-    const userApplications = allApplications.filter(app => app.userId === userId)
-    
-    if (userApplications.length > 0) {
-      // 按时间排序，取最新的
-      userApplications.sort((a, b) => new Date(b.submitTime) - new Date(a.submitTime))
-      const latestApp = userApplications[0]
+    try {
+      // ✅ 从云端读取当前用户的申请记录
+      const cloudAPI = require('./utils/cloud-api.js')
+      const res = await cloudAPI.getArtistApplications({ userId })
       
-      console.log('  - 最新申请状态:', latestApp.status)
-      
-      // ⚠️ 注意：申请通过后，需要管理员在后台手动开启权限
-      // 不再自动添加画师权限，避免未完成档案建立就获得权限
-      if (latestApp.status === 'approved') {
-        console.log('  ℹ️ 申请已通过，等待管理员开启权限')
+      if (!res.success) {
+        console.warn('  ⚠️ 获取申请记录失败:', res.error)
+        return
       }
-    } else {
-      console.log('  - 无申请记录')
+      
+      const userApplications = res.data || []
+      
+      if (userApplications.length > 0) {
+        // 按时间排序，取最新的
+        userApplications.sort((a, b) => new Date(b.submitTime) - new Date(a.submitTime))
+        const latestApp = userApplications[0]
+        
+        console.log('  - 最新申请状态:', latestApp.status)
+        
+        // ⚠️ 注意：申请通过后，需要管理员在后台手动开启权限
+        // 不再自动添加画师权限，避免未完成档案建立就获得权限
+        if (latestApp.status === 'approved') {
+          console.log('  ℹ️ 申请已通过，等待管理员开启权限')
+        }
+      } else {
+        console.log('  - 无申请记录')
+      }
+    } catch (error) {
+      console.error('  ❌ 检查申请状态异常:', error)
     }
   }
 })

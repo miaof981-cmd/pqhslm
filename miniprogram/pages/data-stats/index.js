@@ -183,8 +183,11 @@ Page({
     return Math.round((repurchaseCustomers / buyerCounter.size) * 100)
   },
 
-  calculateHotProducts(completedOrders) {
-    const productMap = wx.getStorageSync('mock_products') || []
+  async calculateHotProducts(completedOrders) {
+    // ✅ 从云端获取商品数据
+    const cloudAPI = require('../../utils/cloud-api.js')
+    const productsRes = await cloudAPI.getProductList({ pageSize: 500 })
+    const productMap = productsRes.success && productsRes.data ? productsRes.data.list : []
     const productIndex = new Map()
     productMap.forEach(product => {
       if (product && product.id) {

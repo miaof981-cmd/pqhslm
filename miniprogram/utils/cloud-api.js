@@ -242,6 +242,19 @@ class CloudAPI {
   // ==================== 画师申请模块 ====================
 
   /**
+   * 获取画师申请列表
+   * @param {Object} options - 查询选项
+   * @param {string} options.userId - 用户ID（可选，不传则返回所有申请）
+   * @param {string} options.status - 申请状态（可选，不传则返回所有状态）
+   */
+  async getArtistApplications(options = {}) {
+    return await this.callFunction('artistManager', {
+      action: 'getApplications',
+      ...options
+    })
+  }
+
+  /**
    * 提交画师申请
    */
   async applyArtist(applicationData) {
