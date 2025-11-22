@@ -20,8 +20,11 @@ exports.main = async (event, context) => {
   if (!type || !toUser || !data) {
     return {
       success: false,
-      errcode: -1,
-      errmsg: '参数不完整'
+      message: '参数不完整',
+      data: {
+        errcode: -1,
+        errmsg: '参数不完整'
+      }
     }
   }
   
@@ -95,9 +98,11 @@ exports.main = async (event, context) => {
     
     return {
       success: true,
-      errcode: result.errCode,
-      errmsg: result.errMsg,
-      msgid: result.msgId
+      data: {
+        errcode: result.errCode,
+        errmsg: result.errMsg,
+        msgid: result.msgId
+      }
     }
     
   } catch (err) {
@@ -123,8 +128,11 @@ exports.main = async (event, context) => {
     
     return {
       success: false,
-      errcode: err.errCode || -1,
-      errmsg: err.errMsg || err.message
+      message: err.errMsg || err.message,
+      data: {
+        errcode: err.errCode || -1,
+        errmsg: err.errMsg || err.message
+      }
     }
   }
 }
