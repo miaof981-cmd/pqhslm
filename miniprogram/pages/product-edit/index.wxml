@@ -403,7 +403,7 @@
               <view wx:for="{{formData.summaryImages}}" 
                     wx:key="index" 
                     class="upload-image-item">
-                <image src="{{item}}" mode="aspectFill" class="upload-image" />
+                <image wx:if="{{item}}" src="{{item}}" mode="aspectFill" class="upload-image" />
                 <view class="image-label">[图{{index + 1}}]</view>
                 <view class="delete-image-btn" data-index="{{index}}" catchtap="deleteSummaryImage">×</view>
               </view>

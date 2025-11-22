@@ -17,7 +17,7 @@
     <!-- 图片展示（紧跟文字） -->
     <view wx:if="{{post.images && post.images.length > 0}}" class="content-images">
       <block wx:for="{{post.images}}" wx:key="*this">
-        <image class="content-image" src="{{item}}" mode="widthFix" bindtap="previewImage" data-index="{{index}}" />
+        <image wx:if="{{item}}" class="content-image" src="{{item}}" mode="widthFix" bindtap="previewImage" data-index="{{index}}" />
       </block>
     </view>
 

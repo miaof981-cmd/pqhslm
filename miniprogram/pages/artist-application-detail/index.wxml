@@ -50,6 +50,7 @@
         <image 
           wx:for="{{application.finishedWorks}}" 
           wx:key="index"
+          wx:if="{{item}}"
           src="{{item}}" 
           class="work-image"
           mode="aspectFill"
@@ -67,6 +68,7 @@
         <image 
           wx:for="{{application.processImages}}" 
           wx:key="index"
+          wx:if="{{item}}"
           src="{{item}}" 
           class="work-image"
           mode="aspectFill"

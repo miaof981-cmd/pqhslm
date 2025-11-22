@@ -13,7 +13,7 @@
             autoplay="{{true}}"
             interval="{{3000}}">
       <swiper-item wx:for="{{product.images}}" wx:key="*this">
-        <image class="swiper-image" 
+        <image wx:if="{{item}}" class="swiper-image" 
                src="{{item}}" 
                mode="aspectFill" 
                data-current="{{item}}"

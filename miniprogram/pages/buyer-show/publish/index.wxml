@@ -21,7 +21,7 @@
     <view class="image-grid">
       <block wx:for="{{images}}" wx:key="*this">
         <view class="image-item">
-          <image class="preview" src="{{item}}" mode="aspectFill" />
+          <image wx:if="{{item}}" class="preview" src="{{item}}" mode="aspectFill" />
           <view class="remove" data-index="{{index}}" bindtap="removeImage">✕</view>
         </view>
       </block>

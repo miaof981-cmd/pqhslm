@@ -143,7 +143,7 @@
         <view class="upload-hint-top">请上传您最满意的作品，展示您的绘画风格和水平（至少4张，最多9张）</view>
         <view class="image-grid">
           <view wx:for="{{formData.finishedWorks}}" wx:key="*this" class="image-item">
-            <image src="{{item}}" mode="aspectFill" />
+            <image wx:if="{{item}}" src="{{item}}" mode="aspectFill" />
             <view class="delete-btn" data-type="finishedWorks" data-index="{{index}}" bindtap="deleteImage">
               <view class="delete-icon"></view>
             </view>
@@ -167,7 +167,7 @@
         <view class="upload-hint-top">请直接截图画面图层，证明作品原创性（至少1张，最多9张）</view>
         <view class="image-grid">
           <view wx:for="{{formData.processImages}}" wx:key="*this" class="image-item">
-            <image src="{{item}}" mode="aspectFill" />
+            <image wx:if="{{item}}" src="{{item}}" mode="aspectFill" />
             <view class="delete-btn" data-type="processImages" data-index="{{index}}" bindtap="deleteImage">
               <view class="delete-icon"></view>
             </view>
